@@ -45,4 +45,8 @@ public class PlayerConfig : ScriptableObject
 
     [Header("Collider Settings")]
     public Vector2 crouchSizeMultiplier = new Vector2(1.33f, 0.33f);
+    
+    [Header("Drop-Down Platform Settings")]
+    public float dropDownDisableTime = 0.2f;
+    public LayerMask platformLayerMask = -1;
 }

@@ -56,7 +56,8 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.WallRun.performed += OnWallRunStart;
         inputActions.Gameplay.WallRun.canceled += OnWallRunEnd;
         inputActions.Gameplay.Kick.performed += OnKick;
-        inputActions.Gameplay.DropDown.performed += OnDropDown;
+        inputActions.Gameplay.DropDown.performed += OnDropDownStart;
+        inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
     }
 
     private void OnDisable()
@@ -73,7 +74,8 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.WallRun.performed -= OnWallRunStart;
         inputActions.Gameplay.WallRun.canceled -= OnWallRunEnd;
         inputActions.Gameplay.Kick.performed -= OnKick;
-        inputActions.Gameplay.DropDown.performed -= OnDropDown;
+        inputActions.Gameplay.DropDown.performed -= OnDropDownStart;
+        inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
     }
 
     private void Update()
@@ -159,11 +161,19 @@ public class PlayerControllerModular : MonoBehaviour
         }
     }
 
-    private void OnDropDown(InputAction.CallbackContext context)
+    private void OnDropDownStart(InputAction.CallbackContext context)
     {
         if (states != null)
         {
             states.SetDropDownPressed();
+        }
+    }
+
+    private void OnDropDownEnd(InputAction.CallbackContext context)
+    {
+        if (states != null)
+        {
+            states.SetDropDownReleased();
         }
     }
     #endregion

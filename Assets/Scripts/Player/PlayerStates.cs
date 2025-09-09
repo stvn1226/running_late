@@ -10,6 +10,8 @@ public class PlayerStates : MonoBehaviour
     public bool crouchHeld;
     public bool wallRunHeld;
     public bool kickPressed;
+    public bool dropDownPressed;
+    public bool dropDownHeld;
 
     [Header("Movement States")]
     public bool isGrounded;
@@ -18,6 +20,7 @@ public class PlayerStates : MonoBehaviour
     public bool isSliding;
     public bool isKicking;
     public bool isCrouching;
+    public bool isDroppingDown;
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -98,6 +101,14 @@ public class PlayerStates : MonoBehaviour
         {
             jumpHoldTimer += Time.deltaTime;
         }
+        
+        // Reset pressed flags after one frame
+        if (jumpPressed)
+            jumpPressed = false;
+        if (kickPressed)
+            kickPressed = false;
+        if (dropDownPressed)
+            dropDownPressed = false;
     }
 
     private void CheckStateChanges()
@@ -141,7 +152,16 @@ public class PlayerStates : MonoBehaviour
 
     public void SetDropDownPressed()
     {
-        
+        dropDownPressed = true;
+        dropDownHeld = true;
+        isDroppingDown = true;
+    }
+
+    public void SetDropDownReleased()
+    {
+        dropDownPressed = false;
+        dropDownHeld = false;
+        isDroppingDown = false;
     }
 
     public void StartCoyoteTime(float coyoteTime)
