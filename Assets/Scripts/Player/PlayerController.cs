@@ -48,6 +48,9 @@ public class PlayerController : MonoBehaviour
     private bool crouchHeld;
     private bool wallRunHeld;
     private bool kickPressed;
+    
+    // Public properties for external access
+    public bool IsWallRunHeld => wallRunHeld;
 
     // States
     private bool isGrounded;
@@ -96,37 +99,28 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        // Use GetComponentInChildren as per your existing setup
         rb = GetComponentInChildren<Rigidbody2D>();
         boxCollider = GetComponentInChildren<BoxCollider2D>();
         inputActions = new PlayerInputActions();
 
-        // Store original physics settings
         originalGravityScale = rb.gravityScale;
         
-        // Store original collider settings
         originalColliderSize = boxCollider.size;
         originalColliderOffset = boxCollider.offset;
 
-        // Calculate crouch collider settings - expands X while reducing Y as per your implementation
         crouchColliderSize = new Vector2(originalColliderSize.x * 1.33f, originalColliderSize.y * 0.33f);
         crouchColliderOffset = new Vector2(originalColliderOffset.x, originalColliderOffset.y - (originalColliderSize.y - crouchColliderSize.y) * 0.5f);
     }
 
     private void Start()
     {
-        // Set physics settings for optimal momentum preservation
         rb.linearDamping = 0f;
-        rb.linearDamping = 0f;
-        
-        Debug.Log($"PlayerController: Physics settings initialized - Drag: {rb.linearDamping}, LinearDamping: {rb.linearDamping}");
     }
 
     private void OnEnable()
     {
         inputActions.Gameplay.Enable();
 
-        // Subscribe to input events - using your existing input action names
         inputActions.Gameplay.Run.performed += OnMove;
         inputActions.Gameplay.Run.canceled += OnMove;
         inputActions.Gameplay.Jump.performed += OnJumpStart;
@@ -142,7 +136,6 @@ public class PlayerController : MonoBehaviour
     {
         inputActions.Gameplay.Disable();
 
-        // Unsubscribe from input events
         inputActions.Gameplay.Run.performed -= OnMove;
         inputActions.Gameplay.Run.canceled -= OnMove;
         inputActions.Gameplay.Jump.performed -= OnJumpStart;
@@ -163,8 +156,14 @@ public class PlayerController : MonoBehaviour
         HandleStates();
         UpdateKickTimer();
         UpdateJumpPhysics();
-                
-        // Store the last air velocity when we're in the air (for momentum preservation)
+        HandleLanding();
+        
+        wasGrounded = isGrounded;
+    }
+
+    private void HandleLanding()
+    {
+        // Store air velocity for momentum preservation
         if (!isGrounded && Mathf.Abs(rb.linearVelocity.x) > 1f)
         {
             landingHorizontalVelocity = rb.linearVelocity.x;
@@ -173,52 +172,23 @@ public class PlayerController : MonoBehaviour
         // Detect landing and handle momentum conversion
         if (wasGrounded != isGrounded && isGrounded)
         {
-            // Capture the landing velocities
             landingVerticalVelocity = rb.linearVelocity.y;
             float currentHorizontalVel = rb.linearVelocity.x;
             
-            // Check for slam landing (fast downward velocity)
             bool isSlamLanding = landingVerticalVelocity <= slamLandingThreshold;
-            
-            // Check if player is inputting horizontal movement on landing
             bool hasHorizontalInput = Mathf.Abs(moveInput.x) > 0.1f;
-            
-            // Check if player is still holding crouch button during landing
             bool isHoldingCrouchButton = crouchHeld;
             
-            Debug.Log($"Landing detected - VerticalSpeed: {landingVerticalVelocity:F2}, StillHoldingCrouch: {isHoldingCrouchButton}, HasInput: {hasHorizontalInput}, IsSlamLanding: {isSlamLanding}");
-            
-            // SLAM LANDING: Player was holding crouch button when airborne AND still holding it on landing
+            // Slam landing: fast fall + crouch button + horizontal input
             if (isSlamLanding && hasHorizontalInput && isHoldingCrouchButton)
             {
-                // Convert downward momentum to horizontal momentum
                 float downwardSpeed = Mathf.Abs(landingVerticalVelocity);
                 float horizontalBoost = downwardSpeed * momentumConversionRatio;
-                
-                // Apply horizontal boost in the direction of input
                 float inputDirection = Mathf.Sign(moveInput.x);
                 float newHorizontalVelocity = currentHorizontalVel + (horizontalBoost * inputDirection);
                 
-                // Apply the slam landing momentum conversion
-                rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f); // Reset vertical to prevent bouncing
-                
-                // Set the target velocity for preservation system
+                rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
                 landingHorizontalVelocity = newHorizontalVelocity;
-                
-                Debug.Log($"SLAM LANDING! Downward speed: {downwardSpeed:F2} -> Horizontal boost: {horizontalBoost:F2} -> New velocity: {newHorizontalVelocity:F2}");
-                
-            }
-            else
-            {                
-                if (isSlamLanding && hasHorizontalInput && !isHoldingCrouchButton)
-                {
-                    Debug.Log($"Fast landing detected, but crouch button conditions not met - no momentum conversion");
-                }
-                else
-                {
-                    Debug.Log($"Normal landing. Preserving horizontal velocity: {landingHorizontalVelocity:F2} (current: {currentHorizontalVel:F2})");
-                }
-                
             }
             
             // Start momentum preservation grace period
@@ -233,12 +203,8 @@ public class PlayerController : MonoBehaviour
             if (landingGraceTimer <= 0f)
             {
                 justLanded = false;
-                Debug.Log("Landing grace period ended");
             }
         }
-        
-        // Update wasGrounded for next frame
-        wasGrounded = isGrounded;
     }
 
     private void FixedUpdate()
@@ -314,30 +280,19 @@ public class PlayerController : MonoBehaviour
 
     private void HandleNormalMovement(float forceMultiplier)
     {
-        // Prevent movement input during kick mode
-        if (isKicking)
-        {
-            return;
-        }
+        if (isKicking) return;
 
         float horizontalInput = moveInput.x;
 
         if (Mathf.Abs(horizontalInput) > 0.1f)
         {
-            // Calculate desired velocity and force needed
             float targetSpeed = horizontalInput * maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
 
-            // Apply different force based on ground/air state
             float force = isGrounded ? runForce : runForce * airControlMultiplier;
             force *= forceMultiplier;
 
-            // Apply force proportional to speed difference for more responsive control
-            float appliedForce = speedDifference * force;
-
-            // Clamp force to prevent overpowered acceleration
-            appliedForce = Mathf.Clamp(appliedForce, -force, force);
-
+            float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
             rb.AddForce(Vector2.right * appliedForce * Time.fixedDeltaTime, ForceMode2D.Force);
         }
 
@@ -350,22 +305,15 @@ public class PlayerController : MonoBehaviour
 
     private void HandleSlideMovement(float forceMultiplier)
     {
-        // During slide mode, player cannot control horizontal movement - sliding uses momentum only
-        // No movement input is processed during sliding
+        // Sliding uses momentum only - no horizontal input processed
     }
 
     private void HandleWallRunMovement(float forceMultiplier)
     {
-        // Prevent movement input during kick mode
-        if (isKicking)
-        {
-            return;
-        }
+        if (isKicking) return;
 
-        // Apply upward force for wall running
         rb.AddForce(Vector2.up * wallRunForce * forceMultiplier * Time.fixedDeltaTime, ForceMode2D.Force);
 
-        // Allow some horizontal movement while wall running
         float horizontalInput = moveInput.x;
         if (Mathf.Abs(horizontalInput) > 0.1f)
         {
@@ -376,96 +324,62 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyDrag()
     {
-        // Never apply drag when in air, sliding, or kicking
         if (!isGrounded || isSliding || isKicking)
-        {
             return;
-        }
         
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = moveInput.x;
         
-        // CRITICAL: Preserve horizontal momentum during landing grace period
+        // Preserve horizontal momentum during landing grace period
         if (justLanded)
         {
-            // During landing grace period, actively maintain the landing velocity
             float currentHorizontalVelocity = velocity.x;
             float velocityDifference = landingHorizontalVelocity - currentHorizontalVelocity;
             
-            // Only preserve momentum if there's a significant difference (momentum loss)
             if (Mathf.Abs(velocityDifference) > 0.5f)
             {
-                // Apply force to restore the original landing velocity
-                float preservationForce = velocityDifference * 50f; // Strong correction force
+                float preservationForce = velocityDifference * 50f;
                 rb.AddForce(Vector2.right * preservationForce, ForceMode2D.Force);
-                
-                Debug.Log($"Preserving momentum: current={currentHorizontalVelocity:F2}, target={landingHorizontalVelocity:F2}, force={preservationForce:F2}");
             }
-            
-            // Don't apply normal drag during grace period
             return;
         }
         
-        // Normal drag system after grace period
+        // Normal drag system
         float targetDrag = 0f;
         
         if (Mathf.Abs(horizontalInput) < 0.1f)
         {
-            // No input - apply ground drag to stop naturally
             targetDrag = groundDrag;
         }
         else
         {
-            // Check if input opposes current movement for quick direction changes
             bool inputOpposesMovement = (horizontalInput * velocity.x) < 0;
-            if (inputOpposesMovement)
-            {
-                // Apply extra drag for quick turns
-                targetDrag = groundDrag * 1.5f;
-            }
-            else
-            {
-                // Moving with input - minimal drag
-                targetDrag = groundDrag * 0.1f;
-            }
+            targetDrag = inputOpposesMovement ? groundDrag * 1.5f : groundDrag * 0.1f;
         }
         
-        // Apply drag as a force
         Vector2 dragForce = -velocity * targetDrag * Time.fixedDeltaTime;
         rb.AddForce(new Vector2(dragForce.x, 0), ForceMode2D.Force);
-    }
-
-    private void UpdatePhysicsSettings()
-    {
-        // This method is now integrated into UpdateJumpPhysics for better jump control
-        // Left here for compatibility - UpdateJumpPhysics handles all physics now
     }
     #endregion
 
     #region Enhanced Jump System
     private void HandleJumpInput()
     {
-        // Prevent jump input during kick mode
-        if (isKicking)
-        {
-            return;
-        }
+        if (isKicking) return;
 
         // Handle jump buffering
         if (jumpPressed)
         {
             jumpInputBuffered = true;
             jumpBufferTimer = jumpBufferTime;
-            jumpPressed = false; // Reset for next frame
+            jumpPressed = false;
         }
         
         if (jumpInputBuffered)
         {
             jumpBufferTimer -= Time.deltaTime;
             if (jumpBufferTimer <= 0)
-            {
                 jumpInputBuffered = false;
-            }
         }
         
         // Handle coyote time
@@ -479,9 +393,7 @@ public class PlayerController : MonoBehaviour
         {
             coyoteTimer -= Time.deltaTime;
             if (coyoteTimer <= 0 || isGrounded)
-            {
                 canCoyoteJump = false;
-            }
         }
         
         // Execute jump
@@ -497,7 +409,7 @@ public class PlayerController : MonoBehaviour
             jumpInputBuffered = false;
         }
         
-        // Handle variable jump height - track how long jump is held
+        // Handle variable jump height
         if (isJumping && jumpHeld)
         {
             jumpHoldTimer += Time.deltaTime;
@@ -549,51 +461,29 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateJumpPhysics()
     {
-        // Determine if we're falling
         isFalling = rb.linearVelocity.y < -0.1f;
         
-        // Apply different gravity based on jump state
         if (isWallRunning)
         {
             rb.gravityScale = wallRunGravityScale;
         }
         else if (isFalling || isJumpCut)
         {
-            // Fast fall when falling or jump was cut
-            if (crouchHeld && !isGrounded)
-            {
-                // Extra fast fall when holding crouch/down
-                rb.gravityScale = fastFallGravityScale;
-            }
-            else
-            {
-                // Normal fast fall
-                rb.gravityScale = fallGravityScale;
-            }
+            rb.gravityScale = (crouchHeld && !isGrounded) ? fastFallGravityScale : fallGravityScale;
         }
         else
         {
-            // Normal gravity during jump ascent
             rb.gravityScale = originalGravityScale;
         }
     }
     #endregion
 
     #region Movement Actions
-    private void Jump()
-    {
-        PerformJump();
-    }
-
     private void WallJump()
     {
-        // Calculate wall jump direction and force
         Vector2 wallJumpDirection = new Vector2(-wallDirection, 1).normalized;
-
-        // Reset velocity for consistent wall jump
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(wallJumpDirection * jumpForce * 1.2f, ForceMode2D.Impulse);
-
         isWallRunning = false;
     }
 
@@ -601,9 +491,6 @@ public class PlayerController : MonoBehaviour
     {
         isKicking = true;
         kickTimer = kickDuration;
-
-        // TODO: Trigger kick animation
-        // TODO: Create kick hitbox to destroy barriers
     }
 
     private void UpdateKickTimer()
@@ -625,6 +512,7 @@ public class PlayerController : MonoBehaviour
         // Store previous states to detect changes
         bool previousCrouching = isCrouching;
         bool previousSliding = isSliding;
+        bool previousWallRunning = isWallRunning;
 
         // Both crouching and sliding require the crouch button to be held
         if (crouchHeld && isGrounded && !isWallRunning)
@@ -656,8 +544,24 @@ public class PlayerController : MonoBehaviour
             UpdateColliderSize();
         }
 
-        // Update wall running state
+        // Enhanced wall running state - allow starting wall run even when falling
         bool shouldWallRun = wallRunHeld && canWallRun && !isGrounded && Mathf.Abs(moveInput.x) > 0.1f;
+        
+        // If transitioning from not wall running to wall running while falling, give a velocity boost
+        if (shouldWallRun && !previousWallRunning && rb.linearVelocity.y < -1f)
+        {
+            // Player is falling and starting to wall run - help them stick to the wall
+            Vector2 currentVelocity = rb.linearVelocity;
+            
+            // Reduce downward velocity to make wall running feel more responsive
+            float reducedFallSpeed = Mathf.Max(currentVelocity.y * 0.5f, -8f); // Cap at -8 to prevent excessive slowdown
+            
+            // Apply slight upward boost to help initiate wall run
+            rb.linearVelocity = new Vector2(currentVelocity.x, reducedFallSpeed + 2f);
+            
+            Debug.Log($"Wall run started while falling! Velocity adjusted from {currentVelocity.y:F2} to {rb.linearVelocity.y:F2}");
+        }
+        
         isWallRunning = shouldWallRun;
     }
     #endregion
