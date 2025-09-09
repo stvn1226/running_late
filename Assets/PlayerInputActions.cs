@@ -136,6 +136,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DropDown"",
+                    ""type"": ""Button"",
+                    ""id"": ""8dee041e-3611-407e-9d98-c7b8cdbee44c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -347,6 +356,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Kick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""797dfe9a-ddc5-453e-8a19-77822e8a43aa"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard"",
+                    ""action"": ""DropDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""44203eba-55e5-48b9-90f7-caa6dca43821"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard;Gamepad"",
+                    ""action"": ""DropDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -383,6 +414,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Gameplay_Crouch = m_Gameplay.FindAction("Crouch", throwIfNotFound: true);
         m_Gameplay_WallRun = m_Gameplay.FindAction("WallRun", throwIfNotFound: true);
         m_Gameplay_Kick = m_Gameplay.FindAction("Kick", throwIfNotFound: true);
+        m_Gameplay_DropDown = m_Gameplay.FindAction("DropDown", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -468,6 +500,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Crouch;
     private readonly InputAction m_Gameplay_WallRun;
     private readonly InputAction m_Gameplay_Kick;
+    private readonly InputAction m_Gameplay_DropDown;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -499,6 +532,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Kick".
         /// </summary>
         public InputAction @Kick => m_Wrapper.m_Gameplay_Kick;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/DropDown".
+        /// </summary>
+        public InputAction @DropDown => m_Wrapper.m_Gameplay_DropDown;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -540,6 +577,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Kick.started += instance.OnKick;
             @Kick.performed += instance.OnKick;
             @Kick.canceled += instance.OnKick;
+            @DropDown.started += instance.OnDropDown;
+            @DropDown.performed += instance.OnDropDown;
+            @DropDown.canceled += instance.OnDropDown;
         }
 
         /// <summary>
@@ -566,6 +606,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Kick.started -= instance.OnKick;
             @Kick.performed -= instance.OnKick;
             @Kick.canceled -= instance.OnKick;
+            @DropDown.started -= instance.OnDropDown;
+            @DropDown.performed -= instance.OnDropDown;
+            @DropDown.canceled -= instance.OnDropDown;
         }
 
         /// <summary>
@@ -667,5 +710,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnKick(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "DropDown" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDropDown(InputAction.CallbackContext context);
     }
 }

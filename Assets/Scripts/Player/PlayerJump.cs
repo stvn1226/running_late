@@ -73,8 +73,6 @@ public class PlayerJump : MonoBehaviour
         {
             playerPhysics.UpdateColliderSize();
         }
-        
-        Debug.Log("Jump canceled crouch/slide state");
     }
 
     private void HandleJumpCut()

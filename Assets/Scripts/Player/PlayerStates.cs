@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayerStates : MonoBehaviour
 {
@@ -136,6 +137,11 @@ public class PlayerStates : MonoBehaviour
             kickPressed = true;
             isKicking = true;
         }
+    }
+
+    public void SetDropDownPressed()
+    {
+        
     }
 
     public void StartCoyoteTime(float coyoteTime)
