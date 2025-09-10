@@ -356,4 +356,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerOneWayPlatformSimple
   safetyDelay: 0.3
+  lookAheadDistance: 2
+  platformLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
   showDebugInfo: 0

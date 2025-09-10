@@ -8,6 +8,9 @@ public class BuildingGenerator : MonoBehaviour
     public Transform levelParent;
     public Transform groundReference;
 
+    [Header("Building Type")]
+    public string buildingTag = ""; // Tag for buildings created by this generator
+
     [Header("Generation Parameters")]
     public int numberOfBuildings = 10;
     public Vector2 spawnAreaMin = new Vector2(-50, 0);
@@ -87,16 +90,21 @@ public class BuildingGenerator : MonoBehaviour
 
     private void ClearExistingBuildings()
     {
-        BuildingResizer[] existingBuildings = levelParent.GetComponentsInChildren<BuildingResizer>();
+        GameObject[] existingBuildings = GameObject.FindGameObjectsWithTag(buildingTag);
+
         for (int i = existingBuildings.Length - 1; i >= 0; i--)
         {
-            if (Application.isPlaying)
+            // Make sure the building is actually a child of our level parent
+            if (existingBuildings[i].transform.IsChildOf(levelParent))
             {
-                Destroy(existingBuildings[i].gameObject);
-            }
-            else
-            {
-                DestroyImmediate(existingBuildings[i].gameObject);
+                if (Application.isPlaying)
+                {
+                    Destroy(existingBuildings[i]);
+                }
+                else
+                {
+                    DestroyImmediate(existingBuildings[i]);
+                }
             }
         }
     }
