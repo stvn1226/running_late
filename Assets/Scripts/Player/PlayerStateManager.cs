@@ -77,7 +77,7 @@ public class PlayerStateManager : MonoBehaviour
     private void HandleWallRun(bool previousWallRunning)
     {
         // Enhanced wall running state - allow starting wall run even when falling
-        bool shouldWallRun = states.wallRunHeld && states.canWallRun && !states.isGrounded && Mathf.Abs(states.moveInput.x) > 0.1f;
+        bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f;
         
         // If transitioning from not wall running to wall running while falling, give a velocity boost
         if (shouldWallRun && !previousWallRunning && rb.linearVelocity.y < -1f)

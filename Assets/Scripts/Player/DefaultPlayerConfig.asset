@@ -33,7 +33,7 @@ MonoBehaviour:
   wallCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 129
   wallLayer:
     serializedVersion: 2
     m_Bits: 1
@@ -43,3 +43,7 @@ MonoBehaviour:
   slamLandingThreshold: -8
   momentumConversionRatio: 0.2
   crouchSizeMultiplier: {x: 2, y: 0.33}
+  dropDownDisableTime: 0.2
+  platformLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
