@@ -49,4 +49,12 @@ public class PlayerConfig : ScriptableObject
     [Header("Drop-Down Platform Settings")]
     public float dropDownDisableTime = 0.2f;
     public LayerMask platformLayerMask = -1;
+
+    [Header("Pan Amount")]
+    public float panAmount = 0.5f;
+    public float panSpeed = 5f;
+    public float returnSpeed = 8f;
+    public bool invertXAxis = false;
+    public bool invertYAxis = false;
+
 }

@@ -45,7 +45,8 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         // Set the camera target if player was found
         if (player != null && cinemachineCamera != null)
         {
-            cinemachineCamera.Target.TrackingTarget = player.transform;
+            Transform target = player.GetComponentInChildren<PanCamObject>().transform;
+            cinemachineCamera.Target.TrackingTarget = target;
             Debug.Log("Camera now following player");
         }
         else

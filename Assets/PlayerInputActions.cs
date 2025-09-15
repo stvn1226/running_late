@@ -154,6 +154,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PanCamera"",
+                    ""type"": ""Value"",
+                    ""id"": ""ece39c4e-83f5-4cc3-aadb-22c49de16697"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -420,6 +429,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Reset"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2be003c5-b2f2-4e15-9e51-77069e2436d2"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""PanCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -458,6 +478,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Gameplay_Kick = m_Gameplay.FindAction("Kick", throwIfNotFound: true);
         m_Gameplay_DropDown = m_Gameplay.FindAction("DropDown", throwIfNotFound: true);
         m_Gameplay_Reset = m_Gameplay.FindAction("Reset", throwIfNotFound: true);
+        m_Gameplay_PanCamera = m_Gameplay.FindAction("PanCamera", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -545,6 +566,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Kick;
     private readonly InputAction m_Gameplay_DropDown;
     private readonly InputAction m_Gameplay_Reset;
+    private readonly InputAction m_Gameplay_PanCamera;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -584,6 +606,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Reset".
         /// </summary>
         public InputAction @Reset => m_Wrapper.m_Gameplay_Reset;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/PanCamera".
+        /// </summary>
+        public InputAction @PanCamera => m_Wrapper.m_Gameplay_PanCamera;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -631,6 +657,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Reset.started += instance.OnReset;
             @Reset.performed += instance.OnReset;
             @Reset.canceled += instance.OnReset;
+            @PanCamera.started += instance.OnPanCamera;
+            @PanCamera.performed += instance.OnPanCamera;
+            @PanCamera.canceled += instance.OnPanCamera;
         }
 
         /// <summary>
@@ -663,6 +692,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Reset.started -= instance.OnReset;
             @Reset.performed -= instance.OnReset;
             @Reset.canceled -= instance.OnReset;
+            @PanCamera.started -= instance.OnPanCamera;
+            @PanCamera.performed -= instance.OnPanCamera;
+            @PanCamera.canceled -= instance.OnPanCamera;
         }
 
         /// <summary>
@@ -778,5 +810,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnReset(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PanCamera" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPanCamera(InputAction.CallbackContext context);
     }
 }

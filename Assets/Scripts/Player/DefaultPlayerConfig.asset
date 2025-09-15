@@ -24,8 +24,8 @@ MonoBehaviour:
   jumpBufferTime: 0.12
   coyoteTime: 0.1
   wallRunForce: 3000
-  wallRunGravityScale: 0.3
-  wallJumpMultiplier: 1.2
+  wallRunGravityScale: 1
+  wallJumpMultiplier: 1
   groundDrag: 50
   airDrag: 50
   slideDrag: 30
@@ -33,17 +33,22 @@ MonoBehaviour:
   wallCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 129
+    m_Bits: 640
   wallLayer:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 3072
   kickDuration: 0.3
   kickForceReduction: 0.5
   landingGracePeriod: 0.25
-  slamLandingThreshold: -8
+  slamLandingThreshold: -10
   momentumConversionRatio: 0.2
   crouchSizeMultiplier: {x: 2, y: 0.33}
   dropDownDisableTime: 0.2
   platformLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 128
+  panAmount: 3
+  panSpeed: 5
+  returnSpeed: 8
+  invertXAxis: 0
+  invertYAxis: 0
