@@ -7,7 +7,7 @@ public class PlayerConfig : ScriptableObject
     public float runForce = 3000f;
     public float maxRunSpeed = 12f;
     public float airControlMultiplier = 0.6f;
-    public float slideForce = 4000f;
+    //public float slideForce = 4000f;
 
     [Header("Jump Settings")]
     public float minJumpForce = 12f;

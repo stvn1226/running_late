@@ -73,7 +73,8 @@ public class LevelManager : MonoBehaviour
             
         Debug.Log("Resetting level completely...");
         isResetting = true;
-        
+        Time.timeScale = 1f; // Ensure time scale is normal
+
         // Notify other systems that reset is starting
         OnLevelResetStarted?.Invoke();
         

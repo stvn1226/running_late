@@ -260,7 +260,6 @@ MonoBehaviour:
   crouchHeld: 0
   wallRunHeld: 0
   kickPressed: 0
-  dropDownPressed: 0
   dropDownHeld: 0
   isGrounded: 0
   wasGrounded: 0
@@ -323,7 +322,7 @@ GameObject:
   - component: {fileID: 5476617917464119436}
   m_Layer: 6
   m_Name: Collider
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -407,4 +406,4 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
-  showDebugInfo: 1
+  showDebugInfo: 0
