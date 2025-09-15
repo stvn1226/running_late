@@ -320,7 +320,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2705767874517864308}
   - component: {fileID: 8986693080495249602}
-  - component: {fileID: 3605538116439219777}
+  - component: {fileID: 5476617917464119436}
   m_Layer: 6
   m_Name: Collider
   m_TagString: Untagged
@@ -389,7 +389,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 2}
   m_EdgeRadius: 0
---- !u!114 &3605538116439219777
+--- !u!114 &5476617917464119436
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -400,10 +400,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec054e4c78d616448814931fd78ae3de, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerOneWayPlatformSimple
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerOneWayPlatform
   safetyDelay: 0.3
-  lookAheadDistance: 2
+  lookAheadDistance: 1
   platformLayerMask:
     serializedVersion: 2
     m_Bits: 128
-  showDebugInfo: 0
+  config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  showDebugInfo: 1

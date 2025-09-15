@@ -163,6 +163,7 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnDropDownStart(InputAction.CallbackContext context)
     {
+        Debug.Log("PlayerControllerModular: OnDropDownStart called!");
         if (states != null)
         {
             states.SetDropDownPressed();
@@ -171,6 +172,7 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnDropDownEnd(InputAction.CallbackContext context)
     {
+        Debug.Log("PlayerControllerModular: OnDropDownEnd called!");
         if (states != null)
         {
             states.SetDropDownReleased();

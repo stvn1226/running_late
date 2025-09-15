@@ -10,7 +10,7 @@ public class PlayerStates : MonoBehaviour
     public bool crouchHeld;
     public bool wallRunHeld;
     public bool kickPressed;
-    public bool dropDownPressed;
+    //public bool dropDownPressed;
     public bool dropDownHeld;
 
     [Header("Movement States")]
@@ -107,8 +107,8 @@ public class PlayerStates : MonoBehaviour
             jumpPressed = false;
         if (kickPressed)
             kickPressed = false;
-        if (dropDownPressed)
-            dropDownPressed = false;
+        //if (dropDownPressed)
+        //    dropDownPressed = false;
     }
 
     private void CheckStateChanges()
@@ -152,14 +152,14 @@ public class PlayerStates : MonoBehaviour
 
     public void SetDropDownPressed()
     {
-        dropDownPressed = true;
+        //dropDownPressed = true;
         dropDownHeld = true;
         isDroppingDown = true;
     }
 
     public void SetDropDownReleased()
     {
-        dropDownPressed = false;
+        //dropDownPressed = false;
         dropDownHeld = false;
         isDroppingDown = false;
     }
