@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ed5173167518494c84909e290ae8713, type: 3}
   m_Name: ConvenienceStoreConfig
   m_EditorClassIdentifier: Assembly-CSharp::FloorPlan
-  floorSet: 0
   minFloors: 2
   maxFloors: 2
+  floorHeight: 3
+  minDistanceBetweenBuildings: 20
