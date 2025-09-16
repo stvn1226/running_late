@@ -28,6 +28,9 @@ public class PlayerConfig : ScriptableObject
     public float airDrag = 50f;
     public float slideDrag = 25f;
 
+    [Header("Fall Speed Limits")]
+    public float maxFallSpeed = 20f;
+
     [Header("Physics Detection")]
     public float groundCheckDistance = 0.1f;
     public float wallCheckDistance = 0.5f;

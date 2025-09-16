@@ -24,6 +24,7 @@ public class PlayerMovement : MonoBehaviour
     {
         HandleMovement();
         ApplyDrag();
+        ClampFallSpeed();
     }
 
     private void HandleMovement()
@@ -165,6 +166,17 @@ public class PlayerMovement : MonoBehaviour
             // Start momentum preservation grace period
             states.justLanded = true;
             states.landingGraceTimer = config.landingGracePeriod;
+        }
+    }
+
+    private void ClampFallSpeed()
+    {
+        if (config == null) return;
+
+        // Clamp downward velocity to prevent phasing through platforms
+        if (rb.linearVelocity.y < -config.maxFallSpeed)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -config.maxFallSpeed);
         }
     }
 }
