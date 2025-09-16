@@ -59,6 +59,7 @@ public class LevelStarter : MonoBehaviour
         ResizeLevel();
         structureGenerator.spawnAreaMin = new Vector2(-newWidth / 2f + 50f, 0);
         structureGenerator.spawnAreaMax = new Vector2(newWidth / 2f - 50f, 0);
+        structureGenerator.numberOfBuildings = (int) (newWidth / 20);
         structureGenerator.GenerateStructuresInEditor();
     }
 }
