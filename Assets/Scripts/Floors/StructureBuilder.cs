@@ -15,13 +15,14 @@ public class StructureBuilder : MonoBehaviour
     {
         Instantiate(groundPrefab, transform.position, Quaternion.identity, transform);
 
-        int floors = Random.Range(config.minFloors - 2, config.maxFloors - 2);
-        for (int i = 0; i < floors; i++)
+        int floors = Random.Range(config.minFloors, config.maxFloors);
+        Debug.Log(floors);
+        for (int i = 0; i < floors - 2; i++)
         {
-            Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + (i * config.floorHeight));
+            Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i+1) * config.floorHeight));
             Instantiate(floorPrefabs[Random.Range(0, floorPrefabs.Length)], floorPosition, Quaternion.identity, transform);
         }
 
-        Instantiate(roofPrefab, new Vector2(transform.position.x, transform.position.y + (floors * config.floorHeight)), Quaternion.identity, transform);
+        Instantiate(roofPrefab, new Vector2(transform.position.x, transform.position.y + ((floors - 1) * config.floorHeight)), Quaternion.identity, transform);
     }
 }

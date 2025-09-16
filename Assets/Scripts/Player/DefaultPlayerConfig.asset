@@ -39,14 +39,14 @@ MonoBehaviour:
   kickDuration: 0.3
   kickForceReduction: 0.5
   landingGracePeriod: 0.25
-  slamLandingThreshold: -1
-  momentumConversionRatio: 0.4
+  slamLandingThreshold: -10
+  momentumConversionRatio: 0.2
   crouchSizeMultiplier: {x: 2, y: 0.33}
   dropDownDisableTime: 0.3
   platformLayerMask:
     serializedVersion: 2
     m_Bits: 128
-  panAmount: 3
+  panAmount: 5
   panSpeed: 5
   returnSpeed: 8
   invertXAxis: 0
