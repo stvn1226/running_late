@@ -3,6 +3,9 @@ using UnityEngine.Rendering;
 
 public class PlayerStates : MonoBehaviour
 {
+    [Header("Animator")]
+    public Animator animator;
+
     [Header("Input States")]
     public Vector2 moveInput;
     public bool jumpPressed;

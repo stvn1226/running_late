@@ -22,6 +22,15 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (rb.linearVelocity.x < 0)
+        {
+            gameObject.GetComponentInChildren<SpriteRenderer>().flipX = true;
+        }
+        else if (rb.linearVelocity.x > 0)
+        {
+            gameObject.GetComponentInChildren<SpriteRenderer>().flipX = false;
+        }
+
         HandleMovement();
         ApplyDrag();
         ClampFallSpeed();
@@ -32,6 +41,13 @@ public class PlayerMovement : MonoBehaviour
         if (config == null) return;
 
         float forceMultiplier = states.isKicking ? config.kickForceReduction : 1f;
+
+        states.animator.SetFloat("xVelocity", Mathf.Abs(rb.linearVelocity.x));
+        states.animator.SetFloat("yVelocity", rb.linearVelocity.y);
+
+        states.animator.SetBool("isSliding", states.isSliding);
+        states.animator.SetBool("isWallRunning", states.isWallRunning);
+        states.animator.SetBool("isCrouching", states.isCrouching);
 
         if (states.isWallRunning)
         {
@@ -49,9 +65,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleNormalMovement(float forceMultiplier)
     {
+
         if (states.isKicking) return;
 
         if (states.isCrouching || states.isSliding) return;
+
 
         float horizontalInput = states.moveInput.x;
 
