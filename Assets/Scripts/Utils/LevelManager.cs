@@ -102,13 +102,7 @@ public class LevelManager : MonoBehaviour
             OnLevelResetCompleted?.Invoke();
         }
     }
-    
-    // Public method for other scripts to trigger level reset
-    public void ResetLevelFromScript()
-    {
-        ResetLevel();
-    }
-    
+        
     // Check if currently resetting (useful for other systems)
     public bool IsResetting()
     {

@@ -51,6 +51,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (states.isKicking) return;
 
+        if (states.isCrouching || states.isSliding) return;
+
         float horizontalInput = states.moveInput.x;
 
         if (Mathf.Abs(horizontalInput) > 0.1f)
