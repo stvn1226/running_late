@@ -6,6 +6,7 @@ public class LevelStarter : MonoBehaviour
     public Transform groundReference;
     public PolygonCollider2D cameraBounds;
     public StructureGenerator structureGenerator;
+    public LevelManager levelManager;
     public SpriteRenderer[] background;
     public GameObject home;
     public GameObject school;
@@ -61,5 +62,6 @@ public class LevelStarter : MonoBehaviour
         structureGenerator.spawnAreaMax = new Vector2(newWidth / 2f - 50f, 0);
         structureGenerator.numberOfBuildings = (int) (newWidth / 20);
         structureGenerator.GenerateStructuresInEditor();
+        levelManager.ResetLevel();
     }
 }

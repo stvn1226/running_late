@@ -31,6 +31,18 @@ public class StructureGenerator : MonoBehaviour
 
     private void ClearExistingStructures()
     {
+        if (generatedStructures.Count == 0)
+        {
+            StructureBuilder[] lostStructures = levelParent.gameObject.GetComponentsInChildren<StructureBuilder>();
+            foreach (StructureBuilder structure in lostStructures)
+            {
+                if (structure != null)
+                {
+                    DestroyImmediate(structure.gameObject);
+                }
+            }
+        }
+
         foreach (StructureBuilder structure in generatedStructures)
         {
             if (structure != null)
