@@ -86,13 +86,11 @@ public class StructureGenerator : MonoBehaviour
 
     private void CreateRandomStructure()
     {
-        //float xpos = Random.Range(spawnAreaMin.x, spawnAreaMax.x);
         StructureBuilder structureToBuild = structureBuilders[Random.Range(0, structureBuilders.Length)];
-        //structureToBuild.transform.position = new Vector2(xpos, groundReference.position.y + 1.75f);
         Vector2 whereToSpawn = FindValidSpawnPosition(structureToBuild.config.minDistanceBetweenBuildings);
         if (whereToSpawn == Vector2.zero) return;
-        structureToBuild.transform.position = whereToSpawn;
         StructureBuilder newStructure = Instantiate(structureToBuild, levelParent);
+        newStructure.transform.position = whereToSpawn;
         newStructure.ConstructStructure();
         generatedStructures.Add(newStructure);
         occupiedPositions.Add(newStructure.transform.position);
