@@ -12,6 +12,7 @@ public class PlayerControllerModular : MonoBehaviour
     private PlayerMovement movement;
     private PlayerJump jump;
     private PlayerPhysics physics;
+    private PlayerKick kicker;
     private PlayerStateManager stateManager;
 
     private void Awake()
@@ -21,6 +22,7 @@ public class PlayerControllerModular : MonoBehaviour
         movement = GetComponent<PlayerMovement>();
         jump = GetComponent<PlayerJump>();
         physics = GetComponent<PlayerPhysics>();
+        kicker = GetComponentInChildren<PlayerKick>();
         stateManager = GetComponent<PlayerStateManager>();
         
         // Create input actions
@@ -158,6 +160,7 @@ public class PlayerControllerModular : MonoBehaviour
         if (states != null)
         {
             states.SetKickPressed();
+            kicker.PerformKick(config.kickDuration);
         }
     }
 

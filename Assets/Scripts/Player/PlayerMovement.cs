@@ -45,10 +45,6 @@ public class PlayerMovement : MonoBehaviour
         states.animator.SetFloat("xVelocity", Mathf.Abs(rb.linearVelocity.x));
         states.animator.SetFloat("yVelocity", rb.linearVelocity.y);
 
-        states.animator.SetBool("isSliding", states.isSliding);
-        states.animator.SetBool("isWallRunning", states.isWallRunning);
-        states.animator.SetBool("isCrouching", states.isCrouching);
-
         if (states.isWallRunning)
         {
             HandleWallRunMovement(forceMultiplier);

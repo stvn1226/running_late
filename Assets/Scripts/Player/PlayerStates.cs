@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using static UnityEditor.VersionControl.Asset;
 
 public class PlayerStates : MonoBehaviour
 {
@@ -63,6 +64,15 @@ public class PlayerStates : MonoBehaviour
         
         // Check for state changes and trigger events
         CheckStateChanges();
+        
+        UpdateAnimator();
+    }
+
+    private void UpdateAnimator()
+    {
+        animator.SetBool("isSliding", isSliding);
+        animator.SetBool("isWallRunning", isWallRunning);
+        animator.SetBool("isCrouching", isCrouching);
     }
 
     private void UpdateTimers()
@@ -148,6 +158,8 @@ public class PlayerStates : MonoBehaviour
     {
         if (!isKicking)
         {
+            animator.SetTrigger("isKicking");
+
             kickPressed = true;
             isKicking = true;
         }
