@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class StructureBuilder : MonoBehaviour
 {
@@ -19,7 +20,8 @@ public class StructureBuilder : MonoBehaviour
         if (groundPrefab != null)
         {
             GameObject ground = Instantiate(groundPrefab, transform.position, Quaternion.identity, transform);
-            ground.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
+            if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
+            else SortTilemap(ground, floorsCt);
         }
         else return;
 
@@ -30,15 +32,28 @@ public class StructureBuilder : MonoBehaviour
             {
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
                 GameObject floor = Instantiate(floorPrefabs[Random.Range(0, floorPrefabs.Length)], floorPosition, Quaternion.identity, transform);
-                floor.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
+                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorsCt);
+                else SortTilemap(floor, floorsCt);
             }
         }
 
         if (roofPrefab != null)
         {
             GameObject roof = Instantiate(roofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
-            roof.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
+            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
+            else SortTilemap(roof, floorsCt);
         }
         else return;
+    }
+
+    private void SortTilemap(GameObject toUse, int floorsCt)
+    {
+        toUse.GetComponentInChildren<TilemapRenderer>().sortingOrder -= floorsCt;
+
+    }
+
+    private void SortSprite(GameObject toUse, int floorsCt)
+    {
+        toUse.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
     }
 }
