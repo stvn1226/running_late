@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelStarter : MonoBehaviour
@@ -8,8 +9,13 @@ public class LevelStarter : MonoBehaviour
     public StructureGenerator structureGenerator;
     public LevelManager levelManager;
     public SpriteRenderer[] background;
+    public SpriteRenderer[] clouds;
     public GameObject home;
     public GameObject school;
+
+    List<SpriteRenderer> cloudsInScene = new List<SpriteRenderer>();
+    private GameObject cloudCache;
+    public Transform cloudParent;
 
     public int minLevelWidth = 1000;
     public int maxLevelWidth = 2000;
@@ -42,6 +48,31 @@ public class LevelStarter : MonoBehaviour
                 bg.size = new Vector2(newWidth, bg.size.y);
                 //bg.transform.position = new Vector3(0, bg.transform.position.y, bg.transform.position.z);
             }
+        }
+
+        if (cloudsInScene.Count == 0)
+        {
+            SpriteRenderer[] lostClouds = cloudParent.gameObject.GetComponentsInChildren<SpriteRenderer>();
+            foreach (SpriteRenderer c in lostClouds)
+            {
+                if (c != null)
+                {
+                    DestroyImmediate(c.gameObject);
+                }
+            }
+        }
+        else
+        {
+            foreach (SpriteRenderer cloud in cloudsInScene)
+            {
+                if (cloud != null) DestroyImmediate(cloud.gameObject);
+            }
+        }
+
+        for (int i = 0; i < newWidth / 2; i++)
+        {
+            cloudCache = Instantiate(clouds[Random.Range(0, clouds.Length)].gameObject, new Vector2(Random.Range(-newWidth / 2f, newWidth / 2f), Random.Range(8f, 100f)), Quaternion.identity, cloudParent);
+            cloudsInScene.Add(cloudCache.GetComponent<SpriteRenderer>());
         }
 
         PositionEndPoints(newWidth);
