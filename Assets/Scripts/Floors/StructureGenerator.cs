@@ -62,7 +62,7 @@ public class StructureGenerator : MonoBehaviour
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
             float x = Random.Range(spawnAreaMin.x, spawnAreaMax.x);
-            Vector2 candidatePosition = new Vector2(x, groundReference.position.y + 1.75f);
+            Vector2 candidatePosition = new Vector2(x, groundReference.position.y + .5f);
 
             bool validPosition = true;
             foreach (Vector2 occupied in occupiedPositions)

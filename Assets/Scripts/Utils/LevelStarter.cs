@@ -32,13 +32,14 @@ public class LevelStarter : MonoBehaviour
     private void ResizeLevel()
     {
         newWidth = Random.Range(minLevelWidth, maxLevelWidth);
-        groundReference.localScale = new Vector3(newWidth, groundReference.localScale.y, groundReference.localScale.z);
+        groundReference.GetComponent<SpriteRenderer>().size = new Vector2(newWidth, groundReference.GetComponent<SpriteRenderer>().size.y);
+        groundReference.GetComponent<BoxCollider2D>().size = new Vector2(newWidth, groundReference.GetComponent<BoxCollider2D>().size.y);
         cameraBounds.points = new Vector2[]
         {
-            new Vector2(-newWidth / 2f, -10f),
+            new Vector2(-newWidth / 2f, -8.75f),
             new Vector2(-newWidth / 2f, 100f),
             new Vector2(newWidth / 2f, 100f),
-            new Vector2(newWidth / 2f, -10f)
+            new Vector2(newWidth / 2f, -8.75f)
         };
 
         foreach (SpriteRenderer bg in background)
@@ -80,8 +81,8 @@ public class LevelStarter : MonoBehaviour
 
     private void PositionEndPoints(int levelWidth)
     {
-        home.transform.position = new Vector3(-levelWidth / 2f + 10f, groundReference.position.y + 1.75f, home.transform.position.z);
-        school.transform.position = new Vector3(levelWidth / 2f - 10f, groundReference.position.y + 1.75f, school.transform.position.z);
+        home.transform.position = new Vector3(-levelWidth / 2f + 10f, groundReference.position.y + .5f, home.transform.position.z);
+        school.transform.position = new Vector3(levelWidth / 2f - 10f, groundReference.position.y + .5f, school.transform.position.z);
     }
 
     [ContextMenu("Start Level")]
