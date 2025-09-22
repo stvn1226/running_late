@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
     
     private Rigidbody2D rb;
     private PlayerStates states;
+    [SerializeField] private BoxCollider2D kickBox;
 
     private void Awake()
     {
@@ -25,10 +26,12 @@ public class PlayerMovement : MonoBehaviour
         if (rb.linearVelocity.x < 0)
         {
             gameObject.GetComponentInChildren<SpriteRenderer>().flipX = true;
+            kickBox.offset = new Vector2(-Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
         }
         else if (rb.linearVelocity.x > 0)
         {
             gameObject.GetComponentInChildren<SpriteRenderer>().flipX = false;
+            kickBox.offset = new Vector2(Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
         }
 
         HandleMovement();
