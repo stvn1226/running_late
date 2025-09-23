@@ -18,8 +18,12 @@ public class PlayerJump : MonoBehaviour
 
     private void Update()
     {
-        HandleJumpInput();
-        HandleJumpCut();
+        if (!states.isStaggered) 
+        { 
+            HandleJumpInput();
+            HandleJumpCut();
+        }
+
         UpdateJumpPhysics();
     }
 

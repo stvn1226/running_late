@@ -3,11 +3,13 @@ using UnityEngine;
 public class PlayerKick : MonoBehaviour
 {
     private BoxCollider2D kickBox;
+    //private PlayerStates states;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         kickBox = GetComponent<BoxCollider2D>();
+        //states = GetComponentInParent<PlayerStates>();
         EndKick(); // Ensure kick hitbox is disabled at start
     }
 
@@ -35,6 +37,7 @@ public class PlayerKick : MonoBehaviour
     {
         if (kickBox != null) {
             kickBox.enabled = false;
+            //states.isKicking = false;
         }
     }
 }

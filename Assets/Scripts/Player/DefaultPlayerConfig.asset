@@ -33,15 +33,18 @@ MonoBehaviour:
   wallCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 33408
   wallLayer:
     serializedVersion: 2
     m_Bits: 3072
-  kickDuration: 0.3
+  kickDuration: 0.5
   kickForceReduction: 0.5
   landingGracePeriod: 0.25
   slamLandingThreshold: -10
   momentumConversionRatio: 0.3
+  staggerDuration: 0.8
+  staggerKnockbackForce: 20
+  staggerMovementReduction: 0.2
   crouchSizeMultiplier: {x: 2, y: 0.5}
   dropDownDisableTime: 0.3
   platformLayerMask:

@@ -82,8 +82,6 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void Update()
     {
-        // Handle landing (call movement component's landing handler)
-        movement?.HandleLanding();
     }
 
     private void AssignConfigToComponents()
@@ -159,6 +157,7 @@ public class PlayerControllerModular : MonoBehaviour
     {
         if (states != null)
         {
+            if (states.isKicking) return;
             states.SetKickPressed();
             kicker.PerformKick(config.kickDuration);
         }

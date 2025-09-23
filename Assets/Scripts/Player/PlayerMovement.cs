@@ -23,6 +23,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        ApplyDrag();
+        ClampFallSpeed();
+        HandleLanding();
+
+        if (states.isStaggered) return;
+
         if (rb.linearVelocity.x < 0)
         {
             gameObject.GetComponentInChildren<SpriteRenderer>().flipX = true;
@@ -35,8 +41,16 @@ public class PlayerMovement : MonoBehaviour
         }
 
         HandleMovement();
-        ApplyDrag();
-        ClampFallSpeed();
+    }
+
+    public void StaggerPlayer(Vector2 knockbackDirection)
+    {
+        if (config == null || states == null) return;
+
+        states.StartStagger(config.staggerDuration);
+
+        Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
+        rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
     }
 
     private void HandleMovement()
@@ -44,6 +58,11 @@ public class PlayerMovement : MonoBehaviour
         if (config == null) return;
 
         float forceMultiplier = states.isKicking ? config.kickForceReduction : 1f;
+
+        if (states.isStaggered)
+        {
+            forceMultiplier *= config.staggerMovementReduction;
+        }
 
         states.animator.SetFloat("xVelocity", Mathf.Abs(rb.linearVelocity.x));
         states.animator.SetFloat("yVelocity", rb.linearVelocity.y);
