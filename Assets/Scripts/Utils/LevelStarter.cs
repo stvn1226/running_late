@@ -35,6 +35,7 @@ public class LevelStarter : MonoBehaviour
     private int numberOfModules;
     private List<ModuleBuilder> modulesInScene = new List<ModuleBuilder>();
     public GameObject backgroundTile;
+    public Transform backgroundParent;
 
     private void Awake()
     {
@@ -144,6 +145,11 @@ public class LevelStarter : MonoBehaviour
 
         }
 
+        for (int i = 0; i < backgroundParent.childCount; i++)
+        {
+            modulesToClear.Add(backgroundParent.GetChild(i));
+        }
+
         foreach (Transform module in modulesToClear)
         {
             DestroyImmediate(module.gameObject);
@@ -167,7 +173,7 @@ public class LevelStarter : MonoBehaviour
         for (int i = 0; i <= (newWidth / 10); i++)
         {
             bgPos.x += 10;
-            Instantiate(backgroundTile, bgPos, Quaternion.identity, levelParent);
+            Instantiate(backgroundTile, bgPos, Quaternion.identity, backgroundParent);
         }
 
     }

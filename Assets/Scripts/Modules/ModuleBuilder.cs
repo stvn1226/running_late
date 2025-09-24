@@ -35,7 +35,7 @@ public class ModuleBuilder : MonoBehaviour
         foreach (Transform spawnPoint in buildingSpawnPoints)
         {
             int makeBuilding = Random.Range(0, 100);
-            if (makeBuilding <= 20) continue; //chance to skip making a building at this spawn point
+            if (makeBuilding <= 10) continue; //10% chance to skip making a building at this spawn point
             spawnPoint.position = new Vector2(spawnPoint.position.x, placementTracker.position.y);
             StructureBuilder buildingToPlace = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
             GameObject newBuilding = Instantiate(buildingToPlace.gameObject, spawnPoint.position, Quaternion.identity, transform);

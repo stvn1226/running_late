@@ -59,10 +59,10 @@ public class PlayerMovement : MonoBehaviour
 
         float forceMultiplier = states.isKicking ? config.kickForceReduction : 1f;
 
-        if (states.isStaggered)
-        {
-            forceMultiplier *= config.staggerMovementReduction;
-        }
+        //if (states.isStaggered)
+        //{
+        //    forceMultiplier *= config.staggerMovementReduction;
+        //}
 
         states.animator.SetFloat("xVelocity", Mathf.Abs(rb.linearVelocity.x));
         states.animator.SetFloat("yVelocity", rb.linearVelocity.y);
