@@ -34,6 +34,7 @@ public class LevelStarter : MonoBehaviour
     public ModuleBuilder schoolModule;
     private int numberOfModules;
     private List<ModuleBuilder> modulesInScene = new List<ModuleBuilder>();
+    public GameObject backgroundTile;
 
     private void Awake()
     {
@@ -99,7 +100,6 @@ public class LevelStarter : MonoBehaviour
         modulesToSpawn.Add(homeModule);
         for (int i = 0; i < numberOfModules; i++)
         {
-            //modulesToSpawn.Add(modules[Random.Range(0, modules.Length)]);
             moduleTest = modules[Random.Range(0, modules.Length)];
             modulesToSpawn.Add(moduleTest);
         }
@@ -130,13 +130,46 @@ public class LevelStarter : MonoBehaviour
         modulesInScene.Add(spawnedSchool);
         moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
 
+        ResizeCamBounds();
+        LayOutBackground();
+    }
+
+    private void ClearModules()
+    {
+        List<Transform> modulesToClear = new List<Transform>();
+
+        for (int i = 0; i < levelParent.childCount; i++)
+        {
+            modulesToClear.Add(levelParent.GetChild(i));
+
+        }
+
+        foreach (Transform module in modulesToClear)
+        {
+            DestroyImmediate(module.gameObject);
+        }
+    }
+
+    private void ResizeCamBounds()
+    {
         cameraBounds.points = new Vector2[]
-{
+        {
             new Vector2(-newWidth / 2f, 0f),
             new Vector2(-newWidth / 2f, 100f),
             new Vector2(newWidth / 2f, 100f),
             new Vector2(newWidth / 2f, 0f)
-};
+        };
+    }
+
+    private void LayOutBackground()
+    {
+        Vector2 bgPos = new Vector2(-(newWidth / 2) - 5, 0f);
+        for (int i = 0; i <= (newWidth / 10); i++)
+        {
+            bgPos.x += 10;
+            Instantiate(backgroundTile, bgPos, Quaternion.identity, levelParent);
+        }
+
     }
 
     private void PositionEndPoints(int levelWidth)
@@ -172,6 +205,7 @@ public class LevelStarter : MonoBehaviour
     [ContextMenu("New Start Level")]
     public void StartLevelModular()
     {
+        if (autoClearStructures) ClearModules();
         ResizeLevelModular();
     }
 }
