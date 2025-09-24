@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4199503180405573585
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1661310705830819844}
+  m_Layer: 0
+  m_Name: BuildingSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1661310705830819844
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4199503180405573585}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1074651945956140769}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4281240072771576078
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,6 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1074651945956140769}
+  - component: {fileID: 6877803549350271885}
   m_Layer: 0
   m_Name: MediumModule1
   m_TagString: Untagged
@@ -28,6 +60,63 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1661310705830819844}
+  - {fileID: 209843919021249263}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6877803549350271885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4281240072771576078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467d10ce7cc8f9b419ca8b73e0a6aa6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ModuleBuilder
+  moduleConfig: {fileID: 11400000, guid: ac0b2794d0d5deb4f8c0c4fc329796e8, type: 2}
+  foundation: {fileID: 8683936979058533683, guid: 3876c3a25d1debd41b6fe0c54122cb2f, type: 3}
+  padding: {fileID: 8683936979058533683, guid: 19f1a1e5f5e938349b6efc6aaaab018b, type: 3}
+  buildingPrefabs:
+  - {fileID: -739879595411377857, guid: aadf88ef84628d843ae6d63cdb434fc1, type: 3}
+  - {fileID: 3927706109960210463, guid: 46d552b4dcd3c5147b485320712b0fc5, type: 3}
+  - {fileID: 3927706109960210463, guid: 97c10437957bf64438bf318fe970a4ad, type: 3}
+  - {fileID: 3927706109960210463, guid: c18abc413a6a08c40836b31ef66dc3ab, type: 3}
+  - {fileID: 3927706109960210463, guid: 382368b388266fd4b9f4722237c0e15b, type: 3}
+  placementTracker: {fileID: 209843919021249263}
+  buildingSpawnPoints:
+  - {fileID: 1661310705830819844}
+--- !u!1 &8491166780575429206
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 209843919021249263}
+  m_Layer: 0
+  m_Name: PlacementTracker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &209843919021249263
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8491166780575429206}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1074651945956140769}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

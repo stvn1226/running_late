@@ -3,7 +3,9 @@ using UnityEngine;
 
 public class LevelStarter : MonoBehaviour
 {
-    //public Transform levelParent;
+    //public string myObjRefID;
+
+    public Transform levelParent;
     public Transform groundReference;
     public PolygonCollider2D cameraBounds;
     public StructureGenerator structureGenerator;
@@ -27,6 +29,7 @@ public class LevelStarter : MonoBehaviour
 
     [Header("Modular Level Settings")]
     public ModuleBuilder[] modules;
+    public ModuleBuilder moduleTest;
     public ModuleBuilder homeModule;
     public ModuleBuilder schoolModule;
     private int numberOfModules;
@@ -34,6 +37,7 @@ public class LevelStarter : MonoBehaviour
 
     private void Awake()
     {
+        //myObjRefID = this.gameObject.GetHashCode().ToString();
         //structureGenerator.ClearStructuresInEditor();
     }
 
@@ -95,7 +99,9 @@ public class LevelStarter : MonoBehaviour
         modulesToSpawn.Add(homeModule);
         for (int i = 0; i < numberOfModules; i++)
         {
-            modulesToSpawn.Add(modules[Random.Range(0, modules.Length)]);
+            //modulesToSpawn.Add(modules[Random.Range(0, modules.Length)]);
+            moduleTest = modules[Random.Range(0, modules.Length)];
+            modulesToSpawn.Add(moduleTest);
         }
         modulesToSpawn.Add(schoolModule);
 
@@ -103,9 +109,9 @@ public class LevelStarter : MonoBehaviour
         {
             newWidth += module.moduleConfig.currentTerrainWidth;
         }
-        Vector2 moduleSpawner = new Vector2(-newWidth / 2f, groundReference.position.y);
+        Vector2 moduleSpawner = new Vector2(-newWidth / 2f, 0f);
         moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
-        ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, transform);
+        ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, levelParent);
         modulesInScene.Add(spawnedHome);
         moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
         foreach (ModuleBuilder module in modulesToSpawn)
@@ -113,17 +119,24 @@ public class LevelStarter : MonoBehaviour
             if (module != homeModule && module != schoolModule)
             {
                 moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
-                ModuleBuilder newModule = Instantiate(module, moduleSpawner, Quaternion.identity, transform);
+                ModuleBuilder newModule = Instantiate(module, moduleSpawner, Quaternion.identity, levelParent);
                 newModule.GenerateModule();
                 modulesInScene.Add(newModule);
                 moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
             }
         }
         moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
-        ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, transform);
+        ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, levelParent);
         modulesInScene.Add(spawnedSchool);
         moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
 
+        cameraBounds.points = new Vector2[]
+{
+            new Vector2(-newWidth / 2f, 0f),
+            new Vector2(-newWidth / 2f, 100f),
+            new Vector2(newWidth / 2f, 100f),
+            new Vector2(newWidth / 2f, 0f)
+};
     }
 
     private void PositionEndPoints(int levelWidth)

@@ -11,7 +11,7 @@ public class ModuleBuilder : MonoBehaviour
 
     public StructureBuilder[] buildingPrefabs;
 
-    private Transform placementTracker;
+    public Transform placementTracker;
 
     public Transform[] buildingSpawnPoints;
 
@@ -34,6 +34,8 @@ public class ModuleBuilder : MonoBehaviour
 
         foreach (Transform spawnPoint in buildingSpawnPoints)
         {
+            int makeBuilding = Random.Range(0, 10);
+            if (makeBuilding <= 3) continue; //chance to skip making a building at this spawn point
             spawnPoint.position = new Vector2(spawnPoint.position.x, placementTracker.position.y);
             StructureBuilder buildingToPlace = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
             GameObject newBuilding = Instantiate(buildingToPlace.gameObject, spawnPoint.position, Quaternion.identity, transform);
