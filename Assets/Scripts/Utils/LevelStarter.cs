@@ -12,6 +12,7 @@ public class LevelStarter : MonoBehaviour
     public SpriteRenderer[] clouds;
     public GameObject home;
     public GameObject school;
+    public SpawnManager spawnManager;
 
     List<SpriteRenderer> cloudsInScene = new List<SpriteRenderer>();
     private GameObject cloudCache;
@@ -23,6 +24,13 @@ public class LevelStarter : MonoBehaviour
     public bool autoClearStructures = true;
 
     private int newWidth;
+
+    [Header("Modular Level Settings")]
+    public ModuleBuilder[] modules;
+    public ModuleBuilder homeModule;
+    public ModuleBuilder schoolModule;
+    private int numberOfModules;
+    private List<ModuleBuilder> modulesInScene = new List<ModuleBuilder>();
 
     private void Awake()
     {
@@ -79,6 +87,45 @@ public class LevelStarter : MonoBehaviour
         PositionEndPoints(newWidth);
     }
 
+    private void ResizeLevelModular()
+    {
+        newWidth = 0;
+        numberOfModules = Random.Range(minLevelWidth, maxLevelWidth); //change the minLevelWidth and maxLevelWidth into the NUMBER OF MODULES to fill the level with, rather than width in units.
+        List<ModuleBuilder> modulesToSpawn = new List<ModuleBuilder>();
+        modulesToSpawn.Add(homeModule);
+        for (int i = 0; i < numberOfModules; i++)
+        {
+            modulesToSpawn.Add(modules[Random.Range(0, modules.Length)]);
+        }
+        modulesToSpawn.Add(schoolModule);
+
+        foreach (ModuleBuilder module in modulesToSpawn)
+        {
+            newWidth += module.moduleConfig.currentTerrainWidth;
+        }
+        Vector2 moduleSpawner = new Vector2(-newWidth / 2f, groundReference.position.y);
+        moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
+        ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, transform);
+        modulesInScene.Add(spawnedHome);
+        moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
+        foreach (ModuleBuilder module in modulesToSpawn)
+        {
+            if (module != homeModule && module != schoolModule)
+            {
+                moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
+                ModuleBuilder newModule = Instantiate(module, moduleSpawner, Quaternion.identity, transform);
+                newModule.GenerateModule();
+                modulesInScene.Add(newModule);
+                moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
+            }
+        }
+        moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+        ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, transform);
+        modulesInScene.Add(spawnedSchool);
+        moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+
+    }
+
     private void PositionEndPoints(int levelWidth)
     {
         home.transform.position = new Vector3(-levelWidth / 2f + 10f, groundReference.position.y + .5f, home.transform.position.z);
@@ -92,8 +139,26 @@ public class LevelStarter : MonoBehaviour
         ResizeLevel();
         structureGenerator.spawnAreaMin = new Vector2(-newWidth / 2f + 50f, 0);
         structureGenerator.spawnAreaMax = new Vector2(newWidth / 2f - 50f, 0);
-        structureGenerator.numberOfBuildings = (int) (newWidth / 20);
+        structureGenerator.numberOfBuildings = (int)(newWidth / 20);
         structureGenerator.GenerateStructuresInEditor();
-        levelManager.ResetLevel();
+        levelManager.ReplayLevel();
+    }
+
+    [ContextMenu("Start Level Electric Boogaloo")]
+    public void StartLevelInEditorTwain()
+    {
+        if (autoClearStructures) structureGenerator.ClearStructuresInEditor();
+        ResizeLevel();
+        structureGenerator.spawnAreaMin = new Vector2(-newWidth / 2f + 50f, 0);
+        structureGenerator.spawnAreaMax = new Vector2(newWidth / 2f - 50f, 0);
+        structureGenerator.numberOfBuildings = (int)(newWidth / 20);
+        structureGenerator.GenerateStructuresInEditor();
+        spawnManager.InitializeAndSpawnPlayer();
+    }
+
+    [ContextMenu("New Start Level")]
+    public void StartLevelModular()
+    {
+        ResizeLevelModular();
     }
 }

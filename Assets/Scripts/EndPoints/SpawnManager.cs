@@ -44,7 +44,7 @@ public class SpawnManager : MonoBehaviour
         InitializeAndSpawnPlayer();
     }
     
-    private void InitializeAndSpawnPlayer()
+    public void InitializeAndSpawnPlayer()
     {
         Debug.Log("SpawnManager: Starting initialization...");
         
@@ -93,18 +93,20 @@ public class SpawnManager : MonoBehaviour
             Debug.LogError("Cannot spawn player: no home spawn point found!");
             return;
         }
-        
+
+        CleanupAllPlayers();
         SpawnPlayerAt(homeSpawnPoint.transform.position);
     }
-    
+
+    private int counter = 1;
     public void SpawnPlayerAt(Vector3 position)
     {
-        CleanupAllPlayers();
         
         if (playerPrefab != null)
         {
             currentPlayer = Instantiate(playerPrefab, position, Quaternion.identity);
-            
+            currentPlayer.name = $"{playerPrefab.name}_Instance_{counter++}";
+
             Rigidbody2D playerRb = currentPlayer.GetComponent<Rigidbody2D>();
             PlayerStates playerStates = currentPlayer.GetComponent<PlayerStates>();
             

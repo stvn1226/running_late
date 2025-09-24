@@ -5,6 +5,7 @@ using System.Collections;
 public class CamFollowSpawnedPlayer : MonoBehaviour
 {
     private CinemachineCamera cinemachineCamera;
+    private GameObject player;
     
     private void Awake()
     {
@@ -16,7 +17,22 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         // Try to find and follow the player, with retry logic for scene reloads
         StartCoroutine(FindAndFollowPlayer());
     }
-    
+
+    private float currentTime = 0f;
+    private float maxTime = .75f;
+    private void Update()
+    {
+        if (player == null && currentTime >= maxTime)
+        {
+            StartCoroutine(FindAndFollowPlayer());
+            currentTime = 0f;
+        }
+        else
+        {
+            currentTime += Time.deltaTime;
+        }
+    }
+
     private System.Collections.IEnumerator FindAndFollowPlayer()
     {
         // Wait a few frames for SpawnManager to initialize and spawn player
@@ -24,7 +40,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         yield return null;
         
         // Try to get the player with multiple attempts
-        GameObject player = null;
+        player = null;
         int attempts = 0;
         int maxAttempts = 10;
         
@@ -47,6 +63,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         {
             Transform target = player.GetComponentInChildren<PanCamObject>().transform;
             cinemachineCamera.Target.TrackingTarget = target;
+            cinemachineCamera.ForceCameraPosition(target.position, target.rotation);
             Debug.Log("Camera now following player");
         }
         else

@@ -19,6 +19,22 @@ public class StructureGenerator : MonoBehaviour
     private List<Vector2> occupiedPositions = new List<Vector2>();
     private List<StructureBuilder> generatedStructures = new List<StructureBuilder>();
 
+    private void GenerateModules()
+    {
+        if (clearExistingStructures) ClearExistingModules();
+
+    }
+
+    private void ClearExistingModules()
+    {
+
+    }
+
+    private void CreateModule()
+    {
+
+    }
+
     private void GenerateStructures()
     {
         if (clearExistingStructures) ClearExistingStructures();
@@ -108,4 +124,10 @@ public class StructureGenerator : MonoBehaviour
         ClearExistingStructures();
     }
 
+
+    [ContextMenu("New Create Structures")]
+    public void CreateModuleInEditor()
+    {
+        GenerateModules();
+    }
 }

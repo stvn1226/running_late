@@ -5,7 +5,6 @@ public class PlayerKick : MonoBehaviour
     private BoxCollider2D kickBox;
     //private PlayerStates states;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         kickBox = GetComponent<BoxCollider2D>();
@@ -13,11 +12,10 @@ public class PlayerKick : MonoBehaviour
         EndKick(); // Ensure kick hitbox is disabled at start
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+    //void Update()
+    //{
         
-    }
+    //}
 
     public void PerformKick(float kickDuration)
     {
