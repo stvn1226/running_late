@@ -32,6 +32,7 @@ Transform:
   m_Children:
   - {fileID: 7538167599914270692}
   - {fileID: 2411354089310345166}
+  - {fileID: 4668304357148381519}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7813594483785944249
@@ -47,12 +48,42 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModuleBuilder
   moduleConfig: {fileID: 11400000, guid: cad57a69d6960ad45878a35a9d36b1a0, type: 2}
-  minGroundBlocks: 1
-  maxGroundBlocks: 1
   foundation: {fileID: 0}
   padding: {fileID: 0}
   buildingPrefabs: []
+  placementTracker: {fileID: 4668304357148381519}
   buildingSpawnPoints: []
+--- !u!1 &4212060271448173331
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4668304357148381519}
+  m_Layer: 0
+  m_Name: PlacementTracker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4668304357148381519
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4212060271448173331}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2164281422213194843}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &4545008802111369357
 PrefabInstance:
   m_ObjectHideFlags: 0

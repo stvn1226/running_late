@@ -23,9 +23,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        HandleLanding();
+
         ApplyDrag();
         ClampFallSpeed();
-        HandleLanding();
 
         if (states.isStaggered) return;
 
@@ -59,10 +60,10 @@ public class PlayerMovement : MonoBehaviour
 
         float forceMultiplier = states.isKicking ? config.kickForceReduction : 1f;
 
-        //if (states.isStaggered)
-        //{
-        //    forceMultiplier *= config.staggerMovementReduction;
-        //}
+        if (states.isStaggered)
+        {
+            forceMultiplier *= config.staggerMovementReduction;
+        }
 
         states.animator.SetFloat("xVelocity", Mathf.Abs(rb.linearVelocity.x));
         states.animator.SetFloat("yVelocity", rb.linearVelocity.y);
@@ -132,27 +133,33 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyDrag()
     {
-        if (!states.isGrounded || states.isSliding || states.isKicking)
-            return;
-        
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
         
-        // Preserve horizontal momentum during landing grace period
-        if (states.justLanded)
+        // Handle momentum preservation during landing grace period FIRST, regardless of other states
+        if (states.justLanded && states.isGrounded)
         {
-            float currentHorizontalVelocity = velocity.x;
-            float velocityDifference = states.landingHorizontalVelocity - currentHorizontalVelocity;
-            
-            if (Mathf.Abs(velocityDifference) > 0.5f)
+            if (Mathf.Abs(velocity.x - states.landingHorizontalVelocity) > 0.1f)
             {
-                float preservationForce = velocityDifference * 50f;
-                rb.AddForce(Vector2.right * preservationForce, ForceMode2D.Force);
+                rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, velocity.y);
             }
+            
+            // Continue to apply appropriate drag based on current state
+        }
+        
+        // Early returns for non-ground states
+        if (!states.isGrounded || states.isKicking)
+            return;
+            
+        // Special case: if sliding, use reduced drag but still apply some
+        if (states.isSliding)
+        {
+            Vector2 dragForces = -velocity * config.slideDrag * Time.fixedDeltaTime;
+            rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             return;
         }
         
-        // Normal drag system
+        // Normal drag system for regular ground movement
         float targetDrag = 0f;
         
         if (Mathf.Abs(horizontalInput) < 0.1f)
@@ -173,8 +180,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (config == null) return;
 
-        // Store air velocity for momentum preservation
-        if (!states.isGrounded && Mathf.Abs(rb.linearVelocity.x) > 1f)
+        // Store air velocity for momentum preservation - capture ALL horizontal momentum
+        if (!states.isGrounded)
         {
             states.landingHorizontalVelocity = rb.linearVelocity.x;
         }
@@ -182,6 +189,13 @@ public class PlayerMovement : MonoBehaviour
         // Detect landing and handle momentum conversion
         if (states.wasGrounded != states.isGrounded && states.isGrounded)
         {
+            // Prevent multiple landing detections within a short timeframe
+            if (states.justLanded && states.landingGraceTimer > config.landingGracePeriod * 0.8f)
+            {
+                Debug.Log("Ignoring duplicate landing detection");
+                return;
+            }
+            
             states.landingVerticalVelocity = rb.linearVelocity.y;
             float currentHorizontalVel = rb.linearVelocity.x;
             
@@ -189,16 +203,29 @@ public class PlayerMovement : MonoBehaviour
             bool hasHorizontalInput = Mathf.Abs(states.moveInput.x) > 0.1f;
             bool isHoldingCrouchButton = states.crouchHeld;
             
+            Debug.Log($"Landing detected! Vertical velocity: {states.landingVerticalVelocity}, Horizontal: {states.landingHorizontalVelocity}, Input: {states.moveInput.x}, Crouch: {isHoldingCrouchButton}, Slam: {isSlamLanding}");
+            
             // Slam landing: fast fall + crouch button + horizontal input
             if (isSlamLanding && hasHorizontalInput && isHoldingCrouchButton)
             {
                 float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
                 float horizontalBoost = downwardSpeed * config.momentumConversionRatio;
                 float inputDirection = Mathf.Sign(states.moveInput.x);
-                float newHorizontalVelocity = currentHorizontalVel + (horizontalBoost * inputDirection);
+                
+                // Apply the boost on top of preserved momentum
+                float preservedMomentum = states.landingHorizontalVelocity;
+                float newHorizontalVelocity = preservedMomentum + (horizontalBoost * inputDirection);
                 
                 rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
                 states.landingHorizontalVelocity = newHorizontalVelocity;
+                
+                Debug.Log($"SLAM LANDING! Preserved: {preservedMomentum}, Boost: {horizontalBoost}, Final: {newHorizontalVelocity}");
+            }
+            else
+            {
+                // Regular landing: preserve horizontal momentum without boost
+                rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, 0f);
+                Debug.Log($"Regular landing: Preserving momentum {states.landingHorizontalVelocity}");
             }
             
             // Start momentum preservation grace period
