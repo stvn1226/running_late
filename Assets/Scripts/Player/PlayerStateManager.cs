@@ -53,7 +53,7 @@ public class PlayerStateManager : MonoBehaviour
         if (states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping)
         {
             // Determine if we should crouch or slide based on velocity
-            if (Mathf.Abs(rb.linearVelocity.x) > 1f)
+            if (Mathf.Abs(rb.linearVelocity.x) > 0f)
             {
                 // Moving fast while crouching = sliding
                 states.isCrouching = false;

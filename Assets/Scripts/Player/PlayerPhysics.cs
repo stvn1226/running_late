@@ -5,7 +5,7 @@ public class PlayerPhysics : MonoBehaviour
     [Header("References")]
     public PlayerConfig config;
     
-    private BoxCollider2D boxCollider;
+    private CapsuleCollider2D playerCollider;
     private PlayerStates states;
     private Vector2 originalColliderSize;
     private Vector2 originalColliderOffset;
@@ -14,11 +14,15 @@ public class PlayerPhysics : MonoBehaviour
 
     private void Awake()
     {
-        boxCollider = GetComponentInChildren<BoxCollider2D>();
+        playerCollider = GetComponentInChildren<CapsuleCollider2D>();
+        if (playerCollider == null)
+        {
+            Debug.LogError("PlayerPhysics: No CapsuleCollider2D found in children!");
+        }
         states = GetComponent<PlayerStates>();
         
-        originalColliderSize = boxCollider.size;
-        originalColliderOffset = boxCollider.offset;
+        originalColliderSize = playerCollider.size;
+        originalColliderOffset = playerCollider.offset;
     }
 
     private void Start()
@@ -47,8 +51,8 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (config == null) return;
 
-        Vector2 boxCenter = (Vector2)transform.position + boxCollider.offset;
-        Vector2 boxSize = boxCollider.size;
+        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
+        Vector2 boxSize = playerCollider.size;
 
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance, config.groundLayer);
         
@@ -66,8 +70,8 @@ public class PlayerPhysics : MonoBehaviour
             return;
         }
 
-        Vector2 boxCenter = (Vector2)transform.position + boxCollider.offset;
-        Vector2 boxSize = new Vector2(config.wallCheckDistance, boxCollider.size.y);
+        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
+        Vector2 boxSize = new Vector2(config.wallCheckDistance, playerCollider.size.y);
 
         // Check right wall
         RaycastHit2D rightHit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.right, config.wallCheckDistance, config.wallLayer);
@@ -94,22 +98,24 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (states.isCrouching || states.isSliding)
         {
-            boxCollider.size = crouchColliderSize;
-            boxCollider.offset = crouchColliderOffset;
+            playerCollider.direction = CapsuleDirection2D.Horizontal;
+            playerCollider.size = crouchColliderSize;
+            playerCollider.offset = crouchColliderOffset;
         }
         else
         {
-            boxCollider.size = originalColliderSize;
-            boxCollider.offset = originalColliderOffset;
+            playerCollider.direction = CapsuleDirection2D.Vertical;
+            playerCollider.size = originalColliderSize;
+            playerCollider.offset = originalColliderOffset;
         }
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (boxCollider == null || config == null) return;
+        if (playerCollider == null || config == null) return;
 
-        Vector2 boxCenter = (Vector2)transform.position + boxCollider.offset;
-        Vector2 boxSize = boxCollider.size;
+        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
+        Vector2 boxSize = playerCollider.size;
 
         // Draw ground check
         Gizmos.color = states != null && states.isGrounded ? Color.green : Color.red;

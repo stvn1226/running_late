@@ -39,9 +39,9 @@ MonoBehaviour:
     m_Bits: 35840
   kickDuration: 0.5
   kickForceReduction: 0.5
-  landingGracePeriod: 0.25
-  slamLandingThreshold: -1
-  momentumConversionRatio: 0.3
+  landingGracePeriod: 0.5
+  slamLandingThreshold: -0.1
+  momentumConversionRatio: 0.4
   staggerDuration: 0.8
   staggerKnockbackForce: 20
   staggerMovementReduction: 0.2

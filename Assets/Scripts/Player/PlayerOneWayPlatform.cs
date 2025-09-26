@@ -15,7 +15,7 @@ public class PlayerOneWayPlatform : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = true;
     
-    private BoxCollider2D playerCollider;
+    private CapsuleCollider2D playerCollider;
     private PlayerStates playerStates;
     private Rigidbody2D playerRigidbody;
     private List<Collider2D> ignoredPlatforms = new List<Collider2D>();
@@ -23,10 +23,10 @@ public class PlayerOneWayPlatform : MonoBehaviour
     private void Awake()
     {
         // Component is on child "Collider" object, so get components from self and parent
-        playerCollider = GetComponent<BoxCollider2D>();
+        playerCollider = GetComponent<CapsuleCollider2D>();
         if (playerCollider == null)
         {
-            Debug.LogError("PlayerOneWayPlatform: No BoxCollider2D found on this GameObject!");
+            Debug.LogError("PlayerOneWayPlatform: No CapsuleCollider2D found on this GameObject!");
             return;
         }
         
@@ -60,7 +60,7 @@ public class PlayerOneWayPlatform : MonoBehaviour
         if (showDebugInfo)
         {
             Debug.Log($"PlayerOneWayPlatform setup on '{gameObject.name}' (parent: '{transform.parent?.name}'):");
-            Debug.Log($"  - BoxCollider2D: {(playerCollider != null ? "✓" : "✗")}");
+            Debug.Log($"  - CapsuleCollider2D: {(playerCollider != null ? "✓" : "✗")}");
             Debug.Log($"  - PlayerStates: {(playerStates != null ? "✓" : "✗")}");
             Debug.Log($"  - Rigidbody2D: {(playerRigidbody != null ? "✓" : "✗")}");
             Debug.Log($"  - Config: {(config != null ? "✓" : "✗")}");
