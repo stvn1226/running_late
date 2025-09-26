@@ -8,38 +8,170 @@ public class ModuleBuilder : MonoBehaviour
     [Header("Building Materials")]
     public GameObject foundation;
     public GameObject padding;
-
     public StructureBuilder[] buildingPrefabs;
 
+    [Header("Spawn Points")]
     public Transform placementTracker;
-
     public Transform[] buildingSpawnPoints;
+    
+    [Header("Generation Settings")]
+    public bool autoGenerateOnStart = false;
+    [Range(0, 100)]
+    public int buildingSpawnChance = 90;
+    
+    private bool hasGenerated = false;
 
     private void Start()
     {
-        placementTracker.position = transform.position;
+        if (autoGenerateOnStart && !hasGenerated)
+        {
+            GenerateModule();
+        }
+        
+        if (placementTracker != null)
+        {
+            placementTracker.position = transform.position;
+        }
     }
 
     public void GenerateModule()
     {
-        int groundBlocksCt = Random.Range(moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight + 1);
-        for (int i = 0; i < groundBlocksCt - 1; i++)
+        if (hasGenerated)
         {
-            GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
-            placementTracker.position = new Vector2(placementTracker.position.x, placementTracker.position.y + moduleConfig.groundBlockHeight);
+            return;
         }
-
-        GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
-        placementTracker.position = new Vector2(placementTracker.position.x, placementTracker.position.y + moduleConfig.groundBlockHeight);
+        
+        if (moduleConfig == null)
+        {
+            Debug.LogError($"ModuleBuilder {gameObject.name}: No module config assigned!");
+            return;
+        }
+        
+        if (placementTracker != null)
+        {
+            placementTracker.position = transform.position;
+        }
+        
+        GenerateBaseTerrain();
+        GenerateBuildings();
+        
+        hasGenerated = true;
+    }
+    
+    private void GenerateBaseTerrain()
+    {
+        if (placementTracker == null)
+        {
+            Debug.LogError($"ModuleBuilder {gameObject.name}: No placement tracker assigned!");
+            return;
+        }
+        
+        int groundBlocksCount = Random.Range(moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight + 1);
+        
+        for (int i = 0; i < groundBlocksCount - 1; i++)
+        {
+            if (padding != null)
+            {
+                GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
+                paddingBlock.name = $"Padding_{i}";
+            }
+            
+            placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+        }
+        
+        if (foundation != null)
+        {
+            GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
+            groundBlock.name = "Foundation";
+            placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+        }
+    }
+    
+    private void GenerateBuildings()
+    {
+        if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0)
+        {
+            return;
+        }
+        
+        if (buildingPrefabs == null || buildingPrefabs.Length == 0)
+        {
+            return;
+        }
 
         foreach (Transform spawnPoint in buildingSpawnPoints)
         {
-            int makeBuilding = Random.Range(0, 100);
-            if (makeBuilding <= 10) continue; //10% chance to skip making a building at this spawn point
-            spawnPoint.position = new Vector2(spawnPoint.position.x, placementTracker.position.y);
-            StructureBuilder buildingToPlace = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
-            GameObject newBuilding = Instantiate(buildingToPlace.gameObject, spawnPoint.position, Quaternion.identity, transform);
-            newBuilding.GetComponent<StructureBuilder>().ConstructStructure();
+            if (spawnPoint == null) continue;
+            
+            int spawnRoll = Random.Range(0, 100);
+            if (spawnRoll >= buildingSpawnChance)
+            {
+                continue;
+            }
+            
+            Vector3 spawnPosition = new Vector3(
+                spawnPoint.position.x, 
+                placementTracker.position.y, 
+                spawnPoint.position.z
+            );
+            
+            StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
+            
+            GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
+            newBuilding.name = $"{buildingTemplate.name}_Generated";
+            
+            StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
+            if (buildingBuilder != null)
+            {
+                buildingBuilder.ConstructStructure();
+            }
+        }
+    }
+    
+    public void ClearGeneratedContent()
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = transform.GetChild(i);
+            
+            if (child == placementTracker) continue;
+            
+            bool isSpawnPoint = false;
+            foreach (Transform spawnPoint in buildingSpawnPoints)
+            {
+                if (child == spawnPoint)
+                {
+                    isSpawnPoint = true;
+                    break;
+                }
+            }
+            
+            if (!isSpawnPoint)
+            {
+                if (Application.isPlaying)
+                    Destroy(child.gameObject);
+                else
+                    DestroyImmediate(child.gameObject);
+            }
+        }
+        
+        hasGenerated = false;
+    }
+    
+    public void RegenerateModule()
+    {
+        ClearGeneratedContent();
+        GenerateModule();
+    }
+    
+    public bool HasGenerated => hasGenerated;
+    public ModulePlan GetConfig() => moduleConfig;
+    
+    private void OnValidate()
+    {
+        if (placementTracker == null)
+        {
+            placementTracker = transform.Find("PlacementTracker");
         }
     }
 }

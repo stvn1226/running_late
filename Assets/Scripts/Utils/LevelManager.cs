@@ -9,7 +9,6 @@ public class LevelManager : MonoBehaviour
     
     public static LevelManager Instance { get; private set; }
     
-    // Events for other systems to respond to level reset
     public System.Action OnLevelReplayStarted;
     public System.Action OnLevelReplayCompleted;
     
@@ -23,7 +22,6 @@ public class LevelManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         
-        // Initialize input actions
         try
         {
             inputActions = new PlayerInputActions();
@@ -42,7 +40,6 @@ public class LevelManager : MonoBehaviour
             inputActions.Gameplay.Reset.performed += OnReplayPerformed;
         }
         
-        // Subscribe to scene loaded event
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
     
@@ -54,7 +51,6 @@ public class LevelManager : MonoBehaviour
             inputActions.Gameplay.Disable();
         }
         
-        // Unsubscribe from scene loaded event
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
     
@@ -70,23 +66,17 @@ public class LevelManager : MonoBehaviour
     {
         if (isReplaying) return;
             
-        Debug.Log("Restarting level completely...");
         isReplaying = true;
-        Time.timeScale = 1f; // Ensure time scale is normal
+        Time.timeScale = 1f;
 
-        // Notify other systems that reset is starting
         OnLevelReplayStarted?.Invoke();
         
-        // Immediately reload the scene
         if (shouldReload) PerformSceneReload();
     }
     
     private void PerformSceneReload()
     {
         string currentSceneName = SceneManager.GetActiveScene().name;
-        Debug.Log($"Reloading scene completely: {currentSceneName}");
-        
-        // Reload the current scene (this resets everything to initial state)
         SceneManager.LoadScene(currentSceneName);
     }
     
@@ -94,21 +84,16 @@ public class LevelManager : MonoBehaviour
     {
         if (isReplaying)
         {
-            Debug.Log($"Level completely reset: {scene.name}");
             isReplaying = false;
-            
-            // Notify other systems that reset is complete
             OnLevelReplayCompleted?.Invoke();
         }
     }
         
-    // Check if currently resetting (useful for other systems)
     public bool IsReplaying()
     {
         return isReplaying;
     }
     
-    // Get current scene name
     public string GetCurrentSceneName()
     {
         return SceneManager.GetActiveScene().name;
@@ -116,7 +101,6 @@ public class LevelManager : MonoBehaviour
     
     private void OnDestroy()
     {
-        // Cancel any pending invokes (though we don't use any)
         CancelInvoke();
     }
 }
