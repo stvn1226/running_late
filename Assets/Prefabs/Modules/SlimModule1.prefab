@@ -32,6 +32,7 @@ Transform:
   m_Children:
   - {fileID: 150891557234929197}
   - {fileID: 2184154028277550683}
+  - {fileID: 7884720478384901340}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3603241969965492453
@@ -55,6 +56,11 @@ MonoBehaviour:
   placementTracker: {fileID: 2184154028277550683}
   buildingSpawnPoints:
   - {fileID: 150891557234929197}
+  obstacleSpawnPoint: {fileID: 7884720478384901340}
+  obstaclePrefabs:
+  - {fileID: 9041243942261583109, guid: 1962d0fd9dc63a64ab8a7cc359bc4c8c, type: 3}
+  autoGenerateOnStart: 0
+  buildingSpawnChance: 90
 --- !u!1 &4038486508402290124
 GameObject:
   m_ObjectHideFlags: 0
@@ -112,6 +118,37 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3323424992208725395}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9131514332685476804
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7884720478384901340}
+  m_Layer: 0
+  m_Name: ObstacleSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7884720478384901340
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9131514332685476804}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

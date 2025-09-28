@@ -13,7 +13,11 @@ public class ModuleBuilder : MonoBehaviour
     [Header("Spawn Points")]
     public Transform placementTracker;
     public Transform[] buildingSpawnPoints;
-    
+    public Transform obstacleSpawnPoint;
+
+    [Header("Obstacles")]
+    public GameObject[] obstaclePrefabs;
+
     [Header("Generation Settings")]
     public bool autoGenerateOnStart = false;
     [Range(0, 100)]
@@ -84,6 +88,22 @@ public class ModuleBuilder : MonoBehaviour
             GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
             groundBlock.name = "Foundation";
             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+        }
+
+        if (obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
+        {
+            obstacleSpawnPoint.position = new Vector3(
+                obstacleSpawnPoint.position.x, 
+                placementTracker.position.y, 
+                obstacleSpawnPoint.position.z
+            ); // Position obstacle at ground level
+            int obstacleRoll = Random.Range(0, 100);
+            if (obstacleRoll < 40) // 40% chance to spawn an obstacle
+            {
+                GameObject obstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
+                GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
+                newObstacle.name = $"{obstaclePrefab.name}_Generated";
+            }
         }
     }
     

@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8799167899973167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7559579911119311741}
+  m_Layer: 0
+  m_Name: ObstacleSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7559579911119311741
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799167899973167}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 8, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1680674239690627765}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1429628550200525390
 GameObject:
   m_ObjectHideFlags: 0
@@ -63,6 +94,7 @@ Transform:
   m_Children:
   - {fileID: 8528187781347212955}
   - {fileID: 8222283952925946191}
+  - {fileID: 7559579911119311741}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4069502681158129930
@@ -91,6 +123,11 @@ MonoBehaviour:
   placementTracker: {fileID: 8222283952925946191}
   buildingSpawnPoints:
   - {fileID: 8528187781347212955}
+  obstacleSpawnPoint: {fileID: 7559579911119311741}
+  obstaclePrefabs:
+  - {fileID: 9041243942261583109, guid: 1962d0fd9dc63a64ab8a7cc359bc4c8c, type: 3}
+  autoGenerateOnStart: 0
+  buildingSpawnChance: 90
 --- !u!1 &9081200904879366759
 GameObject:
   m_ObjectHideFlags: 0
