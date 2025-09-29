@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract class Vehicle : MonoBehaviour
@@ -7,6 +10,7 @@ public abstract class Vehicle : MonoBehaviour
     [SerializeField] private float speed = 5f;
     private bool isRunning;
     private bool hasRan;
+    public Collider2D[] hitbox = new Collider2D[2];
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     protected virtual void Start()
@@ -48,9 +52,20 @@ public abstract class Vehicle : MonoBehaviour
             // Handle collision with player
             Debug.Log("Vehicle collided with Player");
             collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+            StartCoroutine(DisableHitboxTemp(2f));
+
         }
     }
 
+    protected IEnumerator DisableHitboxTemp(float duration)
+    {
+        foreach (Collider2D c in hitbox)
+        {
+            c.enabled = false;
+            yield return new WaitForSeconds(duration);
+            c.enabled = true;
+        }
+    }
     //protected virtual void OnBecameVisible()
     //{
     //    gameObject.SetActive(true);

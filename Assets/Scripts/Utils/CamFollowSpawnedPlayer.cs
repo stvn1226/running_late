@@ -50,7 +50,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         if (confiner != null)
         {
             confiner.BoundingShape2D = null;
-            confiner.InvalidateCache();
+            confiner.InvalidateBoundingShapeCache();
         }
     }
     
@@ -65,7 +65,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         yield return new WaitForEndOfFrame();
         
         PolygonCollider2D bounds = null;
-        PolygonCollider2D[] allBounds = FindObjectsOfType<PolygonCollider2D>();
+        PolygonCollider2D[] allBounds = FindObjectsByType<PolygonCollider2D>(FindObjectsSortMode.None);
         
         foreach (PolygonCollider2D bound in allBounds)
         {
@@ -86,7 +86,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         if (bounds != null && confiner != null)
         {
             confiner.BoundingShape2D = bounds;
-            confiner.InvalidateCache();
+            confiner.InvalidateBoundingShapeCache();
             Debug.Log($"Camera bounds updated with {bounds.points.Length} points");
         }
         else
