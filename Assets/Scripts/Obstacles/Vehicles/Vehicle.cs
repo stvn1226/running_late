@@ -62,17 +62,11 @@ public abstract class Vehicle : MonoBehaviour
         foreach (Collider2D c in hitbox)
         {
             c.enabled = false;
-            yield return new WaitForSeconds(duration);
+        }
+        yield return new WaitForSeconds(duration);
+        foreach (Collider2D c in hitbox)
+        {
             c.enabled = true;
         }
     }
-    //protected virtual void OnBecameVisible()
-    //{
-    //    gameObject.SetActive(true);
-    //}
-
-    //protected virtual void OnBecameInvisible()
-    //{
-    //    gameObject.SetActive(false);
-    //}
 }
