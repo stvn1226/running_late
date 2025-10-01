@@ -1,10 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("UI Navigation")]
+    public Button firstSelectedButton;
+    
     [Header("UI References")]
     public GameObject pausePanel;
     public Button retryButton;
@@ -18,7 +23,7 @@ public class UIManager : MonoBehaviour
     public LevelStarter levelStarter;
     public LevelManager levelManager;
     
-    private PlayerInputActions inputActions;
+    public PlayerInputActions inputActions;
     private bool isPaused = false;
     private bool isManualSeedMode = false;
     
@@ -39,9 +44,14 @@ public class UIManager : MonoBehaviour
     
     private void OnEnable()
     {
-        inputActions.Gameplay.Enable();
-        inputActions.Gameplay.Pause.performed += OnPausePressed;
-        
+        if (inputActions != null)
+        {
+            inputActions.Gameplay.Enable();
+            inputActions.Gameplay.Pause.performed += OnPausePressed;
+            inputActions.UI.Pause.performed += OnPausePressed;
+            inputActions.Gameplay.Reset.performed += OnResetPressed; 
+        }
+    
         // Connect UI events
         retryButton.onClick.AddListener(RestartCurrentLevel);
         newLevelButton.onClick.AddListener(GenerateNewLevel);
@@ -51,9 +61,15 @@ public class UIManager : MonoBehaviour
     
     private void OnDisable()
     {
-        inputActions.Gameplay.Pause.performed -= OnPausePressed;
-        inputActions.Gameplay.Disable();
-        
+        if (inputActions != null)
+        {
+            inputActions.Gameplay.Pause.performed -= OnPausePressed;
+            inputActions.UI.Pause.performed -= OnPausePressed;
+            inputActions.Gameplay.Reset.performed -= OnResetPressed;
+            inputActions.Gameplay.Disable();
+            inputActions.UI.Disable();
+        }
+    
         retryButton.onClick.RemoveListener(RestartCurrentLevel);
         newLevelButton.onClick.RemoveListener(GenerateNewLevel);
         seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
@@ -64,7 +80,22 @@ public class UIManager : MonoBehaviour
     {
         pausePanel.SetActive(false);
         LoadSettings();
+    
+        var eventSystem = EventSystem.current;
+        var uiModule = eventSystem.GetComponent<InputSystemUIInputModule>();
+    
+        Debug.Log($"EventSystem actionsAsset: {uiModule.actionsAsset?.name}");
+        Debug.Log($"Move action: {uiModule.move?.action?.name}");
+        Debug.Log($"Submit action: {uiModule.submit?.action?.name}");
+        Debug.Log($"Cancel action: {uiModule.cancel?.action?.name}");
+    
+        if (uiModule.move?.action != null)
+        {
+            Debug.Log($"Move action enabled: {uiModule.move.action.enabled}");
+            Debug.Log($"Move action bindings: {uiModule.move.action.bindings.Count}");
+        }
     }
+
     
     // PAUSE SYSTEM
     private void OnPausePressed(InputAction.CallbackContext context)
@@ -77,7 +108,26 @@ public class UIManager : MonoBehaviour
         isPaused = !isPaused;
         pausePanel.SetActive(isPaused);
         Time.timeScale = isPaused ? 0f : 1f;
+
+        if (isPaused)
+        {
+            inputActions.Gameplay.Disable();
+            inputActions.UI.Enable();
+        
+            if (firstSelectedButton != null)
+            {
+                EventSystem.current.SetSelectedGameObject(firstSelectedButton.gameObject);
+            }
+        }
+        else
+        {
+            inputActions.UI.Disable();
+            inputActions.Gameplay.Enable();
+        
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
+
     
     // LEVEL CONTROL
     public void RestartCurrentLevel()
@@ -173,4 +223,42 @@ public class UIManager : MonoBehaviour
     }
     
     public bool IsPaused => isPaused;
+    
+    private void Update()
+    {
+        if (isPaused)
+        {
+            var uiModule = EventSystem.current.GetComponent<InputSystemUIInputModule>();
+        
+            if (uiModule.move?.action != null)
+            {
+                Vector2 moveValue = uiModule.move.action.ReadValue<Vector2>();
+                if (moveValue.magnitude > 0.1f)
+                {
+                    Debug.Log($"EventSystem move action receiving: {moveValue}");
+                }
+            }
+        
+            if (uiModule.submit?.action != null)
+            {
+                bool submitPressed = uiModule.submit.action.WasPressedThisFrame();
+                bool submitIsPressed = uiModule.submit.action.IsPressed();
+            
+                Debug.Log($"Submit pressed this frame: {submitPressed}, Submit is pressed: {submitIsPressed}");
+            
+                if (submitPressed)
+                {
+                    Debug.Log("EventSystem submit action pressed!");
+                }
+            }
+        }
+    }
+    
+    private void OnResetPressed(InputAction.CallbackContext context)
+    {
+        if (!isPaused)
+        {
+            RestartCurrentLevel();
+        }
+    }
 }

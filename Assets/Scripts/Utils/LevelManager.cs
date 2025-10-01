@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 
 public class LevelManager : MonoBehaviour
 {
-    private PlayerInputActions inputActions;
     private bool isReplaying = false;
     
     public static LevelManager Instance { get; private set; }
@@ -21,45 +20,16 @@ public class LevelManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        
-        try
-        {
-            inputActions = new PlayerInputActions();
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Failed to initialize PlayerInputActions: {e.Message}");
-        }
     }
     
     private void OnEnable()
     {
-        if (inputActions != null)
-        {
-            inputActions.Gameplay.Enable();
-            inputActions.Gameplay.Reset.performed += OnReplayPerformed;
-        }
-        
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
     
     private void OnDisable()
     {
-        if (inputActions != null)
-        {
-            inputActions.Gameplay.Reset.performed -= OnReplayPerformed;
-            inputActions.Gameplay.Disable();
-        }
-        
         SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-    
-    private void OnReplayPerformed(InputAction.CallbackContext context)
-    {
-        if (!isReplaying)
-        {
-            ReplayLevel();
-        }
     }
     
     public void ReplayLevel(bool shouldReload = true)

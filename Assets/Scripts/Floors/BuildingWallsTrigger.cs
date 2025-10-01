@@ -3,13 +3,7 @@ using UnityEngine.InputSystem;
 
 public class BuildingWallsTrigger : MonoBehaviour
 {
-    private PlayerInputActions inputActions;
     private BoxCollider2D boxCollider;
-
-    private void Awake()
-    {
-        inputActions = new PlayerInputActions();
-    }
 
     private void Start()
     {
@@ -18,20 +12,20 @@ public class BuildingWallsTrigger : MonoBehaviour
 
     private void OnEnable()
     {
-        inputActions.Gameplay.Enable();
-
-        inputActions.Gameplay.WallRun.performed += OnPlayerWallRun;
-        inputActions.Gameplay.WallRun.canceled += OnPlayerStopWallRun;
-
+        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
+        {
+            UIManager.Instance.inputActions.Gameplay.WallRun.performed += OnPlayerWallRun;
+            UIManager.Instance.inputActions.Gameplay.WallRun.canceled += OnPlayerStopWallRun;
+        }
     }
 
     private void OnDisable()
     {
-        inputActions.Gameplay.Disable();
-
-        inputActions.Gameplay.WallRun.performed -= OnPlayerWallRun;
-        inputActions.Gameplay.WallRun.canceled -= OnPlayerStopWallRun;
-
+        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
+        {
+            UIManager.Instance.inputActions.Gameplay.WallRun.performed -= OnPlayerWallRun;
+            UIManager.Instance.inputActions.Gameplay.WallRun.canceled -= OnPlayerStopWallRun;
+        }
     }
 
     private void Update()
