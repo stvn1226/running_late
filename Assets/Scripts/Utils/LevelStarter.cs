@@ -18,6 +18,7 @@ public class LevelStarter : MonoBehaviour
     public bool useManualSeed = false;
     [SerializeField] private int manualSeed = 12345;
     [SerializeField] private int currentSeed;
+
     [Space]
     [SerializeField] private bool showSeedInConsole = true;
 
@@ -89,6 +90,15 @@ public class LevelStarter : MonoBehaviour
     
     private void Start()
     {
+        if (PlayerPrefs.GetInt("UseRetrySeed", 0) == 1)
+        {
+            int retrySeed = PlayerPrefs.GetInt("RetrySeed", 0);
+            SetManualSeed(retrySeed);
+            PlayerPrefs.DeleteKey("UseRetrySeed");
+            PlayerPrefs.DeleteKey("RetrySeed");
+            Debug.Log($"🔄 Retry with same seed: {retrySeed}");
+        }
+        
         if (generateOnStart && !hasGenerated)
         {
             StartCoroutine(GenerateLevelWithDelay());
