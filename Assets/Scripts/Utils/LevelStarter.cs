@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Random = UnityEngine.Random;
 
 public class LevelStarter : MonoBehaviour
 {
@@ -40,6 +41,10 @@ public class LevelStarter : MonoBehaviour
     public GameObject backgroundTile;
     public Transform backgroundParent;
     public Transform cloudParent;
+    
+    [Header("Module Count Settings")]
+    public int minModules = 5;
+    public int maxModules = 10;
     
     [Header("Level Size")]
     public int minLevelWidth = 1000;
@@ -305,13 +310,12 @@ public class LevelStarter : MonoBehaviour
     private void ResizeLevelModular()
     {
         newWidth = 0;
-        numberOfModules = UnityEngine.Random.Range(6, 12);
+        numberOfModules = Random.Range(minModules, maxModules);
         List<ModuleBuilder> modulesToSpawn = new List<ModuleBuilder>();
         modulesToSpawn.Add(homeModule);
-        
         for (int i = 0; i < numberOfModules; i++)
         {
-            moduleTest = modules[UnityEngine.Random.Range(0, modules.Length)];
+            moduleTest = modules[Random.Range(0, modules.Length)];
             modulesToSpawn.Add(moduleTest);
         }
         modulesToSpawn.Add(schoolModule);
@@ -320,15 +324,11 @@ public class LevelStarter : MonoBehaviour
         {
             newWidth += module.moduleConfig.currentTerrainWidth;
         }
-        
         Vector2 moduleSpawner = new Vector2(-newWidth / 2f, 0f);
-        
-        moduleSpawner.x = newWidth / 2f - schoolModule.moduleConfig.currentTerrainWidth / 2f;
-        ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, levelParent);
-        spawnedSchool.name = "SchoolModule_Final";
-        modulesInScene.Add(spawnedSchool);
-        
-        moduleSpawner.x = -newWidth / 2f + homeModule.moduleConfig.currentTerrainWidth;
+        moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
+        ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, levelParent);
+        modulesInScene.Add(spawnedHome);
+        moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
         foreach (ModuleBuilder module in modulesToSpawn)
         {
             if (module != homeModule && module != schoolModule)
@@ -340,26 +340,17 @@ public class LevelStarter : MonoBehaviour
                 moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
             }
         }
-        
-        moduleSpawner.x = -newWidth / 2f + homeModule.moduleConfig.currentTerrainWidth / 2f;
-        ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, levelParent);
-        spawnedHome.name = "HomeModule_Final";
-        modulesInScene.Add(spawnedHome);
+        moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+        ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, levelParent);
+        modulesInScene.Add(spawnedSchool);
+        moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+
+        Debug.Log($"Modular Level: Width={newWidth}, Modules={numberOfModules}, Seed={Random.state}");
 
         ResizeCamBounds(0f);
         LayOutBackground();
-        
-        if (generateBuildingsInModules)
-        {
-            GenerateBuildings();
-        }
-        
-        if (showSeedInConsole)
-        {
-            Debug.Log($"Modular Level: Width={newWidth}, Modules={numberOfModules}, Seed={currentSeed}");
-        }
     }
-
+    
     private void GenerateProceduralClouds()
     {
         if (clouds == null || cloudParent == null) return;
