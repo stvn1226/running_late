@@ -46,6 +46,11 @@ public class PlayerConfig : ScriptableObject
     public float slamLandingThreshold = -8f;
     public float momentumConversionRatio = 0.2f;
 
+    [Header("Stagger Settings")]
+    public float staggerDuration = 0.8f;
+    public float staggerKnockbackForce = 8f;
+    public float staggerMovementReduction = 0.2f;
+
     [Header("Collider Settings")]
     public Vector2 crouchSizeMultiplier = new Vector2(1.33f, 0.33f);
     

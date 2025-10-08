@@ -5,28 +5,117 @@ using System.Collections;
 public class CamFollowSpawnedPlayer : MonoBehaviour
 {
     private CinemachineCamera cinemachineCamera;
+    private CinemachineConfiner2D confiner;
+    private GameObject player;
+    
+    private float currentTime = 0f;
+    private float maxTime = 0.75f;
     
     private void Awake()
     {
         cinemachineCamera = GetComponent<CinemachineCamera>();
+        confiner = GetComponent<CinemachineConfiner2D>();
     }
     
     void Start()
     {
-        // Try to find and follow the player, with retry logic for scene reloads
+        StartCoroutine(FindAndFollowPlayer());
+        
+        if (LevelStarter.Instance != null)
+        {
+            LevelStarter.Instance.OnLevelGenerationStarted += OnLevelClearing;
+            LevelStarter.Instance.OnLevelGenerationCompleted += OnLevelReady;
+        }
+        
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.OnLevelReplayStarted += OnLevelRestart;
+        }
+    }
+    
+    private void OnLevelClearing()
+    {
+        ClearCameraBounds();
+    }
+    
+    private void OnLevelRestart()
+    {
+        player = null;
+        ClearCameraBounds();
         StartCoroutine(FindAndFollowPlayer());
     }
     
-    private System.Collections.IEnumerator FindAndFollowPlayer()
+    private void ClearCameraBounds()
     {
-        // Wait a few frames for SpawnManager to initialize and spawn player
+        if (confiner != null)
+        {
+            confiner.BoundingShape2D = null;
+            confiner.InvalidateBoundingShapeCache();
+        }
+    }
+    
+    private void OnLevelReady()
+    {
+        StartCoroutine(UpdateCameraBounds());
+    }
+    
+    private IEnumerator UpdateCameraBounds()
+    {
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
+        
+        PolygonCollider2D bounds = null;
+        PolygonCollider2D[] allBounds = FindObjectsByType<PolygonCollider2D>(FindObjectsSortMode.None);
+        
+        foreach (PolygonCollider2D bound in allBounds)
+        {
+            if (bound.gameObject.layer == LayerMask.NameToLayer("CamBounds") || 
+                bound.name.Contains("CameraBounds") || 
+                bound.CompareTag("CamBounds"))
+            {
+                bounds = bound;
+                break;
+            }
+        }
+        
+        if (bounds == null && allBounds.Length > 0)
+        {
+            bounds = allBounds[0];
+        }
+        
+        if (bounds != null && confiner != null)
+        {
+            confiner.BoundingShape2D = bounds;
+            confiner.InvalidateBoundingShapeCache();
+            Debug.Log($"Camera bounds updated with {bounds.points.Length} points");
+        }
+        else
+        {
+            Debug.LogWarning("No camera bounds found!");
+        }
+    }
+
+    private void Update()
+    {
+        if (player == null && currentTime >= maxTime)
+        {
+            StartCoroutine(FindAndFollowPlayer());
+            currentTime = 0f;
+        }
+        else
+        {
+            currentTime += Time.deltaTime;
+        }
+    }
+
+    private IEnumerator FindAndFollowPlayer()
+    {
         yield return null;
         yield return null;
         
-        // Try to get the player with multiple attempts
-        GameObject player = null;
+        player = null;
         int attempts = 0;
-        int maxAttempts = 10;
+        int maxAttempts = 15;
         
         while (player == null && attempts < maxAttempts)
         {
@@ -42,16 +131,30 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
             }
         }
         
-        // Set the camera target if player was found
         if (player != null && cinemachineCamera != null)
         {
-            Transform target = player.GetComponentInChildren<PanCamObject>().transform;
+            PanCamObject panCam = player.GetComponentInChildren<PanCamObject>();
+            Transform target = panCam != null ? panCam.transform : player.transform;
+            
             cinemachineCamera.Target.TrackingTarget = target;
+            cinemachineCamera.ForceCameraPosition(target.position, target.rotation);
+            
             Debug.Log("Camera now following player");
         }
-        else
+    }
+    
+    private void OnDestroy()
+    {
+        if (LevelStarter.Instance != null)
         {
-            Debug.LogWarning("CamFollowSpawnedPlayer: Could not find player to follow");
+            LevelStarter.Instance.OnLevelGenerationStarted -= OnLevelClearing;
+            LevelStarter.Instance.OnLevelGenerationCompleted -= OnLevelReady;
+        }
+        
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.OnLevelReplayStarted -= OnLevelRestart;
         }
     }
 }
+

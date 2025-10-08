@@ -10,6 +10,7 @@ TagManager:
   - RWall
   - HardBuilding
   - SoftBuilding
+  - PlayerKick
   layers:
   - Default
   - TransparentFX
@@ -24,9 +25,9 @@ TagManager:
   - SoftWall
   - HardWall
   - BreakableBarrier
-  - 
-  - 
-  - 
+  - ObstacleTrigger
+  - ObstacleCollider
+  - Ground
   - 
   - 
   - 

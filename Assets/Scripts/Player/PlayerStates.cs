@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using static UnityEditor.VersionControl.Asset;
 
 public class PlayerStates : MonoBehaviour
 {
@@ -24,6 +25,7 @@ public class PlayerStates : MonoBehaviour
     public bool isKicking;
     public bool isCrouching;
     public bool isDroppingDown;
+    public bool isStaggered;
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -48,6 +50,10 @@ public class PlayerStates : MonoBehaviour
     [Header("Kick States")]
     public float kickTimer;
 
+    [Header("Stagger States")]
+    public float staggerTimer;
+
+
     // Public properties for external access
     public bool IsWallRunHeld => wallRunHeld;
 
@@ -55,6 +61,7 @@ public class PlayerStates : MonoBehaviour
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
     public System.Action OnJumpStateChanged;
+    public System.Action OnStaggerStateChanged;
 
     private void Update()
     {
@@ -63,6 +70,17 @@ public class PlayerStates : MonoBehaviour
         
         // Check for state changes and trigger events
         CheckStateChanges();
+        
+        UpdateAnimator();
+    }
+
+    private void UpdateAnimator()
+    {
+        animator.SetBool("isSliding", isSliding);
+        animator.SetBool("isWallRunning", isWallRunning);
+        animator.SetBool("isCrouching", isCrouching);
+        animator.SetBool("isStaggered", isStaggered);
+
     }
 
     private void UpdateTimers()
@@ -94,9 +112,17 @@ public class PlayerStates : MonoBehaviour
         // Kick timer
         if (isKicking)
         {
+            if (kickPressed) kickPressed = false;
             kickTimer -= Time.deltaTime;
             if (kickTimer <= 0)
                 isKicking = false;
+        }
+
+        if (isStaggered)
+        {
+            staggerTimer -= Time.deltaTime;
+            if (staggerTimer <= 0)
+                isStaggered = false;
         }
 
         // Jump hold timer
@@ -108,8 +134,8 @@ public class PlayerStates : MonoBehaviour
         // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
-        if (kickPressed)
-            kickPressed = false;
+        //if (kickPressed)
+        //    kickPressed = false;
         //if (dropDownPressed)
         //    dropDownPressed = false;
     }
@@ -118,6 +144,7 @@ public class PlayerStates : MonoBehaviour
     {
         bool previousGrounded = wasGrounded;
         bool previousWallRunning = isWallRunning;
+        bool previousStaggered = isStaggered;
 
         // Update wasGrounded at the end of frame
         if (previousGrounded != isGrounded)
@@ -129,6 +156,12 @@ public class PlayerStates : MonoBehaviour
         {
             OnWallRunChanged?.Invoke();
         }
+
+        if (previousStaggered != isStaggered)
+        {
+            OnStaggerStateChanged?.Invoke();
+        }
+
     }
 
     public void SetJumpPressed()
@@ -148,6 +181,8 @@ public class PlayerStates : MonoBehaviour
     {
         if (!isKicking)
         {
+            animator.SetTrigger("isKicking");
+
             kickPressed = true;
             isKicking = true;
         }
@@ -165,6 +200,13 @@ public class PlayerStates : MonoBehaviour
         //dropDownPressed = false;
         dropDownHeld = false;
         isDroppingDown = false;
+    }
+
+    public void StartStagger(float duration)
+    {
+        isStaggered = true;
+        staggerTimer = duration;
+        //animator.SetTrigger("isStaggered");
     }
 
     public void StartCoyoteTime(float coyoteTime)

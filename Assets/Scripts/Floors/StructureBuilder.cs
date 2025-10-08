@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class StructureBuilder : MonoBehaviour
 {
@@ -13,22 +14,46 @@ public class StructureBuilder : MonoBehaviour
 
     public void ConstructStructure()
     {
-        if (groundPrefab != null) Instantiate(groundPrefab, transform.position, Quaternion.identity, transform);
+        int floorsCt = 0;
+        floorsCt = Random.Range(config.minFloors, config.maxFloors + 1);
+
+        if (groundPrefab != null)
+        {
+            GameObject ground = Instantiate(groundPrefab, transform.position, Quaternion.identity, transform);
+            if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
+            else SortTilemap(ground, floorsCt);
+        }
         else return;
 
-        int floors = 0;
         if (floorPrefabs.Length > 0)
         {
-            floors = Random.Range(config.minFloors, config.maxFloors + 1);
-            Debug.Log(floors);
-            for (int i = 0; i < floors - 2; i++)
+            Debug.Log(floorsCt);
+            for (int i = 0; i < floorsCt - 2; i++)
             {
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
-                Instantiate(floorPrefabs[Random.Range(0, floorPrefabs.Length)], floorPosition, Quaternion.identity, transform);
+                GameObject floor = Instantiate(floorPrefabs[Random.Range(0, floorPrefabs.Length)], floorPosition, Quaternion.identity, transform);
+                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorsCt);
+                else SortTilemap(floor, floorsCt);
             }
         }
 
-        if (roofPrefab != null) Instantiate(roofPrefab, new Vector2(transform.position.x, transform.position.y + (((floors > 0? floors : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
+        if (roofPrefab != null)
+        {
+            GameObject roof = Instantiate(roofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
+            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
+            else SortTilemap(roof, floorsCt);
+        }
         else return;
+    }
+
+    private void SortTilemap(GameObject toUse, int floorsCt)
+    {
+        toUse.GetComponentInChildren<TilemapRenderer>().sortingOrder -= floorsCt;
+
+    }
+
+    private void SortSprite(GameObject toUse, int floorsCt)
+    {
+        toUse.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
     }
 }

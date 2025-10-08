@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class SpawnManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class SpawnManager : MonoBehaviour
     
     private GameObject currentPlayer;
     private SpawnPoint homeSpawnPoint;
+    private bool waitingForLevel = false;
     
     public static SpawnManager Instance { get; private set; }
     
@@ -23,40 +25,49 @@ public class SpawnManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         
-        // Subscribe to scene loaded events to handle respawning after scene reload
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
     
     private void Start()
     {
-        InitializeAndSpawnPlayer();
+        if (LevelStarter.Instance != null && LevelStarter.Instance.HasGeneratedLevel)
+        {
+            InitializeAndSpawnPlayer();
+        }
+        else
+        {
+            waitingForLevel = true;
+        }
     }
     
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"Scene loaded: {scene.name}. Initializing SpawnManager...");
-        
-        // Reset references since scene objects were destroyed/recreated
         homeSpawnPoint = null;
         currentPlayer = null;
-        
-        // Initialize and spawn player for the new scene
+        waitingForLevel = true;
+    }
+    
+    public void OnLevelGenerated()
+    {
+        if (waitingForLevel)
+        {
+            waitingForLevel = false;
+            StartCoroutine(DelayedSpawn());
+        }
+    }
+    
+    private IEnumerator DelayedSpawn()
+    {
+        yield return new WaitForEndOfFrame();
         InitializeAndSpawnPlayer();
     }
     
-    private void InitializeAndSpawnPlayer()
+    public void InitializeAndSpawnPlayer()
     {
-        Debug.Log("SpawnManager: Starting initialization...");
-        
         if (playerPrefab == null)
         {
-            Debug.LogError("SpawnManager: No player prefab assigned! Please assign a player prefab in the inspector.");
+            Debug.LogError("SpawnManager: No player prefab assigned!");
             return;
-        }
-        
-        if (playerConfig == null)
-        {
-            Debug.LogWarning("SpawnManager: No player config assigned! Using fallback spawn method.");
         }
         
         FindHomeSpawnPoint();
@@ -73,7 +84,6 @@ public class SpawnManager : MonoBehaviour
             {
                 spawnPoint.isHomeSpawn = true;
                 homeSpawnPoint = spawnPoint;
-                Debug.Log($"Home spawn point found at: {spawnPoint.transform.position}");
             }
             else
             {
@@ -82,7 +92,7 @@ public class SpawnManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No Home object or home spawn point found in scene!");
+            Debug.LogError("No Home object found in scene!");
         }
     }
     
@@ -93,18 +103,19 @@ public class SpawnManager : MonoBehaviour
             Debug.LogError("Cannot spawn player: no home spawn point found!");
             return;
         }
-        
+
+        CleanupAllPlayers();
         SpawnPlayerAt(homeSpawnPoint.transform.position);
     }
-    
+
+    private int counter = 1;
     public void SpawnPlayerAt(Vector3 position)
     {
-        CleanupAllPlayers();
-        
         if (playerPrefab != null)
         {
             currentPlayer = Instantiate(playerPrefab, position, Quaternion.identity);
-            
+            currentPlayer.name = $"{playerPrefab.name}_Instance_{counter++}";
+
             Rigidbody2D playerRb = currentPlayer.GetComponent<Rigidbody2D>();
             PlayerStates playerStates = currentPlayer.GetComponent<PlayerStates>();
             
@@ -112,33 +123,17 @@ public class SpawnManager : MonoBehaviour
             {
                 float maxSpeed = playerConfig.maxRunSpeed;
                 
-                // Set the velocity directly
                 playerRb.linearVelocity = new Vector2(maxSpeed, 0f);
                 
-                // Activate the momentum preservation system
                 playerStates.justLanded = true;
                 playerStates.landingGraceTimer = playerConfig.landingGracePeriod;
                 playerStates.landingHorizontalVelocity = maxSpeed;
-                
-                Debug.Log($"Player spawned with momentum preservation active: {maxSpeed}");
             }
             else if (playerRb != null)
             {
                 playerRb.AddForce(Vector2.right * initialImpulseForce, ForceMode2D.Impulse);
-                Debug.Log("Missing components, using fallback impulse method");
-            }
-            else
-            {
-                Debug.LogWarning("Player prefab doesn't have a Rigidbody2D component!");
             }
         }
-        else
-        {
-            Debug.LogError("No player prefab assigned!");
-            return;
-        }
-        
-        Debug.Log($"Player spawned at: {position}");
     }
     
     private void CleanupAllPlayers()
@@ -154,7 +149,6 @@ public class SpawnManager : MonoBehaviour
                     currentPlayer = null;
                 }
                 Destroy(player);
-                Debug.Log($"Removed existing player: {player.name}");
             }
         }
         
@@ -162,7 +156,6 @@ public class SpawnManager : MonoBehaviour
         {
             Destroy(currentPlayer);
             currentPlayer = null;
-            Debug.Log("Removed tracked current player");
         }
     }
         
@@ -198,15 +191,12 @@ public class SpawnManager : MonoBehaviour
             return;
         }
         
-        Debug.LogWarning($"Found {allPlayers.Length} players in scene. Cleaning up duplicates...");
-        
         GameObject playerToKeep = currentPlayer != null ? currentPlayer : allPlayers[0];
         
         foreach (GameObject player in allPlayers)
         {
             if (player != playerToKeep && player != null)
             {
-                Debug.Log($"Removing duplicate player: {player.name}");
                 Destroy(player);
             }
         }
@@ -221,7 +211,6 @@ public class SpawnManager : MonoBehaviour
     
     private void OnDestroy()
     {
-        // Unsubscribe from scene events to prevent memory leaks
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 }
