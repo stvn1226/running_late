@@ -2826,7 +2826,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1008962276186670117, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 9.89
       objectReference: {fileID: 0}
     - target: {fileID: 1008962276186670117, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2867,6 +2867,154 @@ PrefabInstance:
     - target: {fileID: 6039526676700403722, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: detectionRadius
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].time
+      value: 0.07860355
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[3].time
+      value: 0.1713635
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[4].time
+      value: 0.7296287
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[5].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].value
+      value: 0.14087364
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[3].value
+      value: 0.04872319
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[4].value
+      value: 0.0272115
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[0].inSlope
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].inSlope
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].inSlope
+      value: -0.9713557
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[3].inSlope
+      value: -0.32901204
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[4].inSlope
+      value: 0.026118735
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[5].inSlope
+      value: -0.41766897
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[0].outSlope
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].outSlope
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].outSlope
+      value: -0.9713557
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[3].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[3].outSlope
+      value: -0.32901204
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[4].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[4].outSlope
+      value: 0.026118735
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[5].inWeight
+      value: 0.09826028
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[5].outSlope
+      value: -0.41766897
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[0].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].outWeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[3].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[4].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[0].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[1].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 7281569745678722116, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+      propertyPath: flightCurve.m_Curve.Array.data[2].tangentMode
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
