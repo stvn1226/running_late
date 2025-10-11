@@ -16,10 +16,32 @@ public class BuildingWallsTrigger : MonoBehaviour
             boxCollider = GetComponent<BoxCollider2D>();
         }
         
+        ConfigurePlatformEffectors();
+        
         if (!loggedInputConnection)
         {
             GameLogger.Log("BUILDING", $"BuildingWallsTrigger initialized - Layer: {LayerMask.LayerToName(gameObject.layer)}, IsTrigger: {boxCollider?.isTrigger}");
             loggedInputConnection = true;
+        }
+    }
+
+    private void ConfigurePlatformEffectors()
+    {
+        // Buscar todos los PlatformEffector2D en este GameObject y sus hijos
+        PlatformEffector2D[] effectors = GetComponentsInChildren<PlatformEffector2D>();
+        
+        foreach (PlatformEffector2D effector in effectors)
+        {
+            // Solo incluir layer del Player (layer 5)
+            // Esto excluye automáticamente los vehículos (layers 13 y 14)
+            effector.colliderMask = 1 << 5; // Solo Player layer
+            
+            GameLogger.LogVerbose("BUILDING", $"Configured PlatformEffector2D on {effector.gameObject.name} - ColliderMask set to Player only (layer 5). Vehicles excluded.");
+        }
+        
+        if (effectors.Length > 0)
+        {
+            GameLogger.Log("BUILDING", $"Configured {effectors.Length} PlatformEffector2D components to exclude vehicles from collision");
         }
     }
 
