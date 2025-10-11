@@ -10,10 +10,12 @@ public class Pigeon : MonoBehaviour
         Idle,
         TakingOff,
         Gliding,
+        Staggered,
         Finished
     }
 
     public Collider2D hitbox;
+    public Collider2D solidCollider;
 
     [Header("Detection")]
     [SerializeField] private float detectionRadius = 5f;
@@ -37,6 +39,12 @@ public class Pigeon : MonoBehaviour
     [SerializeField] private bool continueGlidingIndefinitely = true;
     [SerializeField] private float glideDuration = 3f;
 
+    [Header("Stagger")]
+    [Tooltip("Force applied when pigeon gets staggered by kick.")]
+    [SerializeField] private Vector2 staggerForce = new Vector2(-3f, -2f);
+    [Tooltip("Gravity scale applied during stagger to make pigeon fall.")]
+    [SerializeField] private float staggerGravityScale = 2f;
+
     [Header("Animator")]
     private Animator pigeonAnimator;
 
@@ -50,6 +58,11 @@ public class Pigeon : MonoBehaviour
     private float glideTimer;
     private Vector2 takeOffStartPosition;
     private float initialGravityScale;
+    private bool isStaggered = false;
+
+    private Camera mainCamera;
+    private bool isRunning;
+    private bool hasRan;
 
     private void Awake()
     {
@@ -60,6 +73,7 @@ public class Pigeon : MonoBehaviour
 
     private void Start()
     {
+        mainCamera = Camera.main;
         CachePlayerTransform();
         pigeonAnimator = GetComponent<Animator>();
     }
@@ -69,6 +83,7 @@ public class Pigeon : MonoBehaviour
         state = FlightState.Idle;
         takeOffTimer = 0f;
         glideTimer = 0f;
+        isStaggered = false;
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
@@ -78,6 +93,7 @@ public class Pigeon : MonoBehaviour
 
     private void Update()
     {
+        EnableDisableDistance();
         if (state == FlightState.Idle && PlayerWithinDetectionRadius())
         {
             BeginTakeOff();
@@ -95,11 +111,20 @@ public class Pigeon : MonoBehaviour
             case FlightState.Gliding:
                 HandleGlide();
                 break;
+            case FlightState.Staggered:
+                HandleStagger();
+                break;
         }
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
+        if (collision.gameObject.CompareTag("PlayerKick"))
+        {
+            Debug.Log("Pigeon hit by PlayerKick trigger.");
+            TriggerStagger();
+        }
+
         if (collision.gameObject.CompareTag("Player"))
         {
             // Handle collision with player
@@ -108,6 +133,7 @@ public class Pigeon : MonoBehaviour
             StartCoroutine(DisableHitboxTemp(2f));
 
         }
+
     }
 
     protected IEnumerator DisableHitboxTemp(float duration)
@@ -115,6 +141,39 @@ public class Pigeon : MonoBehaviour
         hitbox.enabled = false;
         yield return new WaitForSeconds(duration);
         hitbox.enabled = true;
+    }
+
+    private void TriggerStagger()
+    {
+        // Only allow staggering if pigeon is flying (not idle or already staggered)
+        if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
+            return;
+
+        Debug.Log("Pigeon staggered and knocked out of the sky!");
+        
+        // Change state to staggered - pigeon will now just fall
+        state = FlightState.Staggered;
+        isStaggered = true;
+
+        // Set animator
+        pigeonAnimator.SetBool("isStaggered", true);
+
+        // Apply physics changes to make it fall
+        rb.gravityScale = staggerGravityScale;
+        
+        // Apply stagger force to knock the pigeon out of the sky
+        rb.linearVelocity = Vector2.zero; // Reset current velocity
+        rb.AddForce(staggerForce, ForceMode2D.Impulse);
+
+        // Disable colliders
+        hitbox.enabled = false;
+        solidCollider.enabled = false;
+    }
+
+    private void HandleStagger()
+    {
+        // Pigeon just falls under gravity - no recovery, no timer
+        // Physics handles everything from here
     }
 
     private void BeginTakeOff()
@@ -201,12 +260,32 @@ public class Pigeon : MonoBehaviour
         return transform.position;
     }
 
+    private void EnableDisableDistance()
+    {
+        if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 20f)
+        {
+            isRunning = false;
+        }
+        else
+        {
+            isRunning = true;
+            hasRan = true;
+        }
+
+        if (hasRan && Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 40f)
+        {
+            Destroy(gameObject);
+        }
+
+    }
+
     private void UpdateAnimator()
     {
         if (pigeonAnimator != null && rb != null)
         {
             float currentVelocityMagnitude = rb.linearVelocity.magnitude;
             pigeonAnimator.SetFloat("velocity", currentVelocityMagnitude);
+            pigeonAnimator.SetBool("isStaggered", isStaggered);
         }
     }
 

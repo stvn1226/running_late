@@ -235,9 +235,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pigeon
   hitbox: {fileID: 5271227525356455602}
-  detectionRadius: 5
+  solidCollider: {fileID: 5397477613553697664}
+  detectionRadius: 10
   detectionOrigin: {fileID: 1008962276186670117}
-  takeOffDuration: 0.4
+  takeOffDuration: 0.2
   takeOffHeight: 1.75
   takeOffHeightCurve:
     serializedVersion: 2
@@ -288,12 +289,14 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   maxTakeOffVerticalSpeed: 10
-  glideSpeed: 8
+  glideSpeed: 12
   glideHeightOffset: 1.75
   glideVerticalSnappiness: 4
   maxGlideVerticalSpeed: 2.5
   continueGlidingIndefinitely: 1
   glideDuration: 3
+  staggerForce: {x: 10, y: 3}
+  staggerGravityScale: 2
   showGizmos: 1
 --- !u!1 &6083325443485467078
 GameObject:
@@ -373,7 +376,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 90
   m_Sprite: {fileID: 4555835495571554101, guid: 484ccb4cfa9257b4a8200e1ffcf4a747, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
