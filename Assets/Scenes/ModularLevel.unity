@@ -2443,8 +2443,6 @@ MonoBehaviour:
   - 10
   currentScaleIndex: 3
   showDebugInfo: 1
-  showTimeScaleUI: 1
-  displayFormat: 'Time: {0}x'
 --- !u!4 &995299463
 Transform:
   m_ObjectHideFlags: 0
@@ -4044,8 +4042,11 @@ MonoBehaviour:
   seedInputField: {fileID: 675874875}
   fps60Toggle: {fileID: 1544070328}
   fps120Toggle: {fileID: 894172587}
+  timeScaleDisplay: {fileID: 0}
+  timeScaleButtons: []
   levelStarter: {fileID: 1998099633}
   levelManager: {fileID: 491674138}
+  timeScaleManager: {fileID: 0}
 --- !u!1 &1812050160
 GameObject:
   m_ObjectHideFlags: 0
