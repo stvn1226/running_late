@@ -1,246 +1,221 @@
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
+using System.Collections;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class Pigeon : MonoBehaviour
 {
-    [Header("Detection Settings")]
-    [SerializeField] private float detectionRadius = 3f;
-    
-    [Header("Flight Settings")]
-    [SerializeField] private float flightDuration = 3f;
-    [SerializeField] private float curveHeight = 4f;
-    [SerializeField] private float leftTargetDistance = 10f;
-    [SerializeField] private float flightSpeed = 8f;
-    [SerializeField] private float continuousFlightSpeed = 10f;
-    
-    [Header("Curve Settings")]
-    [SerializeField] private AnimationCurve flightCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    
-    [Header("Animation")]
-    [SerializeField] private string velocityParameterName = "velocity";
-    
-    private enum PigeonState
+    private enum FlightState
     {
         Idle,
-        Flying,
-        ContinuousFlight
+        TakingOff,
+        Gliding,
+        Finished
     }
-    
-    // Components
-    private Transform playerTransform;
-    private Rigidbody2D rigidBody;
+
+    public Collider2D hitbox;
+
+    [Header("Detection")]
+    [SerializeField] private float detectionRadius = 5f;
+    [SerializeField] private Transform detectionOrigin;
+
+    [Header("Take Off")]
+    [Tooltip("Time in seconds for the pigeon to finish its take off movement.")]
+    [SerializeField] private float takeOffDuration = 0.6f;
+    [Tooltip("Target height relative to the starting point that the pigeon will reach during take off.")]
+    [SerializeField] private float takeOffHeight = 1.25f;
+    [SerializeField] private AnimationCurve takeOffHeightCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    [SerializeField] private AnimationCurve takeOffSpeedCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    [SerializeField] private float maxTakeOffVerticalSpeed = 5f;
+
+    [Header("Glide")]
+    [SerializeField] private float glideSpeed = 4.5f;
+    [Tooltip("How high above the start point the pigeon prefers to glide.")]
+    [SerializeField] private float glideHeightOffset = 0.75f;
+    [SerializeField] private float glideVerticalSnappiness = 4f;
+    [SerializeField] private float maxGlideVerticalSpeed = 2.5f;
+    [SerializeField] private bool continueGlidingIndefinitely = true;
+    [SerializeField] private float glideDuration = 3f;
+
+    [Header("Animator")]
     private Animator pigeonAnimator;
-    
-    // State
-    private PigeonState currentState = PigeonState.Idle;
-    private Vector3 startPosition;
-    private Vector3 targetPosition;
-    private float flightProgress = 0f;
-    
-    // Constants
-    private const float MAX_FLIGHT_SPEED = 20f;
-    private const float MIN_DISTANCE_THRESHOLD = 0.1f;
-    
-    void Start()
+
+    [Header("Debug")]
+    [SerializeField] private bool showGizmos = true;
+
+    private Transform player;
+    private Rigidbody2D rb;
+    private FlightState state = FlightState.Idle;
+    private float takeOffTimer;
+    private float glideTimer;
+    private Vector2 takeOffStartPosition;
+    private float initialGravityScale;
+
+    private void Awake()
     {
-        InitializeComponents();
-        InitializeFlightPath();
+        rb = GetComponent<Rigidbody2D>();
+        initialGravityScale = rb.gravityScale;
+        takeOffStartPosition = rb.position;
     }
-    
-    void Update()
+
+    private void Start()
     {
-        UpdatePlayerReference();
-        UpdateBehavior();
+        CachePlayerTransform();
+        pigeonAnimator = GetComponent<Animator>();
+    }
+
+    private void OnEnable()
+    {
+        state = FlightState.Idle;
+        takeOffTimer = 0f;
+        glideTimer = 0f;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.gravityScale = initialGravityScale;
+        }
+    }
+
+    private void Update()
+    {
+        if (state == FlightState.Idle && PlayerWithinDetectionRadius())
+        {
+            BeginTakeOff();
+        }
         UpdateAnimator();
     }
-    
-    /// <summary>
-    /// Initialize required components and validate setup
-    /// </summary>
-    private void InitializeComponents()
+
+    private void FixedUpdate()
     {
-        rigidBody = GetComponent<Rigidbody2D>();
-        pigeonAnimator = GetComponent<Animator>();
-        startPosition = transform.position;
-        
-        if (rigidBody == null)
-            Debug.LogError("Pigeon requires Rigidbody2D component", this);
-    }
-    
-    /// <summary>
-    /// Calculate target position for flight path
-    /// </summary>
-    private void InitializeFlightPath()
-    {
-        targetPosition = new Vector3(
-            startPosition.x - leftTargetDistance, 
-            startPosition.y, 
-            startPosition.z
-        );
-    }
-    
-    /// <summary>
-    /// Find and assign player reference if not already assigned
-    /// </summary>
-    private void UpdatePlayerReference()
-    {
-        if (playerTransform == null)
+        switch (state)
         {
-            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-            if (playerObject != null)
-            {
-                playerTransform = playerObject.transform;
-            }
-        }
-    }
-    
-    /// <summary>
-    /// Update pigeon behavior based on current state
-    /// </summary>
-    private void UpdateBehavior()
-    {
-        switch (currentState)
-        {
-            case PigeonState.Idle:
-                if (playerTransform != null && IsPlayerInRange())
-                {
-                    StartFlight();
-                }
+            case FlightState.TakingOff:
+                HandleTakeOff();
                 break;
-                
-            case PigeonState.Flying:
-                PerformCurvedFlight();
-                break;
-                
-            case PigeonState.ContinuousFlight:
-                PerformContinuousFlight();
+            case FlightState.Gliding:
+                HandleGlide();
                 break;
         }
     }
-    
-    /// <summary>
-    /// Check if player is within detection radius
-    /// </summary>
-    private bool IsPlayerInRange()
+
+    protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
-        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-        return distanceToPlayer <= detectionRadius;
-    }
-    
-    /// <summary>
-    /// Initialize flight sequence when player is detected
-    /// </summary>
-    private void StartFlight()
-    {
-        currentState = PigeonState.Flying;
-        flightProgress = 0f;
-        
-        if (rigidBody != null)
+        if (collision.gameObject.CompareTag("Player"))
         {
-            rigidBody.gravityScale = 0f;
-            rigidBody.linearDamping = 0f;
+            // Handle collision with player
+            Debug.Log("Pigeon collided with Player");
+            collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+            StartCoroutine(DisableHitboxTemp(2f));
+
         }
     }
-    
-    /// <summary>
-    /// Handle curved flight movement using flight curve
-    /// </summary>
-    private void PerformCurvedFlight()
+
+    protected IEnumerator DisableHitboxTemp(float duration)
     {
-        if (rigidBody == null) return;
-        
-        flightProgress += Time.deltaTime / flightDuration;
-        
-        // Transition early to avoid erratic movement at the very end
-        if (flightProgress >= 0.95f)
-        {
-            TransitionToContinuousFlight();
-            return;
-        }
-        
-        Vector3 desiredPosition = CalculateDesiredPosition();
-        Vector3 direction = desiredPosition - transform.position;
-        
-        // Use consistent flight speed regardless of curve complexity
-        if (direction.magnitude > MIN_DISTANCE_THRESHOLD)
-        {
-            rigidBody.linearVelocity = direction.normalized * flightSpeed;
-        }
-        else
-        {
-            // If very close to target, move directly to continuous flight
-            TransitionToContinuousFlight();
-        }
+        hitbox.enabled = false;
+        yield return new WaitForSeconds(duration);
+        hitbox.enabled = true;
     }
-    
-    /// <summary>
-    /// Calculate desired position along flight curve
-    /// </summary>
-    private Vector3 CalculateDesiredPosition()
+
+    private void BeginTakeOff()
     {
-        Vector3 basePosition = Vector3.Lerp(startPosition, targetPosition, flightProgress);
-        
-        // Create an upward arc that starts low and peaks in the middle
-        float curveMultiplier = flightCurve.Evaluate(flightProgress);
-        float heightOffset = curveHeight * curveMultiplier;
-        
-        return new Vector3(basePosition.x, basePosition.y + heightOffset, basePosition.z);
+        if (state != FlightState.Idle) return;
+
+        state = FlightState.TakingOff;
+        takeOffTimer = 0f;
+        takeOffStartPosition = rb.position;
+        rb.gravityScale = 0f;
+        rb.linearVelocity = Vector2.zero;
     }
-    
-    /// <summary>
-    /// Transition to continuous straight flight
-    /// </summary>
-    private void TransitionToContinuousFlight()
+
+    private void HandleTakeOff()
     {
-        currentState = PigeonState.ContinuousFlight;
-        rigidBody.linearVelocity = new Vector2(-continuousFlightSpeed, 0f);
-    }
-    
-    /// <summary>
-    /// Maintain continuous straight flight to the left
-    /// </summary>
-    private void PerformContinuousFlight()
-    {
-        if (rigidBody != null)
+        takeOffTimer += Time.fixedDeltaTime;
+        float clampedDuration = Mathf.Max(0.01f, takeOffDuration);
+        float t = Mathf.Clamp01(takeOffTimer / clampedDuration);
+
+        float heightOffset = takeOffHeightCurve.Evaluate(t) * takeOffHeight;
+        float targetY = takeOffStartPosition.y + heightOffset;
+        float verticalVelocity = (targetY - rb.position.y) / Time.fixedDeltaTime;
+        verticalVelocity = Mathf.Clamp(verticalVelocity, -maxTakeOffVerticalSpeed, maxTakeOffVerticalSpeed);
+
+        float horizontalSpeed = Mathf.Lerp(0f, glideSpeed, Mathf.Clamp01(takeOffSpeedCurve.Evaluate(t)));
+        rb.linearVelocity = new Vector2(-horizontalSpeed, verticalVelocity);
+
+        if (Mathf.Approximately(t, 1f))
         {
-            rigidBody.linearVelocity = new Vector2(-continuousFlightSpeed, 0f);
+            state = FlightState.Gliding;
+            glideTimer = 0f;
         }
     }
-    
-    /// <summary>
-    /// Update animator velocity parameter based on current movement
-    /// </summary>
+
+    private void HandleGlide()
+    {
+        glideTimer += Time.fixedDeltaTime;
+        float targetY = takeOffStartPosition.y + glideHeightOffset;
+        float verticalDelta = targetY - rb.position.y;
+        float verticalVelocity = verticalDelta * glideVerticalSnappiness;
+        verticalVelocity = Mathf.Clamp(verticalVelocity, -maxGlideVerticalSpeed, maxGlideVerticalSpeed);
+
+        rb.linearVelocity = new Vector2(-glideSpeed, verticalVelocity);
+
+        if (!continueGlidingIndefinitely && glideTimer >= glideDuration)
+        {
+            state = FlightState.Finished;
+        }
+    }
+
+    private bool PlayerWithinDetectionRadius()
+    {
+        CachePlayerTransform();
+        if (player == null) return false;
+
+        Vector2 origin = GetDetectionOrigin();
+        float sqrDistance = ((Vector2)player.position - origin).sqrMagnitude;
+        return sqrDistance <= detectionRadius * detectionRadius;
+    }
+
+    private void CachePlayerTransform()
+    {
+        if (player != null) return;
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
+        {
+            player = playerObject.transform;
+        }
+    }
+
+    private Vector2 GetDetectionOrigin()
+    {
+        if (detectionOrigin != null)
+        {
+            return detectionOrigin.position;
+        }
+
+        if (rb != null)
+        {
+            return rb.position;
+        }
+
+        return transform.position;
+    }
+
     private void UpdateAnimator()
     {
-        if (pigeonAnimator != null && rigidBody != null)
+        if (pigeonAnimator != null && rb != null)
         {
-            float currentVelocityMagnitude = rigidBody.linearVelocity.magnitude;
-            pigeonAnimator.SetFloat(velocityParameterName, currentVelocityMagnitude);
+            float currentVelocityMagnitude = rb.linearVelocity.magnitude;
+            pigeonAnimator.SetFloat("velocity", currentVelocityMagnitude);
         }
     }
-    
-    /// <summary>
-    /// Draw gizmos for debugging in Scene view
-    /// </summary>
-    void OnDrawGizmosSelected()
+
+    private void OnDrawGizmosSelected()
     {
-        // Detection radius
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-        
-        // Flight path preview
-        if (Application.isPlaying && currentState != PigeonState.Idle)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(startPosition, targetPosition);
-            
-            // Show curve points
-            Gizmos.color = Color.blue;
-            for (float t = 0; t <= 1; t += 0.1f)
-            {
-                Vector3 point = Vector3.Lerp(startPosition, targetPosition, t);
-                point.y += curveHeight * flightCurve.Evaluate(t);
-                Gizmos.DrawWireSphere(point, 0.2f);
-            }
-        }
+        if (!showGizmos) return;
+
+        Gizmos.color = Color.cyan;
+        Vector3 origin = detectionOrigin != null ? detectionOrigin.position : transform.position;
+        Gizmos.DrawWireSphere(origin, detectionRadius);
     }
 }

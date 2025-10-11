@@ -234,6 +234,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d7480bfd55e4a84c9beb38f568ebbee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pigeon
+  hitbox: {fileID: 5271227525356455602}
+  detectionRadius: 5
+  detectionOrigin: {fileID: 1008962276186670117}
+  takeOffDuration: 0.4
+  takeOffHeight: 1.75
+  takeOffHeightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  takeOffSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  maxTakeOffVerticalSpeed: 10
+  glideSpeed: 8
+  glideHeightOffset: 1.75
+  glideVerticalSnappiness: 4
+  maxGlideVerticalSpeed: 2.5
+  continueGlidingIndefinitely: 1
+  glideDuration: 3
+  showGizmos: 1
 --- !u!1 &6083325443485467078
 GameObject:
   m_ObjectHideFlags: 0
