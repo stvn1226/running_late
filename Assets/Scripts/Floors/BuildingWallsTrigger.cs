@@ -67,6 +67,11 @@ public class BuildingWallsTrigger : MonoBehaviour
     {
         if (other.CompareTag(TagUtils.PLAYER_TAG))
         {
+            PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
+            if (playerMovement != null)
+            {
+                playerMovement.SetNearBuildingWall(true);
+            }
             GameLogger.LogVerbose("BUILDING", $"PLAYER ENTERED TRIGGER: {gameObject.name}");
         }
     }
@@ -75,6 +80,11 @@ public class BuildingWallsTrigger : MonoBehaviour
     {
         if (other.CompareTag(TagUtils.PLAYER_TAG))
         {
+            PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
+            if (playerMovement != null)
+            {
+                playerMovement.SetNearBuildingWall(false);
+            }
             GameLogger.LogVerbose("BUILDING", $"PLAYER EXITED TRIGGER: {gameObject.name}");
         }
     }

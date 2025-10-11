@@ -14,16 +14,25 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private SpriteRenderer playerSprite;
     
+    [Header("Wall Detection")]
+    private bool isNearBuildingWall = false;
+    private float buildingWallProximityTimer = 0f;
+    private const float BUILDING_WALL_PROXIMITY_TIME = 0.5f;
+    
     private float lastSignificantVelocityX = 0f;
     private float flipCooldownTimer = 0f;
+    private float wallThresholdTimer = 0f;
     private const float FLIP_COOLDOWN = 0.1f;
     private const float VELOCITY_THRESHOLD = 1.0f;
+    private const float WALL_THRESHOLD_DECAY_TIME = 0.3f;
 
     // Enhanced logging for sprite flipping
     private bool previousSpriteFlipX;
     private Vector2 previousVelocity;
     private float lastFlipAnalysisLog = 0f;
     private const float FLIP_ANALYSIS_LOG_INTERVAL = 2f;
+
+    private float lastWallRunVelocity = 0f;
 
     private void Start()
     {
@@ -51,6 +60,16 @@ public class PlayerMovement : MonoBehaviour
         previousSpriteFlipX = playerSprite.flipX;
     }
 
+    public void SetNearBuildingWall(bool isNear)
+    {
+        isNearBuildingWall = isNear;
+        if (isNear)
+        {
+            buildingWallProximityTimer = BUILDING_WALL_PROXIMITY_TIME;
+            GameLogger.LogVerbose("MOVEMENT", $"BUILDING WALL PROXIMITY: {isNear}");
+        }
+    }
+
     private void AnalyzeFlipBehavior()
     {
         if (Time.time - lastFlipAnalysisLog > FLIP_ANALYSIS_LOG_INTERVAL)
@@ -74,6 +93,8 @@ public class PlayerMovement : MonoBehaviour
     private void HandleSpriteFlipping()
     {
         flipCooldownTimer -= Time.fixedDeltaTime;
+        wallThresholdTimer -= Time.fixedDeltaTime;
+        buildingWallProximityTimer -= Time.fixedDeltaTime;
         
         float currentVelX = rb.linearVelocity.x;
         float absVelX = Mathf.Abs(currentVelX);
@@ -82,32 +103,71 @@ public class PlayerMovement : MonoBehaviour
         {
             lastSignificantVelocityX = currentVelX;
         }
+
+        if (states.isWallRunning)
+        {
+            lastWallRunVelocity = currentVelX;
+        }
         
-        // Enhanced flip logic with wall run awareness
+        // Enhanced flip logic with wall run awareness AND building proximity
         bool isNearWall = states.canWallRun || states.isWallRunning;
-        float flipThreshold = isNearWall ? VELOCITY_THRESHOLD * 2f : VELOCITY_THRESHOLD;
+        bool isNearBuildingWallRecently = buildingWallProximityTimer > 0f;
+        
+        // Reset wall threshold timer when near wall OR building
+        if (isNearWall || isNearBuildingWall)
+        {
+            wallThresholdTimer = WALL_THRESHOLD_DECAY_TIME;
+        }
+        
+        // Use elevated threshold if recently near wall OR building
+        bool recentlyNearWall = wallThresholdTimer > 0f;
+        bool shouldUseElevatedThreshold = isNearWall || recentlyNearWall || isNearBuildingWallRecently;
+        
+        float flipThreshold = shouldUseElevatedThreshold ? VELOCITY_THRESHOLD * 4f : VELOCITY_THRESHOLD;
         
         if (flipCooldownTimer <= 0f && absVelX > flipThreshold)
         {
+            float velocityChange = Mathf.Abs(currentVelX - previousVelocity.x);
+            if (shouldUseElevatedThreshold && velocityChange > 5f)
+            {
+                GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Drastic velocity change {velocityChange:F1} near wall/building");
+                return;
+            }
+
+            bool isFlipContradictory = false;
+            if (wallThresholdTimer > WALL_THRESHOLD_DECAY_TIME * 0.8f) // Recién salió de wall run
+            {
+                if (lastWallRunVelocity < 0 && currentVelX > flipThreshold && Mathf.Abs(lastWallRunVelocity) > absVelX)
+                    isFlipContradictory = true;
+                else if (lastWallRunVelocity > 0 && currentVelX < -flipThreshold && Mathf.Abs(lastWallRunVelocity) > absVelX)
+                    isFlipContradictory = true;
+            }
+
+            if (isFlipContradictory)
+            {
+                GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Would contradict recent wall run. LastWallVel={lastWallRunVelocity:F2}, CurrentVel={currentVelX:F2}");
+                return;
+            }
+            
             bool shouldFlipLeft = currentVelX < -flipThreshold;
             bool shouldFlipRight = currentVelX > flipThreshold;
             
             if (shouldFlipLeft && !playerSprite.flipX)
             {
-                GameLogger.LogMovement($"SPRITE FLIP LEFT: VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallRun={states.isWallRunning}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}");
+                GameLogger.LogMovement($"SPRITE FLIP LEFT: VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallRun={states.isWallRunning}, CanWallRun={states.canWallRun}, BuildingNear={isNearBuildingWallRecently}");
                 playerSprite.flipX = true;
                 kickBox.offset = new Vector2(-Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
                 flipCooldownTimer = FLIP_COOLDOWN;
             }
             else if (shouldFlipRight && playerSprite.flipX)
             {
-                GameLogger.LogMovement($"SPRITE FLIP RIGHT: VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallRun={states.isWallRunning}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}");
+                GameLogger.LogMovement($"SPRITE FLIP RIGHT: VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallRun={states.isWallRunning}, CanWallRun={states.canWallRun}, BuildingNear={isNearBuildingWallRecently}");
                 playerSprite.flipX = false;
                 kickBox.offset = new Vector2(Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
                 flipCooldownTimer = FLIP_COOLDOWN;
             }
         }
-        else if (absVelX < 0.1f && states.moveInput.x != 0 && !isNearWall)
+        else if (absVelX < 0.1f && states.moveInput.x != 0 && flipCooldownTimer <= 0f)
         {
             bool shouldFlipLeft = states.moveInput.x < 0;
             bool shouldFlipRight = states.moveInput.x > 0;
@@ -117,21 +177,21 @@ public class PlayerMovement : MonoBehaviour
                 GameLogger.LogMovement($"SPRITE FLIP LEFT (Input): Input={states.moveInput.x:F2}, VelX={currentVelX:F2}");
                 playerSprite.flipX = true;
                 kickBox.offset = new Vector2(-Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
-                flipCooldownTimer = FLIP_COOLDOWN;
+                flipCooldownTimer = FLIP_COOLDOWN * 0.3f;
             }
             else if (shouldFlipRight && playerSprite.flipX)
             {
                 GameLogger.LogMovement($"SPRITE FLIP RIGHT (Input): Input={states.moveInput.x:F2}, VelX={currentVelX:F2}");
                 playerSprite.flipX = false;
                 kickBox.offset = new Vector2(Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
-                flipCooldownTimer = FLIP_COOLDOWN;
+                flipCooldownTimer = FLIP_COOLDOWN * 0.3f;
             }
         }
         
-        // Log when flip is prevented by wall run detection
-        if (isNearWall && absVelX > VELOCITY_THRESHOLD && absVelX <= flipThreshold)
+        // Debug logging
+        if (shouldUseElevatedThreshold && absVelX > VELOCITY_THRESHOLD && absVelX <= flipThreshold)
         {
-            GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Near wall, VelX={currentVelX:F2}, StandardThreshold={VELOCITY_THRESHOLD}, WallThreshold={flipThreshold:F1}");
+            GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Near wall/building, VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallTimer={wallThresholdTimer:F2}, BuildingTimer={buildingWallProximityTimer:F2}");
         }
     }
 
@@ -160,22 +220,15 @@ public class PlayerMovement : MonoBehaviour
         states.animator.SetFloat(YVelocity, rb.linearVelocity.y);
 
         if (states.isWallRunning)
-        {
             HandleWallRunMovement(forceMultiplier);
-        }
         else if (states.isSliding)
-        {
             HandleSlideMovement(forceMultiplier);
-        }
         else
-        {
             HandleNormalMovement(forceMultiplier);
-        }
     }
 
     private void HandleNormalMovement(float forceMultiplier)
     {
-
         if (states.isKicking) return;
 
         if (states.isCrouching || states.isSliding) return;
@@ -228,10 +281,7 @@ public class PlayerMovement : MonoBehaviour
         
         if (states.justLanded && states.isGrounded)
         {
-            if (Mathf.Abs(velocity.x - states.landingHorizontalVelocity) > 0.1f)
-            {
-                rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, velocity.y);
-            }
+            GameLogger.LogVerbose("MOVEMENT", $"Just landed - maintaining current velocity: {rb.linearVelocity.x}");
             return;
         }
         
@@ -322,8 +372,9 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, 0f);
-                GameLogger.LogMovement($"Regular landing: Preserving momentum {states.landingHorizontalVelocity}");
+                float currentVelX = rb.linearVelocity.x;
+                GameLogger.LogMovement($"Regular landing: Current velocity {currentVelX}, was preserving {states.landingHorizontalVelocity}");
+                rb.linearVelocity = new Vector2(currentVelX, 0f);
             }
             
             states.justLanded = true;
