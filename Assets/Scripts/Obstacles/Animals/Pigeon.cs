@@ -285,7 +285,6 @@ public class Pigeon : MonoBehaviour
         {
             float currentVelocityMagnitude = rb.linearVelocity.magnitude;
             pigeonAnimator.SetFloat("velocity", currentVelocityMagnitude);
-            pigeonAnimator.SetBool("isStaggered", isStaggered);
         }
     }
 
