@@ -12,6 +12,11 @@ public class StructureBuilder : MonoBehaviour
     public GameObject[] floorPrefabs;
     public GameObject roofPrefab;
 
+    [Header("Rooftop Obstacles")]
+    //public Transform roofObstacleSpawnPoint;
+    public GameObject[] roofObstaclePrefabs;
+    public int obstacleRate = 50; // % chance to spawn rooftop obstacle
+
     public void ConstructStructure()
     {
         int floorsCt = 0;
@@ -44,6 +49,15 @@ public class StructureBuilder : MonoBehaviour
             else SortTilemap(roof, floorsCt);
         }
         else return;
+
+        int obstacleChance = Random.Range(0, 100);
+        if (obstacleChance < obstacleRate) return; // % chance to spawn rooftop obstacle
+        if (roofObstaclePrefabs.Length > 0)
+        {
+            float varyObstacleSpawnX = Random.Range(-3f, 4f);
+            Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight));
+            GameObject obstacle = Instantiate(roofObstaclePrefabs[Random.Range(0, roofObstaclePrefabs.Length)], obstaclePosition, Quaternion.identity, transform);
+        }
     }
 
     private void SortTilemap(GameObject toUse, int floorsCt)
