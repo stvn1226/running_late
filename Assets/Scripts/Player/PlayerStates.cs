@@ -179,13 +179,14 @@ public class PlayerStates : MonoBehaviour
         }
 
         // Kick timer
-        if (isKicking)
-        {
-            if (kickPressed) kickPressed = false;
-            kickTimer -= Time.deltaTime;
-            if (kickTimer <= 0)
-                isKicking = false;
-        }
+        // This timer was moved to work directly with the animation by using EndKick method - We use Animation Events 
+        // if (isKicking)
+        // {
+        //     if (kickPressed) kickPressed = false;
+        //     kickTimer -= Time.deltaTime;
+        //     if (kickTimer <= 0)
+        //         isKicking = false;
+        // }
 
         if (isStaggered)
         {
@@ -255,6 +256,11 @@ public class PlayerStates : MonoBehaviour
             kickPressed = true;
             isKicking = true;
         }
+    }
+    
+    public void EndKick()
+    {
+        isKicking = false; 
     }
 
     public void SetDropDownPressed()
