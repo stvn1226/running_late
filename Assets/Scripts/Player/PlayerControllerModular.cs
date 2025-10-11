@@ -8,23 +8,15 @@ public class PlayerControllerModular : MonoBehaviour
     
     [Header("Component References")]
     private PlayerInputActions inputActions;
-    private PlayerStates states;
-    private PlayerMovement movement;
-    private PlayerJump jump;
-    private PlayerPhysics physics;
-    private PlayerKick kicker;
-    private PlayerStateManager stateManager;
+    [SerializeField] private PlayerStates states;
+    [SerializeField] private PlayerMovement movement;
+    [SerializeField] private PlayerJump jump;
+    [SerializeField] private PlayerPhysics physics;
+    [SerializeField] private PlayerKick kicker;
+    [SerializeField] private PlayerStateManager stateManager;
 
     private void Awake()
     {
-        // Get components
-        states = GetComponent<PlayerStates>();
-        movement = GetComponent<PlayerMovement>();
-        jump = GetComponent<PlayerJump>();
-        physics = GetComponent<PlayerPhysics>();
-        kicker = GetComponentInChildren<PlayerKick>();
-        stateManager = GetComponent<PlayerStateManager>();
-        
         // Create input actions
         inputActions = new PlayerInputActions();
         
@@ -165,7 +157,7 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnDropDownStart(InputAction.CallbackContext context)
     {
-        Debug.Log("PlayerControllerModular: OnDropDownStart called!");
+        GameLogger.LogInput("OnDropDownStart called!");
         if (states != null)
         {
             states.SetDropDownPressed();
@@ -174,7 +166,7 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnDropDownEnd(InputAction.CallbackContext context)
     {
-        Debug.Log("PlayerControllerModular: OnDropDownEnd called!");
+        GameLogger.LogInput("OnDropDownEnd called!");
         if (states != null)
         {
             states.SetDropDownReleased();

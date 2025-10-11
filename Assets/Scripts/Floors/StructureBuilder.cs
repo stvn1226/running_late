@@ -3,7 +3,6 @@ using UnityEngine.Tilemaps;
 
 public class StructureBuilder : MonoBehaviour
 {
-    //StructureBuilder will be used to create each building, while StructureGenerator will be used to lay out the buildings on the map
     [Header("Configuration")]
     public FloorPlan config;
 
@@ -27,7 +26,7 @@ public class StructureBuilder : MonoBehaviour
 
         if (floorPrefabs.Length > 0)
         {
-            Debug.Log(floorsCt);
+            GameLogger.LogVerbose("BUILDING", $"Constructing {floorsCt} floors for building at {transform.position}");
             for (int i = 0; i < floorsCt - 2; i++)
             {
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
@@ -49,7 +48,6 @@ public class StructureBuilder : MonoBehaviour
     private void SortTilemap(GameObject toUse, int floorsCt)
     {
         toUse.GetComponentInChildren<TilemapRenderer>().sortingOrder -= floorsCt;
-
     }
 
     private void SortSprite(GameObject toUse, int floorsCt)

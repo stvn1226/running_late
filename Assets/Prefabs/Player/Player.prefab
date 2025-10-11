@@ -332,6 +332,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPhysics
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  rb: {fileID: 5328747980780883216}
+  playerCollider: {fileID: 3391139825406007247}
+  states: {fileID: 6913775742238925164}
+  originalColliderSize: {x: 0, y: 0}
+  originalColliderOffset: {x: 0, y: 0}
+  crouchColliderSize: {x: 0, y: 0}
+  crouchColliderOffset: {x: 0, y: 0}
 --- !u!114 &8651723166033491134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -345,7 +352,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  rb: {fileID: 5328747980780883216}
+  states: {fileID: 6913775742238925164}
   kickBox: {fileID: 4371136031473598767}
+  playerSprite: {fileID: 552495587634977725}
 --- !u!114 &4252047688613260771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -359,6 +369,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerJump
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  rb: {fileID: 5328747980780883216}
+  states: {fileID: 6913775742238925164}
 --- !u!114 &6913775742238925164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -416,6 +428,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStateManager
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  rb: {fileID: 5328747980780883216}
+  states: {fileID: 6913775742238925164}
+  playerPhysics: {fileID: 534057958294108713}
 --- !u!114 &7780051058677764453
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429,6 +444,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerControllerModular
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  states: {fileID: 6913775742238925164}
+  movement: {fileID: 8651723166033491134}
+  jump: {fileID: 4252047688613260771}
+  physics: {fileID: 534057958294108713}
+  kicker: {fileID: 6235658728137499135}
+  stateManager: {fileID: 936994605630686359}
 --- !u!114 &2374712412831154929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -441,6 +462,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3276cc64df1148e4fa17749251c335bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBounds
+  cam: {fileID: 0}
+  rb: {fileID: 5328747980780883216}
 --- !u!1 &7803506819131312242
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,7 +491,7 @@ Transform:
   m_GameObject: {fileID: 7803506819131312242}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.098, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -509,7 +532,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1, y: 2}
+  m_Size: {x: 0.73, y: 1.79}
   m_Direction: 0
 --- !u!114 &5476617917464119436
 MonoBehaviour:
@@ -529,4 +552,4 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
-  showDebugInfo: 0
+  showDebugInfo: 1

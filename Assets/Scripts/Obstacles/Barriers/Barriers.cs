@@ -1,4 +1,5 @@
 using UnityEngine;
+using Utils;
 
 public class Barriers : MonoBehaviour
 {
@@ -6,9 +7,9 @@ public class Barriers : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("PlayerKick"))
+        if (collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG))
         {
-            if (showDebugInfo) Debug.Log("Barrier hit by PlayerKick trigger, destroying barrier.");
+            if (showDebugInfo) GameLogger.Log("BARRIER", "Barrier hit by PlayerKick trigger, destroying barrier.");
             Destroy(transform.parent.gameObject);
         }
     }

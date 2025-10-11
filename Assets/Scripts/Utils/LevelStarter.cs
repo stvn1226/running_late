@@ -101,7 +101,7 @@ public class LevelStarter : MonoBehaviour
             SetManualSeed(retrySeed);
             PlayerPrefs.DeleteKey("UseRetrySeed");
             PlayerPrefs.DeleteKey("RetrySeed");
-            Debug.Log($"🔄 Retry with same seed: {retrySeed}");
+            GameLogger.Log("LEVEL", $"🔄 Retry with same seed: {retrySeed}");
         }
         
         if (generateOnStart && !hasGenerated)
@@ -178,7 +178,7 @@ public class LevelStarter : MonoBehaviour
         
         if (showSeedInConsole)
         {
-            Debug.Log($"Level Seed: {currentSeed}");
+            GameLogger.Log("LEVEL", $"Level Seed: {currentSeed}");
         }
     }
     
@@ -279,7 +279,7 @@ public class LevelStarter : MonoBehaviour
         
         if (showSeedInConsole)
         {
-            Debug.Log($"Generated {totalBuildings} buildings across {newWidth} units (density: {buildingDensityMultiplier:F1}x)");
+            GameLogger.Log("LEVEL", $"Generated {totalBuildings} buildings across {newWidth} units (density: {buildingDensityMultiplier:F1}x)");
         }
     }
 
@@ -345,7 +345,7 @@ public class LevelStarter : MonoBehaviour
         modulesInScene.Add(spawnedSchool);
         moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
 
-        Debug.Log($"Modular Level: Width={newWidth}, Modules={numberOfModules}, Seed={Random.state}");
+        GameLogger.Log("LEVEL", $"Modular Level: Width={newWidth}, Modules={numberOfModules}, Seed={Random.state}");
 
         ResizeCamBounds(0f);
         LayOutBackground();
@@ -360,10 +360,10 @@ public class LevelStarter : MonoBehaviour
         for (int i = 0; i < newWidth / 2; i++)
         {
             Vector2 cloudPosition = new Vector2(
-                UnityEngine.Random.Range(-newWidth / 2f, newWidth / 2f), 
-                UnityEngine.Random.Range(8f, 100f)
+                Random.Range(-newWidth / 2f, newWidth / 2f), 
+                Random.Range(8f, 100f)
             );
-            int cloudIndex = UnityEngine.Random.Range(0, clouds.Length);
+            int cloudIndex = Random.Range(0, clouds.Length);
             
             cloudCache = Instantiate(clouds[cloudIndex].gameObject, cloudPosition, Quaternion.identity, cloudParent);
             cloudsInScene.Add(cloudCache.GetComponent<SpriteRenderer>());

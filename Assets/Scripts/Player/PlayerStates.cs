@@ -1,9 +1,13 @@
 using UnityEngine;
-using UnityEngine.Rendering;
-using static UnityEditor.VersionControl.Asset;
 
 public class PlayerStates : MonoBehaviour
 {
+    private static readonly int IsKicking = Animator.StringToHash("isKicking");
+    private static readonly int IsSliding = Animator.StringToHash("isSliding");
+    private static readonly int IsWallRunning = Animator.StringToHash("isWallRunning");
+    private static readonly int IsCrouching = Animator.StringToHash("isCrouching");
+    private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
+
     [Header("Animator")]
     public Animator animator;
 
@@ -53,6 +57,14 @@ public class PlayerStates : MonoBehaviour
     [Header("Stagger States")]
     public float staggerTimer;
 
+    // Logging variables for wall run states
+    private bool prevCanWallRun;
+    private int prevWallDirection;
+    private bool prevWallRunHeld;
+    private bool prevIsWallRunning;
+    private Vector2 prevMoveInput;
+    private float lastWallRunLog = 0f;
+    private const float WALL_RUN_LOG_INTERVAL = 0.2f;
 
     // Public properties for external access
     public bool IsWallRunHeld => wallRunHeld;
@@ -65,6 +77,9 @@ public class PlayerStates : MonoBehaviour
 
     private void Update()
     {
+        // Log wall run state changes
+        LogWallRunStates();
+        
         // Update timers
         UpdateTimers();
         
@@ -72,14 +87,68 @@ public class PlayerStates : MonoBehaviour
         CheckStateChanges();
         
         UpdateAnimator();
+        
+        // Update previous values
+        UpdatePreviousValues();
+    }
+
+    private void LogWallRunStates()
+    {
+        bool shouldLog = Time.time - lastWallRunLog > WALL_RUN_LOG_INTERVAL;
+        
+        // Log when wall run capability changes
+        if (canWallRun != prevCanWallRun)
+        {
+            GameLogger.LogState($"WALL RUN CAPABILITY CHANGE: {prevCanWallRun} -> {canWallRun}, WallDirection: {wallDirection}, Input.x: {moveInput.x:F2}");
+        }
+        
+        // Log when wall direction changes
+        if (wallDirection != prevWallDirection)
+        {
+            GameLogger.LogState($"WALL DIRECTION CHANGE: {prevWallDirection} -> {wallDirection}, CanWallRun: {canWallRun}, Input.x: {moveInput.x:F2}");
+        }
+        
+        // Log when wall run input changes
+        if (wallRunHeld != prevWallRunHeld)
+        {
+            GameLogger.LogState($"WALL RUN INPUT CHANGE: {prevWallRunHeld} -> {wallRunHeld}, CanWallRun: {canWallRun}, IsWallRunning: {isWallRunning}");
+        }
+        
+        // Log when wall running state changes
+        if (isWallRunning != prevIsWallRunning)
+        {
+            GameLogger.LogState($"WALL RUNNING STATE CHANGE: {prevIsWallRunning} -> {isWallRunning}, WallRunHeld: {wallRunHeld}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
+        }
+        
+        // Log when move input changes significantly
+        if (Vector2.Distance(moveInput, prevMoveInput) > 0.5f)
+        {
+            GameLogger.LogVerbose("STATE", $"MOVE INPUT CHANGE: {prevMoveInput} -> {moveInput}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
+        }
+        
+        // Periodic logging during wall running
+        if (shouldLog && (canWallRun || isWallRunning))
+        {
+            GameLogger.LogVerbose("STATE", $"WALL RUN STATUS: CanWallRun={canWallRun}, IsWallRunning={isWallRunning}, WallDirection={wallDirection}, WallRunHeld={wallRunHeld}, Input.x={moveInput.x:F2}");
+            lastWallRunLog = Time.time;
+        }
+    }
+
+    private void UpdatePreviousValues()
+    {
+        prevCanWallRun = canWallRun;
+        prevWallDirection = wallDirection;
+        prevWallRunHeld = wallRunHeld;
+        prevIsWallRunning = isWallRunning;
+        prevMoveInput = moveInput;
     }
 
     private void UpdateAnimator()
     {
-        animator.SetBool("isSliding", isSliding);
-        animator.SetBool("isWallRunning", isWallRunning);
-        animator.SetBool("isCrouching", isCrouching);
-        animator.SetBool("isStaggered", isStaggered);
+        animator.SetBool(IsSliding, isSliding);
+        animator.SetBool(IsWallRunning, isWallRunning);
+        animator.SetBool(IsCrouching, isCrouching);
+        animator.SetBool(IsStaggered, isStaggered);
 
     }
 
@@ -181,7 +250,7 @@ public class PlayerStates : MonoBehaviour
     {
         if (!isKicking)
         {
-            animator.SetTrigger("isKicking");
+            animator.SetTrigger(IsKicking);
 
             kickPressed = true;
             isKicking = true;

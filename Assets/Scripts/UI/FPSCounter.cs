@@ -39,7 +39,7 @@ public class FPSCounter : MonoBehaviour
     {
         if (fpsText == null)
         {
-            Debug.LogError("FPSCounter: No TextMeshProUGUI component found!");
+            GameLogger.LogError("FPS", "No TextMeshProUGUI component found!");
             enabled = false;
             return;
         }
@@ -134,12 +134,12 @@ public class FPSCounter : MonoBehaviour
     private void ResetStatsFromMenu()
     {
         ResetStats();
-        Debug.Log("FPS stats reset");
+        GameLogger.Log("FPS", "FPS stats reset");
     }
     
     [ContextMenu("Log Detailed Stats")]
     private void LogDetailedStats()
     {
-        Debug.Log(GetDetailedStats());
+        GameLogger.Log("FPS", GetDetailedStats());
     }
 }

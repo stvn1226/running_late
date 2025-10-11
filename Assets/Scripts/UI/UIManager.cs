@@ -19,9 +19,14 @@ public class UIManager : MonoBehaviour
     public Toggle fps60Toggle;
     public Toggle fps120Toggle;
     
+    [Header("Time Scale UI")]
+    public TextMeshProUGUI timeScaleDisplay;
+    public Button[] timeScaleButtons;
+    
     [Header("Systems")]
     public LevelStarter levelStarter;
     public LevelManager levelManager;
+    public TimeScaleManager timeScaleManager;
     
     public PlayerInputActions inputActions;
     private bool isPaused = false;
@@ -40,6 +45,7 @@ public class UIManager : MonoBehaviour
         
         inputActions = new PlayerInputActions();
         SetupFrameRateToggles();
+        SetupTimeScaleButtons();
     }
     
     private void OnEnable()
@@ -49,7 +55,12 @@ public class UIManager : MonoBehaviour
             inputActions.Gameplay.Enable();
             inputActions.Gameplay.Pause.performed += OnPausePressed;
             inputActions.UI.Pause.performed += OnPausePressed;
-            inputActions.Gameplay.Reset.performed += OnResetPressed; 
+            inputActions.Gameplay.Reset.performed += OnResetPressed;
+            
+            // Time Scale Controls
+            inputActions.Gameplay.TimeScaleUp.performed += OnTimeScaleUpPressed;
+            inputActions.Gameplay.TimeScaleDown.performed += OnTimeScaleDownPressed;
+            inputActions.Gameplay.TimeScaleToggle.performed += OnTimeScaleTogglePressed;
         }
     
         // Connect UI events
@@ -57,6 +68,12 @@ public class UIManager : MonoBehaviour
         newLevelButton.onClick.AddListener(GenerateNewLevel);
         seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.AddListener(OnSeedInputChanged);
+        
+        // Time Scale events
+        if (timeScaleManager != null)
+        {
+            timeScaleManager.OnTimeScaleChanged += UpdateTimeScaleDisplay;
+        }
     }
     
     private void OnDisable()
@@ -66,6 +83,12 @@ public class UIManager : MonoBehaviour
             inputActions.Gameplay.Pause.performed -= OnPausePressed;
             inputActions.UI.Pause.performed -= OnPausePressed;
             inputActions.Gameplay.Reset.performed -= OnResetPressed;
+            
+            // Time Scale Controls
+            inputActions.Gameplay.TimeScaleUp.performed -= OnTimeScaleUpPressed;
+            inputActions.Gameplay.TimeScaleDown.performed -= OnTimeScaleDownPressed;
+            inputActions.Gameplay.TimeScaleToggle.performed -= OnTimeScaleTogglePressed;
+            
             inputActions.Gameplay.Disable();
             inputActions.UI.Disable();
         }
@@ -74,6 +97,12 @@ public class UIManager : MonoBehaviour
         newLevelButton.onClick.RemoveListener(GenerateNewLevel);
         seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.RemoveListener(OnSeedInputChanged);
+        
+        // Time Scale events
+        if (timeScaleManager != null)
+        {
+            timeScaleManager.OnTimeScaleChanged -= UpdateTimeScaleDisplay;
+        }
     }
     
     private void Start()
@@ -84,19 +113,95 @@ public class UIManager : MonoBehaviour
         var eventSystem = EventSystem.current;
         var uiModule = eventSystem.GetComponent<InputSystemUIInputModule>();
     
-        Debug.Log($"EventSystem actionsAsset: {uiModule.actionsAsset?.name}");
-        Debug.Log($"Move action: {uiModule.move?.action?.name}");
-        Debug.Log($"Submit action: {uiModule.submit?.action?.name}");
-        Debug.Log($"Cancel action: {uiModule.cancel?.action?.name}");
+        GameLogger.LogUI($"EventSystem actionsAsset: {uiModule.actionsAsset?.name}");
+        GameLogger.LogUI($"Move action: {uiModule.move?.action?.name}");
+        GameLogger.LogUI($"Submit action: {uiModule.submit?.action?.name}");
+        GameLogger.LogUI($"Cancel action: {uiModule.cancel?.action?.name}");
     
         if (uiModule.move?.action != null)
         {
-            Debug.Log($"Move action enabled: {uiModule.move.action.enabled}");
-            Debug.Log($"Move action bindings: {uiModule.move.action.bindings.Count}");
+            GameLogger.LogUI($"Move action enabled: {uiModule.move.action.enabled}");
+            GameLogger.LogUI($"Move action bindings: {uiModule.move.action.bindings.Count}");
+        }
+        
+        UpdateTimeScaleDisplay(1f);
+    }
+
+    // TIME SCALE SYSTEM
+    private void OnTimeScaleUpPressed(InputAction.CallbackContext context)
+    {
+        if (!isPaused && timeScaleManager != null)
+        {
+            timeScaleManager.CycleTimeScaleUp();
+        }
+    }
+    
+    private void OnTimeScaleDownPressed(InputAction.CallbackContext context)
+    {
+        if (!isPaused && timeScaleManager != null)
+        {
+            timeScaleManager.CycleTimeScaleDown();
+        }
+    }
+    
+    private void OnTimeScaleTogglePressed(InputAction.CallbackContext context)
+    {
+        if (!isPaused && timeScaleManager != null)
+        {
+            timeScaleManager.ToggleResetPause();
+        }
+    }
+    
+    private void SetupTimeScaleButtons()
+    {
+        if (timeScaleButtons == null || timeScaleManager == null) return;
+        
+        float[] scales = timeScaleManager.GetAllTimeScales();
+        
+        for (int i = 0; i < timeScaleButtons.Length && i < scales.Length; i++)
+        {
+            int index = i;
+            float scale = scales[i];
+            
+            if (timeScaleButtons[i] != null)
+            {
+                timeScaleButtons[i].onClick.AddListener(() => timeScaleManager.SetTimeScaleByIndex(index));
+                
+                // Update button text
+                TextMeshProUGUI buttonText = timeScaleButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+                if (buttonText != null)
+                {
+                    buttonText.text = scale == 0f ? "PAUSE" : $"{scale}x";
+                }
+            }
+        }
+    }
+    
+    private void UpdateTimeScaleDisplay(float currentScale)
+    {
+        if (timeScaleDisplay != null)
+        {
+            string displayText = currentScale == 0f ? "PAUSED" : $"{currentScale}x";
+            timeScaleDisplay.text = $"Speed: {displayText}";
+        }
+        
+        // Update button visual states
+        if (timeScaleButtons != null && timeScaleManager != null)
+        {
+            int currentIndex = timeScaleManager.GetCurrentIndex();
+            
+            for (int i = 0; i < timeScaleButtons.Length; i++)
+            {
+                if (timeScaleButtons[i] != null)
+                {
+                    ColorBlock colors = timeScaleButtons[i].colors;
+                    colors.normalColor = (i == currentIndex) ? Color.green : Color.white;
+                    timeScaleButtons[i].colors = colors;
+                }
+            }
         }
     }
 
-    
     // PAUSE SYSTEM
     private void OnPausePressed(InputAction.CallbackContext context)
     {
@@ -107,7 +212,17 @@ public class UIManager : MonoBehaviour
     {
         isPaused = !isPaused;
         pausePanel.SetActive(isPaused);
-        Time.timeScale = isPaused ? 0f : 1f;
+
+        // Notify TimeScaleManager about pause state
+        if (timeScaleManager != null)
+        {
+            timeScaleManager.OnGamePaused(isPaused);
+        }
+        else
+        {
+            // Fallback if no TimeScaleManager
+            Time.timeScale = isPaused ? 0f : 1f;
+        }
 
         if (isPaused)
         {
@@ -127,7 +242,6 @@ public class UIManager : MonoBehaviour
             EventSystem.current.SetSelectedGameObject(null);
         }
     }
-
     
     // LEVEL CONTROL
     public void RestartCurrentLevel()
@@ -140,7 +254,6 @@ public class UIManager : MonoBehaviour
     
         levelManager.ReplayLevel();
     }
-
     
     public void GenerateNewLevel()
     {
@@ -156,7 +269,7 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Invalid seed format!");
+                GameLogger.LogWarning("UI", "Invalid seed format!");
                 PlayerPrefs.SetInt("UseNewLevelSeed", 0);
                 levelManager.ReplayLevel(); 
             }
@@ -182,7 +295,6 @@ public class UIManager : MonoBehaviour
     
     private void OnSeedInputChanged(string seedText)
     {
-        // Validate seed input in real-time
         if (int.TryParse(seedText, out int _))
         {
             seedInputField.image.color = Color.white;
@@ -213,7 +325,7 @@ public class UIManager : MonoBehaviour
         fps120Toggle.SetIsOnWithoutNotify(targetFPS == 120);
         
         PlayerPrefs.SetInt("TargetFrameRate", targetFPS);
-        Debug.Log($"Frame rate set to {targetFPS} FPS");
+        GameLogger.LogUI($"Frame rate set to {targetFPS} FPS");
     }
     
     private void LoadSettings()
@@ -235,7 +347,7 @@ public class UIManager : MonoBehaviour
                 Vector2 moveValue = uiModule.move.action.ReadValue<Vector2>();
                 if (moveValue.magnitude > 0.1f)
                 {
-                    Debug.Log($"EventSystem move action receiving: {moveValue}");
+                    GameLogger.LogVerbose("UI", $"EventSystem move action receiving: {moveValue}");
                 }
             }
         
@@ -244,11 +356,11 @@ public class UIManager : MonoBehaviour
                 bool submitPressed = uiModule.submit.action.WasPressedThisFrame();
                 bool submitIsPressed = uiModule.submit.action.IsPressed();
             
-                Debug.Log($"Submit pressed this frame: {submitPressed}, Submit is pressed: {submitIsPressed}");
+                GameLogger.LogVerbose("UI", $"Submit pressed this frame: {submitPressed}, Submit is pressed: {submitIsPressed}");
             
                 if (submitPressed)
                 {
-                    Debug.Log("EventSystem submit action pressed!");
+                    GameLogger.LogUI("EventSystem submit action pressed!");
                 }
             }
         }

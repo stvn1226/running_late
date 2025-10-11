@@ -1,13 +1,26 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Utils;
 
 public class BuildingWallsTrigger : MonoBehaviour
 {
     private BoxCollider2D boxCollider;
+    private static bool loggedInputConnection = false;
 
     private void Start()
     {
         boxCollider = GetComponentInChildren<BoxCollider2D>();
+        
+        if (boxCollider == null)
+        {
+            boxCollider = GetComponent<BoxCollider2D>();
+        }
+        
+        if (!loggedInputConnection)
+        {
+            GameLogger.Log("BUILDING", $"BuildingWallsTrigger initialized - Layer: {LayerMask.LayerToName(gameObject.layer)}, IsTrigger: {boxCollider?.isTrigger}");
+            loggedInputConnection = true;
+        }
     }
 
     private void OnEnable()
@@ -16,6 +29,10 @@ public class BuildingWallsTrigger : MonoBehaviour
         {
             UIManager.Instance.inputActions.Gameplay.WallRun.performed += OnPlayerWallRun;
             UIManager.Instance.inputActions.Gameplay.WallRun.canceled += OnPlayerStopWallRun;
+        }
+        else
+        {
+            GameLogger.LogWarning("BUILDING", $"Could not subscribe to input events - UIManager or inputActions null");
         }
     }
 
@@ -28,18 +45,55 @@ public class BuildingWallsTrigger : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        
-    }
-
     private void OnPlayerWallRun(InputAction.CallbackContext context)
     {
-        boxCollider.isTrigger = false;
+        if (boxCollider != null)
+        {
+            GameLogger.LogVerbose("BUILDING", $"WALL RUN STARTED: {gameObject.name} collider set to SOLID");
+            boxCollider.isTrigger = false;
+        }
     }
 
     private void OnPlayerStopWallRun(InputAction.CallbackContext context)
     {
-        boxCollider.isTrigger = true;
+        if (boxCollider != null)
+        {
+            GameLogger.LogVerbose("BUILDING", $"WALL RUN STOPPED: {gameObject.name} collider set to TRIGGER");
+            boxCollider.isTrigger = true;
+        }
+    }
+    
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag(TagUtils.PLAYER_TAG))
+        {
+            GameLogger.LogVerbose("BUILDING", $"PLAYER ENTERED TRIGGER: {gameObject.name}");
+        }
+    }
+    
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag(TagUtils.PLAYER_TAG))
+        {
+            GameLogger.LogVerbose("BUILDING", $"PLAYER EXITED TRIGGER: {gameObject.name}");
+        }
+    }
+    
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
+        {
+            Vector2 contactPoint = collision.contacts[0].point;
+            Vector2 contactNormal = collision.contacts[0].normal;
+            GameLogger.LogVerbose("BUILDING", $"PLAYER COLLISION ENTER: {gameObject.name}, Point: {contactPoint}, Normal: {contactNormal}");
+        }
+    }
+    
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
+        {
+            GameLogger.LogVerbose("BUILDING", $"PLAYER COLLISION EXIT: {gameObject.name}");
+        }
     }
 }

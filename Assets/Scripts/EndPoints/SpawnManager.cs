@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Utils;
 
 public class SpawnManager : MonoBehaviour
 {
@@ -66,7 +67,7 @@ public class SpawnManager : MonoBehaviour
     {
         if (playerPrefab == null)
         {
-            Debug.LogError("SpawnManager: No player prefab assigned!");
+            GameLogger.LogError("SPAWN", "No player prefab assigned!");
             return;
         }
         
@@ -87,12 +88,12 @@ public class SpawnManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("SpawnPoint child not found in Home object!");
+                GameLogger.LogError("SPAWN", "SpawnPoint child not found in Home object!");
             }
         }
         else
         {
-            Debug.LogError("No Home object found in scene!");
+            GameLogger.LogError("SPAWN", "No Home object found in scene!");
         }
     }
     
@@ -100,7 +101,7 @@ public class SpawnManager : MonoBehaviour
     {
         if (homeSpawnPoint == null)
         {
-            Debug.LogError("Cannot spawn player: no home spawn point found!");
+            GameLogger.LogError("SPAWN", "Cannot spawn player: no home spawn point found!");
             return;
         }
 
@@ -206,7 +207,7 @@ public class SpawnManager : MonoBehaviour
     
     public int GetPlayerCount()
     {
-        return GameObject.FindGameObjectsWithTag("Player").Length;
+        return GameObject.FindGameObjectsWithTag(TagUtils.PLAYER_TAG).Length;
     }
     
     private void OnDestroy()

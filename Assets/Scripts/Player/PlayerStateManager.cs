@@ -5,70 +5,85 @@ public class PlayerStateManager : MonoBehaviour
     [Header("References")]
     public PlayerConfig config;
     
-    private Rigidbody2D rb;
-    private PlayerStates states;
-    private PlayerPhysics playerPhysics;
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private PlayerStates states;
+    [SerializeField] private PlayerPhysics playerPhysics;
 
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        states = GetComponent<PlayerStates>();
-        playerPhysics = GetComponent<PlayerPhysics>();
-    }
+    // Logging variables
+    private bool previousCrouching;
+    private bool previousSliding;
+    private bool previousWallRunning;
+    private float lastStateLog = 0f;
+    private const float STATE_LOG_INTERVAL = 1f;
 
     private void Update()
     {
         HandleStates();
+        
+        // Periodic state logging
+        if (Time.time - lastStateLog > STATE_LOG_INTERVAL)
+        {
+            GameLogger.LogVerbose("STATE", $"STATE: Crouch={states.isCrouching}, Slide={states.isSliding}, WallRun={states.isWallRunning}, Grounded={states.isGrounded}, Speed={Mathf.Abs(rb.linearVelocity.x):F1}");
+            lastStateLog = Time.time;
+        }
     }
 
     private void HandleStates()
     {
         if (config == null) return;
 
-        // Store previous states to detect changes
-        bool previousCrouching = states.isCrouching;
-        bool previousSliding = states.isSliding;
-        bool previousWallRunning = states.isWallRunning;
+        previousCrouching = states.isCrouching;
+        previousSliding = states.isSliding;
+        previousWallRunning = states.isWallRunning;
 
-        // Handle crouching and sliding
         HandleCrouchAndSlide();
 
-        // Handle wall running
         HandleWallRun(previousWallRunning);
 
-        // Handle kicking
         HandleKick();
 
-        // Update collider size if crouching or sliding state changed
         if (previousCrouching != states.isCrouching || previousSliding != states.isSliding)
         {
+            GameLogger.LogState($"COLLIDER UPDATE TRIGGERED: Crouch {previousCrouching}->{states.isCrouching}, Slide {previousSliding}->{states.isSliding}");
             playerPhysics?.UpdateColliderSize();
         }
     }
 
     private void HandleCrouchAndSlide()
     {
-        // Both crouching and sliding require the crouch button to be held AND player to be grounded
-        // This prevents immediately re-entering crouch/slide after jumping out of it
-        if (states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping)
+        bool shouldProcessCrouchSlide = states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping;
+        
+        if (shouldProcessCrouchSlide)
         {
-            // Determine if we should crouch or slide based on velocity
-            if (Mathf.Abs(rb.linearVelocity.x) > 0f)
+            float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+            
+            bool shouldSlide = currentSpeed > 2f || (states.justLanded && currentSpeed > 1f);
+            
+            if (shouldSlide)
             {
-                // Moving fast while crouching = sliding
+                if (!states.isSliding)
+                {
+                    GameLogger.LogState($"STARTED SLIDING: Speed={currentSpeed:F1}, JustLanded={states.justLanded}");
+                }
                 states.isCrouching = false;
                 states.isSliding = true;
             }
             else
             {
-                // Stationary or slow while crouching = crouching
+                if (!states.isCrouching)
+                {
+                    GameLogger.LogState($"STARTED CROUCHING: Speed={currentSpeed:F1}");
+                }
                 states.isCrouching = true;
                 states.isSliding = false;
             }
         }
         else
         {
-            // No crouch button held, not grounded, or jumping = no crouching or sliding
+            if (states.isCrouching || states.isSliding)
+            {
+                GameLogger.LogState($"STOPPED CROUCH/SLIDE: CrouchHeld={states.crouchHeld}, Grounded={states.isGrounded}, WallRun={states.isWallRunning}, Jumping={states.isJumping}");
+            }
             states.isCrouching = false;
             states.isSliding = false;
         }
@@ -76,22 +91,22 @@ public class PlayerStateManager : MonoBehaviour
 
     private void HandleWallRun(bool previousWallRunning)
     {
-        // Enhanced wall running state - allow starting wall run even when falling
         bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f;
         
-        // If transitioning from not wall running to wall running while falling, give a velocity boost
         if (shouldWallRun && !previousWallRunning && rb.linearVelocity.y < -1f)
         {
-            // Player is falling and starting to wall run - help them stick to the wall
             Vector2 currentVelocity = rb.linearVelocity;
             
-            // Reduce downward velocity to make wall running feel more responsive
-            float reducedFallSpeed = Mathf.Max(currentVelocity.y * 0.5f, -8f); // Cap at -8 to prevent excessive slowdown
+            float reducedFallSpeed = Mathf.Max(currentVelocity.y * 0.5f, -8f);
             
-            // Apply slight upward boost to help initiate wall run
             rb.linearVelocity = new Vector2(currentVelocity.x, reducedFallSpeed + 2f);
             
-            Debug.Log($"Wall run started while falling! Velocity adjusted from {currentVelocity.y:F2} to {rb.linearVelocity.y:F2}");
+            GameLogger.LogState($"Wall run started while falling! Velocity adjusted from {currentVelocity.y:F2} to {rb.linearVelocity.y:F2}");
+        }
+        
+        if (shouldWallRun != states.isWallRunning)
+        {
+            GameLogger.LogState($"WALL RUN CHANGE: {states.isWallRunning} -> {shouldWallRun}, WallRunHeld={states.wallRunHeld}, CanWallRun={states.canWallRun}, Input.x={states.moveInput.x:F2}");
         }
         
         states.isWallRunning = shouldWallRun;
@@ -101,8 +116,9 @@ public class PlayerStateManager : MonoBehaviour
     {
         if (states.kickPressed)
         {
+            GameLogger.LogState($"KICK STARTED: Duration={config.kickDuration}");
             states.kickTimer = config.kickDuration;
-            states.kickPressed = false; // Reset the press flag
+            states.kickPressed = false;
         }
     }
 }
