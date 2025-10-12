@@ -172,33 +172,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""TimeScaleUp"",
-                    ""type"": ""Button"",
-                    ""id"": ""f9e452f1-5315-4c96-ae67-d833d602ec53"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""TimeScaleDown"",
-                    ""type"": ""Button"",
-                    ""id"": ""25667444-3df7-4841-a255-9677f51441c4"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""TimeScaleToggle"",
-                    ""type"": ""Button"",
-                    ""id"": ""5e5ba459-3bab-405e-a763-1d989e5aa3cf"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -507,39 +480,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Pause"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""69caea03-5222-460f-adce-85f9287a66de"",
-                    ""path"": ""<Gamepad>/rightShoulder"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""TimeScaleUp"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""505bfa83-5b13-4e8b-bf7c-86a9755b543b"",
-                    ""path"": ""<Gamepad>/leftShoulder"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""TimeScaleDown"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""acc6fb62-2b01-4b1d-84cf-876c307dddcd"",
-                    ""path"": ""<Gamepad>/select"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""TimeScaleToggle"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1171,9 +1111,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Gameplay_Reset = m_Gameplay.FindAction("Reset", throwIfNotFound: true);
         m_Gameplay_PanCamera = m_Gameplay.FindAction("PanCamera", throwIfNotFound: true);
         m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
-        m_Gameplay_TimeScaleUp = m_Gameplay.FindAction("TimeScaleUp", throwIfNotFound: true);
-        m_Gameplay_TimeScaleDown = m_Gameplay.FindAction("TimeScaleDown", throwIfNotFound: true);
-        m_Gameplay_TimeScaleToggle = m_Gameplay.FindAction("TimeScaleToggle", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI__Move = m_UI.FindAction("_Move", throwIfNotFound: true);
@@ -1278,9 +1215,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Reset;
     private readonly InputAction m_Gameplay_PanCamera;
     private readonly InputAction m_Gameplay_Pause;
-    private readonly InputAction m_Gameplay_TimeScaleUp;
-    private readonly InputAction m_Gameplay_TimeScaleDown;
-    private readonly InputAction m_Gameplay_TimeScaleToggle;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -1328,18 +1262,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Pause".
         /// </summary>
         public InputAction @Pause => m_Wrapper.m_Gameplay_Pause;
-        /// <summary>
-        /// Provides access to the underlying input action "Gameplay/TimeScaleUp".
-        /// </summary>
-        public InputAction @TimeScaleUp => m_Wrapper.m_Gameplay_TimeScaleUp;
-        /// <summary>
-        /// Provides access to the underlying input action "Gameplay/TimeScaleDown".
-        /// </summary>
-        public InputAction @TimeScaleDown => m_Wrapper.m_Gameplay_TimeScaleDown;
-        /// <summary>
-        /// Provides access to the underlying input action "Gameplay/TimeScaleToggle".
-        /// </summary>
-        public InputAction @TimeScaleToggle => m_Wrapper.m_Gameplay_TimeScaleToggle;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1393,15 +1315,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Pause.started += instance.OnPause;
             @Pause.performed += instance.OnPause;
             @Pause.canceled += instance.OnPause;
-            @TimeScaleUp.started += instance.OnTimeScaleUp;
-            @TimeScaleUp.performed += instance.OnTimeScaleUp;
-            @TimeScaleUp.canceled += instance.OnTimeScaleUp;
-            @TimeScaleDown.started += instance.OnTimeScaleDown;
-            @TimeScaleDown.performed += instance.OnTimeScaleDown;
-            @TimeScaleDown.canceled += instance.OnTimeScaleDown;
-            @TimeScaleToggle.started += instance.OnTimeScaleToggle;
-            @TimeScaleToggle.performed += instance.OnTimeScaleToggle;
-            @TimeScaleToggle.canceled += instance.OnTimeScaleToggle;
         }
 
         /// <summary>
@@ -1440,15 +1353,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Pause.started -= instance.OnPause;
             @Pause.performed -= instance.OnPause;
             @Pause.canceled -= instance.OnPause;
-            @TimeScaleUp.started -= instance.OnTimeScaleUp;
-            @TimeScaleUp.performed -= instance.OnTimeScaleUp;
-            @TimeScaleUp.canceled -= instance.OnTimeScaleUp;
-            @TimeScaleDown.started -= instance.OnTimeScaleDown;
-            @TimeScaleDown.performed -= instance.OnTimeScaleDown;
-            @TimeScaleDown.canceled -= instance.OnTimeScaleDown;
-            @TimeScaleToggle.started -= instance.OnTimeScaleToggle;
-            @TimeScaleToggle.performed -= instance.OnTimeScaleToggle;
-            @TimeScaleToggle.canceled -= instance.OnTimeScaleToggle;
         }
 
         /// <summary>
@@ -1795,27 +1699,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPause(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "TimeScaleUp" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnTimeScaleUp(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "TimeScaleDown" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnTimeScaleDown(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "TimeScaleToggle" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnTimeScaleToggle(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

@@ -79,15 +79,15 @@ public class PlayerStates : MonoBehaviour
     {
         // Log wall run state changes
         LogWallRunStates();
-        
+
         // Update timers
         UpdateTimers();
-        
+
         // Check for state changes and trigger events
         CheckStateChanges();
-        
+
         UpdateAnimator();
-        
+
         // Update previous values
         UpdatePreviousValues();
     }
@@ -95,37 +95,37 @@ public class PlayerStates : MonoBehaviour
     private void LogWallRunStates()
     {
         bool shouldLog = Time.time - lastWallRunLog > WALL_RUN_LOG_INTERVAL;
-        
+
         // Log when wall run capability changes
         if (canWallRun != prevCanWallRun)
         {
             GameLogger.LogState($"WALL RUN CAPABILITY CHANGE: {prevCanWallRun} -> {canWallRun}, WallDirection: {wallDirection}, Input.x: {moveInput.x:F2}");
         }
-        
+
         // Log when wall direction changes
         if (wallDirection != prevWallDirection)
         {
             GameLogger.LogState($"WALL DIRECTION CHANGE: {prevWallDirection} -> {wallDirection}, CanWallRun: {canWallRun}, Input.x: {moveInput.x:F2}");
         }
-        
+
         // Log when wall run input changes
         if (wallRunHeld != prevWallRunHeld)
         {
             GameLogger.LogState($"WALL RUN INPUT CHANGE: {prevWallRunHeld} -> {wallRunHeld}, CanWallRun: {canWallRun}, IsWallRunning: {isWallRunning}");
         }
-        
+
         // Log when wall running state changes
         if (isWallRunning != prevIsWallRunning)
         {
             GameLogger.LogState($"WALL RUNNING STATE CHANGE: {prevIsWallRunning} -> {isWallRunning}, WallRunHeld: {wallRunHeld}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
         }
-        
+
         // Log when move input changes significantly
         if (Vector2.Distance(moveInput, prevMoveInput) > 0.5f)
         {
             GameLogger.LogVerbose("STATE", $"MOVE INPUT CHANGE: {prevMoveInput} -> {moveInput}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
         }
-        
+
         // Periodic logging during wall running
         if (shouldLog && (canWallRun || isWallRunning))
         {
@@ -200,7 +200,7 @@ public class PlayerStates : MonoBehaviour
         {
             jumpHoldTimer += Time.deltaTime;
         }
-        
+
         // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
@@ -257,10 +257,10 @@ public class PlayerStates : MonoBehaviour
             isKicking = true;
         }
     }
-    
+
     public void EndKick()
     {
-        isKicking = false; 
+        isKicking = false;
     }
 
     public void SetDropDownPressed()

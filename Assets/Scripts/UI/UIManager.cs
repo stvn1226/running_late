@@ -58,9 +58,9 @@ public class UIManager : MonoBehaviour
             inputActions.Gameplay.Reset.performed += OnResetPressed;
             
             // Time Scale Controls
-            inputActions.Gameplay.TimeScaleUp.performed += OnTimeScaleUpPressed;
-            inputActions.Gameplay.TimeScaleDown.performed += OnTimeScaleDownPressed;
-            inputActions.Gameplay.TimeScaleToggle.performed += OnTimeScaleTogglePressed;
+            // inputActions.Gameplay.TimeScaleUp.performed += OnTimeScaleUpPressed;
+            // inputActions.Gameplay.TimeScaleDown.performed += OnTimeScaleDownPressed;
+            // inputActions.Gameplay.TimeScaleToggle.performed += OnTimeScaleTogglePressed;
         }
     
         // Connect UI events
@@ -85,9 +85,9 @@ public class UIManager : MonoBehaviour
             inputActions.Gameplay.Reset.performed -= OnResetPressed;
             
             // Time Scale Controls
-            inputActions.Gameplay.TimeScaleUp.performed -= OnTimeScaleUpPressed;
-            inputActions.Gameplay.TimeScaleDown.performed -= OnTimeScaleDownPressed;
-            inputActions.Gameplay.TimeScaleToggle.performed -= OnTimeScaleTogglePressed;
+            // inputActions.Gameplay.TimeScaleUp.performed -= OnTimeScaleUpPressed;
+            // inputActions.Gameplay.TimeScaleDown.performed -= OnTimeScaleDownPressed;
+            // inputActions.Gameplay.TimeScaleToggle.performed -= OnTimeScaleTogglePressed;
             
             inputActions.Gameplay.Disable();
             inputActions.UI.Disable();
