@@ -39,7 +39,27 @@ public class PlayerMovement : MonoBehaviour
         rb.linearDamping = 0f;
         rb.linearDamping = 0f;
         previousSpriteFlipX = playerSprite.flipX;
+        
+        if (kickBox != null)
+        {
+            kickBox.enabled = false;
+        }
+        
         GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
+    }
+
+    public void HandleKickBox()
+    {
+        if (kickBox != null)
+        {
+            bool shouldKickBoxBeEnabled = states.isKicking;
+        
+            if (kickBox.enabled != shouldKickBoxBeEnabled)
+            {
+                kickBox.enabled = shouldKickBoxBeEnabled;
+                GameLogger.LogVerbose("KICK", $"KickBox {(shouldKickBoxBeEnabled ? "ENABLED" : "DISABLED")} - isKicking: {states.isKicking}");
+            }
+        }
     }
 
     private void FixedUpdate()
