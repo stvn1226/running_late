@@ -26,24 +26,24 @@ public class ControllerTypeDetector : MonoBehaviour
         {
             if (gamepad is Keyboard)
             {
-                Debug.Log("Keyboard detected.");
+                GameLogger.LogInput("Keyboard detected.");
             }
             else if (gamepad is DualShockGamepad)
             {
-                Debug.Log("PlayStation gamepad detected.");
+                GameLogger.LogInput("PlayStation gamepad detected.");
             }
             else if (gamepad is XInputController)
             {
-                Debug.Log("Xbox gamepad detected.");
+                GameLogger.LogInput("Xbox gamepad detected.");
             }
             else
             {
-                Debug.Log($"Generic gamepad detected: {gamepad.displayName}");
+                GameLogger.LogInput($"Generic gamepad detected: {gamepad.displayName}");
             }
         }
         else
         {
-            Debug.Log("No controller connected");
+            GameLogger.LogInput("No controller connected");
         }
     }
 }

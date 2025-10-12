@@ -1,7 +1,8 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+//using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using Utils;
 
 public abstract class Vehicle : MonoBehaviour
 {
@@ -12,7 +13,6 @@ public abstract class Vehicle : MonoBehaviour
     private bool hasRan;
     public Collider2D[] hitbox = new Collider2D[2];
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -21,7 +21,6 @@ public abstract class Vehicle : MonoBehaviour
         hasRan = false;
     }
 
-    // Update is called once per frame
     protected virtual void Update()
     {
         if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 20f)
@@ -47,10 +46,10 @@ public abstract class Vehicle : MonoBehaviour
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
         if (!isRunning) return;
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
             // Handle collision with player
-            Debug.Log("Vehicle collided with Player");
+            GameLogger.Log("VEHICLE", "Vehicle collided with Player");
             collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
             StartCoroutine(DisableHitboxTemp(2f));
 

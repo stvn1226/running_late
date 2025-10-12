@@ -1,4 +1,5 @@
 using UnityEngine;
+using Utils;
 
 public class Goal : MonoBehaviour
 {
@@ -19,11 +20,11 @@ public class Goal : MonoBehaviour
         Collider2D collider = GetComponent<Collider2D>();
         if (collider == null)
         {
-            Debug.LogError("Goal: No Collider2D found! Please add a BoxCollider2D and set IsTrigger to true.");
+            GameLogger.LogError("GOAL", "No Collider2D found! Please add a BoxCollider2D and set IsTrigger to true.");
         }
         else if (!collider.isTrigger)
         {
-            Debug.LogWarning("Goal: Collider should be set as Trigger for proper collision detection.");
+            GameLogger.LogWarning("GOAL", "Collider should be set as Trigger for proper collision detection.");
         }
 
     }
@@ -31,10 +32,10 @@ public class Goal : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         // Check if the collider belongs to the Player
-        if (other.CompareTag("Player") && !hasTriggered)
+        if (other.CompareTag(TagUtils.PLAYER_TAG) && !hasTriggered)
         {
             if (showDebugInfo)
-                Debug.Log($"Goal reached! Player '{other.name}' has reached the school!");
+                GameLogger.Log("GOAL", $"Goal reached! Player '{other.name}' has reached the school!");
 
             TriggerVictory();
         }
@@ -45,7 +46,7 @@ public class Goal : MonoBehaviour
         hasTriggered = true;
 
         if (showDebugInfo)
-            Debug.Log("=== VICTORY TRIGGERED ===");
+            GameLogger.Log("GOAL", "=== VICTORY TRIGGERED ===");
 
         // Start victory sequence
         StartCoroutine(VictorySequence());
@@ -68,7 +69,7 @@ public class Goal : MonoBehaviour
             Time.timeScale = 0f;
 
             if (showDebugInfo)
-                Debug.Log("Game paused for victory screen");
+                GameLogger.Log("GOAL", "Game paused for victory screen");
         }
     }
 
@@ -84,11 +85,11 @@ public class Goal : MonoBehaviour
             spawnedVictoryOverlay = Instantiate(victoryOverlayPrefab, spawnPosition, Quaternion.identity);
 
             if (showDebugInfo)
-                Debug.Log("Victory overlay displayed!");
+                GameLogger.Log("GOAL", "Victory overlay displayed!");
         }
         else
         {
-            Debug.LogWarning("Goal: No Victory Overlay Prefab assigned!");
+            GameLogger.LogWarning("GOAL", "No Victory Overlay Prefab assigned!");
         }
     }
 

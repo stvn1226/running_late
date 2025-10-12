@@ -24,7 +24,7 @@ public class Timer : MonoBehaviour
         timerText = GetComponent<TextMeshProUGUI>();
         if (timerText == null)
         {
-            Debug.LogError("Timer: No TextMeshProUGUI component found! Please add one to display the timer.");
+            GameLogger.LogError("TIMER", "No TextMeshProUGUI component found! Please add one to display the timer.");
             return;
         }
         
@@ -40,7 +40,7 @@ public class Timer : MonoBehaviour
         ResetTimer();
         
         if (showDebugInfo)
-            Debug.Log("Timer: Initialized and started counting");
+            GameLogger.Log("TIMER", "Initialized and started counting");
     }
     
     void Update()
@@ -74,7 +74,7 @@ public class Timer : MonoBehaviour
                     isGameCompleted = true;
                     
                     if (showDebugInfo)
-                        Debug.Log($"Timer: Stopped at {FormatTime(elapsedTime)} due to game completion");
+                        GameLogger.Log("TIMER", $"Stopped at {FormatTime(elapsedTime)} due to game completion");
                 }
             }
         }
@@ -88,7 +88,7 @@ public class Timer : MonoBehaviour
         isRunning = true;
         
         if (showDebugInfo)
-            Debug.Log("Timer: Started");
+            GameLogger.Log("TIMER", "Started");
     }
     
     public void StopTimer()
@@ -96,7 +96,7 @@ public class Timer : MonoBehaviour
         isRunning = false;
         
         if (showDebugInfo)
-            Debug.Log($"Timer: Stopped at {FormatTime(elapsedTime)}");
+            GameLogger.Log("TIMER", $"Stopped at {FormatTime(elapsedTime)}");
     }
     
     public void PauseTimer()
@@ -104,7 +104,7 @@ public class Timer : MonoBehaviour
         isRunning = false;
         
         if (showDebugInfo)
-            Debug.Log("Timer: Paused");
+            GameLogger.Log("TIMER", "Paused");
     }
     
     public void ResumeTimer()
@@ -114,7 +114,7 @@ public class Timer : MonoBehaviour
             isRunning = true;
             
             if (showDebugInfo)
-                Debug.Log("Timer: Resumed");
+                GameLogger.Log("TIMER", "Resumed");
         }
     }
     
@@ -126,7 +126,7 @@ public class Timer : MonoBehaviour
         UpdateDisplay();
         
         if (showDebugInfo)
-            Debug.Log("Timer: Reset");
+            GameLogger.Log("TIMER", "Reset");
     }
     
     private void UpdateDisplay()

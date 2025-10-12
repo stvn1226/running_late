@@ -1,6 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 using System.Collections;
+using Utils;
 
 public class CamFollowSpawnedPlayer : MonoBehaviour
 {
@@ -71,7 +72,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         {
             if (bound.gameObject.layer == LayerMask.NameToLayer("CamBounds") || 
                 bound.name.Contains("CameraBounds") || 
-                bound.CompareTag("CamBounds"))
+                bound.CompareTag(TagUtils.CAMBOUNDS_TAG))
             {
                 bounds = bound;
                 break;
@@ -87,11 +88,11 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         {
             confiner.BoundingShape2D = bounds;
             confiner.InvalidateBoundingShapeCache();
-            Debug.Log($"Camera bounds updated with {bounds.points.Length} points");
+            GameLogger.Log("CAMERA", $"Camera bounds updated with {bounds.points.Length} points");
         }
         else
         {
-            Debug.LogWarning("No camera bounds found!");
+            GameLogger.LogWarning("CAMERA", "No camera bounds found!");
         }
     }
 
@@ -139,7 +140,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
             cinemachineCamera.Target.TrackingTarget = target;
             cinemachineCamera.ForceCameraPosition(target.position, target.rotation);
             
-            Debug.Log("Camera now following player");
+            GameLogger.Log("CAMERA", "Camera now following player");
         }
     }
     
@@ -157,4 +158,3 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         }
     }
 }
-

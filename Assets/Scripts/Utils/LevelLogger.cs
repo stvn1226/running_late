@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using UnityEngine;
-using System.Text;
 
 public class LevelLogger : MonoBehaviour
 {
@@ -58,7 +57,7 @@ public class LevelLogger : MonoBehaviour
         }
         
         isInitialized = true;
-        Debug.Log($"Level Logger initialized. Logging to: {logFilePath}");
+        GameLogger.Log("LOGGER", $"Level Logger initialized. Logging to: {logFilePath}");
     }
     
     private void CreateLogHeader()
@@ -112,7 +111,7 @@ public class LevelLogger : MonoBehaviour
                          $" Density: {data.buildingDensity:F1}/unit";
         }
         
-        Debug.Log(logMessage);
+        GameLogger.Log("LOGGER", logMessage);
     }
     
     private void LogToFile(LevelData data)
@@ -159,7 +158,7 @@ public class LevelLogger : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to write to log file: {e.Message}");
+            GameLogger.LogError("LOGGER", $"Failed to write to log file: {e.Message}");
         }
     }
     
@@ -172,7 +171,7 @@ public class LevelLogger : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Log file doesn't exist yet");
+            GameLogger.LogWarning("LOGGER", "Log file doesn't exist yet");
         }
     }
     
@@ -184,7 +183,7 @@ public class LevelLogger : MonoBehaviour
         string[] lines = File.ReadAllLines(logFilePath);
         int totalLevels = logFormat == LogFormat.CSV ? lines.Length - 1 : lines.Length - 4;
         
-        Debug.Log($" LOG STATISTICS:\n" +
+        GameLogger.Log("LOGGER", $" LOG STATISTICS:\n" +
                  $"  File: {Path.GetFileName(logFilePath)}\n" +
                  $"  Total Levels Logged: {totalLevels}\n" +
                  $"  Session Start: {File.GetCreationTime(logFilePath):yyyy-MM-dd HH:mm}\n" +
@@ -198,7 +197,7 @@ public class LevelLogger : MonoBehaviour
         {
             File.Delete(logFilePath);
             CreateLogHeader();
-            Debug.Log("Today's log cleared");
+            GameLogger.Log("LOGGER", "Today's log cleared");
         }
     }
 }

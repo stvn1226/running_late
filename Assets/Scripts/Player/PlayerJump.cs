@@ -5,14 +5,12 @@ public class PlayerJump : MonoBehaviour
     [Header("References")]
     public PlayerConfig config;
     
-    private Rigidbody2D rb;
-    private PlayerStates states;
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private PlayerStates states;
     private float originalGravityScale;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        states = GetComponent<PlayerStates>();
         originalGravityScale = rb.gravityScale;
     }
 

@@ -23,7 +23,7 @@ public class BuildingResizer : MonoBehaviour
 
         if (roofTransform == null || leftWallTransform == null || rightWallTransform == null || floorTransform == null || fillTransform == null)
         {
-            Debug.LogError($"Building {gameObject.name} is missing required child objects (Roof, LWall, RWall, Floor, Fill)");
+            GameLogger.LogError("BUILDING", $"Building {gameObject.name} is missing required child objects (Roof, LWall, RWall, Floor, Fill)");
         }
     }
 

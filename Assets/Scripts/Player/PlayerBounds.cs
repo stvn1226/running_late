@@ -2,19 +2,12 @@ using UnityEngine;
 
 public class PlayerBounds : MonoBehaviour
 {
-    private Camera cam;
-    private Rigidbody2D rb;
+    [SerializeField] private Camera cam;
+    [SerializeField] private Rigidbody2D rb;
 
     private void Awake()
     {
         cam = Camera.main;
-        rb = GetComponent<Rigidbody2D>();
-        
-        // Try to get from children if not found on this GameObject
-        if (rb == null)
-        {
-            rb = GetComponentInChildren<Rigidbody2D>();
-        }
     }
 
     private void LateUpdate()
@@ -44,15 +37,17 @@ public class PlayerBounds : MonoBehaviour
             Vector2 velocity = rb.linearVelocity;
             
             // Stop horizontal velocity if we hit left/right boundary
-            if (viewPos.x != originalPos.x)
+            if (!Mathf.Approximately(viewPos.x, originalPos.x))
             {
-                velocity.x = -velocity.x;
+                // velocity.x = -velocity.x;
+                velocity.x = 0f;
             }
             
             // Stop vertical velocity if we hit top/bottom boundary
-            if (viewPos.y != originalPos.y)
+            if (!Mathf.Approximately(viewPos.y, originalPos.y))
             {
-                velocity.y = -velocity.y;
+                // velocity.y = -velocity.y;
+                velocity.y = 0f;
             }
             
             rb.linearVelocity = velocity;
