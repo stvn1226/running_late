@@ -125,25 +125,28 @@ public class Pigeon : MonoBehaviour
             TriggerStagger();
         }
 
-        if (collision.gameObject.CompareTag("Player"))
+        if (!collision.gameObject.CompareTag("PlayerStomp"))
         {
-            // Handle collision with player
-            Debug.Log("Pigeon collided with Player");
-            collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
-            StartCoroutine(DisableHitboxTemp(2f));
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                // Handle collision with player
+                Debug.Log("Pigeon collided with Player");
+                collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+                StartCoroutine(DisableHitboxTemp(2f));
 
+            }
         }
 
     }
 
-    protected IEnumerator DisableHitboxTemp(float duration)
+    public IEnumerator DisableHitboxTemp(float duration)
     {
         hitbox.enabled = false;
         yield return new WaitForSeconds(duration);
         hitbox.enabled = true;
     }
 
-    private void TriggerStagger()
+    public void TriggerStagger()
     {
         // Only allow staggering if pigeon is flying (not idle or already staggered)
         if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
