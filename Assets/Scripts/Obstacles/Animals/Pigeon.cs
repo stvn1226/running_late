@@ -63,6 +63,8 @@ public class Pigeon : MonoBehaviour
     private Camera mainCamera;
     private bool isRunning;
     private bool hasRan;
+    
+    private bool hasTriggeredStagger = false;
 
     private void Awake()
     {
@@ -127,20 +129,39 @@ public class Pigeon : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Handle collision with player
-            Debug.Log("Pigeon collided with Player");
-            collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+            if (hasTriggeredStagger)
+            {
+                Debug.LogWarning("[PIGEON] Already triggered stagger - ignoring duplicate collision");
+                return;
+            }
+        
+            hasTriggeredStagger = true;
+        
+            PlayerMovement playerMovement = collision.GetComponentInParent<PlayerMovement>();
+        
+            if (playerMovement != null)
+            {
+                Debug.Log($"[PIGEON] Collided with Player - triggering stagger");
+                playerMovement.StaggerPlayer(new Vector2(-1, 1));
+                Debug.Log($"[PIGEON] StaggerPlayer called successfully");
+            }
+            else
+            {
+                Debug.LogError("[PIGEON] PlayerMovement component not found!");
+            }
+        
             StartCoroutine(DisableHitboxTemp(2f));
-
         }
-
     }
 
     protected IEnumerator DisableHitboxTemp(float duration)
     {
+        Debug.Log($"[PIGEON] Disabling hitbox for {duration}s");
         hitbox.enabled = false;
         yield return new WaitForSeconds(duration);
         hitbox.enabled = true;
+        hasTriggeredStagger = false;  // Reset flag
+        Debug.Log("[PIGEON] Hitbox re-enabled, stagger flag reset");
     }
 
     private void TriggerStagger()

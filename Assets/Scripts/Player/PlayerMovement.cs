@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     private const float FLIP_ANALYSIS_LOG_INTERVAL = 2f;
 
     private float lastWallRunVelocity = 0f;
-
+    
     private void Start()
     {
         rb.linearDamping = 0f;
@@ -69,16 +69,16 @@ public class PlayerMovement : MonoBehaviour
         ClampFallSpeed();
 
         if (states.isStaggered) return;
-
+      
         HandleSpriteFlipping();
         HandleMovement();
-
-        // Periodic analysis of flip behavior
+        
         AnalyzeFlipBehavior();
 
         previousVelocity = rb.linearVelocity;
         previousSpriteFlipX = playerSprite.flipX;
     }
+
 
     public void SetNearBuildingWall(bool isNear)
     {
@@ -217,13 +217,22 @@ public class PlayerMovement : MonoBehaviour
 
     public void StaggerPlayer(Vector2 knockbackDirection)
     {
-        if (config == null || states == null) return;
+        if (config == null || states == null)
+        {
+            Debug.LogError("[STAGGER] Config or States is null!");
+            return;
+        }
 
+        Debug.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
+    
         states.StartStagger(config.staggerDuration);
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
+    
+        Debug.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
     }
+
 
     private void HandleMovement()
     {
@@ -247,12 +256,43 @@ public class PlayerMovement : MonoBehaviour
             HandleNormalMovement(forceMultiplier);
     }
 
+    // private void HandleNormalMovement(float forceMultiplier)
+    // {
+    //     if (states.isKicking) return;
+    //
+    //     if (states.isCrouching || states.isSliding) return;
+    //
+    //
+    //     float horizontalInput = states.moveInput.x;
+    //
+    //     if (Mathf.Abs(horizontalInput) > 0.1f)
+    //     {
+    //         float targetSpeed = horizontalInput * config.maxRunSpeed;
+    //         float speedDifference = targetSpeed - rb.linearVelocity.x;
+    //
+    //         float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+    //         force *= forceMultiplier;
+    //
+    //         float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
+    //         rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+    //     }
+    //
+    //     if (states.crouchHeld && !states.isGrounded)
+    //     {
+    //         rb.AddForce(Vector2.down * (config.runForce * Time.fixedDeltaTime), ForceMode2D.Force);
+    //     }
+    // }
+    
     private void HandleNormalMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
-
         if (states.isCrouching || states.isSliding) return;
-
+    
+        if (states.justLanded && states.landingGraceTimer > 0f)
+        {
+            GameLogger.LogVerbose("MOVEMENT", "Landing grace active - skipping normal movement forces");
+            return;
+        }
 
         float horizontalInput = states.moveInput.x;
 
@@ -260,12 +300,18 @@ public class PlayerMovement : MonoBehaviour
         {
             float targetSpeed = horizontalInput * config.maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
+        
+            bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
+            bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < config.maxRunSpeed;
+        
+            if (isAccelerating || isBelowMaxSpeed)
+            {
+                float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+                force *= forceMultiplier;
 
-            float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
-            force *= forceMultiplier;
-
-            float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
-            rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
+                rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+            }
         }
 
         if (states.crouchHeld && !states.isGrounded)

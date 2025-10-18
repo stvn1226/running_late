@@ -53,7 +53,8 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Stagger States")]
     public float staggerTimer;
-
+    private const float MAX_STAGGER_DURATION = 2.0f;
+    
     // Logging variables for wall run states
     private bool prevCanWallRun;
     private int prevWallDirection;
@@ -62,6 +63,11 @@ public class PlayerStates : MonoBehaviour
     private Vector2 prevMoveInput;
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
+    
+    [Header("Energy/Momentum States")]
+    public float currentEnergy = 0f;             // Current total speed/energy
+    public Vector2 energyDirection = Vector2.right; // Direction of energy
+    public bool isInEnergyMode = false;          // True when above min energy threshold
 
     // Public properties for external access
     public bool IsWallRunHeld => wallRunHeld;
@@ -177,9 +183,29 @@ public class PlayerStates : MonoBehaviour
 
         if (isStaggered)
         {
+            float previousTimer = staggerTimer;
             staggerTimer -= Time.deltaTime;
-            if (staggerTimer <= 0)
+        
+            // Log cuando el stagger está por terminar
+            if (previousTimer > 0.1f && staggerTimer <= 0.1f)
+            {
+                GameLogger.LogWarning("STATE", $"Stagger ending soon - timer: {staggerTimer:F2}s");
+            }
+        
+            if (staggerTimer <= 0 || staggerTimer > MAX_STAGGER_DURATION)
+            {
+                if (staggerTimer > MAX_STAGGER_DURATION)
+                {
+                    GameLogger.LogError("STATE", $"***** FAIL-SAFE: Stagger exceeded max duration ({staggerTimer:F2}s) - forcing end *****");
+                }
+                else
+                {
+                    GameLogger.LogWarning("STATE", "***** STAGGER ENDED NORMALLY *****");
+                }
+            
                 isStaggered = false;
+                staggerTimer = 0f;
+            }
         }
 
         // Jump hold timer
@@ -265,9 +291,17 @@ public class PlayerStates : MonoBehaviour
             EndKick();
             GameLogger.LogWarning("STATE", "Kick interrupted by stagger - forcing kick end");
         }
-        
+    
+        if (isStaggered)
+        {
+            GameLogger.LogWarning("STATE", $"Already staggered (timer: {staggerTimer:F2}s) - extending duration to {duration:F2}s");
+            staggerTimer = Mathf.Max(staggerTimer, duration);
+            return;
+        }
+    
         isStaggered = true;
         staggerTimer = duration;
+        GameLogger.LogWarning("STATE", $"***** STAGGER STARTED - duration: {duration:F2}s *****");
     }
 
     public void StartCoyoteTime(float coyoteTime)

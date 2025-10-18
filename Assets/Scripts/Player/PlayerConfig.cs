@@ -42,10 +42,11 @@ public class PlayerConfig : ScriptableObject
     public float kickForceReduction = 0.5f;
 
     [Header("Landing Mechanics")]
-    public float landingGracePeriod = 0.25f;
+    public float landingGracePeriod = 0.3f;
     public float slamLandingThreshold = -8f;
-    public float momentumConversionRatio = 0.2f;
-
+    public float momentumConversionRatio = 0.6f; 
+    
+    
     [Header("Stagger Settings")]
     public float staggerDuration = 0.8f;
     public float staggerKnockbackForce = 8f;
@@ -64,5 +65,4 @@ public class PlayerConfig : ScriptableObject
     public float returnSpeed = 8f;
     public bool invertXAxis = false;
     public bool invertYAxis = false;
-
 }
