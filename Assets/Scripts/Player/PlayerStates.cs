@@ -51,9 +51,6 @@ public class PlayerStates : MonoBehaviour
     public float landingHorizontalVelocity = 0f;
     public float landingVerticalVelocity = 0f;
 
-    [Header("Kick States")]
-    public float kickTimer;
-
     [Header("Stagger States")]
     public float staggerTimer;
 
@@ -178,16 +175,6 @@ public class PlayerStates : MonoBehaviour
                 justLanded = false;
         }
 
-        // Kick timer
-        // This timer was moved to work directly with the animation by using EndKick method - We use Animation Events 
-        // if (isKicking)
-        // {
-        //     if (kickPressed) kickPressed = false;
-        //     kickTimer -= Time.deltaTime;
-        //     if (kickTimer <= 0)
-        //         isKicking = false;
-        // }
-
         if (isStaggered)
         {
             staggerTimer -= Time.deltaTime;
@@ -204,10 +191,6 @@ public class PlayerStates : MonoBehaviour
         // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
-        //if (kickPressed)
-        //    kickPressed = false;
-        //if (dropDownPressed)
-        //    dropDownPressed = false;
     }
 
     private void CheckStateChanges()
@@ -265,23 +248,26 @@ public class PlayerStates : MonoBehaviour
 
     public void SetDropDownPressed()
     {
-        //dropDownPressed = true;
         dropDownHeld = true;
         isDroppingDown = true;
     }
 
     public void SetDropDownReleased()
     {
-        //dropDownPressed = false;
         dropDownHeld = false;
         isDroppingDown = false;
     }
 
     public void StartStagger(float duration)
     {
+        if (isKicking)
+        {
+            EndKick();
+            GameLogger.LogWarning("STATE", "Kick interrupted by stagger - forcing kick end");
+        }
+        
         isStaggered = true;
         staggerTimer = duration;
-        //animator.SetTrigger("isStaggered");
     }
 
     public void StartCoyoteTime(float coyoteTime)

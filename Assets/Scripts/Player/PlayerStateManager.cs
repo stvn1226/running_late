@@ -117,7 +117,7 @@ public class PlayerStateManager : MonoBehaviour
         if (states.kickPressed)
         {
             GameLogger.LogState($"KICK STARTED: Duration={config.kickDuration}");
-            states.kickTimer = config.kickDuration;
+            // states.kickTimer = config.kickDuration;
             states.kickPressed = false;
         }
     }
