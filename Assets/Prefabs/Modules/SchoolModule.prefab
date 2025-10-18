@@ -53,6 +53,10 @@ MonoBehaviour:
   buildingPrefabs: []
   placementTracker: {fileID: 4668304357148381519}
   buildingSpawnPoints: []
+  obstacleSpawnPoint: {fileID: 0}
+  obstaclePrefabs: []
+  autoGenerateOnStart: 0
+  buildingSpawnChance: 90
 --- !u!1 &4212060271448173331
 GameObject:
   m_ObjectHideFlags: 0
