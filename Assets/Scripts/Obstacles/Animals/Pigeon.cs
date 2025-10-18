@@ -63,6 +63,7 @@ public class Pigeon : MonoBehaviour
     private Camera mainCamera;
     private bool isRunning;
     private bool hasRan;
+    private bool stomping;
 
     private void Awake()
     {
@@ -93,6 +94,7 @@ public class Pigeon : MonoBehaviour
 
     private void Update()
     {
+        stomping = false;
         EnableDisableDistance();
         if (state == FlightState.Idle && PlayerWithinDetectionRadius())
         {
@@ -125,7 +127,12 @@ public class Pigeon : MonoBehaviour
             TriggerStagger();
         }
 
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("PlayerStomp"))
+        {
+            stomping = true;
+        }
+
+        if (collision.gameObject.CompareTag("Player") && !stomping)
         {
             // Handle collision with player
             Debug.Log("Pigeon collided with Player");
@@ -134,16 +141,17 @@ public class Pigeon : MonoBehaviour
 
         }
 
+
     }
 
-    protected IEnumerator DisableHitboxTemp(float duration)
+    public IEnumerator DisableHitboxTemp(float duration)
     {
         hitbox.enabled = false;
         yield return new WaitForSeconds(duration);
         hitbox.enabled = true;
     }
 
-    private void TriggerStagger()
+    public void TriggerStagger()
     {
         // Only allow staggering if pigeon is flying (not idle or already staggered)
         if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
