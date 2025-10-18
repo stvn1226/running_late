@@ -4,16 +4,24 @@ using Utils;
 
 public class BuildingWallsTrigger : MonoBehaviour
 {
-    private BoxCollider2D boxCollider;
+    [SerializeField] private BoxCollider2D boxCollider;
     private static bool loggedInputConnection = false;
-
+    [SerializeField] private PlatformEffector2D platformEffector;
+    private float surfaceArc = 90f;
+    
     private void Start()
     {
-        boxCollider = GetComponentInChildren<BoxCollider2D>();
+        // boxCollider = GetComponentInChildren<BoxCollider2D>();
         
         if (boxCollider == null)
         {
             boxCollider = GetComponent<BoxCollider2D>();
+        }
+
+        if (platformEffector == null)
+        {
+            platformEffector = GetComponent<PlatformEffector2D>();
+            platformEffector.surfaceArc = surfaceArc;
         }
         
         ConfigurePlatformEffectors();

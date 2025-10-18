@@ -294,14 +294,54 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    // private void ApplyDrag()
+    // {
+    //     Vector2 velocity = rb.linearVelocity;
+    //     float horizontalInput = states.moveInput.x;
+    //     
+    //     if (states.justLanded && states.isGrounded)
+    //     {
+    //         GameLogger.LogVerbose("MOVEMENT", $"Just landed - maintaining current velocity: {rb.linearVelocity.x}");
+    //         return;
+    //     }
+    //     
+    //     if (!states.isGrounded || states.isKicking)
+    //         return;
+    //         
+    //     if (states.isSliding)
+    //     {
+    //         if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
+    //         {
+    //             Vector2 dragForces = -velocity * (config.slideDrag * 0.3f * Time.fixedDeltaTime);
+    //             rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
+    //         }
+    //         return;
+    //     }
+    //     
+    //     float targetDrag = 0f;
+    //     
+    //     if (Mathf.Abs(horizontalInput) < 0.1f)
+    //     {
+    //         targetDrag = config.groundDrag;
+    //     }
+    //     else
+    //     {
+    //         bool inputOpposesMovement = (horizontalInput * velocity.x) < 0;
+    //         targetDrag = inputOpposesMovement ? config.groundDrag * 1.5f : config.groundDrag * 0.1f;
+    //     }
+    //     
+    //     Vector2 dragForce = -velocity * (targetDrag * Time.fixedDeltaTime);
+    //     rb.AddForce(new Vector2(dragForce.x, 0), ForceMode2D.Force);
+    // }
+    
     private void ApplyDrag()
     {
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
         
-        if (states.justLanded && states.isGrounded)
+        if (states.landingGraceTimer > 0f && states.isGrounded)
         {
-            GameLogger.LogVerbose("MOVEMENT", $"Just landed - maintaining current velocity: {rb.linearVelocity.x}");
+            GameLogger.LogVerbose("MOVEMENT", $"Landing grace active - maintaining velocity: {rb.linearVelocity.x}, Timer: {states.landingGraceTimer}");
             return;
         }
         
@@ -364,17 +404,19 @@ public class PlayerMovement : MonoBehaviour
             if (isLandingIntoSlide)
             {
                 float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
-                float horizontalBoost = downwardSpeed * config.momentumConversionRatio * 1.5f;
+                float horizontalBoost = downwardSpeed * config.momentumConversionRatio * 2.0f;
                 float inputDirection = Mathf.Sign(states.landingHorizontalVelocity);
                 
                 float preservedMomentum = states.landingHorizontalVelocity;
                 float slideBoost = horizontalBoost * inputDirection;
                 float newHorizontalVelocity = preservedMomentum + slideBoost;
                 
+                newHorizontalVelocity = Mathf.Clamp(newHorizontalVelocity, -config.maxRunSpeed * 2f, config.maxRunSpeed * 2f);
+                
                 rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
                 states.landingHorizontalVelocity = newHorizontalVelocity;
                 
-                GameLogger.LogMovement($"SLIDE LANDING! Preserved: {preservedMomentum}, Slide Boost: {slideBoost}, Final: {newHorizontalVelocity}");
+                GameLogger.LogMovement($"SLIDE LANDING! Preserved: {preservedMomentum:F2}, Boost: {slideBoost:F2}, Final: {newHorizontalVelocity:F2}");
             }
             else if (isSlamLanding && hasHorizontalInput && isHoldingCrouchButton)
             {
@@ -392,15 +434,83 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                float currentVelX = rb.linearVelocity.x;
-                GameLogger.LogMovement($"Regular landing: Current velocity {currentVelX}, was preserving {states.landingHorizontalVelocity}");
-                rb.linearVelocity = new Vector2(currentVelX, 0f);
+                rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, 0f);
+                GameLogger.LogMovement($"Regular landing: Preserving horizontal velocity {states.landingHorizontalVelocity}");
             }
             
             states.justLanded = true;
             states.landingGraceTimer = isLandingIntoSlide ? config.landingGracePeriod * 1.5f : config.landingGracePeriod;
         }
     }
+
+
+    // public void HandleLanding()
+    // {
+    //     if (config == null) return;
+    //
+    //     if (!states.isGrounded)
+    //     {
+    //         states.landingHorizontalVelocity = rb.linearVelocity.x;
+    //     }
+    //     
+    //     if (states.wasGrounded != states.isGrounded && states.isGrounded)
+    //     {
+    //         if (states.justLanded && states.landingGraceTimer > config.landingGracePeriod * 0.8f)
+    //         {
+    //             GameLogger.LogVerbose("MOVEMENT", "Ignoring duplicate landing detection");
+    //             return;
+    //         }
+    //         
+    //         states.landingVerticalVelocity = rb.linearVelocity.y;
+    //         float currentHorizontalVel = rb.linearVelocity.x;
+    //         
+    //         bool isSlamLanding = states.landingVerticalVelocity <= config.slamLandingThreshold;
+    //         bool hasHorizontalInput = Mathf.Abs(states.moveInput.x) > 0.1f;
+    //         bool isHoldingCrouchButton = states.crouchHeld;
+    //         bool isLandingIntoSlide = isHoldingCrouchButton && Mathf.Abs(states.landingHorizontalVelocity) > 3f;
+    //         
+    //         GameLogger.LogMovement($"Landing detected! Vertical: {states.landingVerticalVelocity}, Horizontal: {states.landingHorizontalVelocity}, Input: {states.moveInput.x}, Crouch: {isHoldingCrouchButton}, Slam: {isSlamLanding}, IntoSlide: {isLandingIntoSlide}");
+    //         
+    //         if (isLandingIntoSlide)
+    //         {
+    //             float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
+    //             float horizontalBoost = downwardSpeed * config.momentumConversionRatio * 1.5f;
+    //             float inputDirection = Mathf.Sign(states.landingHorizontalVelocity);
+    //             
+    //             float preservedMomentum = states.landingHorizontalVelocity;
+    //             float slideBoost = horizontalBoost * inputDirection;
+    //             float newHorizontalVelocity = preservedMomentum + slideBoost;
+    //             
+    //             rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
+    //             states.landingHorizontalVelocity = newHorizontalVelocity;
+    //             
+    //             GameLogger.LogMovement($"SLIDE LANDING! Preserved: {preservedMomentum}, Slide Boost: {slideBoost}, Final: {newHorizontalVelocity}");
+    //         }
+    //         else if (isSlamLanding && hasHorizontalInput && isHoldingCrouchButton)
+    //         {
+    //             float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
+    //             float horizontalBoost = downwardSpeed * config.momentumConversionRatio;
+    //             float inputDirection = Mathf.Sign(states.moveInput.x);
+    //             
+    //             float preservedMomentum = states.landingHorizontalVelocity;
+    //             float newHorizontalVelocity = preservedMomentum + (horizontalBoost * inputDirection);
+    //             
+    //             rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
+    //             states.landingHorizontalVelocity = newHorizontalVelocity;
+    //             
+    //             GameLogger.LogMovement($"SLAM LANDING! Preserved: {preservedMomentum}, Boost: {horizontalBoost}, Final: {newHorizontalVelocity}");
+    //         }
+    //         else
+    //         {
+    //             float currentVelX = rb.linearVelocity.x;
+    //             GameLogger.LogMovement($"Regular landing: Current velocity {currentVelX}, was preserving {states.landingHorizontalVelocity}");
+    //             rb.linearVelocity = new Vector2(currentVelX, 0f);
+    //         }
+    //         
+    //         states.justLanded = true;
+    //         states.landingGraceTimer = isLandingIntoSlide ? config.landingGracePeriod * 1.5f : config.landingGracePeriod;
+    //     }
+    // }
 
     private void ClampFallSpeed()
     {
