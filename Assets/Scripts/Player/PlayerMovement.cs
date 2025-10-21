@@ -287,12 +287,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (states.isKicking) return;
         if (states.isCrouching || states.isSliding) return;
-    
-        if (states.justLanded && states.landingGraceTimer > 0f)
-        {
-            GameLogger.LogVerbose("MOVEMENT", "Landing grace active - skipping normal movement forces");
-            return;
-        }
 
         float horizontalInput = states.moveInput.x;
 
@@ -300,10 +294,10 @@ public class PlayerMovement : MonoBehaviour
         {
             float targetSpeed = horizontalInput * config.maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
-        
+    
             bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
             bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < config.maxRunSpeed;
-        
+    
             if (isAccelerating || isBelowMaxSpeed)
             {
                 float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
@@ -319,6 +313,7 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector2.down * (config.runForce * Time.fixedDeltaTime), ForceMode2D.Force);
         }
     }
+
 
     private void HandleSlideMovement(float forceMultiplier)
     {

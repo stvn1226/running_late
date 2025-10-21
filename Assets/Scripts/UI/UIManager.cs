@@ -55,7 +55,7 @@ public class UIManager : MonoBehaviour
             inputActions.Gameplay.Enable();
             inputActions.Gameplay.Pause.performed += OnPausePressed;
             inputActions.UI.Pause.performed += OnPausePressed;
-            inputActions.Gameplay.Reset.performed += OnResetPressed;
+            // inputActions.Gameplay.Reset.performed += OnResetPressed;
             
             // Time Scale Controls
             // inputActions.Gameplay.TimeScaleUp.performed += OnTimeScaleUpPressed;
@@ -82,7 +82,7 @@ public class UIManager : MonoBehaviour
         {
             inputActions.Gameplay.Pause.performed -= OnPausePressed;
             inputActions.UI.Pause.performed -= OnPausePressed;
-            inputActions.Gameplay.Reset.performed -= OnResetPressed;
+            // inputActions.Gameplay.Reset.performed -= OnResetPressed;
             
             // Time Scale Controls
             // inputActions.Gameplay.TimeScaleUp.performed -= OnTimeScaleUpPressed;
@@ -366,11 +366,11 @@ public class UIManager : MonoBehaviour
         }
     }
     
-    private void OnResetPressed(InputAction.CallbackContext context)
-    {
-        if (!isPaused)
-        {
-            RestartCurrentLevel();
-        }
-    }
+    // private void OnResetPressed(InputAction.CallbackContext context)
+    // {
+    //     if (!isPaused)
+    //     {
+    //         RestartCurrentLevel();
+    //     }
+    // }
 }
