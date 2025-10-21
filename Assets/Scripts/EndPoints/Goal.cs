@@ -81,9 +81,11 @@ public class Goal : MonoBehaviour
             Camera mainCamera = Camera.main;
             Vector3 spawnPosition = mainCamera != null ? mainCamera.transform.position : Vector3.zero;
             spawnPosition.z = 0; // Ensure it's in the 2D plane
+            spawnPosition.x -= 10;
 
             spawnedVictoryOverlay = Instantiate(victoryOverlayPrefab, spawnPosition, Quaternion.identity);
 
+            spawnedVictoryOverlay.transform.localScale = Vector3.one * 5;
             if (showDebugInfo)
                 GameLogger.Log("GOAL", "Victory overlay displayed!");
         }
