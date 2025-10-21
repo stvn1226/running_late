@@ -18,7 +18,8 @@ public class UIManager : MonoBehaviour
     public TMP_InputField seedInputField;
     public Toggle fps60Toggle;
     public Toggle fps120Toggle;
-    
+    public Button quitButton;
+
     [Header("Time Scale UI")]
     public TextMeshProUGUI timeScaleDisplay;
     public Button[] timeScaleButtons;
@@ -68,7 +69,8 @@ public class UIManager : MonoBehaviour
         newLevelButton.onClick.AddListener(GenerateNewLevel);
         seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.AddListener(OnSeedInputChanged);
-        
+        quitButton.onClick.AddListener(QuitApplication);
+
         // Time Scale events
         if (timeScaleManager != null)
         {
@@ -97,7 +99,8 @@ public class UIManager : MonoBehaviour
         newLevelButton.onClick.RemoveListener(GenerateNewLevel);
         seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.RemoveListener(OnSeedInputChanged);
-        
+        quitButton.onClick.RemoveListener(QuitApplication);
+
         // Time Scale events
         if (timeScaleManager != null)
         {
@@ -279,6 +282,18 @@ public class UIManager : MonoBehaviour
             PlayerPrefs.SetInt("UseNewLevelSeed", 0);
             levelManager.ReplayLevel(); 
         }
+    }
+
+    // QUIT APPLICATION
+    public void QuitApplication()
+    {
+        GameLogger.LogUI("Quitting application...");
+        
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
     }
     
     // SEED SYSTEM

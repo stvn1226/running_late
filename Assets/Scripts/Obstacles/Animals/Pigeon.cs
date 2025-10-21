@@ -63,8 +63,7 @@ public class Pigeon : MonoBehaviour
     private Camera mainCamera;
     private bool isRunning;
     private bool hasRan;
-    
-    private bool hasTriggeredStagger = false;
+    private bool stomping;
 
     private void Awake()
     {
@@ -95,6 +94,7 @@ public class Pigeon : MonoBehaviour
 
     private void Update()
     {
+        stomping = false;
         EnableDisableDistance();
         if (state == FlightState.Idle && PlayerWithinDetectionRadius())
         {
@@ -127,44 +127,31 @@ public class Pigeon : MonoBehaviour
             TriggerStagger();
         }
 
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("PlayerStomp"))
         {
-            if (hasTriggeredStagger)
-            {
-                Debug.LogWarning("[PIGEON] Already triggered stagger - ignoring duplicate collision");
-                return;
-            }
-        
-            hasTriggeredStagger = true;
-        
-            PlayerMovement playerMovement = collision.GetComponentInParent<PlayerMovement>();
-        
-            if (playerMovement != null)
-            {
-                Debug.Log($"[PIGEON] Collided with Player - triggering stagger");
-                playerMovement.StaggerPlayer(new Vector2(-1, 1));
-                Debug.Log($"[PIGEON] StaggerPlayer called successfully");
-            }
-            else
-            {
-                Debug.LogError("[PIGEON] PlayerMovement component not found!");
-            }
-        
-            StartCoroutine(DisableHitboxTemp(2f));
+            stomping = true;
         }
+
+        if (collision.gameObject.CompareTag("Player") && !stomping)
+        {
+            // Handle collision with player
+            Debug.Log("Pigeon collided with Player");
+            collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+            StartCoroutine(DisableHitboxTemp(2f));
+
+        }
+
+
     }
 
-    protected IEnumerator DisableHitboxTemp(float duration)
+    public IEnumerator DisableHitboxTemp(float duration)
     {
-        Debug.Log($"[PIGEON] Disabling hitbox for {duration}s");
         hitbox.enabled = false;
         yield return new WaitForSeconds(duration);
         hitbox.enabled = true;
-        hasTriggeredStagger = false;  // Reset flag
-        Debug.Log("[PIGEON] Hitbox re-enabled, stagger flag reset");
     }
 
-    private void TriggerStagger()
+    public void TriggerStagger()
     {
         // Only allow staggering if pigeon is flying (not idle or already staggered)
         if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
