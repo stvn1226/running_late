@@ -51,10 +51,12 @@ public class PlayerStates : MonoBehaviour
     public float landingHorizontalVelocity = 0f;
     public float landingVerticalVelocity = 0f;
 
+    [Header("Kick States")]
+    public float kickTimer;
+
     [Header("Stagger States")]
     public float staggerTimer;
-    private const float MAX_STAGGER_DURATION = 2.0f;
-    
+
     // Logging variables for wall run states
     private bool prevCanWallRun;
     private int prevWallDirection;
@@ -63,11 +65,6 @@ public class PlayerStates : MonoBehaviour
     private Vector2 prevMoveInput;
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
-    
-    [Header("Energy/Momentum States")]
-    public float currentEnergy = 0f;             // Current total speed/energy
-    public Vector2 energyDirection = Vector2.right; // Direction of energy
-    public bool isInEnergyMode = false;          // True when above min energy threshold
 
     // Public properties for external access
     public bool IsWallRunHeld => wallRunHeld;
@@ -181,30 +178,28 @@ public class PlayerStates : MonoBehaviour
                 justLanded = false;
         }
 
+        // Kick timer
+        // This timer was moved to work directly with the animation by using EndKick method - We use Animation Events 
+        // if (isKicking)
+        // {
+        //     if (kickPressed) kickPressed = false;
+        //     kickTimer -= Time.deltaTime;
+        //     if (kickTimer <= 0)
+        //         isKicking = false;
+        // }
+
         if (isStaggered)
         {
-            float previousTimer = staggerTimer;
             staggerTimer -= Time.deltaTime;
-        
-            // Log cuando el stagger está por terminar
-            if (previousTimer > 0.1f && staggerTimer <= 0.1f)
+            if (staggerTimer <= 0)
             {
-                GameLogger.LogWarning("STATE", $"Stagger ending soon - timer: {staggerTimer:F2}s");
-            }
-        
-            if (staggerTimer <= 0 || staggerTimer > MAX_STAGGER_DURATION)
-            {
-                if (staggerTimer > MAX_STAGGER_DURATION)
-                {
-                    GameLogger.LogError("STATE", $"***** FAIL-SAFE: Stagger exceeded max duration ({staggerTimer:F2}s) - forcing end *****");
-                }
-                else
-                {
-                    GameLogger.LogWarning("STATE", "***** STAGGER ENDED NORMALLY *****");
-                }
-            
                 isStaggered = false;
-                staggerTimer = 0f;
+
+                if (isKicking)
+                {
+                    isKicking = false;
+                    GameLogger.LogState("STAGGER END: Also clearing stuck kick state");
+                }
             }
         }
 
@@ -217,6 +212,10 @@ public class PlayerStates : MonoBehaviour
         // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
+        //if (kickPressed)
+        //    kickPressed = false;
+        //if (dropDownPressed)
+        //    dropDownPressed = false;
     }
 
     private void CheckStateChanges()
@@ -269,39 +268,38 @@ public class PlayerStates : MonoBehaviour
 
     public void EndKick()
     {
-        isKicking = false;
+        if (isKicking)
+        {
+            isKicking = false;
+            GameLogger.LogState("KICK: Ended kick state");
+        }
     }
 
     public void SetDropDownPressed()
     {
+        //dropDownPressed = true;
         dropDownHeld = true;
         isDroppingDown = true;
     }
 
     public void SetDropDownReleased()
     {
+        //dropDownPressed = false;
         dropDownHeld = false;
         isDroppingDown = false;
     }
 
     public void StartStagger(float duration)
     {
-        if (isKicking)
-        {
-            EndKick();
-            GameLogger.LogWarning("STATE", "Kick interrupted by stagger - forcing kick end");
-        }
-    
-        if (isStaggered)
-        {
-            GameLogger.LogWarning("STATE", $"Already staggered (timer: {staggerTimer:F2}s) - extending duration to {duration:F2}s");
-            staggerTimer = Mathf.Max(staggerTimer, duration);
-            return;
-        }
-    
         isStaggered = true;
         staggerTimer = duration;
-        GameLogger.LogWarning("STATE", $"***** STAGGER STARTED - duration: {duration:F2}s *****");
+
+        if (isKicking)
+        {
+            isKicking = false;
+            animator.ResetTrigger(IsKicking);
+            GameLogger.LogState("STAGGER: Forcibly ended active kick to prevent movement lock");
+        }
     }
 
     public void StartCoyoteTime(float coyoteTime)
