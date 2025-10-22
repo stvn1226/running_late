@@ -308,46 +308,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // private void ApplyDrag()
-    // {
-    //     Vector2 velocity = rb.linearVelocity;
-    //     float horizontalInput = states.moveInput.x;
-    //     
-    //     if (states.justLanded && states.isGrounded)
-    //     {
-    //         GameLogger.LogVerbose("MOVEMENT", $"Just landed - maintaining current velocity: {rb.linearVelocity.x}");
-    //         return;
-    //     }
-    //     
-    //     if (!states.isGrounded || states.isKicking)
-    //         return;
-    //         
-    //     if (states.isSliding)
-    //     {
-    //         if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
-    //         {
-    //             Vector2 dragForces = -velocity * (config.slideDrag * 0.3f * Time.fixedDeltaTime);
-    //             rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
-    //         }
-    //         return;
-    //     }
-    //     
-    //     float targetDrag = 0f;
-    //     
-    //     if (Mathf.Abs(horizontalInput) < 0.1f)
-    //     {
-    //         targetDrag = config.groundDrag;
-    //     }
-    //     else
-    //     {
-    //         bool inputOpposesMovement = (horizontalInput * velocity.x) < 0;
-    //         targetDrag = inputOpposesMovement ? config.groundDrag * 1.5f : config.groundDrag * 0.1f;
-    //     }
-    //     
-    //     Vector2 dragForce = -velocity * (targetDrag * Time.fixedDeltaTime);
-    //     rb.AddForce(new Vector2(dragForce.x, 0), ForceMode2D.Force);
-    // }
-    
     private void ApplyDrag()
     {
         Vector2 velocity = rb.linearVelocity;
