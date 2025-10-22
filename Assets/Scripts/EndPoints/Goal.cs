@@ -1,5 +1,6 @@
 using UnityEngine;
 using Utils;
+using System.Collections;
 
 public class Goal : MonoBehaviour
 {
@@ -57,30 +58,30 @@ public class Goal : MonoBehaviour
         StartCoroutine(VictorySequence());
     }
 
-    private System.Collections.IEnumerator VictorySequence()
+    private IEnumerator VictorySequence()
     {
         if (victoryDelay > 0f)
         {
             yield return new WaitForSeconds(victoryDelay);
         }
 
-        ShowEndGamePanel();
+        ShowVictoryPanel();
     }
 
-    private void ShowEndGamePanel()
+    private void ShowVictoryPanel()
     {
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowEndGamePanel();
+            UIManager.Instance.ShowVictoryPanel();
             
             if (showDebugInfo)
             {
-                GameLogger.Log("GOAL", "EndGamePanel displayed via UIManager");
+                GameLogger.Log("GOAL", "Victory panel displayed via UIManager");
             }
         }
         else
         {
-            GameLogger.LogError("GOAL", "UIManager instance not found! Cannot show EndGamePanel.");
+            GameLogger.LogError("GOAL", "UIManager instance not found!");
         }
     }
 

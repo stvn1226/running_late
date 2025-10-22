@@ -6,7 +6,8 @@ public class UIManager : MonoBehaviour
 {
     [Header("Menu Panels")]
     [SerializeField] private PauseMenuPanel pauseMenuPanel;
-    [SerializeField] private EndGamePanel endGamePanel;
+    [SerializeField] private EndGamePanel victoryEndGamePanel;
+    [SerializeField] private EndGamePanel loseEndGamePanel;
     
     public PlayerInputActions inputActions;
     private bool isPaused = false;
@@ -34,9 +35,6 @@ public class UIManager : MonoBehaviour
         
         if (pauseMenuPanel != null) 
             menuPanels.Add(typeof(PauseMenuPanel), pauseMenuPanel);
-        
-        if (endGamePanel != null) 
-            menuPanels.Add(typeof(EndGamePanel), endGamePanel);
         
         HideAllPanels();
     }
@@ -101,6 +99,12 @@ public class UIManager : MonoBehaviour
             panel.Hide();
         }
         
+        if (victoryEndGamePanel != null)
+            victoryEndGamePanel.Hide();
+        
+        if (loseEndGamePanel != null)
+            loseEndGamePanel.Hide();
+        
         currentActivePanel = null;
         isPaused = false;
         SetInputContext(false);
@@ -122,9 +126,45 @@ public class UIManager : MonoBehaviour
         }
     }
     
+    public void ShowVictoryPanel()
+    {
+        if (victoryEndGamePanel != null)
+        {
+            HideAllPanels();
+            victoryEndGamePanel.Show();
+            currentActivePanel = victoryEndGamePanel;
+            
+            isPaused = true;
+            SetInputContext(true);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            GameLogger.LogError("UI", "Victory EndGamePanel not assigned!");
+        }
+    }
+    
+    public void ShowLosePanel()
+    {
+        if (loseEndGamePanel != null)
+        {
+            HideAllPanels();
+            loseEndGamePanel.Show();
+            currentActivePanel = loseEndGamePanel;
+            
+            isPaused = true;
+            SetInputContext(true);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            GameLogger.LogError("UI", "Lose EndGamePanel not assigned!");
+        }
+    }
+    
     public void ShowEndGamePanel()
     {
-        ShowPanel<EndGamePanel>();
+        ShowVictoryPanel();
     }
     
     public bool IsPaused => isPaused;
