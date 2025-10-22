@@ -87,11 +87,16 @@ public class PlayerControllerModular : MonoBehaviour
     #region Input Callbacks
     private void OnMove(InputAction.CallbackContext context)
     {
-        if (states != null)
-        {
-            states.moveInput = context.ReadValue<Vector2>();
-        }
+        Vector2 input = context.ReadValue<Vector2>();
+    
+        const float deadzone = 0.3f;
+    
+        float x = Mathf.Abs(input.x) > deadzone ? Mathf.Sign(input.x) : 0f;
+        float y = Mathf.Abs(input.y) > deadzone ? Mathf.Sign(input.y) : 0f;
+    
+        states.moveInput = new Vector2(x, y);
     }
+
 
     private void OnJumpStart(InputAction.CallbackContext context)
     {
