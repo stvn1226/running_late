@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     private const float FLIP_ANALYSIS_LOG_INTERVAL = 2f;
 
     private float lastWallRunVelocity = 0f;
-
+    
     private void Start()
     {
         rb.linearDamping = 0f;
@@ -69,16 +69,16 @@ public class PlayerMovement : MonoBehaviour
         ClampFallSpeed();
 
         if (states.isStaggered) return;
-
+      
         HandleSpriteFlipping();
         HandleMovement();
-
-        // Periodic analysis of flip behavior
+        
         AnalyzeFlipBehavior();
 
         previousVelocity = rb.linearVelocity;
         previousSpriteFlipX = playerSprite.flipX;
     }
+
 
     public void SetNearBuildingWall(bool isNear)
     {
@@ -217,13 +217,22 @@ public class PlayerMovement : MonoBehaviour
 
     public void StaggerPlayer(Vector2 knockbackDirection)
     {
-        if (config == null || states == null) return;
+        if (config == null || states == null)
+        {
+            Debug.LogError("[STAGGER] Config or States is null!");
+            return;
+        }
 
+        Debug.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
+    
         states.StartStagger(config.staggerDuration);
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
+    
+        Debug.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
     }
+
 
     private void HandleMovement()
     {
@@ -250,9 +259,7 @@ public class PlayerMovement : MonoBehaviour
     private void HandleNormalMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
-
         if (states.isCrouching || states.isSliding) return;
-
 
         float horizontalInput = states.moveInput.x;
 
@@ -260,12 +267,18 @@ public class PlayerMovement : MonoBehaviour
         {
             float targetSpeed = horizontalInput * config.maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
+    
+            bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
+            bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < config.maxRunSpeed;
+    
+            if (isAccelerating || isBelowMaxSpeed)
+            {
+                float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+                force *= forceMultiplier;
 
-            float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
-            force *= forceMultiplier;
-
-            float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
-            rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
+                rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+            }
         }
 
         if (states.crouchHeld && !states.isGrounded)
@@ -273,6 +286,7 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector2.down * (config.runForce * Time.fixedDeltaTime), ForceMode2D.Force);
         }
     }
+
 
     private void HandleSlideMovement(float forceMultiplier)
     {
@@ -299,15 +313,15 @@ public class PlayerMovement : MonoBehaviour
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
         
-        if (states.justLanded && states.isGrounded)
+        if (states.justLanded && states.landingGraceTimer > 0f)
         {
-            GameLogger.LogVerbose("MOVEMENT", $"Just landed - maintaining current velocity: {rb.linearVelocity.x}");
+            GameLogger.LogVerbose("MOVEMENT", $"Landing grace active - maintaining velocity: {rb.linearVelocity.x:F2}, Timer: {states.landingGraceTimer:F2}");
             return;
         }
-        
+    
         if (!states.isGrounded || states.isKicking)
             return;
-            
+        
         if (states.isSliding)
         {
             if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
@@ -352,7 +366,6 @@ public class PlayerMovement : MonoBehaviour
             }
             
             states.landingVerticalVelocity = rb.linearVelocity.y;
-            float currentHorizontalVel = rb.linearVelocity.x;
             
             bool isSlamLanding = states.landingVerticalVelocity <= config.slamLandingThreshold;
             bool hasHorizontalInput = Mathf.Abs(states.moveInput.x) > 0.1f;
@@ -364,17 +377,19 @@ public class PlayerMovement : MonoBehaviour
             if (isLandingIntoSlide)
             {
                 float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
-                float horizontalBoost = downwardSpeed * config.momentumConversionRatio * 1.5f;
+                float horizontalBoost = downwardSpeed * config.momentumConversionRatio * 3.0f;
                 float inputDirection = Mathf.Sign(states.landingHorizontalVelocity);
                 
                 float preservedMomentum = states.landingHorizontalVelocity;
                 float slideBoost = horizontalBoost * inputDirection;
                 float newHorizontalVelocity = preservedMomentum + slideBoost;
                 
+                newHorizontalVelocity = Mathf.Clamp(newHorizontalVelocity, -config.maxRunSpeed * 2.5f, config.maxRunSpeed * 2.5f);
+                
                 rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
                 states.landingHorizontalVelocity = newHorizontalVelocity;
                 
-                GameLogger.LogMovement($"SLIDE LANDING! Preserved: {preservedMomentum}, Slide Boost: {slideBoost}, Final: {newHorizontalVelocity}");
+                GameLogger.LogMovement($"SLIDE LANDING! Preserved: {preservedMomentum:F2}, Boost: {slideBoost:F2}, Final: {newHorizontalVelocity:F2}");
             }
             else if (isSlamLanding && hasHorizontalInput && isHoldingCrouchButton)
             {
@@ -392,9 +407,8 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                float currentVelX = rb.linearVelocity.x;
-                GameLogger.LogMovement($"Regular landing: Current velocity {currentVelX}, was preserving {states.landingHorizontalVelocity}");
-                rb.linearVelocity = new Vector2(currentVelX, 0f);
+                rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, 0f);
+                GameLogger.LogMovement($"Regular landing: Preserving horizontal velocity {states.landingHorizontalVelocity}");
             }
             
             states.justLanded = true;

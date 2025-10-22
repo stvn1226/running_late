@@ -4,493 +4,261 @@ using UnityEngine;
 
 public class PlayerOneWayPlatform : MonoBehaviour
 {
-    [Header("Settings")]
-    [SerializeField] private float safetyDelay = 0.3f;
-    [SerializeField] private float lookAheadDistance = 2f;
-    [SerializeField] private LayerMask platformLayerMask;
-    
     [Header("Configuration")]
     public PlayerConfig config;
     
-    [Header("Debug")]
-    [SerializeField] private bool showDebugInfo = true;
+    [Header("Settings")]
+    [SerializeField] private float safetyDelay = 0.3f;
+    [SerializeField] private float baseLookAhead = 2f;
+    [SerializeField] private float velocityLookAheadMultiplier = 0.2f;
     
+    [Header("Debug")]
+    [SerializeField] private bool showGizmos = true;
+
     private CapsuleCollider2D playerCollider;
     private PlayerStates playerStates;
-    private Rigidbody2D playerRigidbody;
-    private List<Collider2D> ignoredPlatforms = new List<Collider2D>();
+    private Rigidbody2D playerRb;
+    private LayerMask platformLayerMask;
     
+    private HashSet<Collider2D> ignoredPlatforms = new HashSet<Collider2D>();
+    private List<Collider2D> platformsToRestore = new List<Collider2D>();
+    private Coroutine restoreCoroutine;
+
     private void Awake()
     {
-        // Component is on child "Collider" object, so get components from self and parent
         playerCollider = GetComponent<CapsuleCollider2D>();
-        if (playerCollider == null)
-        {
-            GameLogger.LogError("PLATFORM", "No CapsuleCollider2D found on this GameObject!");
-            return;
-        }
-        
-        // Get parent components (PlayerStates and Rigidbody should be on parent Player GameObject)
         playerStates = GetComponentInParent<PlayerStates>();
-        if (playerStates == null)
-        {
-            GameLogger.LogError("PLATFORM", "No PlayerStates found in parent!");
-        }
+        playerRb = GetComponentInParent<Rigidbody2D>();
         
-        playerRigidbody = GetComponentInParent<Rigidbody2D>();
-        if (playerRigidbody == null)
-        {
-            GameLogger.LogError("PLATFORM", "No Rigidbody2D found in parent!");
-        }
-        
-        // Use config's platform layer mask if available
         if (config != null)
         {
             platformLayerMask = config.platformLayerMask;
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", $"Using platform layer mask from config: {platformLayerMask.value} (layers: {GetLayerNames(platformLayerMask)})");
+        }
+        
+        if (playerCollider == null)
+            GameLogger.LogError("PLATFORM", "Missing CapsuleCollider2D!");
+        if (playerStates == null)
+            GameLogger.LogError("PLATFORM", "Missing PlayerStates in parent!");
+        if (playerRb == null)
+            GameLogger.LogError("PLATFORM", "Missing Rigidbody2D in parent!");
+    }
+
+    private void FixedUpdate()
+    {
+        if (playerCollider == null || playerStates == null || playerRb == null) return;
+
+        if (playerStates.dropDownHeld)
+        {
+            DropThrough();
         }
         else
         {
-            if (showDebugInfo)
-                GameLogger.LogWarning("PLATFORM", "No PlayerConfig assigned, using default platform layer mask");
-        }
-        
-        // Debug component setup
-        if (showDebugInfo)
-        {
-            GameLogger.Log("PLATFORM", $"PlayerOneWayPlatform setup on '{gameObject.name}' (parent: '{transform.parent?.name}'):");
-            GameLogger.Log("PLATFORM", $"  - CapsuleCollider2D: {(playerCollider != null ? "✓" : "✗")}");
-            GameLogger.Log("PLATFORM", $"  - PlayerStates: {(playerStates != null ? "✓" : "✗")}");
-            GameLogger.Log("PLATFORM", $"  - Rigidbody2D: {(playerRigidbody != null ? "✓" : "✗")}");
-            GameLogger.Log("PLATFORM", $"  - Config: {(config != null ? "✓" : "✗")}");
-        }
-    }
-    
-    private string GetLayerNames(LayerMask layerMask)
-    {
-        List<string> layerNames = new List<string>();
-        for (int i = 0; i < 32; i++)
-        {
-            if ((layerMask.value & (1 << i)) != 0)
-            {
-                layerNames.Add(LayerMask.LayerToName(i));
-            }
-        }
-        return string.Join(", ", layerNames);
-    }
-    
-    private void Update()
-    {
-
-    }
-    
-    private void FixedUpdate()
-    {
-        HandleDropDown();
-    }
-
-    private void HandleDropDown()
-    {
-        if (playerStates == null) 
-        {
-            if (showDebugInfo)
-                GameLogger.LogError("PLATFORM", "PlayerStates is null!");
-            return;
-        }
-        
-        // Debug input states every frame for 1 second after detecting input
-        if (showDebugInfo && playerStates.dropDownHeld)
-        {
-            GameLogger.LogVerbose("PLATFORM", $"[FRAME] dropDownHeld: {playerStates.dropDownHeld}, isDroppingDown: {playerStates.isDroppingDown}");
-        }
-        
-        // Start dropping when button is pressed
-        if (playerStates.dropDownHeld)
-        {
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", "=== DROP DOWN PRESSED - DROP SEQUENCE INITIATED ===");
-            DropThrough();
-        }
-                
-        // IMMEDIATELY stop dropping when button is released
-        if (!playerStates.dropDownHeld)
-        {
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", "=== DROP DOWN RELEASED - STOPPING DROP SEQUENCE ===");
             StopDropThrough();
         }
     }
-    
+
     private void DropThrough()
     {
-        playerStates.isDroppingDown = true;
-        
-        // Find all platforms we're currently touching
-        FindAndIgnorePlatforms();
-        
-        // Immediately check ahead for platforms to prevent momentum loss
-        ProactivelyIgnorePlatforms();
-                
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"Started dropping through {ignoredPlatforms.Count} platforms.");
+        if (!playerStates.isDroppingDown)
+        {
+            playerStates.isDroppingDown = true;
+        }
+
+        IgnoreCurrentPlatforms();
+        IgnorePlatformsAhead();
     }
 
     private void StopDropThrough()
     {
-        playerStates.isDroppingDown = false;
-                
-        // IMMEDIATELY restore collision for all platforms
-        RestoreAllCollisions();
-        
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", "=== STOPPED DROPPING - RESTORED ALL COLLISIONS ===");
-    }
-    
-    private void ProactivelyIgnorePlatforms()
-    {
-        if (playerRigidbody == null) return;
-        
-        Vector2 velocity = playerRigidbody.linearVelocity;
-        Vector2 currentPosition = transform.position;
-        
-        // Calculate look-ahead based on velocity and minimum distance
-        float velocityMagnitude = velocity.magnitude;
-        float dynamicLookAhead = Mathf.Max(lookAheadDistance, velocityMagnitude * Time.fixedDeltaTime * 3f);
-        
-        // For very fast movement, extend the look-ahead even further
-        if (velocityMagnitude > 10f)
+        if (playerStates.isDroppingDown)
         {
-            dynamicLookAhead = Mathf.Max(dynamicLookAhead, velocityMagnitude * 0.2f);
-        }
-        
-        Vector2 lookAheadPosition = currentPosition + velocity.normalized * dynamicLookAhead;
-        
-        // Create expanded bounds for detection
-        Bounds detectionBounds = playerCollider.bounds;
-        detectionBounds.center = Vector3.Lerp(currentPosition, lookAheadPosition, 0.5f);
-        detectionBounds.size = new Vector3(
-            detectionBounds.size.x + 0.5f, // Slightly wider for edge cases
-            detectionBounds.size.y + dynamicLookAhead,
-            detectionBounds.size.z
-        );
-        
-        // Find all platform colliders in the expanded area
-        Collider2D[] nearbyColliders = Physics2D.OverlapBoxAll(
-            detectionBounds.center,
-            detectionBounds.size,
-            0f,
-            platformLayerMask
-        );
-        
-        foreach (Collider2D collider in nearbyColliders)
-        {
-            if (collider == playerCollider) continue;
-            
-            // Check if this collider is a platform
-            if (IsPlatform(collider.gameObject) && !ignoredPlatforms.Contains(collider))
-            {
-                // Proactively ignore platforms in our path
-                Physics2D.IgnoreCollision(playerCollider, collider, true);
-                ignoredPlatforms.Add(collider);
-                
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"Proactively ignoring: {collider.name} (speed: {velocityMagnitude:F2}, lookahead: {dynamicLookAhead:F2})");
-            }
+            playerStates.isDroppingDown = false;
+            RestoreAllCollisions();
         }
     }
-    
-    private void FindAndIgnorePlatforms()
+
+    private void IgnoreCurrentPlatforms()
     {
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"=== FindAndIgnorePlatforms START ===");
-            
-        if (playerCollider == null)
-        {
-            if (showDebugInfo)
-                GameLogger.LogError("PLATFORM", "playerCollider is null! Cannot find platforms to ignore.");
-            return;
-        }
-        
-        if (showDebugInfo)
-        {
-            GameLogger.Log("PLATFORM", $"Player collider bounds: center={playerCollider.bounds.center}, size={playerCollider.bounds.size}");
-            GameLogger.Log("PLATFORM", $"Platform layer mask: {platformLayerMask.value} (binary: {System.Convert.ToString(platformLayerMask.value, 2)})");
-        }
-        
-        // Get all colliders we're currently overlapping
-        Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(
-            playerCollider.bounds.center,
-            playerCollider.bounds.size,
-            0f,
-            platformLayerMask
-        );
-        
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"OverlapBoxAll found {overlappingColliders.Length} colliders on platform layers");
-        
-        if (overlappingColliders.Length == 0)
-        {
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", "No colliders found on platform layers - checking all colliders manually...");
-                
-            // Manual check - find all colliders and see what layers they're on
-            Collider2D[] allColliders = FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", $"Found {allColliders.Length} total colliders in scene");
-                
-            foreach (Collider2D col in allColliders)
-            {
-                if (col == playerCollider) continue;
-                
-                bool isOnPlatformLayer = IsLayerInLayerMask(col.gameObject.layer, platformLayerMask);
-                bool isOverlapping = playerCollider.bounds.Intersects(col.bounds);
-                
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"Collider '{col.name}' on layer {col.gameObject.layer} ({LayerMask.LayerToName(col.gameObject.layer)}): onPlatformLayer={isOnPlatformLayer}, overlapping={isOverlapping}");
-                    
-                if (isOnPlatformLayer && isOverlapping)
-                {
-                    if (showDebugInfo)
-                        GameLogger.Log("PLATFORM", $"*** FOUND OVERLAPPING PLATFORM: {col.name} ***");
-                }
-            }
-        }
-        
-        foreach (Collider2D collider in overlappingColliders)
-        {
-            if (collider == playerCollider) continue;
-            
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", $"Checking collider: {collider.name} on layer {LayerMask.LayerToName(collider.gameObject.layer)}");
-            
-            // Check if this is a platform we can drop through
-            if (IsPlatform(collider.gameObject) && !ignoredPlatforms.Contains(collider))
-            {
-                // Only ignore if player is above or on the platform
-                if (IsPlayerAbovePlatform(collider))
-                {
-                    Physics2D.IgnoreCollision(playerCollider, collider, true);
-                    ignoredPlatforms.Add(collider);
-                    
-                    if (showDebugInfo)
-                        GameLogger.Log("PLATFORM", $"*** IGNORING COLLISION WITH: {collider.name} ***");
-                }
-                else if (showDebugInfo)
-                {
-                    GameLogger.Log("PLATFORM", $"Player not above platform: {collider.name}");
-                }
-            }
-            else if (showDebugInfo)
-            {
-                GameLogger.Log("PLATFORM", $"Not a valid platform or already ignored: {collider.name}");
-            }
-        }
-        
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"=== FindAndIgnorePlatforms END - Ignored {ignoredPlatforms.Count} platforms ===");
-    }
-    
-    private bool IsPlayerAbovePlatform(Collider2D platformCollider)
-    {
-        float playerBottom = playerCollider.bounds.min.y;
-        float platformTop = platformCollider.bounds.max.y;
-        
-        // Allow drop through if player is above or slightly overlapping the top
-        return playerBottom >= platformTop - 0.2f;
-    }
-    
-    private bool IsPlayerBelowPlatform(Collider2D platformCollider)
-    {
-        float playerTop = playerCollider.bounds.max.y;
-        float platformBottom = platformCollider.bounds.min.y;
-        
-        // Player is considered below if their top is below the platform's bottom
-        return playerTop <= platformBottom + 0.1f;
-    }
-    
-    private void RestoreAllCollisions()
-    {
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"=== RestoreAllCollisions START - {ignoredPlatforms.Count} platforms to restore ===");
-            
-        List<Collider2D> overlappingPlatforms = new List<Collider2D>();
-        
-        // Check each ignored platform
-        for (int i = ignoredPlatforms.Count - 1; i >= 0; i--)
-        {
-            Collider2D platform = ignoredPlatforms[i];
-            if (platform == null)
-            {
-                ignoredPlatforms.RemoveAt(i);
-                continue;
-            }
-            
-            // Check if player is still overlapping this platform
-            bool isOverlapping = playerCollider.bounds.Intersects(platform.bounds);
-            bool isPlayerBelowPlatform = IsPlayerBelowPlatform(platform);
-            
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", $"Platform {platform.name}: overlapping={isOverlapping}, playerBelow={isPlayerBelowPlatform}");
-            
-            if (isOverlapping && !isPlayerBelowPlatform)
-            {
-                // Player is still inside from above - delay restoration to prevent clipping
-                overlappingPlatforms.Add(platform);
-                ignoredPlatforms.RemoveAt(i);
-                
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"Still overlapping {platform.name} from above, delaying restoration");
-            }
-            else
-            {
-                // Player is clear OR below the platform - immediately restore collision
-                Physics2D.IgnoreCollision(playerCollider, platform, false);
-                ignoredPlatforms.RemoveAt(i);
-                
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"*** IMMEDIATELY RESTORED COLLISION WITH: {platform.name} ***");
-            }
-        }
-        
-        // Handle overlapping platforms with short delay
-        if (overlappingPlatforms.Count > 0)
-        {
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", $"Starting delayed restoration for {overlappingPlatforms.Count} overlapping platforms");
-            StartCoroutine(RestoreOverlappingPlatforms(overlappingPlatforms));
-        }
-        
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"=== RestoreAllCollisions END ===");
-    }
-    
-    private IEnumerator RestoreOverlappingPlatforms(List<Collider2D> platforms)
-    {
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", $"RestoreOverlappingPlatforms: Waiting {safetyDelay} seconds before restoring {platforms.Count} platforms");
-            
-        yield return new WaitForSeconds(safetyDelay);
+        Collider2D[] platforms = GetPlatformsInBounds(playerCollider.bounds);
         
         foreach (Collider2D platform in platforms)
         {
-            if (platform != null)
+            if (ShouldIgnorePlatform(platform))
             {
-                // Check one more time if player is still overlapping from above
-                bool isOverlapping = playerCollider.bounds.Intersects(platform.bounds);
-                bool isPlayerBelowPlatform = IsPlayerBelowPlatform(platform);
-                
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"Delayed restore check for {platform.name}: overlapping={isOverlapping}, playerBelow={isPlayerBelowPlatform}");
-                
-                // Restore collision regardless - player has had enough time to clear
-                Physics2D.IgnoreCollision(playerCollider, platform, false);
-                
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"*** DELAYED RESTORED COLLISION WITH: {platform.name} ***");
+                IgnorePlatform(platform);
             }
         }
-        
-        if (showDebugInfo)
-            GameLogger.Log("PLATFORM", "RestoreOverlappingPlatforms: All delayed platforms restored");
     }
-    
-    private bool IsPlatform(GameObject obj)
+
+    private void IgnorePlatformsAhead()
     {
-        // Check if the object is on a platform layer
-        int objLayer = obj.layer;
-        if (IsLayerInLayerMask(objLayer, platformLayerMask))
+        Bounds lookAheadBounds = CalculateLookAheadBounds();
+        Collider2D[] platforms = GetPlatformsInBounds(lookAheadBounds);
+        
+        foreach (Collider2D platform in platforms)
         {
-            if (showDebugInfo)
-                GameLogger.Log("PLATFORM", $"Platform detected by layer: {obj.name} on layer {LayerMask.LayerToName(objLayer)}");
+            if (ShouldIgnorePlatform(platform))
+            {
+                IgnorePlatform(platform);
+            }
+        }
+    }
+
+    private Bounds CalculateLookAheadBounds()
+    {
+        Vector2 velocity = playerRb.linearVelocity;
+        float speed = velocity.magnitude;
+        
+        float lookAheadDistance = Mathf.Max(baseLookAhead, speed * velocityLookAheadMultiplier);
+        Vector2 lookAheadOffset = velocity.normalized * lookAheadDistance;
+        
+        Bounds bounds = playerCollider.bounds;
+        bounds.center += (Vector3)lookAheadOffset * 0.5f;
+        bounds.size += new Vector3(0.5f, lookAheadDistance, 0f);
+        
+        return bounds;
+    }
+
+    private Collider2D[] GetPlatformsInBounds(Bounds bounds)
+    {
+        return Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, platformLayerMask);
+    }
+
+    private bool ShouldIgnorePlatform(Collider2D platform)
+    {
+        if (platform == null) return false;
+        if (platform == playerCollider) return false;
+        if (ignoredPlatforms.Contains(platform)) return false;
+        if (!IsPlatform(platform)) return false;
+        if (!IsPlayerAbove(platform)) return false;
+        
+        return true;
+    }
+
+    private bool IsPlatform(Collider2D collider)
+    {
+        int layer = collider.gameObject.layer;
+        if ((platformLayerMask.value & (1 << layer)) != 0)
             return true;
-        }
         
-        // Check parent object (for cases where collider is a child of platform on correct layer)
-        Transform parent = obj.transform.parent;
-        if (parent != null)
+        if (collider.transform.parent != null)
         {
-            GameObject parentObj = parent.gameObject;
-            int parentLayer = parentObj.layer;
-            if (IsLayerInLayerMask(parentLayer, platformLayerMask))
-            {
-                if (showDebugInfo)
-                    GameLogger.Log("PLATFORM", $"Platform detected by parent layer: {parentObj.name} on layer {LayerMask.LayerToName(parentLayer)}");
+            int parentLayer = collider.transform.parent.gameObject.layer;
+            if ((platformLayerMask.value & (1 << parentLayer)) != 0)
                 return true;
-            }
         }
         
-        // Check for PlatformEffector2D component (Unity's built-in one-way platforms)
-        bool hasPlatformEffector = obj.GetComponent<PlatformEffector2D>() != null;
-        if (hasPlatformEffector && showDebugInfo)
-            GameLogger.Log("PLATFORM", $"Platform detected by PlatformEffector2D: {obj.name}");
-        
-        return hasPlatformEffector;
+        return collider.GetComponent<PlatformEffector2D>() != null;
     }
-    
-    private bool IsLayerInLayerMask(int layer, LayerMask layerMask)
+
+    private bool IsPlayerAbove(Collider2D platform)
     {
-        return (layerMask.value & (1 << layer)) != 0;
+        float playerBottom = playerCollider.bounds.min.y;
+        float platformTop = platform.bounds.max.y;
+        return playerBottom >= platformTop - 0.2f;
     }
-    
-    private void OnDrawGizmosSelected()
+
+    private void IgnorePlatform(Collider2D platform)
     {
-        if (!showDebugInfo) return;
+        Physics2D.IgnoreCollision(playerCollider, platform, true);
+        ignoredPlatforms.Add(platform);
+    }
+
+    private void RestoreAllCollisions()
+    {
+        platformsToRestore.Clear();
         
-        if (playerCollider != null && playerRigidbody != null)
+        foreach (Collider2D platform in ignoredPlatforms)
         {
-            // Draw current detection bounds
-            Gizmos.color = Color.yellow;
-            Bounds bounds = playerCollider.bounds;
-            Gizmos.DrawWireCube(bounds.center, bounds.size);
+            if (platform == null) continue;
             
-            // Draw look-ahead area when moving
-            Vector2 velocity = playerRigidbody.linearVelocity;
-            if (velocity.magnitude > 0.1f && playerStates.isDroppingDown)
+            bool isOverlapping = playerCollider.bounds.Intersects(platform.bounds);
+            bool isPlayerBelow = IsPlayerBelow(platform);
+            
+            if (isOverlapping && !isPlayerBelow)
             {
-                float velocityMagnitude = velocity.magnitude;
-                float dynamicLookAhead = Mathf.Max(lookAheadDistance, velocityMagnitude * Time.fixedDeltaTime * 3f);
-                
-                if (velocityMagnitude > 10f)
-                    dynamicLookAhead = Mathf.Max(dynamicLookAhead, velocityMagnitude * 0.2f);
-                
-                Vector2 lookAheadPosition = (Vector2)transform.position + velocity.normalized * dynamicLookAhead;
-                
-                Gizmos.color = Color.cyan;
-                Bounds detectionBounds = playerCollider.bounds;
-                detectionBounds.center = Vector3.Lerp(transform.position, lookAheadPosition, 0.5f);
-                detectionBounds.size = new Vector3(
-                    detectionBounds.size.x + 0.5f,
-                    detectionBounds.size.y + dynamicLookAhead,
-                    detectionBounds.size.z
-                );
-                Gizmos.DrawWireCube(detectionBounds.center, detectionBounds.size);
-                
-                // Draw velocity vector
-                Gizmos.color = Color.green;
-                Gizmos.DrawLine(transform.position, lookAheadPosition);
+                platformsToRestore.Add(platform);
             }
-            
-            // Draw ignored colliders
-            Gizmos.color = Color.red;
-            foreach (Collider2D collider in ignoredPlatforms)
+            else
             {
-                if (collider != null)
-                {
-                    Gizmos.DrawWireCube(collider.bounds.center, collider.bounds.size);
-                }
+                RestorePlatformCollision(platform);
             }
         }
+        
+        ignoredPlatforms.Clear();
+        
+        if (platformsToRestore.Count > 0)
+        {
+            if (restoreCoroutine != null)
+                StopCoroutine(restoreCoroutine);
+            
+            restoreCoroutine = StartCoroutine(RestoreDelayedPlatforms());
+        }
     }
-    
-    // Public properties
+
+    private bool IsPlayerBelow(Collider2D platform)
+    {
+        float playerTop = playerCollider.bounds.max.y;
+        float platformBottom = platform.bounds.min.y;
+        return playerTop <= platformBottom + 0.1f;
+    }
+
+    private void RestorePlatformCollision(Collider2D platform)
+    {
+        if (platform != null)
+        {
+            Physics2D.IgnoreCollision(playerCollider, platform, false);
+        }
+    }
+
+    private IEnumerator RestoreDelayedPlatforms()
+    {
+        yield return new WaitForSeconds(safetyDelay);
+        
+        foreach (Collider2D platform in platformsToRestore)
+        {
+            RestorePlatformCollision(platform);
+        }
+        
+        platformsToRestore.Clear();
+    }
+
     public int IgnoredPlatformCount => ignoredPlatforms.Count;
-    
-    // Force stop (useful for other systems)
+
     public void ForceStop()
     {
         if (playerStates != null)
             playerStates.SetDropDownReleased();
+        
         StopDropThrough();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!showGizmos || playerCollider == null || playerRb == null) return;
+        
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(playerCollider.bounds.center, playerCollider.bounds.size);
+        
+        if (playerStates != null && playerStates.isDroppingDown)
+        {
+            Gizmos.color = Color.cyan;
+            Bounds lookAhead = CalculateLookAheadBounds();
+            Gizmos.DrawWireCube(lookAhead.center, lookAhead.size);
+            
+            Vector2 velocity = playerRb.linearVelocity;
+            if (velocity.magnitude > 0.1f)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(transform.position, (Vector2)transform.position + velocity.normalized * baseLookAhead);
+            }
+        }
+        
+        Gizmos.color = Color.red;
+        foreach (Collider2D platform in ignoredPlatforms)
+        {
+            if (platform != null)
+                Gizmos.DrawWireCube(platform.bounds.center, platform.bounds.size);
+        }
     }
 }

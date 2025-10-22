@@ -192,7 +192,15 @@ public class PlayerStates : MonoBehaviour
         {
             staggerTimer -= Time.deltaTime;
             if (staggerTimer <= 0)
+            {
                 isStaggered = false;
+
+                if (isKicking)
+                {
+                    isKicking = false;
+                    GameLogger.LogState("STAGGER END: Also clearing stuck kick state");
+                }
+            }
         }
 
         // Jump hold timer
@@ -260,7 +268,11 @@ public class PlayerStates : MonoBehaviour
 
     public void EndKick()
     {
-        isKicking = false;
+        if (isKicking)
+        {
+            isKicking = false;
+            GameLogger.LogState("KICK: Ended kick state");
+        }
     }
 
     public void SetDropDownPressed()
@@ -281,7 +293,13 @@ public class PlayerStates : MonoBehaviour
     {
         isStaggered = true;
         staggerTimer = duration;
-        //animator.SetTrigger("isStaggered");
+
+        if (isKicking)
+        {
+            isKicking = false;
+            animator.ResetTrigger(IsKicking);
+            GameLogger.LogState("STAGGER: Forcibly ended active kick to prevent movement lock");
+        }
     }
 
     public void StartCoyoteTime(float coyoteTime)

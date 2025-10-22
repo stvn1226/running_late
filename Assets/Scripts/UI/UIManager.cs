@@ -1,37 +1,18 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
-    [Header("UI Navigation")]
-    public Button firstSelectedButton;
-    
-    [Header("UI References")]
-    public GameObject pausePanel;
-    public Button retryButton;
-    public Button newLevelButton;
-    public Toggle seedToggle;
-    public TMP_InputField seedInputField;
-    public Toggle fps60Toggle;
-    public Toggle fps120Toggle;
-    public Button quitButton;
-
-    [Header("Time Scale UI")]
-    public TextMeshProUGUI timeScaleDisplay;
-    public Button[] timeScaleButtons;
-    
-    [Header("Systems")]
-    public LevelStarter levelStarter;
-    public LevelManager levelManager;
-    public TimeScaleManager timeScaleManager;
+    [Header("Menu Panels")]
+    [SerializeField] private PauseMenuPanel pauseMenuPanel;
+    [SerializeField] private EndGamePanel victoryEndGamePanel;
+    [SerializeField] private EndGamePanel loseEndGamePanel;
     
     public PlayerInputActions inputActions;
     private bool isPaused = false;
-    private bool isManualSeedMode = false;
+    private Dictionary<System.Type, BaseMenuPanel> menuPanels;
+    private BaseMenuPanel currentActivePanel;
     
     public static UIManager Instance { get; private set; }
     
@@ -45,8 +26,17 @@ public class UIManager : MonoBehaviour
         Instance = this;
         
         inputActions = new PlayerInputActions();
-        SetupFrameRateToggles();
-        SetupTimeScaleButtons();
+        InitializePanels();
+    }
+    
+    private void InitializePanels()
+    {
+        menuPanels = new Dictionary<System.Type, BaseMenuPanel>();
+        
+        if (pauseMenuPanel != null) 
+            menuPanels.Add(typeof(PauseMenuPanel), pauseMenuPanel);
+        
+        HideAllPanels();
     }
     
     private void OnEnable()
@@ -56,25 +46,6 @@ public class UIManager : MonoBehaviour
             inputActions.Gameplay.Enable();
             inputActions.Gameplay.Pause.performed += OnPausePressed;
             inputActions.UI.Pause.performed += OnPausePressed;
-            inputActions.Gameplay.Reset.performed += OnResetPressed;
-            
-            // Time Scale Controls
-            // inputActions.Gameplay.TimeScaleUp.performed += OnTimeScaleUpPressed;
-            // inputActions.Gameplay.TimeScaleDown.performed += OnTimeScaleDownPressed;
-            // inputActions.Gameplay.TimeScaleToggle.performed += OnTimeScaleTogglePressed;
-        }
-    
-        // Connect UI events
-        retryButton.onClick.AddListener(RestartCurrentLevel);
-        newLevelButton.onClick.AddListener(GenerateNewLevel);
-        seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
-        seedInputField.onEndEdit.AddListener(OnSeedInputChanged);
-        quitButton.onClick.AddListener(QuitApplication);
-
-        // Time Scale events
-        if (timeScaleManager != null)
-        {
-            timeScaleManager.OnTimeScaleChanged += UpdateTimeScaleDisplay;
         }
     }
     
@@ -84,308 +55,118 @@ public class UIManager : MonoBehaviour
         {
             inputActions.Gameplay.Pause.performed -= OnPausePressed;
             inputActions.UI.Pause.performed -= OnPausePressed;
-            inputActions.Gameplay.Reset.performed -= OnResetPressed;
-            
-            // Time Scale Controls
-            // inputActions.Gameplay.TimeScaleUp.performed -= OnTimeScaleUpPressed;
-            // inputActions.Gameplay.TimeScaleDown.performed -= OnTimeScaleDownPressed;
-            // inputActions.Gameplay.TimeScaleToggle.performed -= OnTimeScaleTogglePressed;
             
             inputActions.Gameplay.Disable();
             inputActions.UI.Disable();
         }
-    
-        retryButton.onClick.RemoveListener(RestartCurrentLevel);
-        newLevelButton.onClick.RemoveListener(GenerateNewLevel);
-        seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
-        seedInputField.onEndEdit.RemoveListener(OnSeedInputChanged);
-        quitButton.onClick.RemoveListener(QuitApplication);
-
-        // Time Scale events
-        if (timeScaleManager != null)
-        {
-            timeScaleManager.OnTimeScaleChanged -= UpdateTimeScaleDisplay;
-        }
     }
     
-    private void Start()
-    {
-        pausePanel.SetActive(false);
-        LoadSettings();
-    
-        var eventSystem = EventSystem.current;
-        var uiModule = eventSystem.GetComponent<InputSystemUIInputModule>();
-    
-        GameLogger.LogUI($"EventSystem actionsAsset: {uiModule.actionsAsset?.name}");
-        GameLogger.LogUI($"Move action: {uiModule.move?.action?.name}");
-        GameLogger.LogUI($"Submit action: {uiModule.submit?.action?.name}");
-        GameLogger.LogUI($"Cancel action: {uiModule.cancel?.action?.name}");
-    
-        if (uiModule.move?.action != null)
-        {
-            GameLogger.LogUI($"Move action enabled: {uiModule.move.action.enabled}");
-            GameLogger.LogUI($"Move action bindings: {uiModule.move.action.bindings.Count}");
-        }
-        
-        UpdateTimeScaleDisplay(1f);
-    }
-
-    // TIME SCALE SYSTEM
-    private void OnTimeScaleUpPressed(InputAction.CallbackContext context)
-    {
-        if (!isPaused && timeScaleManager != null)
-        {
-            timeScaleManager.CycleTimeScaleUp();
-        }
-    }
-    
-    private void OnTimeScaleDownPressed(InputAction.CallbackContext context)
-    {
-        if (!isPaused && timeScaleManager != null)
-        {
-            timeScaleManager.CycleTimeScaleDown();
-        }
-    }
-    
-    private void OnTimeScaleTogglePressed(InputAction.CallbackContext context)
-    {
-        if (!isPaused && timeScaleManager != null)
-        {
-            timeScaleManager.ToggleResetPause();
-        }
-    }
-    
-    private void SetupTimeScaleButtons()
-    {
-        if (timeScaleButtons == null || timeScaleManager == null) return;
-        
-        float[] scales = timeScaleManager.GetAllTimeScales();
-        
-        for (int i = 0; i < timeScaleButtons.Length && i < scales.Length; i++)
-        {
-            int index = i;
-            float scale = scales[i];
-            
-            if (timeScaleButtons[i] != null)
-            {
-                timeScaleButtons[i].onClick.AddListener(() => timeScaleManager.SetTimeScaleByIndex(index));
-                
-                // Update button text
-                TextMeshProUGUI buttonText = timeScaleButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-                if (buttonText != null)
-                {
-                    buttonText.text = scale == 0f ? "PAUSE" : $"{scale}x";
-                }
-            }
-        }
-    }
-    
-    private void UpdateTimeScaleDisplay(float currentScale)
-    {
-        if (timeScaleDisplay != null)
-        {
-            string displayText = currentScale == 0f ? "PAUSED" : $"{currentScale}x";
-            timeScaleDisplay.text = $"Speed: {displayText}";
-        }
-        
-        // Update button visual states
-        if (timeScaleButtons != null && timeScaleManager != null)
-        {
-            int currentIndex = timeScaleManager.GetCurrentIndex();
-            
-            for (int i = 0; i < timeScaleButtons.Length; i++)
-            {
-                if (timeScaleButtons[i] != null)
-                {
-                    ColorBlock colors = timeScaleButtons[i].colors;
-                    colors.normalColor = (i == currentIndex) ? Color.green : Color.white;
-                    timeScaleButtons[i].colors = colors;
-                }
-            }
-        }
-    }
-
-    // PAUSE SYSTEM
     private void OnPausePressed(InputAction.CallbackContext context)
     {
-        TogglePause();
+        if (currentActivePanel == pauseMenuPanel)
+        {
+            HideAllPanels();
+        }
+        else if (currentActivePanel == null)
+        {
+            ShowPanel<PauseMenuPanel>();
+        }
     }
     
-    public void TogglePause()
+    public void ShowPanel<T>() where T : BaseMenuPanel
     {
-        isPaused = !isPaused;
-        pausePanel.SetActive(isPaused);
-
-        // Notify TimeScaleManager about pause state
-        if (timeScaleManager != null)
+        if (menuPanels.TryGetValue(typeof(T), out BaseMenuPanel panel))
         {
-            timeScaleManager.OnGamePaused(isPaused);
+            HideAllPanels();
+            panel.Show();
+            currentActivePanel = panel;
+            
+            isPaused = true;
+            SetInputContext(true);
+            
+            Time.timeScale = 0f;
         }
         else
         {
-            // Fallback if no TimeScaleManager
-            Time.timeScale = isPaused ? 0f : 1f;
+            GameLogger.LogWarning("UI", $"Panel of type {typeof(T).Name} not found!");
         }
-
-        if (isPaused)
+    }
+    
+    public void HideAllPanels()
+    {
+        foreach (var panel in menuPanels.Values)
+        {
+            panel.Hide();
+        }
+        
+        if (victoryEndGamePanel != null)
+            victoryEndGamePanel.Hide();
+        
+        if (loseEndGamePanel != null)
+            loseEndGamePanel.Hide();
+        
+        currentActivePanel = null;
+        isPaused = false;
+        SetInputContext(false);
+        
+        Time.timeScale = 1f;
+    }
+    
+    private void SetInputContext(bool uiMode)
+    {
+        if (uiMode)
         {
             inputActions.Gameplay.Disable();
             inputActions.UI.Enable();
-        
-            if (firstSelectedButton != null)
-            {
-                EventSystem.current.SetSelectedGameObject(firstSelectedButton.gameObject);
-            }
         }
         else
         {
             inputActions.UI.Disable();
             inputActions.Gameplay.Enable();
-        
-            EventSystem.current.SetSelectedGameObject(null);
         }
     }
     
-    // LEVEL CONTROL
-    public void RestartCurrentLevel()
+    public void ShowVictoryPanel()
     {
-        if (isPaused) TogglePause();
-    
-        int currentSeed = levelStarter.GetCurrentSeed();
-        PlayerPrefs.SetInt("RetrySeed", currentSeed);
-        PlayerPrefs.SetInt("UseRetrySeed", 1);
-    
-        levelManager.ReplayLevel();
-    }
-    
-    public void GenerateNewLevel()
-    {
-        if (isPaused) TogglePause();
-    
-        if (isManualSeedMode && !string.IsNullOrEmpty(seedInputField.text))
+        if (victoryEndGamePanel != null)
         {
-            if (int.TryParse(seedInputField.text, out int seed))
-            {
-                PlayerPrefs.SetInt("NewLevelSeed", seed);
-                PlayerPrefs.SetInt("UseNewLevelSeed", 1);
-                levelManager.ReplayLevel(); 
-            }
-            else
-            {
-                GameLogger.LogWarning("UI", "Invalid seed format!");
-                PlayerPrefs.SetInt("UseNewLevelSeed", 0);
-                levelManager.ReplayLevel(); 
-            }
+            HideAllPanels();
+            victoryEndGamePanel.Show();
+            currentActivePanel = victoryEndGamePanel;
+            
+            isPaused = true;
+            SetInputContext(true);
+            Time.timeScale = 0f;
         }
         else
         {
-            PlayerPrefs.SetInt("UseNewLevelSeed", 0);
-            levelManager.ReplayLevel(); 
-        }
-    }
-
-    // QUIT APPLICATION
-    public void QuitApplication()
-    {
-        GameLogger.LogUI("Quitting application...");
-        
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #else
-        Application.Quit();
-        #endif
-    }
-    
-    // SEED SYSTEM
-    private void OnSeedToggleChanged(bool useManualSeed)
-    {
-        isManualSeedMode = useManualSeed;
-        seedInputField.interactable = useManualSeed;
-        
-        if (useManualSeed)
-        {
-            seedInputField.text = levelStarter.GetCurrentSeed().ToString();
+            GameLogger.LogError("UI", "Victory EndGamePanel not assigned!");
         }
     }
     
-    private void OnSeedInputChanged(string seedText)
+    public void ShowLosePanel()
     {
-        if (int.TryParse(seedText, out int _))
+        if (loseEndGamePanel != null)
         {
-            seedInputField.image.color = Color.white;
+            HideAllPanels();
+            loseEndGamePanel.Show();
+            currentActivePanel = loseEndGamePanel;
+            
+            isPaused = true;
+            SetInputContext(true);
+            Time.timeScale = 0f;
         }
         else
         {
-            seedInputField.image.color = Color.red;
+            GameLogger.LogError("UI", "Lose EndGamePanel not assigned!");
         }
     }
     
-    // FRAMERATE SYSTEM
-    private void SetupFrameRateToggles()
+    public void ShowEndGamePanel()
     {
-        fps60Toggle.onValueChanged.AddListener((isOn) => {
-            if (isOn) SetTargetFrameRate(60);
-        });
-        
-        fps120Toggle.onValueChanged.AddListener((isOn) => {
-            if (isOn) SetTargetFrameRate(120);
-        });
-    }
-    
-    private void SetTargetFrameRate(int targetFPS)
-    {
-        Application.targetFrameRate = targetFPS;
-        
-        fps60Toggle.SetIsOnWithoutNotify(targetFPS == 60);
-        fps120Toggle.SetIsOnWithoutNotify(targetFPS == 120);
-        
-        PlayerPrefs.SetInt("TargetFrameRate", targetFPS);
-        GameLogger.LogUI($"Frame rate set to {targetFPS} FPS");
-    }
-    
-    private void LoadSettings()
-    {
-        int savedFrameRate = PlayerPrefs.GetInt("TargetFrameRate", 60);
-        SetTargetFrameRate(savedFrameRate);
+        ShowVictoryPanel();
     }
     
     public bool IsPaused => isPaused;
-    
-    private void Update()
-    {
-        if (isPaused)
-        {
-            var uiModule = EventSystem.current.GetComponent<InputSystemUIInputModule>();
-        
-            if (uiModule.move?.action != null)
-            {
-                Vector2 moveValue = uiModule.move.action.ReadValue<Vector2>();
-                if (moveValue.magnitude > 0.1f)
-                {
-                    GameLogger.LogVerbose("UI", $"EventSystem move action receiving: {moveValue}");
-                }
-            }
-        
-            if (uiModule.submit?.action != null)
-            {
-                bool submitPressed = uiModule.submit.action.WasPressedThisFrame();
-                bool submitIsPressed = uiModule.submit.action.IsPressed();
-            
-                GameLogger.LogVerbose("UI", $"Submit pressed this frame: {submitPressed}, Submit is pressed: {submitIsPressed}");
-            
-                if (submitPressed)
-                {
-                    GameLogger.LogUI("EventSystem submit action pressed!");
-                }
-            }
-        }
-    }
-    
-    private void OnResetPressed(InputAction.CallbackContext context)
-    {
-        if (!isPaused)
-        {
-            RestartCurrentLevel();
-        }
-    }
+    public BaseMenuPanel CurrentActivePanel => currentActivePanel;
 }

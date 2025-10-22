@@ -27,24 +27,24 @@ MonoBehaviour:
   wallJumpMultiplier: 1
   groundDrag: 50
   airDrag: 50
-  slideDrag: 20
-  maxFallSpeed: 60
+  slideDrag: 10
+  maxFallSpeed: 40
   groundCheckDistance: 0.1
-  wallCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
     m_Bits: 33408
+  wallCheckDistance: 0.5
   wallLayer:
     serializedVersion: 2
     m_Bits: 35840
   kickDuration: 0.5
   kickForceReduction: 0.5
-  landingGracePeriod: 0.5
-  slamLandingThreshold: -0.1
-  momentumConversionRatio: 0.4
   staggerDuration: 0.8
   staggerKnockbackForce: 20
   staggerMovementReduction: 0.2
+  landingGracePeriod: 0.5
+  slamLandingThreshold: -0.1
+  momentumConversionRatio: 0.6
   crouchSizeMultiplier: {x: 2, y: 0.5}
   dropDownDisableTime: 0.3
   platformLayerMask:

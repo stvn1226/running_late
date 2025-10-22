@@ -138,10 +138,7 @@ public class Pigeon : MonoBehaviour
             Debug.Log("Pigeon collided with Player");
             collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
             StartCoroutine(DisableHitboxTemp(2f));
-
         }
-
-
     }
 
     public IEnumerator DisableHitboxTemp(float duration)
