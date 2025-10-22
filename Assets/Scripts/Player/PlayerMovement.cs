@@ -256,33 +256,6 @@ public class PlayerMovement : MonoBehaviour
             HandleNormalMovement(forceMultiplier);
     }
 
-    // private void HandleNormalMovement(float forceMultiplier)
-    // {
-    //     if (states.isKicking) return;
-    //
-    //     if (states.isCrouching || states.isSliding) return;
-    //
-    //
-    //     float horizontalInput = states.moveInput.x;
-    //
-    //     if (Mathf.Abs(horizontalInput) > 0.1f)
-    //     {
-    //         float targetSpeed = horizontalInput * config.maxRunSpeed;
-    //         float speedDifference = targetSpeed - rb.linearVelocity.x;
-    //
-    //         float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
-    //         force *= forceMultiplier;
-    //
-    //         float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
-    //         rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
-    //     }
-    //
-    //     if (states.crouchHeld && !states.isGrounded)
-    //     {
-    //         rb.AddForce(Vector2.down * (config.runForce * Time.fixedDeltaTime), ForceMode2D.Force);
-    //     }
-    // }
-    
     private void HandleNormalMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
