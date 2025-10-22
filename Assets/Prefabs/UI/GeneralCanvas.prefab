@@ -1915,6 +1915,7 @@ GameObject:
   - component: {fileID: 5260939747325315025}
   - component: {fileID: 4752545809267505404}
   - component: {fileID: 1842184103185706434}
+  - component: {fileID: 4811805913833864643}
   m_Layer: 5
   m_Name: EndGamePanel
   m_TagString: Untagged
@@ -1980,6 +1981,39 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4811805913833864643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2841711659371198462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 310a8e669814a4c138cb23db81406864, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EndGamePanel
+  panelRoot: {fileID: 2841711659371198462}
+  firstSelectedButton: {fileID: 9183035660223314015}
+  titleText: {fileID: 5163831911581394964}
+  currentTimeText: {fileID: 4435062635200394333}
+  bestTimeText: {fileID: 6031325043371025529}
+  seedText: {fileID: 8664379365053924380}
+  retryButton: {fileID: 9183035660223314015}
+  newLevelButton: {fileID: 4909853179785292033}
+  quitButton: {fileID: 897193090290598271}
+  seedToggle: {fileID: 3699438760827568782}
+  seedInputField: {fileID: 3228578124198124364}
+  victoryPhrases:
+  - PHEW!
+  - SPEEDY!
+  - NICE!
+  - PERFECT!
+  - AWESOME!
+  phraseRotationInterval: 2
+  levelStarter: {fileID: 0}
+  levelManager: {fileID: 0}
+  timer: {fileID: 0}
 --- !u!1 &3027463821037845179
 GameObject:
   m_ObjectHideFlags: 0
@@ -2154,7 +2188,7 @@ GameObject:
   - component: {fileID: 6346383065129409551}
   - component: {fileID: 8664379365053924380}
   m_Layer: 5
-  m_Name: CurrentTimeText (2)
+  m_Name: SeedText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2289,6 +2323,7 @@ GameObject:
   - component: {fileID: 8608385601389267499}
   - component: {fileID: 4613927350849178239}
   - component: {fileID: 1216692478344362809}
+  - component: {fileID: 856604507087019113}
   m_Layer: 5
   m_Name: PausePanel
   m_TagString: Untagged
@@ -2354,6 +2389,29 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &856604507087019113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3436649949569971755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9418b6888272e45798301af3cfa1b5e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseMenuPanel
+  panelRoot: {fileID: 3436649949569971755}
+  firstSelectedButton: {fileID: 532137343350530965}
+  retryButton: {fileID: 532137343350530965}
+  newLevelButton: {fileID: 957101166537795437}
+  quitButton: {fileID: 0}
+  seedToggle: {fileID: 4624216221025662459}
+  seedInputField: {fileID: 2461808500441472560}
+  fps60Toggle: {fileID: 7893108166648292116}
+  fps120Toggle: {fileID: 5363058504426511356}
+  levelStarter: {fileID: 0}
+  levelManager: {fileID: 0}
 --- !u!1 &3855073163205612885
 GameObject:
   m_ObjectHideFlags: 0
@@ -2470,19 +2528,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 204a8180a67364f56b01ccce65702673, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
-  firstSelectedButton: {fileID: 532137343350530965}
-  pausePanel: {fileID: 3436649949569971755}
-  retryButton: {fileID: 532137343350530965}
-  newLevelButton: {fileID: 957101166537795437}
-  seedToggle: {fileID: 4624216221025662459}
-  seedInputField: {fileID: 2461808500441472560}
-  fps60Toggle: {fileID: 7893108166648292116}
-  fps120Toggle: {fileID: 5363058504426511356}
-  timeScaleDisplay: {fileID: 0}
-  timeScaleButtons: []
-  levelStarter: {fileID: 0}
-  levelManager: {fileID: 0}
-  timeScaleManager: {fileID: 0}
+  pauseMenuPanel: {fileID: 856604507087019113}
+  endGamePanel: {fileID: 4811805913833864643}
 --- !u!1 &3962597108742517929
 GameObject:
   m_ObjectHideFlags: 0

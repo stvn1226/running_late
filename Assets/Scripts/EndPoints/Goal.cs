@@ -4,20 +4,22 @@ using Utils;
 public class Goal : MonoBehaviour
 {
     [Header("Victory Settings")]
-    [SerializeField] private GameObject victoryOverlayPrefab;
-    [SerializeField] private bool pauseGameOnVictory = true;
     [SerializeField] private float victoryDelay = 0.5f;
 
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = true;
 
     private bool hasTriggered = false;
-    private GameObject spawnedVictoryOverlay;
 
-    void Start()
+    private void Start()
     {
-        // Ensure this GameObject has a trigger collider
+        ValidateCollider();
+    }
+
+    private void ValidateCollider()
+    {
         Collider2D collider = GetComponent<Collider2D>();
+        
         if (collider == null)
         {
             GameLogger.LogError("GOAL", "No Collider2D found! Please add a BoxCollider2D and set IsTrigger to true.");
@@ -26,16 +28,18 @@ public class Goal : MonoBehaviour
         {
             GameLogger.LogWarning("GOAL", "Collider should be set as Trigger for proper collision detection.");
         }
-
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Check if the collider belongs to the Player
-        if (other.CompareTag(TagUtils.PLAYER_TAG) && !hasTriggered)
+        if (hasTriggered) return;
+        
+        if (other.CompareTag(TagUtils.PLAYER_TAG))
         {
             if (showDebugInfo)
+            {
                 GameLogger.Log("GOAL", $"Goal reached! Player '{other.name}' has reached the school!");
+            }
 
             TriggerVictory();
         }
@@ -46,76 +50,42 @@ public class Goal : MonoBehaviour
         hasTriggered = true;
 
         if (showDebugInfo)
+        {
             GameLogger.Log("GOAL", "=== VICTORY TRIGGERED ===");
+        }
 
-        // Start victory sequence
         StartCoroutine(VictorySequence());
     }
 
     private System.Collections.IEnumerator VictorySequence()
     {
-        // Optional delay before showing victory screen
-        if (victoryDelay > 0)
+        if (victoryDelay > 0f)
         {
             yield return new WaitForSeconds(victoryDelay);
         }
 
-        // Show victory overlay
-        ShowVictoryOverlay();
-
-        // Pause the game if specified
-        if (pauseGameOnVictory)
-        {
-            Time.timeScale = 0f;
-
-            if (showDebugInfo)
-                GameLogger.Log("GOAL", "Game paused for victory screen");
-        }
+        ShowEndGamePanel();
     }
 
-    private void ShowVictoryOverlay()
+    private void ShowEndGamePanel()
     {
-        if (victoryOverlayPrefab != null)
+        if (UIManager.Instance != null)
         {
-            // Spawn the victory overlay at the camera position
-            Camera mainCamera = Camera.main;
-            Vector3 spawnPosition = mainCamera != null ? mainCamera.transform.position : Vector3.zero;
-            spawnPosition.z = 0; // Ensure it's in the 2D plane
-            spawnPosition.x -= 10;
-
-            spawnedVictoryOverlay = Instantiate(victoryOverlayPrefab, spawnPosition, Quaternion.identity);
-
-            spawnedVictoryOverlay.transform.localScale = Vector3.one * 5;
+            UIManager.Instance.ShowEndGamePanel();
+            
             if (showDebugInfo)
-                GameLogger.Log("GOAL", "Victory overlay displayed!");
+            {
+                GameLogger.Log("GOAL", "EndGamePanel displayed via UIManager");
+            }
         }
         else
         {
-            GameLogger.LogWarning("GOAL", "No Victory Overlay Prefab assigned!");
+            GameLogger.LogError("GOAL", "UIManager instance not found! Cannot show EndGamePanel.");
         }
     }
 
-    // Public methods for UI buttons
-    public void RestartGame()
+    public void ResetGoal()
     {
-        Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-    }
-
-    public void LoadNextLevel(string sceneName)
-    {
-        Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-    }
-
-    public void ReturnToMainMenu(string mainMenuScene = "MainMenu")
-    {
-        Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuScene);
-    }
-
-    void Update()
-    {
-        
+        hasTriggered = false;
     }
 }
