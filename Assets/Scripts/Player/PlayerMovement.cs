@@ -62,13 +62,14 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        HandleLanding();
-    }
-
     private void FixedUpdate()
     {
+        if (!states.isGrounded)
+        {
+            states.landingHorizontalVelocity = rb.linearVelocity.x;
+            states.landingVerticalVelocity = rb.linearVelocity.y;
+        }
+        
         ApplyDrag();
         ClampFallSpeed();
 
@@ -381,7 +382,7 @@ public class PlayerMovement : MonoBehaviour
             
             if (isLandingIntoSlide)
             {
-                float horizontalBoost = downwardSpeed + (config.momentumConversionRatio * downwardSpeed);
+                float horizontalBoost = (config.momentumConversionRatio * downwardSpeed);
                 float inputDirection = Mathf.Sign(states.landingHorizontalVelocity);
                 
                 float preservedMomentum = states.landingHorizontalVelocity;
@@ -397,7 +398,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else if (isSlamLanding && hasHorizontalMomentum)
             {
-                float horizontalBoost = downwardSpeed + (config.momentumConversionRatio * downwardSpeed);
+                float horizontalBoost = (config.momentumConversionRatio * downwardSpeed);
                 float movementDirection = Mathf.Sign(states.landingHorizontalVelocity);
                 
                 float preservedMomentum = states.landingHorizontalVelocity;

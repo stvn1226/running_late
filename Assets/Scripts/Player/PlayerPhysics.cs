@@ -8,6 +8,7 @@ public class PlayerPhysics : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private CapsuleCollider2D playerCollider;
     [SerializeField] private PlayerStates states;
+    [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private Vector2 originalColliderSize;
     [SerializeField] private Vector2 originalColliderOffset;
     [SerializeField] private Vector2 crouchColliderSize;
@@ -25,6 +26,11 @@ public class PlayerPhysics : MonoBehaviour
         if (playerCollider == null)
         {
             GameLogger.LogError("PHYSICS", "No CapsuleCollider2D found in children!");
+        }
+        
+        if (playerMovement == null)
+        {
+            playerMovement = GetComponent<PlayerMovement>();
         }
         
         originalColliderSize = playerCollider.size;
@@ -62,6 +68,11 @@ public class PlayerPhysics : MonoBehaviour
         if (states.isGrounded != previousGrounded)
         {
             GameLogger.LogPhysics($"GROUNDED CHANGE: {previousGrounded} -> {states.isGrounded}, Velocity.y: {rb.linearVelocity.y:F2}");
+            
+            if (states.isGrounded && !previousGrounded && playerMovement != null)
+            {
+                playerMovement.HandleLanding();
+            }
         }
         
         if (states.canWallRun != previousCanWallRun || states.wallDirection != previousWallDirection)
