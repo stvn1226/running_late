@@ -79,6 +79,8 @@ public class PlayerPhysics : MonoBehaviour
         previousGrounded = states.isGrounded;
         previousCanWallRun = states.canWallRun;
         previousWallDirection = states.wallDirection;
+        
+        states.wasGrounded = states.isGrounded;
     }
 
     private void CheckGrounded()
@@ -91,7 +93,6 @@ public class PlayerPhysics : MonoBehaviour
 
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance, config.groundLayer);
         
-        states.wasGrounded = states.isGrounded;
         bool newGrounded = hit.collider != null && rb.linearVelocity.y <= 0.1f;
         
         if (hit.collider != null && states.isGrounded != newGrounded)

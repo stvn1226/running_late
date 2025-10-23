@@ -95,7 +95,7 @@ public class PlayerConfig : ScriptableObject
     
     [Header("Speed Limits")]
     [Tooltip("Maximum downward velocity. Prevents infinite fall speed. Units: m/s. Recommended: 15-25")]
-    [Range(10f, 40f)]
+    [Range(10f, 60f)]
     public float maxFallSpeed = 20f;
 
     // ====================================
