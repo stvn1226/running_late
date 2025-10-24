@@ -8,6 +8,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     private CinemachineCamera cinemachineCamera;
     private CinemachineConfiner2D confiner;
     private GameObject player;
+    private GameObject spawn;
     
     private float currentTime = 0f;
     private float maxTime = 0.75f;
@@ -16,10 +17,13 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     {
         cinemachineCamera = GetComponent<CinemachineCamera>();
         confiner = GetComponent<CinemachineConfiner2D>();
+        spawn = GameObject.FindWithTag("Respawn");
     }
     
     void Start()
     {
+        transform.position = spawn != null ? spawn.transform.position : Vector3.zero;
+        Debug.Log($"[CamFollowSpawnedPlayer] Spawn exists? {spawn != null}");
         StartCoroutine(FindAndFollowPlayer());
         
         if (LevelStarter.Instance != null)

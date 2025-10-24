@@ -12,6 +12,7 @@ public abstract class Vehicle : MonoBehaviour
     private bool isRunning;
     private bool hasRan;
     public Collider2D[] hitbox = new Collider2D[2];
+    [SerializeField] private float activationDistance = 30f;
 
     protected virtual void Start()
     {
@@ -23,7 +24,7 @@ public abstract class Vehicle : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 20f)
+        if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > activationDistance)
         {
             isRunning = false;
         }
