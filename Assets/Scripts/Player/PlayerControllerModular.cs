@@ -17,10 +17,8 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void Awake()
     {
-        // Create input actions
         inputActions = new PlayerInputActions();
         
-        // Ensure all components have the config
         if (config != null)
         {
             AssignConfigToComponents();
@@ -29,7 +27,6 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void Start()
     {
-        // Initialize jump buffer timer
         if (config != null)
         {
             states.jumpBufferTimer = config.jumpBufferTime;
@@ -38,9 +35,6 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnEnable()
     {
-        inputActions.Gameplay.Enable();
-
-        // Subscribe to input events
         inputActions.Gameplay.Run.performed += OnMove;
         inputActions.Gameplay.Run.canceled += OnMove;
         inputActions.Gameplay.Jump.performed += OnJumpStart;
@@ -54,14 +48,12 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
         
         inputActions.Gameplay.Reset.started += OnReset;
-
+        
+        inputActions.Gameplay.Enable();
     }
 
     private void OnDisable()
     {
-        inputActions.Gameplay.Disable();
-
-        // Unsubscribe from input events
         inputActions.Gameplay.Run.performed -= OnMove;
         inputActions.Gameplay.Run.canceled -= OnMove;
         inputActions.Gameplay.Jump.performed -= OnJumpStart;
@@ -76,10 +68,25 @@ public class PlayerControllerModular : MonoBehaviour
         
         inputActions.Gameplay.Reset.started -= OnReset;
         
+        inputActions.Gameplay.Disable();
     }
 
     private void Update()
     {
+        if (UIManager.Instance != null && UIManager.Instance.IsPaused)
+        {
+            if (inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Disable();
+            }
+        }
+        else
+        {
+            if (!inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Enable();
+            }
+        }
     }
 
     private void AssignConfigToComponents()
@@ -102,7 +109,6 @@ public class PlayerControllerModular : MonoBehaviour
     
         states.moveInput = new Vector2(x, y);
     }
-
 
     private void OnJumpStart(InputAction.CallbackContext context)
     {
@@ -199,7 +205,6 @@ public class PlayerControllerModular : MonoBehaviour
     #region Validation
     private void OnValidate()
     {
-        // Auto-assign config to components in editor
         if (config != null)
         {
             AssignConfigToComponents();
@@ -212,6 +217,7 @@ public class PlayerControllerModular : MonoBehaviour
     {
         FastRetry();
     }
+
     public void FastRetry()
     {
         if (LevelStarter.Instance == null || LevelManager.Instance == null)

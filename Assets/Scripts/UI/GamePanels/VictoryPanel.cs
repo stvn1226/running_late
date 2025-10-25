@@ -31,8 +31,6 @@ public class VictoryPanel : BaseMenuPanel
     };
     
     [Header("References")]
-    [SerializeField] private LevelStarter levelStarter;
-    [SerializeField] private LevelManager levelManager;
     [SerializeField] private Timer timer;
     
     private Coroutine phraseRotationCoroutine;
@@ -78,9 +76,9 @@ public class VictoryPanel : BaseMenuPanel
             currentTimeText.text = $"Time: {timer.GetFormattedTime()}";
         }
         
-        if (levelStarter != null)
+        if (LevelStarter.Instance != null)
         {
-            currentSeed = levelStarter.GetCurrentSeed();
+            currentSeed = LevelStarter.Instance.GetCurrentSeed();
             seedText.text = $"Seed: {currentSeed}";
         }
         
@@ -126,9 +124,9 @@ public class VictoryPanel : BaseMenuPanel
         isManualSeedMode = useManualSeed;
         seedInputField.interactable = useManualSeed;
         
-        if (useManualSeed && levelStarter != null)
+        if (useManualSeed && LevelStarter.Instance != null)
         {
-            seedInputField.text = levelStarter.GetCurrentSeed().ToString();
+            seedInputField.text = LevelStarter.Instance.GetCurrentSeed().ToString();
         }
     }
     
@@ -138,11 +136,19 @@ public class VictoryPanel : BaseMenuPanel
         PlayerPrefs.SetInt("UseRetrySeed", 1);
         
         Time.timeScale = 1f;
-        UIManager.Instance.HideAllPanels();
         
-        if (levelManager != null)
+        if (UIManager.Instance != null)
         {
-            levelManager.ReplayLevel();
+            UIManager.Instance.HideAllPanels();
+        }
+        
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.ReplayLevel();
+        }
+        else
+        {
+            GameLogger.LogError("UI", "LevelManager.Instance is null! Cannot retry.");
         }
     }
     
@@ -167,11 +173,19 @@ public class VictoryPanel : BaseMenuPanel
         }
         
         Time.timeScale = 1f;
-        UIManager.Instance.HideAllPanels();
         
-        if (levelManager != null)
+        if (UIManager.Instance != null)
         {
-            levelManager.ReplayLevel();
+            UIManager.Instance.HideAllPanels();
+        }
+        
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.ReplayLevel();
+        }
+        else
+        {
+            GameLogger.LogError("UI", "LevelManager.Instance is null! Cannot start new level.");
         }
     }
     
