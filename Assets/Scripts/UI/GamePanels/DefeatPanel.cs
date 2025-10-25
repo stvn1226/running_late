@@ -1,14 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
 
-public class EndGamePanel : BaseMenuPanel
+public class DefeatPanel : BaseMenuPanel
 {
-    [Header("End Game UI")]
+    [Header("Defeat UI")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI currentTimeText;
-    [SerializeField] private TextMeshProUGUI bestTimeText;
     [SerializeField] private TextMeshProUGUI seedText;
     
     [Header("Buttons")]
@@ -20,27 +18,22 @@ public class EndGamePanel : BaseMenuPanel
     [SerializeField] private Toggle seedToggle;
     [SerializeField] private TMP_InputField seedInputField;
     
-    [Header("Title Phrases")]
-    [SerializeField] private string[] victoryPhrases = new string[]
+    [Header("Defeat Phrases")]
+    [SerializeField] private string[] defeatPhrases = new string[]
     {
-        "PHEW!",
-        "NICE!",
-        "PERFECT!",
-        "AWESOME!",
-        "SPEEDY!"
+        "TOO LATE!",
+        "TIME'S UP!",
+        "MISSED IT!",
+        "TRY AGAIN!",
+        "SO CLOSE!"
     };
-    
-    [SerializeField] private float phraseRotationInterval = 2f;
     
     [Header("References")]
     [SerializeField] private LevelStarter levelStarter;
     [SerializeField] private LevelManager levelManager;
     [SerializeField] private Timer timer;
     
-    private Coroutine phraseRotationCoroutine;
-    private float completionTime;
     private int currentSeed;
-    
     private bool isManualSeedMode = false;
     
     protected override void SetupButtons()
@@ -65,20 +58,18 @@ public class EndGamePanel : BaseMenuPanel
     
     protected override void OnShow()
     {
-        UpdateEndGameData();
-        StartPhraseRotation();
+        UpdateDefeatData();
+        ShowRandomPhrase();
     }
     
     protected override void OnHide()
     {
-        StopPhraseRotation();
     }
     
-    private void UpdateEndGameData()
+    private void UpdateDefeatData()
     {
         if (timer != null)
         {
-            completionTime = timer.ElapsedTime;
             currentTimeText.text = $"Time: {timer.GetFormattedTime()}";
         }
         
@@ -86,21 +77,15 @@ public class EndGamePanel : BaseMenuPanel
         {
             currentSeed = levelStarter.GetCurrentSeed();
             seedText.text = $"Seed: {currentSeed}";
-            
-            string bestTimeKey = $"BestTime_Seed_{currentSeed}";
-            float bestTime = PlayerPrefs.GetFloat(bestTimeKey, float.MaxValue);
-            
-            if (completionTime < bestTime)
-            {
-                PlayerPrefs.SetFloat(bestTimeKey, completionTime);
-                bestTimeText.text = $"Best: {FormatTime(completionTime)} (NEW!)";
-                bestTimeText.color = Color.yellow;
-            }
-            else
-            {
-                bestTimeText.text = $"Best: {FormatTime(bestTime)}";
-                bestTimeText.color = Color.white;
-            }
+        }
+    }
+    
+    private void ShowRandomPhrase()
+    {
+        if (titleText != null && defeatPhrases.Length > 0)
+        {
+            int randomIndex = Random.Range(0, defeatPhrases.Length);
+            titleText.text = defeatPhrases[randomIndex];
         }
     }
     
@@ -109,55 +94,10 @@ public class EndGamePanel : BaseMenuPanel
         isManualSeedMode = useManualSeed;
         seedInputField.interactable = useManualSeed;
         
-        if (useManualSeed)
+        if (useManualSeed && levelStarter != null)
         {
             seedInputField.text = levelStarter.GetCurrentSeed().ToString();
         }
-    }
-    
-    private string FormatTime(float time)
-    {
-        if (time == float.MaxValue) return "--:--.--";
-        
-        int minutes = Mathf.FloorToInt(time / 60f);
-        int seconds = Mathf.FloorToInt(time % 60f);
-        int centiseconds = Mathf.FloorToInt((time * 100f) % 100f);
-        
-        return $"{minutes:00}:{seconds:00}.{centiseconds:00}";
-    }
-    
-    private void StartPhraseRotation()
-    {
-        if (phraseRotationCoroutine != null)
-        {
-            StopCoroutine(phraseRotationCoroutine);
-        }
-        phraseRotationCoroutine = StartCoroutine(RotatePhrases());
-    }
-    
-    private void StopPhraseRotation()
-    {
-        if (phraseRotationCoroutine != null)
-        {
-            StopCoroutine(phraseRotationCoroutine);
-            phraseRotationCoroutine = null;
-        }
-    }
-    
-    private IEnumerator RotatePhrases()
-    {
-        int currentIndex = Random.Range(0, victoryPhrases.Length);
-        
-        // In case we want to change the words each certain number of seconds
-        // while (true)
-        // {
-        //     titleText.text = victoryPhrases[currentIndex];
-        //     currentIndex = (currentIndex + 1) % victoryPhrases.Length;
-        //     
-        //     yield return new WaitForSecondsRealtime(phraseRotationInterval);
-        // }
-        titleText.text = victoryPhrases[currentIndex];
-        yield return null;
     }
     
     private void OnRetryClicked()
@@ -165,8 +105,13 @@ public class EndGamePanel : BaseMenuPanel
         PlayerPrefs.SetInt("RetrySeed", currentSeed);
         PlayerPrefs.SetInt("UseRetrySeed", 1);
         
+        Time.timeScale = 1f;
         UIManager.Instance.HideAllPanels();
-        levelManager.ReplayLevel();
+        
+        if (levelManager != null)
+        {
+            levelManager.ReplayLevel();
+        }
     }
     
     private void OnNewLevelClicked()
@@ -189,18 +134,20 @@ public class EndGamePanel : BaseMenuPanel
             PlayerPrefs.SetInt("UseNewLevelSeed", 0);
         }
         
+        Time.timeScale = 1f;
         UIManager.Instance.HideAllPanels();
-        levelManager.ReplayLevel();
-    }
-    
-    private void OnSeededClicked()
-    {
-        UIManager.Instance.ShowPanel<PauseMenuPanel>();
+        
+        if (levelManager != null)
+        {
+            levelManager.ReplayLevel();
+        }
     }
     
     private void OnQuitClicked()
     {
         GameLogger.LogUI("Quitting application...");
+        
+        Time.timeScale = 1f;
         
         #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

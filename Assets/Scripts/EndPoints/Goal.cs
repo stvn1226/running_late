@@ -55,14 +55,34 @@ public class Goal : MonoBehaviour
             GameLogger.Log("GOAL", "=== VICTORY TRIGGERED ===");
         }
 
+        StopTimer();
         StartCoroutine(VictorySequence());
+    }
+
+    private void StopTimer()
+    {
+        Timer timer = FindObjectOfType<Timer>();
+        
+        if (timer != null)
+        {
+            timer.StopTimerPermanently();
+            
+            if (showDebugInfo)
+            {
+                GameLogger.Log("GOAL", $"Timer stopped at {timer.GetFormattedTime()}");
+            }
+        }
+        else
+        {
+            GameLogger.LogWarning("GOAL", "Timer not found in scene!");
+        }
     }
 
     private IEnumerator VictorySequence()
     {
         if (victoryDelay > 0f)
         {
-            yield return new WaitForSeconds(victoryDelay);
+            yield return new WaitForSecondsRealtime(victoryDelay);
         }
 
         ShowVictoryPanel();

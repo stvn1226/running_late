@@ -6,11 +6,12 @@ public class UIManager : MonoBehaviour
 {
     [Header("Menu Panels")]
     [SerializeField] private PauseMenuPanel pauseMenuPanel;
-    [SerializeField] private EndGamePanel victoryEndGamePanel;
-    [SerializeField] private EndGamePanel loseEndGamePanel;
+    [SerializeField] private VictoryPanel victoryPanel;
+    [SerializeField] private DefeatPanel defeatPanel;
     
     public PlayerInputActions inputActions;
     private bool isPaused = false;
+    private bool isEndGameActive = false;
     private Dictionary<System.Type, BaseMenuPanel> menuPanels;
     private BaseMenuPanel currentActivePanel;
     
@@ -63,6 +64,11 @@ public class UIManager : MonoBehaviour
     
     private void OnPausePressed(InputAction.CallbackContext context)
     {
+        if (isEndGameActive)
+        {
+            return;
+        }
+        
         if (currentActivePanel == pauseMenuPanel)
         {
             HideAllPanels();
@@ -82,6 +88,7 @@ public class UIManager : MonoBehaviour
             currentActivePanel = panel;
             
             isPaused = true;
+            isEndGameActive = false;
             SetInputContext(true);
             
             Time.timeScale = 0f;
@@ -99,14 +106,15 @@ public class UIManager : MonoBehaviour
             panel.Hide();
         }
         
-        if (victoryEndGamePanel != null)
-            victoryEndGamePanel.Hide();
+        if (victoryPanel != null)
+            victoryPanel.Hide();
         
-        if (loseEndGamePanel != null)
-            loseEndGamePanel.Hide();
+        if (defeatPanel != null)
+            defeatPanel.Hide();
         
         currentActivePanel = null;
         isPaused = false;
+        isEndGameActive = false;
         SetInputContext(false);
         
         Time.timeScale = 1f;
@@ -128,37 +136,43 @@ public class UIManager : MonoBehaviour
     
     public void ShowVictoryPanel()
     {
-        if (victoryEndGamePanel != null)
+        if (victoryPanel != null)
         {
             HideAllPanels();
-            victoryEndGamePanel.Show();
-            currentActivePanel = victoryEndGamePanel;
+            victoryPanel.Show();
+            currentActivePanel = victoryPanel;
             
             isPaused = true;
+            isEndGameActive = true;
             SetInputContext(true);
             Time.timeScale = 0f;
+            
+            GameLogger.Log("UI", "Victory panel shown");
         }
         else
         {
-            GameLogger.LogError("UI", "Victory EndGamePanel not assigned!");
+            GameLogger.LogError("UI", "VictoryPanel not assigned!");
         }
     }
     
     public void ShowLosePanel()
     {
-        if (loseEndGamePanel != null)
+        if (defeatPanel != null)
         {
             HideAllPanels();
-            loseEndGamePanel.Show();
-            currentActivePanel = loseEndGamePanel;
+            defeatPanel.Show();
+            currentActivePanel = defeatPanel;
             
             isPaused = true;
+            isEndGameActive = true;
             SetInputContext(true);
             Time.timeScale = 0f;
+            
+            GameLogger.Log("UI", "Defeat panel shown");
         }
         else
         {
-            GameLogger.LogError("UI", "Lose EndGamePanel not assigned!");
+            GameLogger.LogError("UI", "DefeatPanel not assigned!");
         }
     }
     
@@ -168,5 +182,6 @@ public class UIManager : MonoBehaviour
     }
     
     public bool IsPaused => isPaused;
+    public bool IsEndGameActive => isEndGameActive;
     public BaseMenuPanel CurrentActivePanel => currentActivePanel;
 }

@@ -924,8 +924,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1524,7 +1524,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3071296910194149977
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1572,7 +1572,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PHEW!
+  m_text: too late!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -1951,7 +1951,7 @@ GameObject:
   - component: {fileID: 5395113606209100799}
   - component: {fileID: 7949369638047532273}
   - component: {fileID: 5201497507159274293}
-  - component: {fileID: 7985799339733659095}
+  - component: {fileID: 1426264438190467325}
   m_Layer: 5
   m_Name: LoseGamePanel
   m_TagString: Untagged
@@ -2017,7 +2017,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7985799339733659095
+--- !u!114 &1426264438190467325
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2026,27 +2026,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 1958570700558668536}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 310a8e669814a4c138cb23db81406864, type: 3}
+  m_Script: {fileID: 11500000, guid: 5a3da8189cdd34cb1a851800e919dd18, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EndGamePanel
+  m_EditorClassIdentifier: Assembly-CSharp::DefeatPanel
   panelRoot: {fileID: 1958570700558668536}
   firstSelectedButton: {fileID: 3461176866833875654}
   titleText: {fileID: 5405380296969694662}
   currentTimeText: {fileID: 4794584330703173697}
-  bestTimeText: {fileID: 7561405279462698061}
   seedText: {fileID: 419544780787778371}
   retryButton: {fileID: 3461176866833875654}
   newLevelButton: {fileID: 6130229024366027168}
   quitButton: {fileID: 7703599343841909212}
   seedToggle: {fileID: 4070132047848505047}
   seedInputField: {fileID: 1204335516035221498}
-  victoryPhrases:
-  - PHEW!
-  - SPEEDY!
-  - NICE!
-  - PERFECT!
-  - AWESOME!
-  phraseRotationInterval: 2
+  defeatPhrases:
+  - TOO LATE!
+  - TIME'S UP!
+  - MISSED IT!
+  - TRY AGAIN!
+  - SO CLOSE!
   levelStarter: {fileID: 0}
   levelManager: {fileID: 0}
   timer: {fileID: 0}
@@ -2817,7 +2815,7 @@ GameObject:
   - component: {fileID: 5260939747325315025}
   - component: {fileID: 4752545809267505404}
   - component: {fileID: 1842184103185706434}
-  - component: {fileID: 4811805913833864643}
+  - component: {fileID: 8804686957608017158}
   m_Layer: 5
   m_Name: VictoryGamePanel
   m_TagString: Untagged
@@ -2883,7 +2881,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4811805913833864643
+--- !u!114 &8804686957608017158
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2892,9 +2890,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2841711659371198462}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 310a8e669814a4c138cb23db81406864, type: 3}
+  m_Script: {fileID: 11500000, guid: 3b350536aa1b54dc594f2fc93fc134df, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EndGamePanel
+  m_EditorClassIdentifier: Assembly-CSharp::VictoryPanel
   panelRoot: {fileID: 2841711659371198462}
   firstSelectedButton: {fileID: 9183035660223314015}
   titleText: {fileID: 5163831911581394964}
@@ -2908,11 +2906,10 @@ MonoBehaviour:
   seedInputField: {fileID: 3228578124198124364}
   victoryPhrases:
   - PHEW!
-  - SPEEDY!
   - NICE!
   - PERFECT!
   - AWESOME!
-  phraseRotationInterval: 2
+  - SPEEDY!
   levelStarter: {fileID: 0}
   levelManager: {fileID: 0}
   timer: {fileID: 0}
@@ -4032,8 +4029,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   pauseMenuPanel: {fileID: 856604507087019113}
-  victoryEndGamePanel: {fileID: 4811805913833864643}
-  loseEndGamePanel: {fileID: 7985799339733659095}
+  victoryPanel: {fileID: 8804686957608017158}
+  defeatPanel: {fileID: 1426264438190467325}
 --- !u!1 &3875040831170855621
 GameObject:
   m_ObjectHideFlags: 0
@@ -4126,10 +4123,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 44.7
-  m_fontSizeBase: 50
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
@@ -4610,7 +4607,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Retry
+  m_text: RETRY
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
   m_sharedMaterial: {fileID: -7687192252742206676, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
@@ -4637,8 +4634,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70
-  m_fontSizeBase: 70
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5458,7 +5455,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Retry
+  m_text: 'RETRY
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
   m_sharedMaterial: {fileID: -7687192252742206676, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
@@ -5485,10 +5484,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
-  m_fontSizeBase: 70
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
@@ -5594,7 +5593,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TOO SLOW!
+  m_text: LATE TO SCHOOL!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
   m_sharedMaterial: {fileID: -1791724492144770645, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
@@ -5621,13 +5620,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 120
-  m_fontSizeBase: 120
+  m_fontSize: 100
+  m_fontSizeBase: 100
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
@@ -5843,7 +5842,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Quit
+  m_text: QUIT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
   m_sharedMaterial: {fileID: -7687192252742206676, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
@@ -5979,7 +5978,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Retry
+  m_text: RETRY
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
   m_sharedMaterial: {fileID: -7687192252742206676, guid: 3fc49fb7f3c6346f4bca7a4c8b6747f8, type: 2}
@@ -6006,10 +6005,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
-  m_fontSizeBase: 70
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
@@ -7300,10 +7299,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36.55
-  m_fontSizeBase: 70
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
@@ -7929,10 +7928,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36.55
-  m_fontSizeBase: 70
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
@@ -8253,10 +8252,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 44.7
-  m_fontSizeBase: 50
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
@@ -8746,7 +8745,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Pause
+  m_text: PAUSE
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
