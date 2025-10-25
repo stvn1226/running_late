@@ -64,7 +64,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        HandleLanding();
+        if (!states.isGrounded)
+        {
+            states.landingHorizontalVelocity = rb.linearVelocity.x;
+            states.landingVerticalVelocity = rb.linearVelocity.y;
+        }
+        
         ApplyDrag();
         ClampFallSpeed();
 
@@ -219,18 +224,18 @@ public class PlayerMovement : MonoBehaviour
     {
         if (config == null || states == null)
         {
-            Debug.LogError("[STAGGER] Config or States is null!");
+            GameLogger.LogError("[STAGGER] Config or States is null!");
             return;
         }
 
-        Debug.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
+        GameLogger.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
     
         states.StartStagger(config.staggerDuration);
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
     
-        Debug.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
+        GameLogger.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
     }
 
 
@@ -352,11 +357,12 @@ public class PlayerMovement : MonoBehaviour
     {
         if (config == null) return;
 
-        if (!states.isGrounded)
+        if (!states.isGrounded) //updates the velocities while in air ahead of landing
         {
-            states.landingHorizontalVelocity = rb.linearVelocity.x;
+            states.landingHorizontalVelocity = rb.linearVelocity.x * 1.5f;
+            states.landingVerticalVelocity = rb.linearVelocity.y;
         }
-        
+
         if (states.wasGrounded != states.isGrounded && states.isGrounded)
         {
             if (states.justLanded && states.landingGraceTimer > config.landingGracePeriod * 0.8f)
@@ -365,19 +371,18 @@ public class PlayerMovement : MonoBehaviour
                 return;
             }
             
-            states.landingVerticalVelocity = rb.linearVelocity.y;
-            
-            bool isSlamLanding = states.landingVerticalVelocity <= config.slamLandingThreshold;
-            bool hasHorizontalInput = Mathf.Abs(states.moveInput.x) > 0.1f;
+            float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
+            bool isSlamLanding = downwardSpeed > Mathf.Abs(config.slamLandingThreshold);
+            bool hasHorizontalMomentum = Mathf.Abs(states.landingHorizontalVelocity) > 0.1f;
+            bool hasHorizontalInput = Mathf.Abs(states.moveInput.x) > 0f;
             bool isHoldingCrouchButton = states.crouchHeld;
-            bool isLandingIntoSlide = isHoldingCrouchButton && Mathf.Abs(states.landingHorizontalVelocity) > 3f;
+            bool isLandingIntoSlide = isHoldingCrouchButton && hasHorizontalInput;
             
-            GameLogger.LogMovement($"Landing detected! Vertical: {states.landingVerticalVelocity}, Horizontal: {states.landingHorizontalVelocity}, Input: {states.moveInput.x}, Crouch: {isHoldingCrouchButton}, Slam: {isSlamLanding}, IntoSlide: {isLandingIntoSlide}");
+            GameLogger.LogMovement($"Landing detected! Vertical: {states.landingVerticalVelocity:F2}, Horizontal: {states.landingHorizontalVelocity:F2}, DownSpeed: {downwardSpeed:F2}, HasMomentum: {hasHorizontalMomentum}, Input: {states.moveInput.x:F2}, Crouch: {isHoldingCrouchButton}, Slam: {isSlamLanding}, IntoSlide: {isLandingIntoSlide}");
             
             if (isLandingIntoSlide)
             {
-                float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
-                float horizontalBoost = downwardSpeed * config.momentumConversionRatio * 3.0f;
+                float horizontalBoost = (config.momentumConversionRatio * downwardSpeed);
                 float inputDirection = Mathf.Sign(states.landingHorizontalVelocity);
                 
                 float preservedMomentum = states.landingHorizontalVelocity;
@@ -391,24 +396,23 @@ public class PlayerMovement : MonoBehaviour
                 
                 GameLogger.LogMovement($"SLIDE LANDING! Preserved: {preservedMomentum:F2}, Boost: {slideBoost:F2}, Final: {newHorizontalVelocity:F2}");
             }
-            else if (isSlamLanding && hasHorizontalInput && isHoldingCrouchButton)
+            else if (isSlamLanding && hasHorizontalMomentum)
             {
-                float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
-                float horizontalBoost = downwardSpeed * config.momentumConversionRatio;
-                float inputDirection = Mathf.Sign(states.moveInput.x);
+                float horizontalBoost = (config.momentumConversionRatio * downwardSpeed);
+                float movementDirection = Mathf.Sign(states.landingHorizontalVelocity);
                 
                 float preservedMomentum = states.landingHorizontalVelocity;
-                float newHorizontalVelocity = preservedMomentum + (horizontalBoost * inputDirection);
+                float newHorizontalVelocity = preservedMomentum + (horizontalBoost * movementDirection);
                 
                 rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
                 states.landingHorizontalVelocity = newHorizontalVelocity;
                 
-                GameLogger.LogMovement($"SLAM LANDING! Preserved: {preservedMomentum}, Boost: {horizontalBoost}, Final: {newHorizontalVelocity}");
+                GameLogger.LogMovement($"SLAM LANDING! Preserved: {preservedMomentum:F2}, Boost: {horizontalBoost:F2}, Final: {newHorizontalVelocity:F2}");
             }
             else
             {
                 rb.linearVelocity = new Vector2(states.landingHorizontalVelocity, 0f);
-                GameLogger.LogMovement($"Regular landing: Preserving horizontal velocity {states.landingHorizontalVelocity}");
+                GameLogger.LogMovement($"Regular landing: Preserving horizontal velocity {states.landingHorizontalVelocity:F2}");
             }
             
             states.justLanded = true;

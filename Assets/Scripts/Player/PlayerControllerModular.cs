@@ -52,6 +52,9 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.Kick.performed += OnKick;
         inputActions.Gameplay.DropDown.performed += OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
+        
+        inputActions.Gameplay.Reset.started += OnReset;
+
     }
 
     private void OnDisable()
@@ -70,6 +73,9 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.Kick.performed -= OnKick;
         inputActions.Gameplay.DropDown.performed -= OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
+        
+        inputActions.Gameplay.Reset.started -= OnReset;
+        
     }
 
     private void Update()
@@ -198,6 +204,37 @@ public class PlayerControllerModular : MonoBehaviour
         {
             AssignConfigToComponents();
         }
+    }
+    #endregion
+
+    #region Fast Retry
+    private void OnReset(InputAction.CallbackContext context)
+    {
+        FastRetry();
+    }
+    public void FastRetry()
+    {
+        if (LevelStarter.Instance == null || LevelManager.Instance == null)
+        {
+            GameLogger.LogWarning("PLAYER", "Cannot retry: LevelStarter or LevelManager not found");
+            return;
+        }
+
+        int currentSeed = LevelStarter.Instance.GetCurrentSeed();
+        
+        PlayerPrefs.SetInt("RetrySeed", currentSeed);
+        PlayerPrefs.SetInt("UseRetrySeed", 1);
+        
+        Time.timeScale = 1f;
+        
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideAllPanels();
+        }
+        
+        LevelManager.Instance.ReplayLevel();
+        
+        GameLogger.Log("PLAYER", $"Fast retry triggered for seed: {currentSeed}");
     }
     #endregion
 }

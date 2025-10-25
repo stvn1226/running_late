@@ -4,17 +4,21 @@ public class PlayerBounds : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private float maxDistanceFromCamera = 100f;
 
     private void Awake()
     {
-        cam = Camera.main;
+        if (cam == null)
+            cam = Camera.main;
+        
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
     }
 
     private void LateUpdate()
     {
         if (cam == null) return;
-        if (Mathf.Abs(cam.transform.position.x - transform.position.x) > 20f) return;
-
+        if (Mathf.Abs(cam.transform.position.x - transform.position.x) > maxDistanceFromCamera) return;
 
         Vector3 viewPos = transform.position;
         Vector3 originalPos = viewPos;
@@ -53,5 +57,5 @@ public class PlayerBounds : MonoBehaviour
             rb.linearVelocity = velocity;
         }
     }
-
 }
+

@@ -13,30 +13,20 @@ public class Timer : MonoBehaviour
     private TextMeshProUGUI timerText;
     private float elapsedTime = 0f;
     private bool isRunning = true;
-    private bool isGameCompleted = false;
+    private bool isPermanentlyStopped = false;
     
     public float ElapsedTime => elapsedTime;
     public bool IsRunning => isRunning;
     
     void Start()
     {
-        // Get the TextMeshPro component
         timerText = GetComponent<TextMeshProUGUI>();
         if (timerText == null)
         {
-            GameLogger.LogError("TIMER", "No TextMeshProUGUI component found! Please add one to display the timer.");
+            GameLogger.LogError("TIMER", "No TextMeshProUGUI component found!");
             return;
         }
         
-        // Subscribe to goal reached event
-        Goal goalScript = FindObjectOfType<Goal>();
-        if (goalScript != null)
-        {
-            // We'll use a different approach since Goal doesn't have events
-            // The timer will check for game pause state instead
-        }
-        
-        // Initialize timer
         ResetTimer();
         
         if (showDebugInfo)
@@ -45,50 +35,35 @@ public class Timer : MonoBehaviour
     
     void Update()
     {
-        // Only count if the game is running and not completed
-        if (isRunning && !isGameCompleted)
+        if (isRunning && !isPermanentlyStopped && Time.timeScale > 0)
         {
-            // Check if game is paused (Time.timeScale == 0 means victory screen is showing)
-            if (Time.timeScale > 0)
+            if (countUp)
             {
-                if (countUp)
-                {
-                    elapsedTime += Time.deltaTime;
-                }
-                else
-                {
-                    elapsedTime -= Time.deltaTime;
-                    if (elapsedTime <= 0)
-                    {
-                        elapsedTime = 0;
-                        StopTimer();
-                    }
-                }
+                elapsedTime += Time.deltaTime;
             }
             else
             {
-                // Game is paused (likely victory screen), stop the timer
-                if (!isGameCompleted)
+                elapsedTime -= Time.deltaTime;
+                if (elapsedTime <= 0)
                 {
-                    StopTimer();
-                    isGameCompleted = true;
-                    
-                    if (showDebugInfo)
-                        GameLogger.Log("TIMER", $"Stopped at {FormatTime(elapsedTime)} due to game completion");
+                    elapsedTime = 0;
+                    StopTimerPermanently();
                 }
             }
         }
         
-        // Update the display
         UpdateDisplay();
     }
     
     public void StartTimer()
     {
-        isRunning = true;
-        
-        if (showDebugInfo)
-            GameLogger.Log("TIMER", "Started");
+        if (!isPermanentlyStopped)
+        {
+            isRunning = true;
+            
+            if (showDebugInfo)
+                GameLogger.Log("TIMER", "Started");
+        }
     }
     
     public void StopTimer()
@@ -97,6 +72,15 @@ public class Timer : MonoBehaviour
         
         if (showDebugInfo)
             GameLogger.Log("TIMER", $"Stopped at {FormatTime(elapsedTime)}");
+    }
+    
+    public void StopTimerPermanently()
+    {
+        isRunning = false;
+        isPermanentlyStopped = true;
+        
+        if (showDebugInfo)
+            GameLogger.Log("TIMER", $"Permanently stopped at {FormatTime(elapsedTime)}");
     }
     
     public void PauseTimer()
@@ -109,7 +93,7 @@ public class Timer : MonoBehaviour
     
     public void ResumeTimer()
     {
-        if (!isGameCompleted)
+        if (!isPermanentlyStopped)
         {
             isRunning = true;
             
@@ -122,7 +106,7 @@ public class Timer : MonoBehaviour
     {
         elapsedTime = 0f;
         isRunning = true;
-        isGameCompleted = false;
+        isPermanentlyStopped = false;
         UpdateDisplay();
         
         if (showDebugInfo)
@@ -158,7 +142,6 @@ public class Timer : MonoBehaviour
         }
     }
     
-    // Public method to get formatted time string
     public string GetFormattedTime()
     {
         return FormatTime(elapsedTime);

@@ -420,7 +420,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""2d528b68-e4ce-40e4-8d35-c54967a3c127"",
-                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""path"": ""<Gamepad>/select"",
                     ""interactions"": ""Hold"",
                     ""processors"": """",
                     ""groups"": "";Gamepad"",
@@ -430,8 +430,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""b26fb351-696f-4bfc-b0cb-0e52b418879f"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""id"": ""36463f5a-efdf-415d-bffd-29528be36d47"",
+                    ""path"": ""<XInputController>/select"",
                     ""interactions"": ""Hold"",
                     ""processors"": """",
                     ""groups"": "";Gamepad"",

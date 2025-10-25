@@ -46,6 +46,7 @@ public class SpawnManager : MonoBehaviour
         homeSpawnPoint = null;
         currentPlayer = null;
         waitingForLevel = true;
+        GameReferences.Instance.OnSceneChanged();
     }
     
     public void OnLevelGenerated()
@@ -77,7 +78,9 @@ public class SpawnManager : MonoBehaviour
     
     private void FindHomeSpawnPoint()
     {
-        GameObject homeObject = GameObject.FindGameObjectWithTag("Respawn");
+        if (homeSpawnPoint != null) return;
+        
+        GameObject homeObject = GameReferences.Instance.RespawnObject;
         if (homeObject != null)
         {
             SpawnPoint spawnPoint = homeObject.GetComponentInChildren<SpawnPoint>();
@@ -116,6 +119,8 @@ public class SpawnManager : MonoBehaviour
         {
             currentPlayer = Instantiate(playerPrefab, position, Quaternion.identity);
             currentPlayer.name = $"{playerPrefab.name}_Instance_{counter++}";
+
+            GameReferences.Instance.OnPlayerSpawned(currentPlayer);
 
             Rigidbody2D playerRb = currentPlayer.GetComponent<Rigidbody2D>();
             PlayerStates playerStates = currentPlayer.GetComponent<PlayerStates>();
@@ -158,6 +163,8 @@ public class SpawnManager : MonoBehaviour
             Destroy(currentPlayer);
             currentPlayer = null;
         }
+
+        GameReferences.Instance.OnPlayerDestroyed();
     }
         
     public void RespawnPlayer()
