@@ -56,6 +56,7 @@ public class Pigeon : MonoBehaviour
     [SerializeField] private bool showGizmos = true;
 
     private Transform player;
+    private PlayerMovement cachedPlayerMovement;
     private Rigidbody2D rb;
     private FlightState state = FlightState.Idle;
     private float takeOffTimer;
@@ -78,7 +79,7 @@ public class Pigeon : MonoBehaviour
 
     private void Start()
     {
-        mainCamera = Camera.main;
+        mainCamera = GameReferences.Instance.MainCamera;
         CachePlayerTransform();
         pigeonAnimator = GetComponent<Animator>();
     }
@@ -138,9 +139,13 @@ public class Pigeon : MonoBehaviour
 
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) && !stomping)
         {
-            // Handle collision with player
             GameLogger.Log("[Pigeon] Pigeon collided with Player");
-            collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+            if (cachedPlayerMovement == null)
+                cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+            
+            if (cachedPlayerMovement != null)
+                cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+            
             StartCoroutine(DisableHitboxTemp(2f));
         }
     }
@@ -154,35 +159,26 @@ public class Pigeon : MonoBehaviour
 
     public void TriggerStagger()
     {
-        // Only allow staggering if pigeon is flying (not idle or already staggered)
         if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
             return;
 
         GameLogger.Log("[Pigeon] Pigeon staggered and knocked out of the sky!");
         
-        // Change state to staggered - pigeon will now just fall
         state = FlightState.Staggered;
         isStaggered = true;
 
-        // Set animator
         pigeonAnimator.SetBool(IsStaggered, true);
 
-        // Apply physics changes to make it fall
         rb.gravityScale = staggerGravityScale;
-        
-        // Apply stagger force to knock the pigeon out of the sky
-        rb.linearVelocity = Vector2.zero; // Reset current velocity
+        rb.linearVelocity = Vector2.zero;
         rb.AddForce(staggerForce, ForceMode2D.Impulse);
 
-        // Disable colliders
         hitbox.enabled = false;
         solidCollider.enabled = false;
     }
 
     private void HandleStagger()
     {
-        // Pigeon just falls under gravity - no recovery, no timer
-        // Physics handles everything from here
     }
 
     private void BeginTakeOff()
@@ -246,12 +242,7 @@ public class Pigeon : MonoBehaviour
     private void CachePlayerTransform()
     {
         if (player) return;
-
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject)
-        {
-            player = playerObject.transform;
-        }
+        player = GameReferences.Instance.PlayerTransform;
     }
 
     private Vector2 GetDetectionOrigin()
@@ -271,6 +262,8 @@ public class Pigeon : MonoBehaviour
 
     private void EnableDisableDistance()
     {
+        if (mainCamera == null) return;
+        
         if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 20f)
         {
             isRunning = false;

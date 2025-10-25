@@ -111,11 +111,7 @@ public class LevelStarter : MonoBehaviour
             PlayerPrefs.DeleteKey("NewLevelSeed");
             GameLogger.Log("LEVEL", $"🎲 New level with manual seed: {newSeed}");
         }
-        else
-        {
-            useManualSeed = false;
-        }
-    
+
         if (generateOnStart && !hasGenerated)
         {
             StartCoroutine(GenerateLevelWithDelay());

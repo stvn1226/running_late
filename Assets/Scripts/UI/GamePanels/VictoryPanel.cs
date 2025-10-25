@@ -102,7 +102,7 @@ public class VictoryPanel : BaseMenuPanel
                 else
                 {
                     bestTimeText.text = $"Best: {bestRecord.GetFormattedTime()}";
-                    bestTimeText.color = Color.white;
+                    bestTimeText.color = Color.black;
                 }
             }
             else

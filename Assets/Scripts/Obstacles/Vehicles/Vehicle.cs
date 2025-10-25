@@ -6,6 +6,7 @@ public abstract class Vehicle : MonoBehaviour
 {
     private Rigidbody2D rb;
     private Camera mainCamera;
+    private PlayerMovement cachedPlayerMovement;
     [SerializeField] private float speed = 5f;
     private bool isRunning;
     private bool hasRan;
@@ -15,13 +16,15 @@ public abstract class Vehicle : MonoBehaviour
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        mainCamera = Camera.main;
+        mainCamera = GameReferences.Instance.MainCamera;
         isRunning = false;
         hasRan = false;
     }
 
     protected virtual void Update()
     {
+        if (mainCamera == null) return;
+        
         if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > activationDistance)
         {
             isRunning = false;
@@ -47,9 +50,13 @@ public abstract class Vehicle : MonoBehaviour
         if (!isRunning) return;
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
-            // Handle collision with player
             GameLogger.Log("VEHICLE", "Vehicle collided with Player");
-            collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
+            if (cachedPlayerMovement == null)
+                cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+            
+            if (cachedPlayerMovement != null)
+                cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+            
             StartCoroutine(DisableHitboxTemp(2f));
         }
     }
