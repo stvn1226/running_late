@@ -1605,6 +1605,66 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 012922e432d74aa387f22608462871a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Utils.LeaderboardManager
+--- !u!1 &903795370
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 903795372}
+  - component: {fileID: 903795371}
+  m_Layer: 0
+  m_Name: DebugManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &903795371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903795370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3586880617cd4796bb09b5d48dcbf05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebugManager
+  debugSettings:
+    enableAllLogs: 1
+    enableGameLogger: 1
+    enableVerboseLogs: 0
+    enablePerformanceLogs: 0
+    enablePlayerDebug: 1
+    enableMovementDebug: 1
+    enablePhysicsDebug: 1
+    enableStateDebug: 1
+    enableInputDebug: 0
+    enableLevelDebug: 0
+    enableTriggerDebug: 1
+    enableCollisionDebug: 0
+    enableAudioDebug: 0
+    enableUIDebug: 0
+    enableAnimationDebug: 0
+--- !u!4 &903795372
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903795370}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 752, y: 8, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1006669941
 GameObject:
   m_ObjectHideFlags: 0
@@ -2551,3 +2611,4 @@ SceneRoots:
   - {fileID: 1718316693}
   - {fileID: 1778536777}
   - {fileID: 823855809}
+  - {fileID: 903795372}

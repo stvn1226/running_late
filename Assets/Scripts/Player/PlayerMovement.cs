@@ -224,18 +224,18 @@ public class PlayerMovement : MonoBehaviour
     {
         if (config == null || states == null)
         {
-            Debug.LogError("[STAGGER] Config or States is null!");
+            GameLogger.LogError("[STAGGER] Config or States is null!");
             return;
         }
 
-        Debug.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
+        GameLogger.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
     
         states.StartStagger(config.staggerDuration);
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
     
-        Debug.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
+        GameLogger.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
     }
 
 

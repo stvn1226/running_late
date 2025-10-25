@@ -50,7 +50,6 @@ public class DebugManager : MonoBehaviour
         }
     }
     
-    // Player System Logs
     public static void LogPlayer(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -91,7 +90,6 @@ public class DebugManager : MonoBehaviour
 #endif
     }
     
-    // World System Logs
     public static void LogLevel(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -124,7 +122,6 @@ public class DebugManager : MonoBehaviour
 #endif
     }
     
-    // UI System Logs
     public static void LogUI(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -141,7 +138,6 @@ public class DebugManager : MonoBehaviour
 #endif
     }
     
-    // Generic System Logs
     public static void LogWarning(string system, object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -152,7 +148,6 @@ public class DebugManager : MonoBehaviour
     
     public static void LogError(string system, object message)
     {
-        // Errors always show, even in builds
         if (Settings.enableAllLogs)
             Debug.LogError($"[{system.ToUpper()}] {message}");
     }
@@ -177,18 +172,14 @@ public class DebugManager : MonoBehaviour
     public void DisableAllLogs()
     {
         debugSettings.enableAllLogs = false;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("🔇 ALL LOGS DISABLED via DebugManager");
-#endif
+        Debug.Log("🔇 ALL LOGS DISABLED - This is the last log you'll see");
     }
     
     [ContextMenu("🔊 Enable All Logs")]
     public void EnableAllLogs()
     {
         debugSettings.enableAllLogs = true;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("🔊 ALL LOGS ENABLED via DebugManager");
-#endif
+        Debug.Log("🔊 ALL LOGS ENABLED");
     }
     
     [ContextMenu("🎮 Enable Player Debug Only")]
@@ -207,17 +198,46 @@ public class DebugManager : MonoBehaviour
         debugSettings.enableAnimationDebug = false;
         debugSettings.enableAudioDebug = false;
         
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("🎮 PLAYER DEBUG ONLY enabled via DebugManager");
-#endif
+        if (debugSettings.enableAllLogs)
+            Debug.Log("🎮 PLAYER DEBUG ONLY enabled");
     }
     
     [ContextMenu("🔍 Enable Verbose Mode")]
     public void EnableVerboseMode()
     {
         debugSettings.enableVerboseLogs = true;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log("🔍 VERBOSE MODE enabled via DebugManager");
-#endif
+        if (debugSettings.enableAllLogs)
+            Debug.Log("🔍 VERBOSE MODE enabled");
+    }
+    
+    [ContextMenu("⚡ Disable Verbose Mode")]
+    public void DisableVerboseMode()
+    {
+        debugSettings.enableVerboseLogs = false;
+        if (debugSettings.enableAllLogs)
+            Debug.Log("⚡ VERBOSE MODE disabled");
+    }
+    
+    [ContextMenu("📊 Show Current Settings")]
+    public void ShowCurrentSettings()
+    {
+        if (!debugSettings.enableAllLogs)
+        {
+            Debug.Log("🔇 ALL LOGS ARE CURRENTLY DISABLED");
+            return;
+        }
+        
+        Debug.Log("=== DEBUG MANAGER SETTINGS ===");
+        Debug.Log($"Master: {debugSettings.enableAllLogs}");
+        Debug.Log($"GameLogger: {debugSettings.enableGameLogger}");
+        Debug.Log($"Player: {debugSettings.enablePlayerDebug}");
+        Debug.Log($"Movement: {debugSettings.enableMovementDebug}");
+        Debug.Log($"Physics: {debugSettings.enablePhysicsDebug}");
+        Debug.Log($"State: {debugSettings.enableStateDebug}");
+        Debug.Log($"Input: {debugSettings.enableInputDebug}");
+        Debug.Log($"Level: {debugSettings.enableLevelDebug}");
+        Debug.Log($"Trigger: {debugSettings.enableTriggerDebug}");
+        Debug.Log($"UI: {debugSettings.enableUIDebug}");
+        Debug.Log("=============================");
     }
 }

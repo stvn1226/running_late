@@ -1,10 +1,14 @@
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI;
 using System.Collections;
+using Utils;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Pigeon : MonoBehaviour
 {
+    private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
+    private static readonly int Velocity = Animator.StringToHash("velocity");
+
     private enum FlightState
     {
         Idle,
@@ -121,21 +125,21 @@ public class Pigeon : MonoBehaviour
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("PlayerKick"))
+        if (collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG))
         {
-            Debug.Log("Pigeon hit by PlayerKick trigger.");
+            GameLogger.Log("[Pigeon] Pigeon hit by PlayerKick trigger.");
             TriggerStagger();
         }
 
-        if (collision.gameObject.CompareTag("PlayerStomp"))
+        if (collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG))
         {
             stomping = true;
         }
 
-        if (collision.gameObject.CompareTag("Player") && !stomping)
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) && !stomping)
         {
             // Handle collision with player
-            Debug.Log("Pigeon collided with Player");
+            GameLogger.Log("[Pigeon] Pigeon collided with Player");
             collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
             StartCoroutine(DisableHitboxTemp(2f));
         }
@@ -154,14 +158,14 @@ public class Pigeon : MonoBehaviour
         if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
             return;
 
-        Debug.Log("Pigeon staggered and knocked out of the sky!");
+        GameLogger.Log("[Pigeon] Pigeon staggered and knocked out of the sky!");
         
         // Change state to staggered - pigeon will now just fall
         state = FlightState.Staggered;
         isStaggered = true;
 
         // Set animator
-        pigeonAnimator.SetBool("isStaggered", true);
+        pigeonAnimator.SetBool(IsStaggered, true);
 
         // Apply physics changes to make it fall
         rb.gravityScale = staggerGravityScale;
@@ -241,10 +245,10 @@ public class Pigeon : MonoBehaviour
 
     private void CachePlayerTransform()
     {
-        if (player != null) return;
+        if (player) return;
 
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject != null)
+        if (playerObject)
         {
             player = playerObject.transform;
         }
@@ -281,7 +285,6 @@ public class Pigeon : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
     }
 
     private void UpdateAnimator()
@@ -289,7 +292,7 @@ public class Pigeon : MonoBehaviour
         if (pigeonAnimator != null && rb != null)
         {
             float currentVelocityMagnitude = rb.linearVelocity.magnitude;
-            pigeonAnimator.SetFloat("velocity", currentVelocityMagnitude);
+            pigeonAnimator.SetFloat(Velocity, currentVelocityMagnitude);
         }
     }
 

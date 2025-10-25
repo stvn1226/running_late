@@ -1,6 +1,4 @@
-//using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using Utils;
 
@@ -53,7 +51,6 @@ public abstract class Vehicle : MonoBehaviour
             GameLogger.Log("VEHICLE", "Vehicle collided with Player");
             collision.transform.parent.gameObject.GetComponent<PlayerMovement>().StaggerPlayer(new Vector2(-1, 1));
             StartCoroutine(DisableHitboxTemp(2f));
-
         }
     }
 
