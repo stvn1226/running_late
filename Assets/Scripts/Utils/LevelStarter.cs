@@ -101,7 +101,7 @@ public class LevelStarter : MonoBehaviour
             SetManualSeed(retrySeed);
             PlayerPrefs.DeleteKey("UseRetrySeed");
             PlayerPrefs.DeleteKey("RetrySeed");
-            GameLogger.Log("LEVEL", $"🔄 Retry with same seed: {retrySeed}");
+            GameLogger.Log("LEVEL", $"Retry with same seed: {retrySeed}");
         }
         else if (PlayerPrefs.GetInt("UseNewLevelSeed", 0) == 1)
         {
@@ -109,7 +109,7 @@ public class LevelStarter : MonoBehaviour
             SetManualSeed(newSeed);
             PlayerPrefs.DeleteKey("UseNewLevelSeed");
             PlayerPrefs.DeleteKey("NewLevelSeed");
-            GameLogger.Log("LEVEL", $"🎲 New level with manual seed: {newSeed}");
+            GameLogger.Log("LEVEL", $"New level with manual seed: {newSeed}");
         }
 
         if (generateOnStart && !hasGenerated)
