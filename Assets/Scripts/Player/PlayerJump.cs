@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 public class PlayerJump : MonoBehaviour
@@ -8,6 +9,7 @@ public class PlayerJump : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PlayerStates states;
     private float originalGravityScale;
+    public MMF_Player jumpFeedbacks;
 
     private void Awake()
     {
@@ -61,6 +63,8 @@ public class PlayerJump : MonoBehaviour
         
         // Reset jump state
         states.StartJump();
+
+        jumpFeedbacks.PlayFeedbacks();
     }
 
     private void CancelCrouchSlideStates()
