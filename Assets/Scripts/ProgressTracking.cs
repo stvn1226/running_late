@@ -15,7 +15,14 @@ public class ProgressTracking : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        AssignTransforms();
+        try 
+        { 
+            AssignTransforms(); 
+        } 
+        catch (System.Exception ex) 
+        { 
+            Debug.Log("ProgressTracking: AssignTransforms failed: " + ex.Message);
+        }
         if (endPoint != null && spawnPoint != null) levelLength = Mathf.Abs(endPoint.position.x - spawnPoint.position.x);
     }
 
@@ -24,7 +31,14 @@ public class ProgressTracking : MonoBehaviour
     {
         if (endPoint == null || spawnPoint == null || player == null)
         {
-            AssignTransforms();
+            try
+            {
+                AssignTransforms();
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Log("ProgressTracking: AssignTransforms failed: " + ex.Message);
+            }
             if (endPoint != null && spawnPoint != null) levelLength = Mathf.Abs(endPoint.position.x - spawnPoint.position.x);
             return;
         }
