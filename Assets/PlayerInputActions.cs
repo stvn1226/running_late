@@ -299,7 +299,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""f12cdc44-5ad2-4478-9187-690434e65425"",
-                    ""path"": ""<Keyboard>/f"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",
@@ -343,7 +343,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""fbf71213-b5ce-4028-8616-3fc44ecfaa66"",
-                    ""path"": ""<Keyboard>/r"",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",
@@ -365,7 +365,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""b602e390-5b56-45cc-b1b1-ca548822f5eb"",
-                    ""path"": ""<Keyboard>/k"",
+                    ""path"": ""<Keyboard>/q"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",
@@ -387,7 +387,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""797dfe9a-ddc5-453e-8a19-77822e8a43aa"",
-                    ""path"": ""<Keyboard>/leftShift"",
+                    ""path"": ""<Keyboard>/c"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",
@@ -409,7 +409,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""1da2b25a-c8f9-46a1-914e-3c593abe8c5d"",
-                    ""path"": ""<Keyboard>/p"",
+                    ""path"": ""<Keyboard>/r"",
                     ""interactions"": ""Hold"",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",
