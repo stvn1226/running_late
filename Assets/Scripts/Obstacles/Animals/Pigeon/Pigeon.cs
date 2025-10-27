@@ -56,7 +56,7 @@ public class Pigeon : MonoBehaviour
     [SerializeField] private bool showGizmos = true;
 
     private Transform player;
-    private PlayerMovement cachedPlayerMovement;
+    public PlayerMovement cachedPlayerMovement;
     private Rigidbody2D rb;
     private FlightState state = FlightState.Idle;
     private float takeOffTimer;
@@ -68,7 +68,8 @@ public class Pigeon : MonoBehaviour
     private Camera mainCamera;
     private bool isRunning;
     private bool hasRan;
-    private bool stomping;
+
+    public bool wasHit = false;
 
     private void Awake()
     {
@@ -99,7 +100,6 @@ public class Pigeon : MonoBehaviour
 
     private void Update()
     {
-        stomping = false;
         EnableDisableDistance();
         if (state == FlightState.Idle && PlayerWithinDetectionRadius())
         {
@@ -121,32 +121,6 @@ public class Pigeon : MonoBehaviour
             case FlightState.Staggered:
                 HandleStagger();
                 break;
-        }
-    }
-
-    protected virtual void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG))
-        {
-            GameLogger.Log("[Pigeon] Pigeon hit by PlayerKick trigger.");
-            TriggerStagger();
-        }
-
-        if (collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG))
-        {
-            stomping = true;
-        }
-
-        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) && !stomping)
-        {
-            GameLogger.Log("[Pigeon] Pigeon collided with Player");
-            if (cachedPlayerMovement == null)
-                cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
-            
-            if (cachedPlayerMovement != null)
-                cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
-            
-            StartCoroutine(DisableHitboxTemp(2f));
         }
     }
 

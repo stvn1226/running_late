@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerStates : MonoBehaviour
@@ -178,16 +179,6 @@ public class PlayerStates : MonoBehaviour
                 justLanded = false;
         }
 
-        // Kick timer
-        // This timer was moved to work directly with the animation by using EndKick method - We use Animation Events 
-        // if (isKicking)
-        // {
-        //     if (kickPressed) kickPressed = false;
-        //     kickTimer -= Time.deltaTime;
-        //     if (kickTimer <= 0)
-        //         isKicking = false;
-        // }
-
         if (isStaggered)
         {
             staggerTimer -= Time.deltaTime;
@@ -212,10 +203,6 @@ public class PlayerStates : MonoBehaviour
         // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
-        //if (kickPressed)
-        //    kickPressed = false;
-        //if (dropDownPressed)
-        //    dropDownPressed = false;
     }
 
     private void CheckStateChanges()
@@ -277,14 +264,12 @@ public class PlayerStates : MonoBehaviour
 
     public void SetDropDownPressed()
     {
-        //dropDownPressed = true;
         dropDownHeld = true;
         isDroppingDown = true;
     }
 
     public void SetDropDownReleased()
     {
-        //dropDownPressed = false;
         dropDownHeld = false;
         isDroppingDown = false;
     }
@@ -300,6 +285,13 @@ public class PlayerStates : MonoBehaviour
             animator.ResetTrigger(IsKicking);
             GameLogger.LogState("STAGGER: Forcibly ended active kick to prevent movement lock");
         }
+    }
+
+    public IEnumerator StartSlowdown(float duration)
+    {
+        Time.timeScale = 0.5f;
+        yield return new WaitForSeconds(duration);
+        Time.timeScale = 1f;
     }
 
     public void StartCoyoteTime(float coyoteTime)

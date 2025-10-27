@@ -52,7 +52,7 @@ public class PlayerStomp : MonoBehaviour
     private void ExecuteStomp(Collider2D enemy)
     {
         ApplyBounce();
-        StaggerEnemy(enemy);
+        //StaggerEnemy(enemy);
         GameLogger.LogState($"STOMP EXECUTED on {enemy.gameObject.name}! Bounce applied.");
         Debug.Log("STOMP EXECUTED!");
     }
@@ -71,9 +71,9 @@ public class PlayerStomp : MonoBehaviour
         GameLogger.LogMovement($"STOMP BOUNCE! Force: {stompBounceForce}, New Velocity.y: {playerRb.linearVelocity.y:F2}");
     }
 
-    private void StaggerEnemy(Collider2D enemy)
-    {
-        enemy.GetComponentInParent<Pigeon>()?.TriggerStagger();
-        GameLogger.LogVerbose("STOMP", $"Enemy {enemy.gameObject.name} staggered!");
-    }
+    //private void StaggerEnemy(Collider2D enemy)
+    //{
+    //    enemy.GetComponentInParent<Pigeon>()?.TriggerStagger();
+    //    GameLogger.LogVerbose("STOMP", $"Enemy {enemy.gameObject.name} staggered!");
+    //}
 }
