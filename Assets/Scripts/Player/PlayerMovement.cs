@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -33,7 +34,8 @@ public class PlayerMovement : MonoBehaviour
     private const float FLIP_ANALYSIS_LOG_INTERVAL = 2f;
 
     private float lastWallRunVelocity = 0f;
-    
+    public MMF_Player landingFeedbacks;
+
     private void Start()
     {
         rb.linearDamping = 0f;
@@ -370,6 +372,8 @@ public class PlayerMovement : MonoBehaviour
                 GameLogger.LogVerbose("MOVEMENT", "Ignoring duplicate landing detection");
                 return;
             }
+
+            landingFeedbacks.PlayFeedbacks();
             
             float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
             bool isSlamLanding = downwardSpeed > Mathf.Abs(config.slamLandingThreshold);
