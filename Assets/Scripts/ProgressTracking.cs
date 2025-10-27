@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class ProgressTracking : MonoBehaviour
 {
     [SerializeField] private Image progressBar;
+    [SerializeField] private RectTransform progressArrow;
     private Transform endPoint;
     private Transform spawnPoint;
     private Transform player;
@@ -15,7 +16,7 @@ public class ProgressTracking : MonoBehaviour
     void Start()
     {
         AssignTransforms();
-        if (endPoint != null || spawnPoint != null || player != null) levelLength = Mathf.Abs(endPoint.position.x - spawnPoint.position.x);
+        if (endPoint != null && spawnPoint != null) levelLength = Mathf.Abs(endPoint.position.x - spawnPoint.position.x);
     }
 
     // Update is called once per frame
@@ -24,12 +25,13 @@ public class ProgressTracking : MonoBehaviour
         if (endPoint == null || spawnPoint == null || player == null)
         {
             AssignTransforms();
-            if (endPoint != null || spawnPoint != null || player != null) levelLength = Mathf.Abs(endPoint.position.x - spawnPoint.position.x);
+            if (endPoint != null && spawnPoint != null) levelLength = Mathf.Abs(endPoint.position.x - spawnPoint.position.x);
             return;
         }
         playerPositionX = Mathf.Abs(endPoint.position.x - player.position.x);
         playerProgress = 1 - (playerPositionX / levelLength);
         progressBar.fillAmount = playerProgress;
+        progressArrow.anchoredPosition = new Vector2(progressBar.rectTransform.rect.width * playerProgress, progressArrow.anchoredPosition.y);
     }
 
     private void AssignTransforms()
