@@ -47,7 +47,7 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.performed += OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
         
-        inputActions.Gameplay.Reset.started += OnReset;
+        inputActions.Gameplay.Reset.performed += OnReset;
         
         inputActions.Gameplay.Enable();
     }
@@ -66,7 +66,7 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.performed -= OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
         
-        inputActions.Gameplay.Reset.started -= OnReset;
+        inputActions.Gameplay.Reset.performed -= OnReset;
         
         inputActions.Gameplay.Disable();
     }
