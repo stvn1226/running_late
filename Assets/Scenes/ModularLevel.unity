@@ -758,6 +758,14 @@ PrefabInstance:
       propertyPath: m_text
       value: 'Best: 00:00:00.00'
       objectReference: {fileID: 0}
+    - target: {fileID: 6031325043371025529, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_fontSize
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 6031325043371025529, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 28
+      objectReference: {fileID: 0}
     - target: {fileID: 6131219737787306026, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1081,8 +1089,47 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 18890632786547439, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 226731310}
   m_SourcePrefab: {fileID: 100100000, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+--- !u!1 &226731309 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 18890632786547439, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &226731310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 226731309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 1
+  _text: 'Best: 00:00:00.00'
+  useDynamicScaling: 1
+  referenceFontSize: 28
+  isResettingTimeOnNewText: 0
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 1
 --- !u!1 &377434303
 GameObject:
   m_ObjectHideFlags: 0
