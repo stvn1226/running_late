@@ -28,7 +28,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalScale: {x: 0.16, y: 0.16, z: 0.16}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1008962276186670117}
@@ -109,7 +109,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalScale: {x: 0.16, y: 0.16, z: 0.16}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1008962276186670117}
@@ -251,13 +251,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Dog
   hitbox: {fileID: 5271227525356455602}
   solidCollider: {fileID: 5397477613553697664}
-  detectionRadius: 5
-  detectionOrigin: {fileID: 0}
+  detectionRadius: 12
+  detectionOrigin: {fileID: 1008962276186670117}
   staggerForce: {x: -3, y: -2}
   staggerGravityScale: 2
   showGizmos: 1
   cachedPlayerMovement: {fileID: 0}
   wasHit: 0
+  runSpeed: 10
+  leapRange: 8
+  leapForce: {x: -2, y: 8}
+  leapCooldown: 2
 --- !u!1 &6083325443485467078
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,7 +289,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.2, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 8, y: 8, z: 8}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1008962276186670117}
