@@ -4,11 +4,8 @@ using System.Collections;
 using Utils;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class Pigeon : MonoBehaviour
+public class Pigeon : Animal
 {
-    private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
-    private static readonly int Velocity = Animator.StringToHash("velocity");
-
     private enum FlightState
     {
         Idle,
@@ -17,13 +14,6 @@ public class Pigeon : MonoBehaviour
         Staggered,
         Finished
     }
-
-    public Collider2D hitbox;
-    public Collider2D solidCollider;
-
-    [Header("Detection")]
-    [SerializeField] private float detectionRadius = 5f;
-    [SerializeField] private Transform detectionOrigin;
 
     [Header("Take Off")]
     [Tooltip("Time in seconds for the pigeon to finish its take off movement.")]
@@ -43,33 +33,10 @@ public class Pigeon : MonoBehaviour
     [SerializeField] private bool continueGlidingIndefinitely = true;
     [SerializeField] private float glideDuration = 3f;
 
-    [Header("Stagger")]
-    [Tooltip("Force applied when pigeon gets staggered by kick.")]
-    [SerializeField] private Vector2 staggerForce = new Vector2(-3f, -2f);
-    [Tooltip("Gravity scale applied during stagger to make pigeon fall.")]
-    [SerializeField] private float staggerGravityScale = 2f;
-
-    [Header("Animator")]
-    private Animator pigeonAnimator;
-
-    [Header("Debug")]
-    [SerializeField] private bool showGizmos = true;
-
-    private Transform player;
-    public PlayerMovement cachedPlayerMovement;
-    private Rigidbody2D rb;
     private FlightState state = FlightState.Idle;
     private float takeOffTimer;
     private float glideTimer;
     private Vector2 takeOffStartPosition;
-    private float initialGravityScale;
-    private bool isStaggered = false;
-
-    private Camera mainCamera;
-    private bool isRunning;
-    private bool hasRan;
-
-    public bool wasHit = false;
 
     private void Awake()
     {
@@ -82,7 +49,7 @@ public class Pigeon : MonoBehaviour
     {
         mainCamera = GameReferences.Instance.MainCamera;
         CachePlayerTransform();
-        pigeonAnimator = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
     }
 
     private void OnEnable()
@@ -124,14 +91,7 @@ public class Pigeon : MonoBehaviour
         }
     }
 
-    public IEnumerator DisableHitboxTemp(float duration)
-    {
-        hitbox.enabled = false;
-        yield return new WaitForSeconds(duration);
-        hitbox.enabled = true;
-    }
-
-    public void TriggerStagger()
+    public override void TriggerStagger()
     {
         if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
             return;
@@ -141,7 +101,7 @@ public class Pigeon : MonoBehaviour
         state = FlightState.Staggered;
         isStaggered = true;
 
-        pigeonAnimator.SetBool(IsStaggered, true);
+        animator.SetBool(IsStaggered, true);
 
         rb.gravityScale = staggerGravityScale;
         rb.linearVelocity = Vector2.zero;
@@ -203,63 +163,13 @@ public class Pigeon : MonoBehaviour
         }
     }
 
-    private bool PlayerWithinDetectionRadius()
-    {
-        CachePlayerTransform();
-        if (player == null) return false;
-
-        Vector2 origin = GetDetectionOrigin();
-        float sqrDistance = ((Vector2)player.position - origin).sqrMagnitude;
-        return sqrDistance <= detectionRadius * detectionRadius;
-    }
-
-    private void CachePlayerTransform()
-    {
-        if (player) return;
-        player = GameReferences.Instance.PlayerTransform;
-    }
-
-    private Vector2 GetDetectionOrigin()
-    {
-        if (detectionOrigin != null)
-        {
-            return detectionOrigin.position;
-        }
-
-        if (rb != null)
-        {
-            return rb.position;
-        }
-
-        return transform.position;
-    }
-
-    private void EnableDisableDistance()
-    {
-        if (mainCamera == null) return;
-        
-        if (Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 20f)
-        {
-            isRunning = false;
-        }
-        else
-        {
-            isRunning = true;
-            hasRan = true;
-        }
-
-        if (hasRan && Mathf.Abs(transform.position.x - mainCamera.transform.position.x) > 40f)
-        {
-            Destroy(gameObject);
-        }
-    }
 
     private void UpdateAnimator()
     {
-        if (pigeonAnimator != null && rb != null)
+        if (animator != null && rb != null)
         {
             float currentVelocityMagnitude = rb.linearVelocity.magnitude;
-            pigeonAnimator.SetFloat(Velocity, currentVelocityMagnitude);
+            animator.SetFloat(Velocity, currentVelocityMagnitude);
         }
     }
 

@@ -81,7 +81,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0af8bab77d5d2d64ca8d68d425458e2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitboxCollider
-  pigeonParent: {fileID: 7281569745678722116}
+  parent: {fileID: 7281569745678722116}
 --- !u!1 &5734712089292098800
 GameObject:
   m_ObjectHideFlags: 0
@@ -253,6 +253,11 @@ MonoBehaviour:
   solidCollider: {fileID: 5397477613553697664}
   detectionRadius: 10
   detectionOrigin: {fileID: 1008962276186670117}
+  staggerForce: {x: 10, y: 3}
+  staggerGravityScale: 2
+  showGizmos: 1
+  cachedPlayerMovement: {fileID: 0}
+  wasHit: 0
   takeOffDuration: 0.2
   takeOffHeight: 1.75
   takeOffHeightCurve:
@@ -310,11 +315,6 @@ MonoBehaviour:
   maxGlideVerticalSpeed: 2.5
   continueGlidingIndefinitely: 1
   glideDuration: 3
-  staggerForce: {x: 10, y: 3}
-  staggerGravityScale: 2
-  showGizmos: 1
-  cachedPlayerMovement: {fileID: 0}
-  wasHit: 0
 --- !u!1 &6083325443485467078
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,4 +486,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93b3b16e95741d64bb6a243cf2b3e56e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  pigeonParent: {fileID: 7281569745678722116}
+  parent: {fileID: 7281569745678722116}

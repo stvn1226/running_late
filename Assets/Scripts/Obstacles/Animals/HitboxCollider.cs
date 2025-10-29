@@ -3,7 +3,7 @@ using Utils;
 
 public class HitboxCollider : MonoBehaviour
 {
-    [SerializeField] private Pigeon pigeonParent;
+    [SerializeField] private Animal parent;
     private bool stomping;
 
     private void Update()
@@ -16,31 +16,31 @@ public class HitboxCollider : MonoBehaviour
         if (collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG))
         {
             GameLogger.Log("[Pigeon] Pigeon hit by PlayerKick trigger.");
-            pigeonParent.TriggerStagger();
-            pigeonParent.wasHit = true;
+            parent.TriggerStagger();
+            parent.wasHit = true;
             return;
         }
 
         if (collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG))
         {
             stomping = true;
-            pigeonParent.TriggerStagger();
-            pigeonParent.wasHit = true;
+            parent.TriggerStagger();
+            parent.wasHit = true;
             return;
         }
 
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) && !stomping)
         {
             GameLogger.Log("[Pigeon] Pigeon collided with Player");
-            if (pigeonParent.cachedPlayerMovement == null)
-                pigeonParent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+            if (parent.cachedPlayerMovement == null)
+                parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
 
-            if (pigeonParent.cachedPlayerMovement != null)
-                pigeonParent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+            if (parent.cachedPlayerMovement != null)
+                parent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
             
-            pigeonParent.wasHit = true;
+            parent.wasHit = true;
 
-            StartCoroutine(pigeonParent.DisableHitboxTemp(2f));
+            StartCoroutine(parent.DisableHitboxTemp(2f));
         }
     }
 }
