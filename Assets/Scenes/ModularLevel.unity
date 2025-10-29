@@ -538,6 +538,14 @@ PrefabInstance:
       propertyPath: timer
       value: 
       objectReference: {fileID: 613718225}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: defeatPhrases.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[5]'
+      value: <dangle>OOF!
+      objectReference: {fileID: 0}
     - target: {fileID: 2601237574870819448, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1026,6 +1034,30 @@ PrefabInstance:
       propertyPath: timer
       value: 
       objectReference: {fileID: 613718225}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: victoryPhrases.Array.size
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[5]'
+      value: <incr>WOW!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[6]'
+      value: <incr>SICK!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[7]'
+      value: <incr>AMAZING!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[8]'
+      value: <incr>ABSOLUTE CINEMA!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[9]'
+      value: <incr>WINNER!
+      objectReference: {fileID: 0}
     - target: {fileID: 9174801325631633968, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Camera
       value: 
