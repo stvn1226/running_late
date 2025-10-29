@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2c9780018f3a47c9b3ecd0ede907805, type: 3}
+  m_Name: AnalyticsConfig
+  m_EditorClassIdentifier: Assembly-CSharp::AnalyticsConfig
+  enableAnalytics: 1
+  selectedProvider: 3
+  trackLevelEvents: 1
+  trackPlayerActions: 1
+  trackUIEvents: 1
+  trackPerformance: 0
+  verboseLogging: 1

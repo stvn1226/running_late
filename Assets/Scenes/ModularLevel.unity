@@ -424,6 +424,42 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 126505808}
   m_CullTransparentMesh: 1
+--- !u!1 &177647078 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5697482184562771065, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &177647082
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177647078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 0
+  _text: <incr><shake>LATE TO SCHOOL!</shake></incr>
+  useDynamicScaling: 1
+  referenceFontSize: 10
+  isResettingTimeOnNewText: 1
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 0
 --- !u!1 &182048274
 GameObject:
   m_ObjectHideFlags: 0
@@ -522,6 +558,10 @@ PrefabInstance:
       propertyPath: levelStarter
       value: 
       objectReference: {fileID: 1998099633}
+    - target: {fileID: 904221445173567549, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_text
+      value: <bounce>PAUSE</bounce>
+      objectReference: {fileID: 0}
     - target: {fileID: 1369771510215008056, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -578,9 +618,21 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2841711659371198462, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3291902801664550490, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3387111411383165335, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_text
+      value: <incr><bounce>LATE TO SCHOOL!</bounce></incr>
+      objectReference: {fileID: 0}
+    - target: {fileID: 3474745424343588869, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_text
+      value: <bounce>MADE IT!</bounce>
       objectReference: {fileID: 0}
     - target: {fileID: 3493962069882843279, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1090,9 +1142,18 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9076970244091327928, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1035381459}
+    - targetCorrespondingSourceObject: {fileID: 1296622768530189093, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1099858861}
     - targetCorrespondingSourceObject: {fileID: 18890632786547439, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       insertIndex: -1
       addedObject: {fileID: 226731310}
+    - targetCorrespondingSourceObject: {fileID: 5697482184562771065, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 177647082}
   m_SourcePrefab: {fileID: 100100000, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
 --- !u!1 &226731309 stripped
 GameObject:
@@ -2012,6 +2073,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &943307149
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 943307151}
+  - component: {fileID: 943307150}
+  m_Layer: 0
+  m_Name: AnalyticsManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &943307150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 943307149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa30611354f6e4c0a84cd5580cd3a05c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnalyticsManager
+  config: {fileID: 11400000, guid: 010f918fc45cd474abd979485f3ca0d4, type: 2}
+  enableLocalTracking: 1
+  maxEventsInMemory: 1000
+--- !u!4 &943307151
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 943307149}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.18575, y: 570.96045, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1006669941
 GameObject:
   m_ObjectHideFlags: 0
@@ -2134,6 +2242,78 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1021737103}
   m_CullTransparentMesh: 1
+--- !u!1 &1035381455 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9076970244091327928, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1035381459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1035381455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 0
+  _text: <bounce>PAUSE</bounce>
+  useDynamicScaling: 1
+  referenceFontSize: 10
+  isResettingTimeOnNewText: 1
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 0
+--- !u!1 &1099858857 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1296622768530189093, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1099858861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099858857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 0
+  _text: <incr><bounce>MADE IT!</bounce></incr>
+  useDynamicScaling: 1
+  referenceFontSize: 10
+  isResettingTimeOnNewText: 1
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 0
 --- !u!1 &1187442455
 GameObject:
   m_ObjectHideFlags: 0
@@ -2971,7 +3151,7 @@ Transform:
   m_GameObject: {fileID: 1852714626}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -369.60406, y: 11.999999, z: -10}
+  m_LocalPosition: {x: -368.66666, y: 11.999999, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3113,3 +3293,4 @@ SceneRoots:
   - {fileID: 903795372}
   - {fileID: 761049362}
   - {fileID: 182048276}
+  - {fileID: 943307151}

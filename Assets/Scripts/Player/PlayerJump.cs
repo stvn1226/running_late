@@ -65,6 +65,16 @@ public class PlayerJump : MonoBehaviour
         states.StartJump();
 
         jumpFeedbacks.PlayFeedbacks();
+        
+        if (AnalyticsManager.Instance != null)
+        {
+            var context = AnalyticsEvents.CreatePlayerActionContext(
+                "jump", 
+                transform.position.x, 
+                rb.linearVelocity.x
+            );
+            AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_JUMP, context);
+        }
     }
 
     private void CancelCrouchSlideStates()
