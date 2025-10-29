@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7568772218394470299}
   - component: {fileID: 6846500569909007003}
   - component: {fileID: 6031325043371025529}
+  - component: {fileID: 6691884290747956157}
   m_Layer: 5
   m_Name: BestTimeText
   m_TagString: Untagged
@@ -65,7 +66,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Best: 02:01:32.02'
+  m_text: 'Best: 00:00:00.00'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -92,8 +93,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.3
-  m_fontSizeBase: 29.3
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -136,6 +137,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6691884290747956157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 18890632786547439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 1
+  _text: 'Best: 00:00:00.00'
+  useDynamicScaling: 1
+  referenceFontSize: 28
+  isResettingTimeOnNewText: 0
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 1
 --- !u!1 &44751189644507875
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,7 +615,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 02:01:32.02
+  m_text: 00:00:00.00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -1740,6 +1772,7 @@ GameObject:
   - component: {fileID: 4345629556576911216}
   - component: {fileID: 6346527973239429236}
   - component: {fileID: 3474745424343588869}
+  - component: {fileID: 6739226506201256091}
   m_Layer: 5
   m_Name: FinishGameText
   m_TagString: Untagged
@@ -1794,7 +1827,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: MADE IT!
+  m_text: <bounce>MADE IT!</bounce>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
   m_sharedMaterial: {fileID: -1791724492144770645, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
@@ -1865,6 +1898,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6739226506201256091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1296622768530189093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 0
+  _text: <incr><bounce>MADE IT!</bounce></incr>
+  useDynamicScaling: 1
+  referenceFontSize: 10
+  isResettingTimeOnNewText: 1
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 0
 --- !u!1 &1657706673742093741
 GameObject:
   m_ObjectHideFlags: 0
@@ -2045,8 +2109,6 @@ MonoBehaviour:
   - MISSED IT!
   - TRY AGAIN!
   - SO CLOSE!
-  levelStarter: {fileID: 0}
-  levelManager: {fileID: 0}
   timer: {fileID: 0}
 --- !u!1 &1958600083436829991
 GameObject:
@@ -2910,8 +2972,6 @@ MonoBehaviour:
   - PERFECT!
   - AWESOME!
   - SPEEDY!
-  levelStarter: {fileID: 0}
-  levelManager: {fileID: 0}
   timer: {fileID: 0}
 --- !u!1 &3027463821037845179
 GameObject:
@@ -3178,7 +3238,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2601237574870819448
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3193,10 +3253,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5595109863152709289}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -152.5}
-  m_SizeDelta: {x: 1080, y: 51.580006}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1074292619313882627
 CanvasRenderer:
@@ -3226,7 +3286,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Best: 02:01:32.02'
+  m_text: 'Best: 00:00:00.00'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -3362,7 +3422,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Seed: 1231234123'
+  m_text: 'Seed: 0000000000'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -3719,7 +3779,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 02:01:32.02
+  m_text: 00:00:00.00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -5539,6 +5599,7 @@ GameObject:
   - component: {fileID: 4953868026524108176}
   - component: {fileID: 8241263020515443699}
   - component: {fileID: 3387111411383165335}
+  - component: {fileID: 4986993400142224678}
   m_Layer: 5
   m_Name: FinishGameText
   m_TagString: Untagged
@@ -5593,7 +5654,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: LATE TO SCHOOL!
+  m_text: <incr><bounce>LATE TO SCHOOL!</bounce></incr>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
   m_sharedMaterial: {fileID: -1791724492144770645, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
@@ -5664,6 +5725,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4986993400142224678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697482184562771065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 0
+  _text: <incr><shake>LATE TO SCHOOL!</shake></incr>
+  useDynamicScaling: 1
+  referenceFontSize: 10
+  isResettingTimeOnNewText: 1
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 0
 --- !u!1 &5839075455116407224
 GameObject:
   m_ObjectHideFlags: 0
@@ -7544,7 +7636,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Seed: 1231234123'
+  m_text: 'Seed: 0000000000'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -8691,6 +8783,7 @@ GameObject:
   - component: {fileID: 1122740159160123641}
   - component: {fileID: 3132755709041631002}
   - component: {fileID: 904221445173567549}
+  - component: {fileID: 3740389665014354787}
   m_Layer: 5
   m_Name: PauseText
   m_TagString: Untagged
@@ -8745,7 +8838,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PAUSE
+  m_text: <bounce>PAUSE</bounce>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -8816,6 +8909,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3740389665014354787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9076970244091327928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 0
+  _text: <bounce>PAUSE</bounce>
+  useDynamicScaling: 1
+  referenceFontSize: 10
+  isResettingTimeOnNewText: 1
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 0
 --- !u!1 &9126622102862351197
 GameObject:
   m_ObjectHideFlags: 0
