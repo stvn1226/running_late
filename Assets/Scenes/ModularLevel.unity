@@ -551,6 +551,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1998099633}
     - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: defeatPhrases.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: 'defeatPhrases.Array.data[0]'
       value: <dangle>TOO LATE!
       objectReference: {fileID: 0}
@@ -569,6 +573,10 @@ PrefabInstance:
     - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: 'defeatPhrases.Array.data[4]'
       value: <dangle>SO CLOSE!
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[5]'
+      value: <dangle>OOF!
       objectReference: {fileID: 0}
     - target: {fileID: 1958570700558668536, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_IsActive
@@ -1103,6 +1111,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1998099633}
     - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: victoryPhrases.Array.size
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: 'victoryPhrases.Array.data[0]'
       value: <incr>PHEW!
       objectReference: {fileID: 0}
@@ -1121,6 +1133,14 @@ PrefabInstance:
     - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: 'victoryPhrases.Array.data[4]'
       value: <incr>SPEEDY!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[5]'
+      value: <incr>WOW!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[6]'
+      value: <incr>SICK!
       objectReference: {fileID: 0}
     - target: {fileID: 9174801325631633968, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Camera
