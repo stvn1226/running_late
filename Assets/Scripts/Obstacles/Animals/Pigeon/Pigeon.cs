@@ -93,8 +93,7 @@ public class Pigeon : Animal
 
     public override void TriggerStagger()
     {
-        if (state == FlightState.Idle || state == FlightState.Staggered || state == FlightState.Finished)
-            return;
+        if (state == FlightState.Staggered) return;
 
         GameLogger.Log("[Pigeon] Pigeon staggered and knocked out of the sky!");
         

@@ -12,6 +12,9 @@ public class Dog : Animal
         Finished
     }
 
+    [Header("Running")]
+    [SerializeField] private float runSpeed = 5f;
+
     private DogState state = DogState.Idle;
 
     private void Awake()
@@ -43,7 +46,7 @@ public class Dog : Animal
         EnableDisableDistance();
         if (state == DogState.Idle && PlayerWithinDetectionRadius())
         {
-
+            BeginRunning();
         }
         UpdateAnimator();
     }
@@ -53,6 +56,7 @@ public class Dog : Animal
         switch (state)
         {
             case DogState.Running:
+                HandleRunning();
                 break;
             case DogState.Leaping:
                 break;
@@ -62,10 +66,21 @@ public class Dog : Animal
         }
     }
 
+    private void BeginRunning()
+    {
+        if (state != DogState.Idle) return;
+
+        state = DogState.Running;
+    }
+
+    private void HandleRunning()
+    {
+        rb.linearVelocity = new Vector2(-runSpeed, rb.linearVelocity.y);
+    }
+
     public override void TriggerStagger()
     {
-        if (state == DogState.Idle || state == DogState.Staggered || state == DogState.Finished)
-            return;
+        if (state == DogState.Staggered) return;
 
         GameLogger.Log("[Dog] Dog staggered and knocked out!");
 
