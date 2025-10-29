@@ -55,9 +55,20 @@ public class Goal : MonoBehaviour
             GameLogger.Log("GOAL", "=== VICTORY TRIGGERED ===");
         }
 
+        Timer timer = FindObjectOfType<Timer>();
+        float completionTime = timer != null ? timer.ElapsedTime : 0f;
+    
+        int currentSeed = LevelStarter.Instance != null ? LevelStarter.Instance.GetCurrentSeed() : 0;
+    
+        if (AnalyticsManager.Instance != null)
+        {
+            AnalyticsManager.Instance.TrackLevelComplete(currentSeed, completionTime, true);
+        }
+
         StopTimer();
         StartCoroutine(VictorySequence());
     }
+
 
     private void StopTimer()
     {

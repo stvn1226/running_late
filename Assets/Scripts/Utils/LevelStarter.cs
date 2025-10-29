@@ -219,10 +219,16 @@ public class LevelStarter : MonoBehaviour
     {
         OnLevelGenerationStarted?.Invoke();
         generationStartTime = DateTime.Now;
-        
+    
         yield return new WaitForSeconds(generationDelay);
-        
+    
         InitializeSeed();
+    
+        if (AnalyticsManager.Instance != null)
+        {
+            string levelType = useModularGeneration ? "Modular" : "Procedural";
+            AnalyticsManager.Instance.TrackLevelStart(currentSeed, levelType);
+        }
         
         if (autoClearStructures) ClearModules();
         
