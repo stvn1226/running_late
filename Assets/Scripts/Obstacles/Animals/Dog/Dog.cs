@@ -15,7 +15,14 @@ public class Dog : Animal
     [Header("Running")]
     [SerializeField] private float runSpeed = 5f;
 
+    [Header("Leap")]
+    [SerializeField] private float leapRange = 3f;
+    [SerializeField] private Vector2 leapForce = new Vector2(-2f, 8f);
+    [SerializeField] private float leapCooldown = 2f;
+
     private DogState state = DogState.Idle;
+    private float lastLeapTime = -100f;
+    private bool hasLeaped = false;
 
     private void Awake()
     {
@@ -34,6 +41,8 @@ public class Dog : Animal
     {
         state = DogState.Idle;
         isStaggered = false;
+        lastLeapTime = -100f;
+        hasLeaped = false;
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
@@ -48,6 +57,17 @@ public class Dog : Animal
         {
             BeginRunning();
         }
+
+        if (state == DogState.Running && PlayerWithinLeapRange() && CanLeap())
+        {
+            BeginLeap();
+        }
+
+        if (state == DogState.Leaping && rb.linearVelocity.y <= 0f)
+        {
+            state = DogState.Running;
+        }
+
         UpdateAnimator();
     }
 
@@ -59,6 +79,7 @@ public class Dog : Animal
                 HandleRunning();
                 break;
             case DogState.Leaping:
+                HandleLeaping();
                 break;
             case DogState.Staggered:
                 HandleStagger();
@@ -74,6 +95,38 @@ public class Dog : Animal
     }
 
     private void HandleRunning()
+    {
+        rb.linearVelocity = new Vector2(-runSpeed, rb.linearVelocity.y);
+    }
+
+    private bool PlayerWithinLeapRange()
+    {
+        CachePlayerTransform();
+        if (player == null) return false;
+
+        Vector2 origin = GetDetectionOrigin();
+        float sqrDistance = ((Vector2)player.position - origin).sqrMagnitude;
+        return sqrDistance <= leapRange * leapRange;
+    }
+
+    private bool CanLeap()
+    {
+        return Time.time >= lastLeapTime + leapCooldown;
+    }
+
+    private void BeginLeap()
+    {
+        if (state != DogState.Running) return;
+
+        state = DogState.Leaping;
+        lastLeapTime = Time.time;
+        hasLeaped = true;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(leapForce, ForceMode2D.Impulse);
+    }
+
+    private void HandleLeaping()
     {
         rb.linearVelocity = new Vector2(-runSpeed, rb.linearVelocity.y);
     }
@@ -114,9 +167,13 @@ public class Dog : Animal
     {
         if (!showGizmos) return;
 
-        Gizmos.color = Color.cyan;
         Vector3 origin = detectionOrigin != null ? detectionOrigin.position : transform.position;
+
+        Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(origin, detectionRadius);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(origin, leapRange);
     }
 
 }
