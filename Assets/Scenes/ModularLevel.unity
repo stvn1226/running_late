@@ -550,6 +550,26 @@ PrefabInstance:
       propertyPath: levelStarter
       value: 
       objectReference: {fileID: 1998099633}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[0]'
+      value: <dangle>TOO LATE!
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[1]'
+      value: <dangle>TIME'S UP!
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[2]'
+      value: <dangle>MISSED IT!
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[3]'
+      value: <dangle>TRY AGAIN!
+      objectReference: {fileID: 0}
+    - target: {fileID: 1426264438190467325, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'defeatPhrases.Array.data[4]'
+      value: <dangle>SO CLOSE!
+      objectReference: {fileID: 0}
     - target: {fileID: 1958570700558668536, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1082,6 +1102,26 @@ PrefabInstance:
       propertyPath: levelStarter
       value: 
       objectReference: {fileID: 1998099633}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[0]'
+      value: <incr>PHEW!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[1]'
+      value: <incr>NICE!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[2]'
+      value: <incr>PERFECT!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[3]'
+      value: <incr>AWESOME!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: 'victoryPhrases.Array.data[4]'
+      value: <incr>SPEEDY!
+      objectReference: {fileID: 0}
     - target: {fileID: 9174801325631633968, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Camera
       value: 
@@ -1090,9 +1130,15 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7860241147791695299, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1796844202}
     - targetCorrespondingSourceObject: {fileID: 18890632786547439, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       insertIndex: -1
       addedObject: {fileID: 226731310}
+    - targetCorrespondingSourceObject: {fileID: 1024647453246582785, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 358540689}
   m_SourcePrefab: {fileID: 100100000, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
 --- !u!1 &226731309 stripped
 GameObject:
@@ -1117,6 +1163,42 @@ MonoBehaviour:
   _text: 'Best: 00:00:00.00'
   useDynamicScaling: 1
   referenceFontSize: 28
+  isResettingTimeOnNewText: 0
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 1
+--- !u!1 &358540685 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1024647453246582785, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &358540689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 358540685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 1
+  _text: too late!
+  useDynamicScaling: 1
+  referenceFontSize: 40
   isResettingTimeOnNewText: 0
   useDefaultDatabases: 1
   databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
@@ -2751,6 +2833,42 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1796844198 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7860241147791695299, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1796844202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796844198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 1
+  _text: PHEW!
+  useDynamicScaling: 1
+  referenceFontSize: 40
+  isResettingTimeOnNewText: 0
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 1
 --- !u!1 &1812050160
 GameObject:
   m_ObjectHideFlags: 0
