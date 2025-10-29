@@ -13,6 +13,14 @@ public class AnalyticsConfig : ScriptableObject
     public bool trackUIEvents = true;
     public bool trackPerformance = false;
     
+    [Header("Persistence Settings")]
+    public bool enablePersistence = true;
+    public bool autoSaveEnabled = true;
+    [Range(10f, 300f)]
+    public float autoSaveInterval = 60f;
+    [Range(10, 200)]
+    public int maxSessionsToKeep = 50;
+    
     [Header("Debug")]
     public bool verboseLogging = true;
 }

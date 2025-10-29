@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -14,7 +15,7 @@ public class AnalyticsViewerWindow : EditorWindow
     private bool showTimestamps = true;
     private bool showProvider = true;
     private int selectedTab = 0;
-    private string[] tabNames = { "Events", "Statistics", "Session Info" };
+    private string[] tabNames = { "Events", "Statistics", "Session Info", "History" };
     
     private Dictionary<string, bool> eventTypeFilters = new Dictionary<string, bool>();
     private GUIStyle eventStyle;
@@ -22,6 +23,11 @@ public class AnalyticsViewerWindow : EditorWindow
     private GUIStyle parameterStyle;
     
     private bool stylesInitialized = false;
+    
+    private Vector2 historyScrollPosition;
+    private List<SerializedAnalyticsSession> loadedSessions;
+    private SerializedAnalyticsSession selectedHistorySession;
+
     
     [MenuItem("Tools/Running Late/Analytics Viewer")]
     public static void ShowWindow()
@@ -103,6 +109,9 @@ public class AnalyticsViewerWindow : EditorWindow
                 break;
             case 2:
                 DrawSessionInfoTab();
+                break;
+            case 3:
+                DrawHistoryTab();
                 break;
         }
     }
@@ -256,6 +265,223 @@ public class AnalyticsViewerWindow : EditorWindow
         
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
+    }
+    
+    private void DrawHistoryTab()
+    {
+        EditorGUILayout.BeginHorizontal();
+        
+        if (GUILayout.Button("Refresh History", GUILayout.Width(120)))
+        {
+            LoadSessionHistory();
+        }
+        
+        if (GUILayout.Button("Open Data Folder", GUILayout.Width(120)))
+        {
+            if (AnalyticsPersistence.Instance != null)
+            {
+                AnalyticsPersistence.Instance.OpenPersistentDataFolder();
+            }
+            else
+            {
+                string path = Path.Combine(Application.persistentDataPath, "AnalyticsData");
+                if (Directory.Exists(path))
+                {
+                    Application.OpenURL("file://" + path);
+                }
+            }
+        }
+        
+        if (GUILayout.Button("Export All to CSV", GUILayout.Width(120)))
+        {
+            ExportAllHistoryToCSV();
+        }
+        
+        if (GUILayout.Button("Delete All", GUILayout.Width(100)))
+        {
+            if (EditorUtility.DisplayDialog("Delete All Sessions", 
+                "Are you sure you want to delete all saved analytics sessions?", "Delete", "Cancel"))
+            {
+                if (AnalyticsPersistence.Instance != null)
+                {
+                    AnalyticsPersistence.Instance.DeleteAllSessions();
+                    LoadSessionHistory();
+                }
+            }
+        }
+        
+        GUILayout.FlexibleSpace();
+        
+        if (loadedSessions != null)
+        {
+            GUILayout.Label($"Total Sessions: {loadedSessions.Count}", EditorStyles.boldLabel);
+        }
+        
+        EditorGUILayout.EndHorizontal();
+        
+        EditorGUILayout.Space(5);
+        
+        if (loadedSessions == null)
+        {
+            LoadSessionHistory();
+        }
+        
+        if (loadedSessions == null || loadedSessions.Count == 0)
+        {
+            EditorGUILayout.HelpBox("No saved sessions found", MessageType.Info);
+            return;
+        }
+        
+        EditorGUILayout.BeginHorizontal();
+        
+        EditorGUILayout.BeginVertical(GUILayout.Width(position.width * 0.4f));
+        EditorGUILayout.LabelField("Saved Sessions", EditorStyles.boldLabel);
+        
+        historyScrollPosition = EditorGUILayout.BeginScrollView(historyScrollPosition);
+        
+        foreach (var session in loadedSessions)
+        {
+            bool isSelected = selectedHistorySession == session;
+            
+            if (isSelected)
+            {
+                GUI.backgroundColor = new Color(0.3f, 0.5f, 0.8f);
+            }
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            EditorGUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button(isSelected ? "▼" : "▶", GUILayout.Width(20)))
+            {
+                selectedHistorySession = isSelected ? null : session;
+            }
+            
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField($"Session: {session.sessionStartTime}", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField($"Events: {session.events.Count} | Duration: {FormatDuration(session.sessionDuration)}");
+            EditorGUILayout.LabelField($"Status: {session.sessionEndTime}");
+            EditorGUILayout.EndVertical();
+            
+            if (GUILayout.Button("Delete", EditorStyles.miniButton, GUILayout.Width(50)))
+            {
+                if (EditorUtility.DisplayDialog("Delete Session", 
+                    $"Delete session from {session.sessionStartTime}?", "Delete", "Cancel"))
+                {
+                    if (AnalyticsPersistence.Instance != null)
+                    {
+                        AnalyticsPersistence.Instance.DeleteSession(session.sessionId);
+                        LoadSessionHistory();
+                    }
+                }
+            }
+            
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.EndVertical();
+            
+            GUI.backgroundColor = Color.white;
+        }
+        
+        EditorGUILayout.EndScrollView();
+        EditorGUILayout.EndVertical();
+        
+        EditorGUILayout.BeginVertical();
+        
+        if (selectedHistorySession != null)
+        {
+            DrawSessionDetails(selectedHistorySession);
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("Select a session to view details", MessageType.Info);
+        }
+        
+        EditorGUILayout.EndVertical();
+        
+        EditorGUILayout.EndHorizontal();
+    }
+    
+    private void DrawSessionDetails(SerializedAnalyticsSession session)
+    {
+        EditorGUILayout.LabelField("Session Details", EditorStyles.boldLabel);
+        
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        EditorGUILayout.LabelField($"Session ID: {session.sessionId}");
+        EditorGUILayout.LabelField($"Started: {session.sessionStartTime}");
+        EditorGUILayout.LabelField($"Ended: {session.sessionEndTime}");
+        EditorGUILayout.LabelField($"Duration: {FormatDuration(session.sessionDuration)}");
+        EditorGUILayout.LabelField($"Total Events: {session.events.Count}");
+        EditorGUILayout.EndVertical();
+        
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("Events", EditorStyles.boldLabel);
+        
+        var eventCounts = new Dictionary<string, int>();
+        foreach (var evt in session.events)
+        {
+            if (!eventCounts.ContainsKey(evt.eventName))
+                eventCounts[evt.eventName] = 0;
+            eventCounts[evt.eventName]++;
+        }
+        
+        foreach (var kvp in eventCounts.OrderByDescending(x => x.Value))
+        {
+            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(kvp.Key, GUILayout.Width(200));
+            EditorGUILayout.LabelField($"{kvp.Value} events", EditorStyles.boldLabel);
+            EditorGUILayout.EndHorizontal();
+        }
+    }
+
+    private void LoadSessionHistory()
+    {
+        if (AnalyticsPersistence.Instance != null)
+        {
+            loadedSessions = AnalyticsPersistence.Instance.LoadAllSessions();
+            loadedSessions.Sort((a, b) => b.sessionStartTime.CompareTo(a.sessionStartTime));
+        }
+        else
+        {
+            string path = Path.Combine(Application.persistentDataPath, "AnalyticsData");
+            if (Directory.Exists(path))
+            {
+                loadedSessions = new List<SerializedAnalyticsSession>();
+                var files = Directory.GetFiles(path, "analytics_session_*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        string json = File.ReadAllText(file);
+                        var session = JsonUtility.FromJson<SerializedAnalyticsSession>(json);
+                        loadedSessions.Add(session);
+                    }
+                    catch { }
+                }
+                
+                loadedSessions.Sort((a, b) => b.sessionStartTime.CompareTo(a.sessionStartTime));
+            }
+        }
+    }
+
+    private void ExportAllHistoryToCSV()
+    {
+        string path = EditorUtility.SaveFilePanel(
+            "Export All Sessions to CSV",
+            "",
+            $"all_analytics_{System.DateTime.Now:yyyyMMdd_HHmmss}.csv",
+            "csv"
+        );
+        
+        if (string.IsNullOrEmpty(path)) return;
+        
+        if (AnalyticsPersistence.Instance != null)
+        {
+            AnalyticsPersistence.Instance.ExportAllSessionsToCSV(path);
+        }
+        
+        EditorUtility.DisplayDialog("Export Complete", $"All sessions exported to:\n{path}", "OK");
     }
     
     private List<AnalyticsEventRecord> FilterEvents(List<AnalyticsEventRecord> events)
