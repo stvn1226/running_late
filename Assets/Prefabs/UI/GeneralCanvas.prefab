@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7568772218394470299}
   - component: {fileID: 6846500569909007003}
   - component: {fileID: 6031325043371025529}
-  - component: {fileID: 6691884290747956157}
+  - component: {fileID: 1261325980677310185}
   m_Layer: 5
   m_Name: BestTimeText
   m_TagString: Untagged
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &6691884290747956157
+--- !u!114 &1261325980677310185
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1550,6 +1550,7 @@ GameObject:
   - component: {fileID: 3071296910194149977}
   - component: {fileID: 4589080592386067184}
   - component: {fileID: 5405380296969694662}
+  - component: {fileID: 8199738631352060072}
   m_Layer: 5
   m_Name: ExpressionText
   m_TagString: Untagged
@@ -1675,6 +1676,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8199738631352060072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024647453246582785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 1
+  _text: too late!
+  useDynamicScaling: 1
+  referenceFontSize: 40
+  isResettingTimeOnNewText: 0
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 1
 --- !u!1 &1228413267014207173
 GameObject:
   m_ObjectHideFlags: 0
@@ -1827,7 +1859,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <bounce>MADE IT!</bounce>
+  m_text: <bounce_p>MADE IT!</bounce_p>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
   m_sharedMaterial: {fileID: -1791724492144770645, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
@@ -1912,7 +1944,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
   typewriterStartsAutomatically: 0
   animationLoop: 0
-  timeScale: 0
+  timeScale: 1
   _text: <incr><bounce>MADE IT!</bounce></incr>
   useDynamicScaling: 1
   referenceFontSize: 10
@@ -2104,11 +2136,11 @@ MonoBehaviour:
   seedToggle: {fileID: 4070132047848505047}
   seedInputField: {fileID: 1204335516035221498}
   defeatPhrases:
-  - TOO LATE!
-  - TIME'S UP!
-  - MISSED IT!
-  - TRY AGAIN!
-  - SO CLOSE!
+  - <dangle>TOO LATE!
+  - <dangle>TIME'S UP!
+  - <dangle>MISSED IT!
+  - <dangle>TRY AGAIN!
+  - <dangle>SO CLOSE!
   timer: {fileID: 0}
 --- !u!1 &1958600083436829991
 GameObject:
@@ -2967,11 +2999,11 @@ MonoBehaviour:
   seedToggle: {fileID: 3699438760827568782}
   seedInputField: {fileID: 3228578124198124364}
   victoryPhrases:
-  - PHEW!
-  - NICE!
-  - PERFECT!
-  - AWESOME!
-  - SPEEDY!
+  - <incr>PHEW!
+  - <incr>NICE!
+  - <incr>PERFECT!
+  - <incr>AWESOME!
+  - <incr>SPEEDY!
   timer: {fileID: 0}
 --- !u!1 &3027463821037845179
 GameObject:
@@ -5654,7 +5686,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <incr><bounce>LATE TO SCHOOL!</bounce></incr>
+  m_text: <incr_p><bounce_p>LATE TO SCHOOL!</bounce_p></incr_p>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
   m_sharedMaterial: {fileID: -1791724492144770645, guid: c37bf2834c55f42eaa1487acca71a685, type: 2}
@@ -5739,7 +5771,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
   typewriterStartsAutomatically: 0
   animationLoop: 0
-  timeScale: 0
+  timeScale: 1
   _text: <incr><shake>LATE TO SCHOOL!</shake></incr>
   useDynamicScaling: 1
   referenceFontSize: 10
@@ -7446,6 +7478,7 @@ GameObject:
   - component: {fileID: 4716087950859489506}
   - component: {fileID: 7266271056590357531}
   - component: {fileID: 5163831911581394964}
+  - component: {fileID: 414479081573075749}
   m_Layer: 5
   m_Name: ExpressionText
   m_TagString: Untagged
@@ -7571,6 +7604,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &414479081573075749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7860241147791695299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
+  typewriterStartsAutomatically: 0
+  animationLoop: 0
+  timeScale: 1
+  _text: PHEW!
+  useDynamicScaling: 1
+  referenceFontSize: 40
+  isResettingTimeOnNewText: 0
+  useDefaultDatabases: 1
+  databaseBehaviors: {fileID: 11400000, guid: d44948d94044a6146b86fc96f9866f22, type: 2}
+  databaseAppearances: {fileID: 11400000, guid: a86184c435561e44eab600a6565da5ac, type: 2}
+  useDefaultStyleSheet: 1
+  styleSheet: {fileID: 0}
+  databaseActions: {fileID: 11400000, guid: 05f2840a52d0eda4bbeef0ba0e11ef75, type: 2}
+  defaultAppearancesTags:
+  - size
+  defaultDisappearancesTags:
+  - fade
+  defaultBehaviorsTags: []
+  defaultTagsMode: 1
 --- !u!1 &7943167410397435990
 GameObject:
   m_ObjectHideFlags: 0
@@ -8838,7 +8902,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <bounce>PAUSE</bounce>
+  m_text: <bounce_p>PAUSE</bounce_p>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -8923,7 +8987,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Febucci.TextAnimator.TMP.Runtime::Febucci.UI.TextAnimator_TMP
   typewriterStartsAutomatically: 0
   animationLoop: 0
-  timeScale: 0
+  timeScale: 1
   _text: <bounce>PAUSE</bounce>
   useDynamicScaling: 1
   referenceFontSize: 10
