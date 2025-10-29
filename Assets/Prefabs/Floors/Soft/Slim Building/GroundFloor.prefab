@@ -793,6 +793,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cbcda72236da6545b547fa7f504d345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingWallsTrigger
+  boxCollider: {fileID: 0}
+  platformEffector: {fileID: 0}
 --- !u!1 &7674499980409501289
 GameObject:
   m_ObjectHideFlags: 0
@@ -904,3 +906,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cbcda72236da6545b547fa7f504d345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingWallsTrigger
+  boxCollider: {fileID: 0}
+  platformEffector: {fileID: 0}

@@ -22,14 +22,14 @@ MonoBehaviour:
   fastFallGravityScale: 9
   jumpBufferTime: 0.12
   coyoteTime: 0.1
-  wallRunForce: 3000
+  wallRunForce: 2500
   wallRunGravityScale: 1
   wallJumpMultiplier: 1
   groundDrag: 50
   airDrag: 50
   slideDrag: 10
   maxFallSpeed: 60
-  groundCheckDistance: 0.2
+  groundCheckDistance: 0.3
   groundLayer:
     serializedVersion: 2
     m_Bits: 33408
@@ -44,7 +44,7 @@ MonoBehaviour:
   staggerMovementReduction: 0.2
   landingGracePeriod: 0.5
   slamLandingThreshold: 0
-  momentumConversionRatio: 0.2
+  momentumConversionRatio: 0.25
   crouchSizeMultiplier: {x: 2, y: 0.5}
   dropDownDisableTime: 0.3
   platformLayerMask:

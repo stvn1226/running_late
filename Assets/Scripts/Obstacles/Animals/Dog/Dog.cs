@@ -1,0 +1,179 @@
+using UnityEngine;
+using System.Collections;
+
+public class Dog : Animal
+{
+    private enum DogState
+    {
+        Idle,
+        Running,
+        Leaping,
+        Staggered,
+        Finished
+    }
+
+    [Header("Running")]
+    [SerializeField] private float runSpeed = 5f;
+
+    [Header("Leap")]
+    [SerializeField] private float leapRange = 3f;
+    [SerializeField] private Vector2 leapForce = new Vector2(-2f, 8f);
+    [SerializeField] private float leapCooldown = 2f;
+
+    private DogState state = DogState.Idle;
+    private float lastLeapTime = -100f;
+    private bool hasLeaped = false;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        initialGravityScale = rb.gravityScale;
+    }
+
+    private void Start()
+    {
+        mainCamera = GameReferences.Instance.MainCamera;
+        CachePlayerTransform();
+        animator = GetComponent<Animator>();
+    }
+
+    private void OnEnable()
+    {
+        state = DogState.Idle;
+        isStaggered = false;
+        lastLeapTime = -100f;
+        hasLeaped = false;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.gravityScale = initialGravityScale;
+        }
+    }
+
+    private void Update()
+    {
+        EnableDisableDistance();
+        if (state == DogState.Idle && PlayerWithinDetectionRadius())
+        {
+            BeginRunning();
+        }
+
+        if (state == DogState.Running && PlayerWithinLeapRange() && CanLeap())
+        {
+            BeginLeap();
+        }
+
+        if (state == DogState.Leaping && rb.linearVelocity.y <= 0f)
+        {
+            state = DogState.Running;
+        }
+
+        UpdateAnimator();
+    }
+
+    private void FixedUpdate()
+    {
+        switch (state)
+        {
+            case DogState.Running:
+                HandleRunning();
+                break;
+            case DogState.Leaping:
+                HandleLeaping();
+                break;
+            case DogState.Staggered:
+                HandleStagger();
+                break;
+        }
+    }
+
+    private void BeginRunning()
+    {
+        if (state != DogState.Idle) return;
+
+        state = DogState.Running;
+    }
+
+    private void HandleRunning()
+    {
+        rb.linearVelocity = new Vector2(-runSpeed, rb.linearVelocity.y);
+    }
+
+    private bool PlayerWithinLeapRange()
+    {
+        CachePlayerTransform();
+        if (player == null) return false;
+
+        Vector2 origin = GetDetectionOrigin();
+        float sqrDistance = ((Vector2)player.position - origin).sqrMagnitude;
+        return sqrDistance <= leapRange * leapRange;
+    }
+
+    private bool CanLeap()
+    {
+        return Time.time >= lastLeapTime + leapCooldown;
+    }
+
+    private void BeginLeap()
+    {
+        if (state != DogState.Running) return;
+
+        state = DogState.Leaping;
+        lastLeapTime = Time.time;
+        hasLeaped = true;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(leapForce, ForceMode2D.Impulse);
+    }
+
+    private void HandleLeaping()
+    {
+        rb.linearVelocity = new Vector2(-runSpeed, rb.linearVelocity.y);
+    }
+
+    public override void TriggerStagger()
+    {
+        if (state == DogState.Staggered) return;
+
+        GameLogger.Log("[Dog] Dog staggered and knocked out!");
+
+        state = DogState.Staggered;
+        isStaggered = true;
+
+        animator.SetBool(IsStaggered, true);
+
+        rb.gravityScale = staggerGravityScale;
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(staggerForce, ForceMode2D.Impulse);
+
+        hitbox.enabled = false;
+        solidCollider.enabled = false;
+    }
+
+    private void HandleStagger()
+    {
+    }
+
+    private void UpdateAnimator()
+    {
+        if (animator != null && rb != null)
+        {
+            float currentVelocityMagnitude = rb.linearVelocity.magnitude;
+            animator.SetFloat(Velocity, currentVelocityMagnitude);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!showGizmos) return;
+
+        Vector3 origin = detectionOrigin != null ? detectionOrigin.position : transform.position;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(origin, detectionRadius);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(origin, leapRange);
+    }
+
+}
