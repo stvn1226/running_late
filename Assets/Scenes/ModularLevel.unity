@@ -498,6 +498,10 @@ PrefabInstance:
       propertyPath: m_text
       value: 'Seed: 0000000000'
       objectReference: {fileID: 0}
+    - target: {fileID: 419544780787778371, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 447903328261970305, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -677,6 +681,18 @@ PrefabInstance:
     - target: {fileID: 4794584330703173697, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_text
       value: 00:00:00.00
+      objectReference: {fileID: 0}
+    - target: {fileID: 4794584330703173697, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: checkPaddingRequired
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4794584330703173697, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_enableExtraPadding
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4794584330703173697, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4828993062557787408, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
@@ -885,6 +901,10 @@ PrefabInstance:
     - target: {fileID: 7561405279462698061, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_text
       value: 'Best: 00:00:00.00'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7561405279462698061, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_ActiveFontFeatures.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7568772218394470299, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
