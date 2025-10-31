@@ -4,18 +4,17 @@ using Utils;
 public class HitboxCollider : MonoBehaviour
 {
     [SerializeField] private Animal parent;
-    private bool stomping;
-
-    private void Update()
-    {
-        stomping = false;
-    }
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
+        if (parent.wasHit || parent.isStaggered)
+        {
+            return;
+        }
+
         if (collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG))
         {
-            GameLogger.Log("[Pigeon] Pigeon hit by PlayerKick trigger.");
+            GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerKick trigger.");
             parent.TriggerStagger();
             parent.wasHit = true;
             return;
@@ -23,15 +22,16 @@ public class HitboxCollider : MonoBehaviour
 
         if (collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG))
         {
-            stomping = true;
+            GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerStomp trigger.");
             parent.TriggerStagger();
             parent.wasHit = true;
             return;
         }
 
-        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) && !stomping)
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
-            GameLogger.Log("[Pigeon] Pigeon collided with Player");
+            GameLogger.Log($"[{parent.gameObject.name}] Collided with Player - dealing damage");
+            
             if (parent.cachedPlayerMovement == null)
                 parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
 

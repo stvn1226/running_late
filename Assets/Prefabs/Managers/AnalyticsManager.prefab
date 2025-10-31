@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3906986965521598217}
   - component: {fileID: 6245798130368336081}
+  - component: {fileID: 3049186869384088995}
   m_Layer: 0
   m_Name: AnalyticsManager
   m_TagString: Untagged
@@ -47,3 +48,21 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 010f918fc45cd474abd979485f3ca0d4, type: 2}
   enableLocalTracking: 1
   maxEventsInMemory: 1000
+--- !u!114 &3049186869384088995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221992290548000215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c37c7567933548a58fcbace31a585ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnalyticsPersistence
+  enablePersistence: 1
+  autoSave: 1
+  autoSaveInterval: 60
+  maxSessionsToKeep: 50
+  saveDirectory: AnalyticsData
+  filePrefix: analytics_session_

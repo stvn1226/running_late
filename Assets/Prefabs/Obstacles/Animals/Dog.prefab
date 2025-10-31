@@ -43,7 +43,7 @@ CircleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: a851a029f6e4245a6a42b7afc887a178, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -124,7 +124,7 @@ CircleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: a851a029f6e4245a6a42b7afc887a178, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -251,7 +251,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Dog
   hitbox: {fileID: 5271227525356455602}
   solidCollider: {fileID: 5397477613553697664}
-  detectionRadius: 12
+  detectionRadius: 14
   detectionOrigin: {fileID: 1008962276186670117}
   staggerForce: {x: -3, y: -2}
   staggerGravityScale: 2
@@ -262,6 +262,10 @@ MonoBehaviour:
   leapRange: 8
   leapForce: {x: -2, y: 8}
   leapCooldown: 2
+  groundCheckDistance: 0.3
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 33408
 --- !u!1 &6083325443485467078
 GameObject:
   m_ObjectHideFlags: 0
