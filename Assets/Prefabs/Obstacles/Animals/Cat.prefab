@@ -251,7 +251,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Dog
   hitbox: {fileID: 5271227525356455602}
   solidCollider: {fileID: 5397477613553697664}
-  detectionRadius: 10
+  detectionRadius: 12
   detectionOrigin: {fileID: 1008962276186670117}
   staggerForce: {x: -3, y: -2}
   staggerGravityScale: 2
@@ -259,9 +259,13 @@ MonoBehaviour:
   cachedPlayerMovement: {fileID: 0}
   wasHit: 0
   runSpeed: 10
-  leapRange: 6
+  leapRange: 7
   leapForce: {x: -2, y: 8}
   leapCooldown: 2
+  groundCheckDistance: 0.3
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 33408
 --- !u!1 &6083325443485467078
 GameObject:
   m_ObjectHideFlags: 0
