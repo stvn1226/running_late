@@ -30,7 +30,7 @@ public abstract class Animal : MonoBehaviour
     protected Rigidbody2D rb;
 
     protected float initialGravityScale;
-    protected bool isStaggered = false;
+    public bool isStaggered = false;
 
     protected Camera mainCamera;
     protected bool isRunning;

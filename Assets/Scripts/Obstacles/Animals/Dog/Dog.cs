@@ -35,6 +35,11 @@ public class Dog : Animal
         mainCamera = GameReferences.Instance.MainCamera;
         CachePlayerTransform();
         animator = GetComponent<Animator>();
+        
+        if (rb != null)
+        {
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
     }
 
     private void OnEnable()
@@ -43,10 +48,22 @@ public class Dog : Animal
         isStaggered = false;
         lastLeapTime = -100f;
         hasLeaped = false;
+        
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
             rb.gravityScale = initialGravityScale;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
+        
+        if (solidCollider != null)
+        {
+            solidCollider.enabled = true;
+        }
+        
+        if (hitbox != null)
+        {
+            hitbox.enabled = true;
         }
     }
 
@@ -135,23 +152,30 @@ public class Dog : Animal
     {
         if (state == DogState.Staggered) return;
 
-        GameLogger.Log("[Dog] Dog staggered and knocked out!");
+        GameLogger.Log("DOG", "Dog staggered and knocked out!");
 
         state = DogState.Staggered;
         isStaggered = true;
 
-        animator.SetBool(IsStaggered, true);
+        if (animator != null)
+        {
+            animator.SetBool(IsStaggered, true);
+        }
 
         rb.gravityScale = staggerGravityScale;
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(staggerForce, ForceMode2D.Impulse);
 
-        hitbox.enabled = false;
-        solidCollider.enabled = false;
+        if (hitbox != null) hitbox.enabled = false;
+        if (solidCollider != null) solidCollider.enabled = false;
     }
 
     private void HandleStagger()
     {
+        if (rb.linearVelocity.x > -1f)
+        {
+            rb.linearVelocity = new Vector2(-2f, rb.linearVelocity.y);
+        }
     }
 
     private void UpdateAnimator()
@@ -175,5 +199,4 @@ public class Dog : Animal
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(origin, leapRange);
     }
-
 }
