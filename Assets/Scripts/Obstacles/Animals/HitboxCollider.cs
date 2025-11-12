@@ -32,6 +32,26 @@ public class HitboxCollider : MonoBehaviour
         {
             GameLogger.Log($"[{parent.gameObject.name}] Collided with Player - dealing damage");
             
+            if (AnalyticsManager.Instance != null)
+            {
+                if (parent.cachedPlayerMovement == null)
+                    parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+        
+                float playerSpeed = 0f;
+                if (parent.cachedPlayerMovement != null)
+                {
+                    Rigidbody2D playerRb = parent.cachedPlayerMovement.GetComponent<Rigidbody2D>();
+                    playerSpeed = playerRb != null ? Mathf.Abs(playerRb.linearVelocity.x) : 0f;
+                }
+        
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { "obstacle_type", parent.GetType().Name },
+                    { "position_x", parent.transform.position.x },
+                    { "player_speed", playerSpeed }
+                });
+            }
+            
             if (parent.cachedPlayerMovement == null)
                 parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
 

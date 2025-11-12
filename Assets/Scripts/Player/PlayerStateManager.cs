@@ -64,6 +64,20 @@ public class PlayerStateManager : MonoBehaviour
                 if (!states.isSliding)
                 {
                     GameLogger.LogState($"STARTED SLIDING: Speed={currentSpeed:F1}, JustLanded={states.justLanded}");
+                    
+                    if (AnalyticsManager.Instance != null)
+                    {
+                        Vector3 playerPos = transform.position;
+                        var context = AnalyticsEvents.CreatePlayerActionContext(
+                            AnalyticsEvents.PLAYER_SLIDE, 
+                            playerPos.x, 
+                            rb.linearVelocity.x
+                        );
+                        context["current_speed"] = currentSpeed;
+                        context["just_landed"] = states.justLanded;
+            
+                        AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_SLIDE, context);
+                    }
                 }
                 states.isCrouching = false;
                 states.isSliding = true;
@@ -102,6 +116,20 @@ public class PlayerStateManager : MonoBehaviour
             rb.linearVelocity = new Vector2(currentVelocity.x, reducedFallSpeed + 2f);
             
             GameLogger.LogState($"Wall run started while falling! Velocity adjusted from {currentVelocity.y:F2} to {rb.linearVelocity.y:F2}");
+            
+            if (AnalyticsManager.Instance != null)
+            {
+                Vector3 playerPos = transform.position;
+                var context = AnalyticsEvents.CreatePlayerActionContext(
+                    AnalyticsEvents.PLAYER_WALLRUN, 
+                    playerPos.x, 
+                    rb.linearVelocity.x
+                );
+                context["velocity_y"] = currentVelocity.y;
+                context["adjusted_velocity_y"] = rb.linearVelocity.y;
+        
+                AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_WALLRUN, context);
+            }
         }
         
         if (shouldWallRun != states.isWallRunning)

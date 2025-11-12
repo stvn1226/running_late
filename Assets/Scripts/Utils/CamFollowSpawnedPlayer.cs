@@ -23,7 +23,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     {
         spawn = GameReferences.Instance.RespawnObject;
         transform.position = spawn != null ? spawn.transform.position : Vector3.zero;
-        Debug.Log($"[CamFollowSpawnedPlayer] Spawn exists? {spawn != null}");
+        GameLogger.Log($"[CamFollowSpawnedPlayer] Spawn exists? {spawn != null}");
         StartCoroutine(FindAndFollowPlayer());
         
         if (LevelStarter.Instance != null)

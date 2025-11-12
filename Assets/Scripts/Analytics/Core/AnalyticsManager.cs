@@ -117,19 +117,26 @@ public class AnalyticsManager : MonoBehaviour
         TrackEvent(AnalyticsEvents.LEVEL_START, parameters);
     }
     
-    public void TrackLevelComplete(int seed, float time, bool victory)
+    public void TrackLevelComplete(int seed, float time, bool victory, float progressPercentage = 0f, float playerPositionX = 0f, string defeatReason = "")
     {
         if (!config.enableAnalytics) return;
-        
+    
         var parameters = new Dictionary<string, object>
         {
             { "seed", seed },
             { "completion_time", time },
-            { "victory", victory }
+            { "success", victory }
         };
-        
-        TrackEvent(victory ? "level_victory" : "level_defeat", parameters);
-        
+    
+        if (!victory)
+        {
+            parameters["progress_percentage"] = progressPercentage;
+            parameters["player_position_x"] = playerPositionX;
+            parameters["defeat_reason"] = !string.IsNullOrEmpty(defeatReason) ? defeatReason : "timeout";
+        }
+    
+        TrackEvent(AnalyticsEvents.LEVEL_COMPLETE, parameters);
+    
         if (victory && LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.SaveTime(seed, time);

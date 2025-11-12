@@ -51,6 +51,27 @@ public abstract class Vehicle : MonoBehaviour
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
             GameLogger.Log("VEHICLE", "Vehicle collided with Player");
+            
+            if (AnalyticsManager.Instance != null)
+            {
+                if (cachedPlayerMovement == null)
+                    cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+            
+                float playerSpeed = 0f;
+                if (cachedPlayerMovement != null)
+                {
+                    Rigidbody2D playerRb = cachedPlayerMovement.GetComponent<Rigidbody2D>();
+                    playerSpeed = playerRb != null ? Mathf.Abs(playerRb.linearVelocity.x) : 0f;
+                }
+            
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { "obstacle_type", this.GetType().Name },
+                    { "position_x", transform.position.x },
+                    { "player_speed", playerSpeed }
+                });
+            }
+            
             if (cachedPlayerMovement == null)
                 cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
             

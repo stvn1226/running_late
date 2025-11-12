@@ -54,7 +54,21 @@ public class PlayerStomp : MonoBehaviour
         ApplyBounce();
         //StaggerEnemy(enemy);
         GameLogger.LogState($"STOMP EXECUTED on {enemy.gameObject.name}! Bounce applied.");
-        Debug.Log("STOMP EXECUTED!");
+        
+        if (AnalyticsManager.Instance != null)
+        {
+            Vector3 playerPos = transform.position;
+            float velocityX = playerRb != null ? playerRb.linearVelocity.x : 0f;
+        
+            var context = AnalyticsEvents.CreatePlayerActionContext(
+                AnalyticsEvents.PLAYER_STOMP, 
+                playerPos.x, 
+                velocityX
+            );
+            context["enemy_type"] = enemy.gameObject.name;
+        
+            AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_STOMP, context);
+        }
     }
 
     private void ApplyBounce()
