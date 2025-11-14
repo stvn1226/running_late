@@ -152,7 +152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &82435348170327582
 Transform:
   m_ObjectHideFlags: 0
@@ -1321,6 +1321,7 @@ GameObject:
   - component: {fileID: 2705767874517864308}
   - component: {fileID: 3391139825406007247}
   - component: {fileID: 5476617917464119436}
+  - component: {fileID: 3903158133172926959}
   m_Layer: 6
   m_Name: Collider
   m_TagString: Player
@@ -1397,3 +1398,22 @@ MonoBehaviour:
   baseLookAhead: 2
   velocityLookAheadMultiplier: 0.2
   showGizmos: 1
+--- !u!114 &3903158133172926959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7803506819131312242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73695953fe059f642be8a6f34aeb861c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStomp
+  config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  playerRb: {fileID: 5328747980780883216}
+  states: {fileID: 6913775742238925164}
+  stompBounceForce: 20
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 8192

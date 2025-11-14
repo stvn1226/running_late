@@ -19,28 +19,40 @@ public class HitboxCollider : MonoBehaviour
             parent.wasHit = true;
             return;
         }
-
-        if (collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG))
+        else if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
-            GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerStomp trigger.");
-            parent.TriggerStagger();
-            parent.wasHit = true;
-            return;
+            Debug.Log(collision.gameObject.GetComponent<PlayerStomp>().CachedStompVelocityY);
+            if (collision.gameObject.GetComponent<PlayerStomp>().CachedStompVelocityY < 0f)
+            {
+                GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerStomp trigger.");
+                parent.TriggerStagger();
+                parent.wasHit = true;
+                return;
+            }
+            else
+            {
+                GameLogger.Log($"[{parent.gameObject.name}] Collided with Player - dealing damage");
+
+                if (parent.cachedPlayerMovement == null)
+                    parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+
+                if (parent.cachedPlayerMovement != null)
+                    parent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+
+                parent.wasHit = true;
+
+                StartCoroutine(parent.DisableHitboxTemp(2f));
+
+            }
         }
 
-        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
-        {
-            GameLogger.Log($"[{parent.gameObject.name}] Collided with Player - dealing damage");
-            
-            if (parent.cachedPlayerMovement == null)
-                parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+        //if (collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG))
+        //{
+        //    GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerStomp trigger.");
+        //    parent.TriggerStagger();
+        //    parent.wasHit = true;
+        //    return;
+        //}
 
-            if (parent.cachedPlayerMovement != null)
-                parent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
-            
-            parent.wasHit = true;
-
-            StartCoroutine(parent.DisableHitboxTemp(2f));
-        }
     }
 }

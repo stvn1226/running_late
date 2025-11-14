@@ -11,8 +11,16 @@ public class PlayerStomp : MonoBehaviour
     [SerializeField] private float stompBounceForce = 15f;
     [SerializeField] private LayerMask enemyLayer;
 
+    private float cachedStompVelocityY = 0;
+    public float CachedStompVelocityY => cachedStompVelocityY;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (IsEnemy(collision))
+        {
+            cachedStompVelocityY = playerRb.linearVelocityY;
+        }
+
         if (CanStomp() && IsEnemy(collision))
         {
             ExecuteStomp(collision);
@@ -27,9 +35,9 @@ public class PlayerStomp : MonoBehaviour
             return false;
         }
         
-        if (!states.isGrounded)
+        if (playerRb.linearVelocityY < 0f)
         {
-            GameLogger.LogVerbose("STOMP", $"Can stomp - Velocity.y: {playerRb.linearVelocity.y:F2}");
+            GameLogger.LogVerbose("STOMP", $"Can stomp - Velocity.y: {playerRb.linearVelocityY:F2}");
             return true;
         }
 
