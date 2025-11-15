@@ -28,6 +28,21 @@ public class PlayerKick : MonoBehaviour
         if (kickBox != null)
         {
             kickBox.enabled = true;
+            
+            if (AnalyticsManager.Instance != null)
+            {
+                Vector3 playerPos = transform.position;
+                Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
+                float velocityX = rb != null ? rb.linearVelocity.x : 0f;
+            
+                var context = AnalyticsEvents.CreatePlayerActionContext(
+                    AnalyticsEvents.PLAYER_KICK, 
+                    playerPos.x, 
+                    velocityX
+                );
+            
+                AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_KICK, context);
+            }
         }
     }
 

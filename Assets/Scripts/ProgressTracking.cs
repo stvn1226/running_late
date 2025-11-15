@@ -11,8 +11,19 @@ public class ProgressTracking : MonoBehaviour
     private float levelLength;
     private float playerPositionX;
     private float playerProgress;
+    
+    public static ProgressTracking Instance { get; private set; }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+    
     void Start()
     {
         try 
@@ -53,5 +64,15 @@ public class ProgressTracking : MonoBehaviour
         endPoint = GameObject.FindGameObjectWithTag("Finish").transform;
         spawnPoint = GameObject.FindGameObjectWithTag("Respawn").transform;
         player = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+    
+    public float GetProgressPercentage()
+    {
+        return playerProgress * 100f;
+    }
+
+    public float GetPlayerPositionX()
+    {
+        return player != null ? player.position.x : 0f;
     }
 }

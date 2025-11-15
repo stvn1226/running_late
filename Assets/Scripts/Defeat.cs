@@ -46,6 +46,30 @@ public class Defeat : MonoBehaviour
         {
             GameLogger.Log("DEFEAT", "=== TIME'S UP - DEFEAT TRIGGERED ===");
         }
+        
+        if (AnalyticsManager.Instance != null && LevelStarter.Instance != null)
+        {
+            int currentSeed = LevelStarter.Instance.GetCurrentSeed();
+            float progressPercentage = ProgressTracking.Instance != null ? ProgressTracking.Instance.GetProgressPercentage() : 0f;
+            float playerPositionX = ProgressTracking.Instance != null ? ProgressTracking.Instance.GetPlayerPositionX() : 0f;
+            
+            var defeatParams = new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "seed", currentSeed },
+                { "completion_time", elapsedTime },
+                { "success", false },
+                { "progress_percentage", progressPercentage },
+                { "player_position_x", playerPositionX },
+                { "defeat_reason", "timeout" }
+            };
+            
+            AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.LEVEL_COMPLETE, defeatParams);
+            
+            if (showDebugInfo)
+            {
+                GameLogger.Log("DEFEAT", $"Defeat tracked - Progress: {progressPercentage:F1}%, Position: {playerPositionX:F1}, Time: {elapsedTime:F1}s");
+            }
+        }
 
         ShowLosePanel();
     }

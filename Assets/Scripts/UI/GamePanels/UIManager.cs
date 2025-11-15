@@ -92,6 +92,14 @@ public class UIManager : MonoBehaviour
             SetInputContext(true);
             
             Time.timeScale = 0f;
+            
+            if (panel is PauseMenuPanel && AnalyticsManager.Instance != null)
+            {
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_PAUSE, new System.Collections.Generic.Dictionary<string, object>
+                {
+                    { "panel_name", typeof(T).Name }
+                });
+            }
         }
         else
         {
@@ -101,6 +109,8 @@ public class UIManager : MonoBehaviour
     
     public void HideAllPanels()
     {
+        bool wasPaused = isPaused && !isEndGameActive;
+        
         foreach (var panel in menuPanels.Values)
         {
             panel.Hide();
@@ -118,6 +128,11 @@ public class UIManager : MonoBehaviour
         SetInputContext(false);
         
         Time.timeScale = 1f;
+        
+        if (wasPaused && AnalyticsManager.Instance != null)
+        {
+            AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_RESUME, null);
+        }
     }
     
     private void SetInputContext(bool uiMode)
