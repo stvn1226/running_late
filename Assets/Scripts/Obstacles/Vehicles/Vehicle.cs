@@ -12,6 +12,7 @@ public abstract class Vehicle : MonoBehaviour
     private bool hasRan;
     public Collider2D[] hitbox = new Collider2D[2];
     [SerializeField] private float activationDistance = 30f;
+    private bool wasStomped;
 
     protected virtual void Start()
     {
@@ -19,6 +20,7 @@ public abstract class Vehicle : MonoBehaviour
         mainCamera = GameReferences.Instance.MainCamera;
         isRunning = false;
         hasRan = false;
+        wasStomped = false;
     }
 
     protected virtual void Update()
@@ -48,38 +50,113 @@ public abstract class Vehicle : MonoBehaviour
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
         if (!isRunning) return;
-        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
+        
+        bool isPlayerStompTag = collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG);
+        
+        if (isPlayerStompTag)
         {
-            GameLogger.Log("VEHICLE", "Vehicle collided with Player");
+            GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player collision detected on {collision.gameObject.name} (Tag: {collision.tag})");
             
-            if (AnalyticsManager.Instance != null)
+            Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
+            
+            if (playerRb != null)
             {
-                if (cachedPlayerMovement == null)
-                    cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
-            
-                float playerSpeed = 0f;
-                if (cachedPlayerMovement != null)
+                float velocityY = playerRb.linearVelocity.y;
+                GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player velocity Y: {velocityY:F2}, Tag: {collision.tag}");
+
+                bool isStomp = velocityY < 0f;
+
+                if (isStomp)
                 {
-                    Rigidbody2D playerRb = cachedPlayerMovement.GetComponent<Rigidbody2D>();
-                    playerSpeed = playerRb != null ? Mathf.Abs(playerRb.linearVelocity.x) : 0f;
+                    GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✓ STOMP CONDITION MET (Tag={collision.tag}, Y={velocityY:F2})");
+                    HandleStompOnVehicle(collision, playerRb);
                 }
-            
-                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
+                else
                 {
-                    { "obstacle_type", this.GetType().Name },
-                    { "position_x", transform.position.x },
-                    { "player_speed", playerSpeed }
-                });
+                    GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✗ DAMAGE CONDITION (Tag={collision.tag}, Y={velocityY:F2})");
+                    HandlePlayerDamage(collision, playerRb);
+                }
             }
-            
+            else
+            {
+                GameLogger.LogError("VEHICLE", $"[{gameObject.name}] No Rigidbody2D found on player!");
+                HandlePlayerDamage(collision, null);
+            }
+        }
+    }
+
+    private void HandleStompOnVehicle(Collider2D collision, Rigidbody2D playerRb)
+    {
+        if (wasStomped) return;
+        
+        GameLogger.Log("VEHICLE", $"[{gameObject.name}] Stomped by Player (VelY: {playerRb.linearVelocity.y:F2}) - bouncing!");
+        
+        wasStomped = true;
+
+        PlayerStomp playerStomp = collision.GetComponent<PlayerStomp>();
+        
+        if (playerStomp != null)
+        {
+            GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✓ PlayerStomp found on {collision.gameObject.name}! Calling ExecuteStompBounce()");
+            playerStomp.ExecuteStompBounce();
+        }
+        else
+        {
+            GameLogger.LogWarning("VEHICLE", $"[{gameObject.name}] PlayerStomp component not found on {collision.gameObject.name}!");
+        }
+
+        if (AnalyticsManager.Instance != null)
+        {
+            Vector3 playerPos = playerRb.transform.position;
+            float velocityX = Mathf.Abs(playerRb.linearVelocity.x);
+
+            var context = AnalyticsEvents.CreatePlayerActionContext(
+                AnalyticsEvents.PLAYER_STOMP,
+                playerPos.x,
+                velocityX
+            );
+            context["obstacle_type"] = this.GetType().Name;
+            context["velocity_y"] = playerRb.linearVelocity.y;
+
+            AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_STOMP, context);
+        }
+
+        StartCoroutine(DisableHitboxTemp(2f));
+    }
+
+    private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
+    {
+        float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
+        GameLogger.Log("VEHICLE", $"[{gameObject.name}] Collided with Player (VelY: {velocityY:F2}) - dealing damage");
+
+        if (AnalyticsManager.Instance != null)
+        {
             if (cachedPlayerMovement == null)
                 cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
-            
+        
+            float playerSpeed = 0f;
             if (cachedPlayerMovement != null)
-                cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
-            
-            StartCoroutine(DisableHitboxTemp(2f));
+            {
+                Rigidbody2D rb = cachedPlayerMovement.GetComponent<Rigidbody2D>();
+                playerSpeed = rb != null ? Mathf.Abs(rb.linearVelocity.x) : 0f;
+            }
+        
+            AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "obstacle_type", this.GetType().Name },
+                { "position_x", transform.position.x },
+                { "player_speed", playerSpeed },
+                { "player_velocity_y", velocityY }
+            });
         }
+        
+        if (cachedPlayerMovement == null)
+            cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+        
+        if (cachedPlayerMovement != null)
+            cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+        
+        StartCoroutine(DisableHitboxTemp(2f));
     }
 
     protected IEnumerator DisableHitboxTemp(float duration)

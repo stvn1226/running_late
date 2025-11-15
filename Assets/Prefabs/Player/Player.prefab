@@ -144,8 +144,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 82435348170327582}
-  - component: {fileID: 2121738140232045197}
-  - component: {fileID: 7319738523372886854}
+  - component: {fileID: 2557827073906400485}
+  - component: {fileID: 3175376801003971854}
   m_Layer: 6
   m_Name: FeetCollider
   m_TagString: PlayerStomp
@@ -168,7 +168,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3490699511422268418}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!58 &2121738140232045197
+--- !u!58 &2557827073906400485
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -202,9 +202,9 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.4}
-  m_Radius: 0.65
---- !u!114 &7319738523372886854
+  m_Offset: {x: 0, y: 0.25}
+  m_Radius: 0.5
+--- !u!114 &3175376801003971854
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -220,9 +220,6 @@ MonoBehaviour:
   playerRb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
   stompBounceForce: 20
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 8192
 --- !u!1 &4428378737645155119
 GameObject:
   m_ObjectHideFlags: 0
@@ -703,6 +700,7 @@ GameObject:
   - component: {fileID: 7780051058677764453}
   - component: {fileID: 2374712412831154929}
   - component: {fileID: 1472578967037456669}
+  - component: {fileID: 2235664641990637577}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -930,6 +928,26 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2235664641990637577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 211ef171ae8248f1886e72fd3620cae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVelocityDebugger
+  rb: {fileID: 0}
+  showVelocityGizmo: 1
+  velocityScale: 0.5
+  velocityColor: {r: 0, g: 1, b: 0, a: 1}
+  negativeYColor: {r: 1, g: 0, b: 0, a: 1}
+  positiveYColor: {r: 0, g: 1, b: 1, a: 1}
+  showDebugText: 1
+  logVelocityChanges: 1
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0
