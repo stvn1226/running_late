@@ -152,7 +152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &82435348170327582
 Transform:
   m_ObjectHideFlags: 0
@@ -1432,6 +1432,3 @@ MonoBehaviour:
   playerRb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
   stompBounceForce: 20
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 8192
