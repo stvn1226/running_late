@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96173508aea0fd5428491c311e1c500b, type: 3}
   m_Name: DefaultPlayerConfig
   m_EditorClassIdentifier: Assembly-CSharp::PlayerConfig
-  runForce: 3000
-  maxRunSpeed: 30
+  runForce: 2500
+  maxRunSpeed: 40
   airControlMultiplier: 0.8
   minJumpForce: 12
   maxJumpForce: 18
@@ -28,7 +28,7 @@ MonoBehaviour:
   groundDrag: 50
   airDrag: 50
   slideDrag: 10
-  maxFallSpeed: 60
+  maxFallSpeed: 80
   groundCheckDistance: 0.3
   groundLayer:
     serializedVersion: 2

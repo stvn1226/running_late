@@ -1937,7 +1937,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 886251e9a18ece04ea8e61686c173e1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachinePositionComposer
-  CameraDistance: 10
+  CameraDistance: 12
   DeadZoneDepth: 0
   Composition:
     ScreenPosition: {x: 0, y: 0}
@@ -1953,8 +1953,8 @@ MonoBehaviour:
   Damping: {x: 1, y: 1, z: 1}
   Lookahead:
     Enabled: 1
-    Time: 0.366
-    Smoothing: 2
+    Time: 0.45
+    Smoothing: 4
     IgnoreY: 0
 --- !u!114 &731823692
 MonoBehaviour:
@@ -3609,8 +3609,8 @@ MonoBehaviour:
   backgroundTile: {fileID: 7743534827117444290, guid: a0cf07547567560408033b5436953da4, type: 3}
   backgroundParent: {fileID: 450632822}
   cloudParent: {fileID: 0}
-  minModules: 60
-  maxModules: 75
+  minModules: 50
+  maxModules: 60
   minLevelWidth: 500
   maxLevelWidth: 600
   autoClearStructures: 1

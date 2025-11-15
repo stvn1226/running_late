@@ -251,12 +251,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pigeon
   hitbox: {fileID: 5271227525356455602}
   solidCollider: {fileID: 5397477613553697664}
-  detectionRadius: 10
+  detectionRadius: 12
   detectionOrigin: {fileID: 1008962276186670117}
   staggerForce: {x: 10, y: 3}
   staggerGravityScale: 2
   showGizmos: 1
   cachedPlayerMovement: {fileID: 0}
+  isStaggered: 0
   wasHit: 0
   takeOffDuration: 0.2
   takeOffHeight: 1.75
