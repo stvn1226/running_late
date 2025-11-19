@@ -11,11 +11,12 @@ namespace Febucci.UI
 {
     public class TextAnimatorSetupWindow : EditorWindow
     {
-        const string currentVersion = "2.3.1";
+        const string currentVersion = "2.3.2";
         const string path_defaultInstallation = "Assets/Plugins/Febucci/Text Animator";
 
         TextAnimatorInstallationData installationData;
         bool settingsFileFound;
+        bool showAnnouncementDetails;
 
         public const string url_discord = "https://discord.gg/j4pySDa5rU";
 
@@ -93,7 +94,7 @@ namespace Febucci.UI
                 "Text Animator Setup", true);
 
             window.shouldUpdate = shouldUpdate;
-            window.maxSize = new Vector2(351, 485);
+            window.maxSize = new Vector2(351, 560);
             window.minSize = window.maxSize;
             window.settingsFileFound = TextAnimatorSettings.Instance;
         }
@@ -121,94 +122,154 @@ namespace Febucci.UI
             GUILayout.Box(TexturesLoader.AboutLogo, EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("Welcome!", EditorStyles.boldLabel);
-
-            if (shouldUpdate)
+            //--- ANNOUNCEMENT BANNER ---
+            if (!showAnnouncementDetails)
             {
-                //--- Updates to new version ---
-                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+                GUI.backgroundColor = new Color(0.55f, 0.4f, 0.95f); // Bright purple color
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
-                    EditorGUILayout.LabelField(
-                        "You have updated to a new version! Do you want us to set up the new things for you?", EditorStyles.wordWrappedLabel);
-                    GUI.backgroundColor = Color.green;
-                    if (GUILayout.Button("Yes"))
+                    var boldLabelStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
                     {
-                        UpdateProject(installationData, oldVersion, true);
-                        EditorUtility.DisplayDialog("Text Animator", "Update has been completed. Have fun!", "Yay!");
-                        shouldUpdate = false;
-                    }
+                        fontStyle = FontStyle.Bold,
+                        normal = { textColor = Color.white }
+                    };
+                    EditorGUILayout.LabelField("Text Animator 3.0 is out! We recommend to use the new version if you just started a new project!", boldLabelStyle);
 
-                    GUI.backgroundColor = Color.white;
-                    if (GUILayout.Button("No"))
+                    GUI.backgroundColor = Color.yellow;
+                    if (GUILayout.Button("Read More"))
                     {
-                        shouldUpdate = false;
+                        showAnnouncementDetails = true;
                     }
                 }
+                GUI.backgroundColor = Color.white;
+                EditorGUILayout.Space();
+            }
+
+            if (!showAnnouncementDetails)
+            {
+                EditorGUILayout.LabelField("Welcome!", EditorStyles.boldLabel);
+
+                if (shouldUpdate)
+                {
+                    //--- Updates to new version ---
+                    using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+                    {
+                        EditorGUILayout.LabelField(
+                            "You have updated to a new version! Do you want us to set up the new things for you?", EditorStyles.wordWrappedLabel);
+                        GUI.backgroundColor = Color.green;
+                        if (GUILayout.Button("Yes"))
+                        {
+                            UpdateProject(installationData, oldVersion, true);
+                            EditorUtility.DisplayDialog("Text Animator", "Update has been completed. Have fun!", "Yay!");
+                            shouldUpdate = false;
+                        }
+
+                        GUI.backgroundColor = Color.white;
+                        if (GUILayout.Button("No"))
+                        {
+                            shouldUpdate = false;
+                        }
+                    }
+                }
+                else
+                {
+                    EditorGUILayout.LabelField(
+                        "Thank you for using Text Animator. Have fun bringing your projects to life!",
+                        EditorStyles.wordWrappedLabel);
+                }
+
+                EditorGUILayout.Space();
+
+                //--- VERSION STATUS ---
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel("Version:", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(installationData.latestVersion, EditorStyles.whiteMiniLabel);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.Space();
+
+                if (!settingsFileFound)
+                {
+                    FixSettingsFileNotFound();
+                    settingsFileFound = true;
+                }
+
+                // --- LINKS etc. ---
+                EditorGUILayout.LabelField("Online Resources", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Here are some useful resources.", EditorStyles.label);
+
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("What's New"))
+                {
+                    Application.OpenURL($"https://docs.febucci.com/text-animator-unity/other/changelog");
+                }
+
+                if (GUILayout.Button("Documentation"))
+                {
+                    Application.OpenURL($"https://docs.febucci.com/text-animator-unity");
+                }
+
+                if (GUILayout.Button("Support"))
+                {
+                    Application.OpenURL($"https://www.febucci.com/tools/support/");
+                }
+
+                EditorGUILayout.EndHorizontal();
+
+
+                //--Extras--
+                EditorGUILayout.LabelField("Extras", EditorStyles.boldLabel);
+
+                EditorGUILayout.LabelField("Would you like to be included in a future Text Animator showcase?",
+                    EditorStyles.wordWrappedMiniLabel);
+                if (GUILayout.Button("-> Submit your game/project"))
+                    Application.OpenURL("https://www.febucci.com/tools/text-animator-unity/showcase");
+
+                EditorGUILayout.Space(1);
+                EditorGUILayout.LabelField("Please consider writing a review for the asset. It takes one minute but it really helps. Thanks!",
+                    EditorStyles.wordWrappedMiniLabel);
+                if (GUILayout.Button("♥ Review on the Asset Store"))
+                    Application.OpenURL("https://assetstore.unity.com/packages/slug/254677");
+
+
+                GUILayout.Space(5);
+                EditorGUILayout.LabelField("Cheers! @febucci", EditorStyles.centeredGreyMiniLabel);
             }
             else
             {
-                EditorGUILayout.LabelField(
-                    "Thank you for using Text Animator. Have fun bringing your projects to life!",
-                    EditorStyles.wordWrappedLabel);
+                //--- ANNOUNCEMENT DETAILS PANEL ---
+                EditorGUILayout.Space();
+
+                EditorGUILayout.LabelField("Text Animator 3.0 is out and includes many new features, like UI Toolkit support, a new animation engine and much more.", EditorStyles.wordWrappedLabel);
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("We're super excited about the new version and can't wait to see what you can create with it!!", EditorStyles.wordWrappedLabel);
+
+                EditorGUILayout.Space();
+
+                EditorGUILayout.LabelField("Important Information:", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("• If you just downloaded Text Animator on a fresh project, please use the new one!", EditorStyles.wordWrappedLabel);
+                EditorGUILayout.LabelField("• If you already have integrated Text Animator in your current project, please keep using 2.X!", EditorStyles.wordWrappedLabel);
+
+                EditorGUILayout.Space();
+
+                EditorGUILayout.BeginHorizontal();
+
+                if (GUILayout.Button("Go Back"))
+                {
+                    showAnnouncementDetails = false;
+                }
+
+                GUI.backgroundColor = Color.yellow;
+                if (GUILayout.Button("Visit Website / Post"))
+                {
+                    Application.OpenURL("https://www.textanimatorforgames.com/unity");
+                }
+                GUI.backgroundColor = Color.white;
+
+                EditorGUILayout.EndHorizontal();
             }
-
-            EditorGUILayout.Space();
-
-            //--- VERSION STATUS ---
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("Version:", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField(installationData.latestVersion, EditorStyles.whiteMiniLabel);
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.Space();
-
-            if (!settingsFileFound)
-            {
-                FixSettingsFileNotFound();
-                settingsFileFound = true;
-            }
-
-            // --- LINKS etc. ---
-            EditorGUILayout.LabelField("Online Resources", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Here are some useful resources.", EditorStyles.label);
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("What's New"))
-            {
-                Application.OpenURL($"https://docs.febucci.com/text-animator-unity/other/changelog");
-            }
-
-            if (GUILayout.Button("Documentation"))
-            {
-                Application.OpenURL($"https://docs.febucci.com/text-animator-unity");
-            }
-
-            if (GUILayout.Button("Support"))
-            {
-                Application.OpenURL($"https://www.febucci.com/tools/support/");
-            }
-
-            EditorGUILayout.EndHorizontal();
-
-
-            //--Extras--
-            EditorGUILayout.LabelField("Extras", EditorStyles.boldLabel);
-
-            EditorGUILayout.LabelField("Would you like to be included in a future Text Animator showcase?",
-                EditorStyles.wordWrappedMiniLabel);
-            if (GUILayout.Button("-> Submit your game/project"))
-                Application.OpenURL("https://www.febucci.com/tools/text-animator-unity/showcase");
-
-            EditorGUILayout.Space(1);
-            EditorGUILayout.LabelField("Please consider writing a review for the asset. It takes one minute but it really helps. Thanks!",
-                EditorStyles.wordWrappedMiniLabel);
-            if (GUILayout.Button("♥ Review on the Asset Store"))
-                Application.OpenURL("https://assetstore.unity.com/packages/slug/254677");
-
-
-            GUILayout.Space(5);
-            EditorGUILayout.LabelField("Cheers! @febucci", EditorStyles.centeredGreyMiniLabel);
         }
 
         #endregion
