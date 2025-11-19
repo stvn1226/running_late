@@ -142,6 +142,11 @@ public class PlayerControllerModular : MonoBehaviour
         if (states != null)
         {
             states.crouchHeld = true;
+            
+            if (config != null && !states.isGrounded)
+            {
+                states.BufferCrouchInput(config.longJumpBufferTime);
+            }
         }
     }
 

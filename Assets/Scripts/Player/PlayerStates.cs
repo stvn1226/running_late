@@ -44,6 +44,9 @@ public class PlayerStates : MonoBehaviour
     public bool isFalling = false;
     public float jumpHoldTimer = 0f;
     public bool isJumping = false;
+    public bool crouchInputBuffered = false;
+    public float crouchBufferTimer = 0f;
+    public bool isLongJumping = false;
 
     [Header("Wall Run States")]
     public bool canWallRun;
@@ -176,6 +179,14 @@ public class PlayerStates : MonoBehaviour
             coyoteTimer -= Time.deltaTime;
             if (coyoteTimer <= 0 || isGrounded)
                 canCoyoteJump = false;
+        }
+
+        // Crouch buffer timer
+        if (crouchInputBuffered)
+        {
+            crouchBufferTimer -= Time.deltaTime;
+            if (crouchBufferTimer <= 0)
+                crouchInputBuffered = false;
         }
 
         // Landing grace timer
@@ -342,5 +353,11 @@ public class PlayerStates : MonoBehaviour
         jumpHoldTimer = 0f;
         jumpInputBuffered = false;
         canCoyoteJump = false;
+    }
+
+    public void BufferCrouchInput(float bufferTime)
+    {
+        crouchInputBuffered = true;
+        crouchBufferTimer = bufferTime;
     }
 }
