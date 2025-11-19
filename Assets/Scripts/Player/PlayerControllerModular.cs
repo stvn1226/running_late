@@ -14,6 +14,8 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerPhysics physics;
     [SerializeField] private PlayerKick kicker;
     [SerializeField] private PlayerStateManager stateManager;
+    [SerializeField] private PlayerAirDodge airDodge;
+
 
     private void Awake()
     {
@@ -46,7 +48,9 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.Kick.performed += OnKick;
         inputActions.Gameplay.DropDown.performed += OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
-        
+        inputActions.Gameplay.AirDodge.performed += OnAirDodge;
+        inputActions.Gameplay.Dive.performed += OnDive;
+
         inputActions.Gameplay.Reset.performed += OnReset;
         
         inputActions.Gameplay.Enable();
@@ -65,7 +69,9 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.Kick.performed -= OnKick;
         inputActions.Gameplay.DropDown.performed -= OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
-        
+        inputActions.Gameplay.AirDodge.performed -= OnAirDodge;
+        inputActions.Gameplay.Dive.performed -= OnDive;
+
         inputActions.Gameplay.Reset.performed -= OnReset;
         
         inputActions.Gameplay.Disable();
@@ -95,6 +101,7 @@ public class PlayerControllerModular : MonoBehaviour
         if (jump != null) jump.config = config;
         if (physics != null) physics.config = config;
         if (stateManager != null) stateManager.config = config;
+        if (airDodge != null) airDodge.config = config;
     }
 
     #region Input Callbacks
@@ -135,6 +142,11 @@ public class PlayerControllerModular : MonoBehaviour
         if (states != null)
         {
             states.crouchHeld = true;
+            
+            if (config != null && !states.isGrounded)
+            {
+                states.BufferCrouchInput(config.longJumpBufferTime);
+            }
         }
     }
 
@@ -194,6 +206,24 @@ public class PlayerControllerModular : MonoBehaviour
         if (states != null)
         {
             states.SetDropDownReleased();
+        }
+    }
+
+    private void OnAirDodge(InputAction.CallbackContext context)
+    {
+        GameLogger.LogInput("OnAirDodge called!");
+        if (states != null)
+        {
+            states.SetAirDodgePressed();
+        }
+    }
+
+    private void OnDive(InputAction.CallbackContext context)
+    {
+        GameLogger.LogInput("OnDive called!");
+        if (states != null)
+        {
+            //states.SetDivePressed();
         }
     }
     #endregion

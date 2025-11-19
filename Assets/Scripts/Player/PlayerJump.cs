@@ -55,13 +55,19 @@ public class PlayerJump : MonoBehaviour
 
     private void PerformJump()
     {
-        // Reset vertical velocity for consistent jump height
+        bool shouldLongJump = ShouldPerformLongJump();
+        
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         
-        // Apply minimum jump force initially
-        rb.AddForce(Vector2.up * config.minJumpForce, ForceMode2D.Impulse);
+        if (shouldLongJump)
+        {
+            PerformLongJump();
+        }
+        else
+        {
+            rb.AddForce(Vector2.up * config.minJumpForce, ForceMode2D.Impulse);
+        }
         
-        // Reset jump state
         states.StartJump();
 
         jumpFeedbacks.PlayFeedbacks();
@@ -69,12 +75,51 @@ public class PlayerJump : MonoBehaviour
         if (AnalyticsManager.Instance != null)
         {
             var context = AnalyticsEvents.CreatePlayerActionContext(
-                "jump", 
+                shouldLongJump ? "long_jump" : "jump", 
                 transform.position.x, 
                 rb.linearVelocity.x
             );
-            AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_JUMP, context);
+            
+            if (shouldLongJump)
+            {
+                context["horizontal_boost"] = config.longJumpHorizontalBoost;
+                context["vertical_multiplier"] = config.longJumpVerticalMultiplier;
+            }
+            
+            AnalyticsManager.Instance.TrackPlayerAction(
+                shouldLongJump ? "long_jump" : AnalyticsEvents.PLAYER_JUMP, 
+                context
+            );
         }
+    }
+
+    private bool ShouldPerformLongJump()
+    {
+        bool crouchIsHeld = states.crouchHeld;
+        bool crouchWasRecentlyPressed = states.crouchInputBuffered;
+        bool isMoving = Mathf.Abs(states.moveInput.x) > 0.1f;
+        
+        return (crouchIsHeld || crouchWasRecentlyPressed) && isMoving;
+    }
+
+    private void PerformLongJump()
+    {
+        float verticalForce = config.minJumpForce * config.longJumpVerticalMultiplier;
+        float horizontalDirection = Mathf.Sign(states.moveInput.x);
+        float horizontalForce = config.longJumpHorizontalBoost * horizontalDirection;
+        
+        rb.AddForce(Vector2.up * verticalForce, ForceMode2D.Impulse);
+        rb.AddForce(Vector2.right * horizontalForce, ForceMode2D.Impulse);
+        
+        states.isLongJumping = true;
+        states.crouchInputBuffered = false;
+        
+        if (states.isCrouching || states.isSliding)
+        {
+            CancelCrouchSlideStates();
+        }
+        
+        GameLogger.LogMovement($"LONG JUMP! Vertical: {verticalForce:F2}, Horizontal: {horizontalForce:F2}, Direction: {horizontalDirection}");
     }
 
     private void CancelCrouchSlideStates()

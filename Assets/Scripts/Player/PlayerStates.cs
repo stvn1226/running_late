@@ -20,6 +20,7 @@ public class PlayerStates : MonoBehaviour
     public bool wallRunHeld;
     public bool kickPressed;
     public bool dropDownHeld;
+    public bool airDodgePressed;
 
     [Header("Movement States")]
     public bool isGrounded;
@@ -30,6 +31,8 @@ public class PlayerStates : MonoBehaviour
     public bool isCrouching;
     public bool isDroppingDown;
     public bool isStaggered;
+    public bool isAirDodging;
+    public bool canAirDodge;
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -40,6 +43,9 @@ public class PlayerStates : MonoBehaviour
     public bool isFalling = false;
     public float jumpHoldTimer = 0f;
     public bool isJumping = false;
+    public bool crouchInputBuffered = false;
+    public float crouchBufferTimer = 0f;
+    public bool isLongJumping = false;
 
     [Header("Wall Run States")]
     public bool canWallRun;
@@ -50,6 +56,10 @@ public class PlayerStates : MonoBehaviour
     public float landingGraceTimer = 0f;
     public float landingHorizontalVelocity = 0f;
     public float landingVerticalVelocity = 0f;
+
+    [Header("Air Dodge States")]
+    public float airDodgeCooldownTimer = 0f;
+    public Vector2 airDodgeDirection;
 
     [Header("Kick States")]
     public float kickTimer;
@@ -150,6 +160,15 @@ public class PlayerStates : MonoBehaviour
                 canCoyoteJump = false;
         }
 
+        // Crouch buffer timer
+        if (crouchInputBuffered)
+        {
+            crouchBufferTimer -= Time.deltaTime;
+            if (crouchBufferTimer <= 0)
+                crouchInputBuffered = false;
+        }
+
+        // Landing grace timer
         if (justLanded)
         {
             landingGraceTimer -= Time.deltaTime;
@@ -189,6 +208,17 @@ public class PlayerStates : MonoBehaviour
 
         if (jumpPressed)
             jumpPressed = false;
+
+        if (airDodgeCooldownTimer > 0f)
+        {
+            airDodgeCooldownTimer -= Time.deltaTime;
+        }
+
+        if (airDodgePressed)
+        {
+            airDodgePressed = false;
+        }
+
     }
 
     private void CheckStateChanges()
@@ -205,7 +235,7 @@ public class PlayerStates : MonoBehaviour
         if (previousWallRunning != isWallRunning)
         {
             OnWallRunChanged?.Invoke();
-            
+
             if (isWallRunning && isKicking)
             {
                 GameLogger.LogWarning("KICK", "CRITICAL FIX: Wall run started during kick! Forcing kick end.");
@@ -240,7 +270,7 @@ public class PlayerStates : MonoBehaviour
             kickPressed = true;
             isKicking = true;
             kickTimer = kickDuration;
-            
+
             GameLogger.LogState($"KICK: Started - Timer set to {kickTimer:F2}s");
         }
         else
@@ -271,6 +301,12 @@ public class PlayerStates : MonoBehaviour
         dropDownHeld = false;
         isDroppingDown = false;
     }
+
+    public void SetAirDodgePressed()
+    {
+        airDodgePressed = true;
+    }
+
 
     public void StartStagger(float duration)
     {
@@ -315,5 +351,11 @@ public class PlayerStates : MonoBehaviour
         jumpHoldTimer = 0f;
         jumpInputBuffered = false;
         canCoyoteJump = false;
+    }
+
+    public void BufferCrouchInput(float bufferTime)
+    {
+        crouchInputBuffered = true;
+        crouchBufferTimer = bufferTime;
     }
 }

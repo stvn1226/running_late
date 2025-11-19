@@ -32,6 +32,12 @@ public class PlayerStomp : MonoBehaviour
 
         GameLogger.LogState($"STOMP BOUNCE EXECUTED! Current VelY: {playerRb.linearVelocity.y:F2}");
         ApplyBounce();
+
+        PlayerAirDodge airDodge = GetComponentInParent<PlayerAirDodge>();
+        if (airDodge != null)
+        {
+            airDodge.OnStompBounce();
+        }
     }
 
     private void ApplyBounce()
