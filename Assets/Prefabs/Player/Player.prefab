@@ -152,7 +152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &82435348170327582
 Transform:
   m_ObjectHideFlags: 0
@@ -774,7 +774,7 @@ MonoBehaviour:
   rb: {fileID: 5328747980780883216}
   playerCollider: {fileID: 3391139825406007247}
   states: {fileID: 6913775742238925164}
-  playerMovement: {fileID: 0}
+  playerMovement: {fileID: 8651723166033491134}
   originalColliderSize: {x: 0, y: 0}
   originalColliderOffset: {x: 0, y: 0}
   crouchColliderSize: {x: 0, y: 0}
@@ -867,6 +867,9 @@ MonoBehaviour:
   isFalling: 0
   jumpHoldTimer: 0
   isJumping: 0
+  crouchInputBuffered: 0
+  crouchBufferTimer: 0
+  isLongJumping: 0
   canWallRun: 0
   wallDirection: 0
   justLanded: 0
