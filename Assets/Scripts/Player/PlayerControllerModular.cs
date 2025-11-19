@@ -46,7 +46,9 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.Kick.performed += OnKick;
         inputActions.Gameplay.DropDown.performed += OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
-        
+        inputActions.Gameplay.AirDodge.performed += OnAirDodge;
+        inputActions.Gameplay.Dive.performed += OnDive;
+
         inputActions.Gameplay.Reset.performed += OnReset;
         
         inputActions.Gameplay.Enable();
@@ -65,7 +67,9 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.Kick.performed -= OnKick;
         inputActions.Gameplay.DropDown.performed -= OnDropDownStart;
         inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
-        
+        inputActions.Gameplay.AirDodge.performed -= OnAirDodge;
+        inputActions.Gameplay.Dive.performed -= OnDive;
+
         inputActions.Gameplay.Reset.performed -= OnReset;
         
         inputActions.Gameplay.Disable();
@@ -187,6 +191,24 @@ public class PlayerControllerModular : MonoBehaviour
         if (states != null)
         {
             states.SetDropDownReleased();
+        }
+    }
+
+    private void OnAirDodge(InputAction.CallbackContext context)
+    {
+        GameLogger.LogInput("OnAirDodge called!");
+        if (states != null)
+        {
+            //states.SetAirDodgePressed();
+        }
+    }
+
+    private void OnDive(InputAction.CallbackContext context)
+    {
+        GameLogger.LogInput("OnDive called!");
+        if (states != null)
+        {
+            //states.SetDivePressed();
         }
     }
     #endregion
