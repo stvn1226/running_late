@@ -55,10 +55,40 @@ public class PlayerConfig : ScriptableObject
     [Range(0.05f, 0.25f)]
     public float coyoteTime = 0.1f;
 
+    [Header("Long Jump")]
+    [Tooltip("Vertical force multiplier for long jumps. Lower = less height. Recommended: 0.5-0.7")]
+    [Range(0.3f, 1f)]
+    public float longJumpVerticalMultiplier = 0.6f;
+
+    [Tooltip("Horizontal force boost for long jumps. Units: force. Recommended: 15-30")]
+    [Range(10f, 50f)]
+    public float longJumpHorizontalBoost = 20f;
+
+    [Tooltip("Buffer time to detect crouch+jump input. Units: seconds. Recommended: 0.1-0.2")]
+    [Range(0.05f, 0.3f)]
+    public float longJumpBufferTime = 0.15f;
+
+    // ====================================
+    // AIR DODGE MECHANICS
+    // ====================================
+
+    [Header("Air Dodge")]
+    [Tooltip("Force applied when performing an air dodge. Units: m/s. Recommended: 15-25")]
+    [Range(10f, 40f)]
+    public float airDodgeForce = 20f;
+
+    [Tooltip("Duration of the air dodge movement. Units: seconds. Recommended: 0.2-0.4")]
+    [Range(0.1f, 0.6f)]
+    public float airDodgeDuration = 0.3f;
+
+    [Tooltip("Cooldown before air dodge can be used again after landing. Units: seconds. Recommended: 0.1-0.3")]
+    [Range(0.05f, 0.5f)]
+    public float airDodgeCooldown = 0.15f;
+
     // ====================================
     // WALL RUN MECHANICS
     // ====================================
-    
+
     [Header("Wall Run")]
     [Tooltip("Force applied when running on walls. Higher = faster wall climb. Recommended: 2500-4000")]
     [Range(1000f, 6000f)]
