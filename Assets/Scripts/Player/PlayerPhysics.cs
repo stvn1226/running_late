@@ -74,7 +74,18 @@ public class PlayerPhysics : MonoBehaviour
                 playerMovement.HandleLanding();
             }
         }
-        
+
+        if (states.isGrounded && !previousGrounded && playerMovement != null)
+        {
+            playerMovement.HandleLanding();
+
+            PlayerAirDodge airDodge = GetComponent<PlayerAirDodge>();
+            if (airDodge != null)
+            {
+                airDodge.OnLanding();
+            }
+        }
+
         if (states.canWallRun != previousCanWallRun || states.wallDirection != previousWallDirection)
         {
             GameLogger.LogPhysics($"WALL RUN CHANGE: CanWallRun={states.canWallRun}, Direction={states.wallDirection}, Input.x={states.moveInput.x:F2}");

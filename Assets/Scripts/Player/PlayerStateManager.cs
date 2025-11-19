@@ -135,6 +135,15 @@ public class PlayerStateManager : MonoBehaviour
         if (shouldWallRun != states.isWallRunning)
         {
             GameLogger.LogState($"WALL RUN CHANGE: {states.isWallRunning} -> {shouldWallRun}, WallRunHeld={states.wallRunHeld}, CanWallRun={states.canWallRun}, Input.x={states.moveInput.x:F2}");
+            
+            if (shouldWallRun && !states.isWallRunning)
+            {
+                PlayerAirDodge airDodge = GetComponent<PlayerAirDodge>();
+                if (airDodge != null)
+                {
+                    airDodge.OnWallRunStart();
+                }
+            }
         }
         
         states.isWallRunning = shouldWallRun;

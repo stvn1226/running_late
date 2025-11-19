@@ -56,9 +56,26 @@ public class PlayerConfig : ScriptableObject
     public float coyoteTime = 0.1f;
 
     // ====================================
+    // AIR DODGE MECHANICS
+    // ====================================
+
+    [Header("Air Dodge")]
+    [Tooltip("Force applied when performing an air dodge. Units: m/s. Recommended: 15-25")]
+    [Range(10f, 40f)]
+    public float airDodgeForce = 20f;
+
+    [Tooltip("Duration of the air dodge movement. Units: seconds. Recommended: 0.2-0.4")]
+    [Range(0.1f, 0.6f)]
+    public float airDodgeDuration = 0.3f;
+
+    [Tooltip("Cooldown before air dodge can be used again after landing. Units: seconds. Recommended: 0.1-0.3")]
+    [Range(0.05f, 0.5f)]
+    public float airDodgeCooldown = 0.15f;
+
+    // ====================================
     // WALL RUN MECHANICS
     // ====================================
-    
+
     [Header("Wall Run")]
     [Tooltip("Force applied when running on walls. Higher = faster wall climb. Recommended: 2500-4000")]
     [Range(1000f, 6000f)]

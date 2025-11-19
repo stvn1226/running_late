@@ -21,6 +21,7 @@ public class PlayerStates : MonoBehaviour
     public bool kickPressed;
     //public bool dropDownPressed;
     public bool dropDownHeld;
+    public bool airDodgePressed;
 
     [Header("Movement States")]
     public bool isGrounded;
@@ -31,6 +32,8 @@ public class PlayerStates : MonoBehaviour
     public bool isCrouching;
     public bool isDroppingDown;
     public bool isStaggered;
+    public bool isAirDodging;
+    public bool canAirDodge;
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -51,6 +54,10 @@ public class PlayerStates : MonoBehaviour
     public float landingGraceTimer = 0f;
     public float landingHorizontalVelocity = 0f;
     public float landingVerticalVelocity = 0f;
+
+    [Header("Air Dodge States")]
+    public float airDodgeCooldownTimer = 0f;
+    public Vector2 airDodgeDirection;
 
     [Header("Kick States")]
     public float kickTimer;
@@ -203,6 +210,17 @@ public class PlayerStates : MonoBehaviour
         // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
+
+        if (airDodgeCooldownTimer > 0f)
+        {
+            airDodgeCooldownTimer -= Time.deltaTime;
+        }
+
+        if (airDodgePressed)
+        {
+            airDodgePressed = false;
+        }
+
     }
 
     private void CheckStateChanges()
@@ -273,6 +291,12 @@ public class PlayerStates : MonoBehaviour
         dropDownHeld = false;
         isDroppingDown = false;
     }
+
+    public void SetAirDodgePressed()
+    {
+        airDodgePressed = true;
+    }
+
 
     public void StartStagger(float duration)
     {

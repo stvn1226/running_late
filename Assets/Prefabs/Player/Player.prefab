@@ -152,7 +152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &82435348170327582
 Transform:
   m_ObjectHideFlags: 0
@@ -695,6 +695,7 @@ GameObject:
   - component: {fileID: 534057958294108713}
   - component: {fileID: 8651723166033491134}
   - component: {fileID: 4252047688613260771}
+  - component: {fileID: 9074128693007361277}
   - component: {fileID: 6913775742238925164}
   - component: {fileID: 936994605630686359}
   - component: {fileID: 7780051058677764453}
@@ -812,6 +813,21 @@ MonoBehaviour:
   rb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
   jumpFeedbacks: {fileID: 2034557323466851438}
+--- !u!114 &9074128693007361277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0fb1ff19e14f6946a498cb9a0105c1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAirDodge
+  config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  rb: {fileID: 5328747980780883216}
+  states: {fileID: 6913775742238925164}
 --- !u!114 &6913775742238925164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -832,6 +848,7 @@ MonoBehaviour:
   wallRunHeld: 0
   kickPressed: 0
   dropDownHeld: 0
+  airDodgePressed: 0
   isGrounded: 1
   wasGrounded: 0
   isWallRunning: 0
@@ -840,6 +857,8 @@ MonoBehaviour:
   isCrouching: 0
   isDroppingDown: 0
   isStaggered: 0
+  isAirDodging: 0
+  canAirDodge: 0
   jumpInputBuffered: 0
   jumpBufferTimer: 0
   coyoteTimer: 0
@@ -854,6 +873,8 @@ MonoBehaviour:
   landingGraceTimer: 0
   landingHorizontalVelocity: 0
   landingVerticalVelocity: 0
+  airDodgeCooldownTimer: 0
+  airDodgeDirection: {x: 0, y: 0}
   kickTimer: 0
   staggerTimer: 0
 --- !u!114 &936994605630686359
@@ -891,6 +912,7 @@ MonoBehaviour:
   physics: {fileID: 534057958294108713}
   kicker: {fileID: 6235658728137499135}
   stateManager: {fileID: 936994605630686359}
+  airDodge: {fileID: 9074128693007361277}
 --- !u!114 &2374712412831154929
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -14,6 +14,8 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerPhysics physics;
     [SerializeField] private PlayerKick kicker;
     [SerializeField] private PlayerStateManager stateManager;
+    [SerializeField] private PlayerAirDodge airDodge;
+
 
     private void Awake()
     {
@@ -99,6 +101,7 @@ public class PlayerControllerModular : MonoBehaviour
         if (jump != null) jump.config = config;
         if (physics != null) physics.config = config;
         if (stateManager != null) stateManager.config = config;
+        if (airDodge != null) airDodge.config = config;
     }
 
     #region Input Callbacks
@@ -199,7 +202,7 @@ public class PlayerControllerModular : MonoBehaviour
         GameLogger.LogInput("OnAirDodge called!");
         if (states != null)
         {
-            //states.SetAirDodgePressed();
+            states.SetAirDodgePressed();
         }
     }
 
