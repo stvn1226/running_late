@@ -19,7 +19,6 @@ public class PlayerStates : MonoBehaviour
     public bool crouchHeld;
     public bool wallRunHeld;
     public bool kickPressed;
-    //public bool dropDownPressed;
     public bool dropDownHeld;
 
     [Header("Movement States")]
@@ -44,7 +43,7 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Wall Run States")]
     public bool canWallRun;
-    public int wallDirection; // -1 left wall, 1 right wall
+    public int wallDirection;
 
     [Header("Landing States")]
     public bool justLanded = false;
@@ -58,7 +57,6 @@ public class PlayerStates : MonoBehaviour
     [Header("Stagger States")]
     public float staggerTimer;
 
-    // Logging variables for wall run states
     private bool prevCanWallRun;
     private int prevWallDirection;
     private bool prevWallRunHeld;
@@ -67,10 +65,8 @@ public class PlayerStates : MonoBehaviour
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
 
-    // Public properties for external access
     public bool IsWallRunHeld => wallRunHeld;
 
-    // Events for state changes
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
     public System.Action OnJumpStateChanged;
@@ -78,18 +74,10 @@ public class PlayerStates : MonoBehaviour
 
     private void Update()
     {
-        // Log wall run state changes
         LogWallRunStates();
-
-        // Update timers
         UpdateTimers();
-
-        // Check for state changes and trigger events
         CheckStateChanges();
-
         UpdateAnimator();
-
-        // Update previous values
         UpdatePreviousValues();
     }
 
@@ -97,37 +85,31 @@ public class PlayerStates : MonoBehaviour
     {
         bool shouldLog = Time.time - lastWallRunLog > WALL_RUN_LOG_INTERVAL;
 
-        // Log when wall run capability changes
         if (canWallRun != prevCanWallRun)
         {
             GameLogger.LogState($"WALL RUN CAPABILITY CHANGE: {prevCanWallRun} -> {canWallRun}, WallDirection: {wallDirection}, Input.x: {moveInput.x:F2}");
         }
 
-        // Log when wall direction changes
         if (wallDirection != prevWallDirection)
         {
             GameLogger.LogState($"WALL DIRECTION CHANGE: {prevWallDirection} -> {wallDirection}, CanWallRun: {canWallRun}, Input.x: {moveInput.x:F2}");
         }
 
-        // Log when wall run input changes
         if (wallRunHeld != prevWallRunHeld)
         {
             GameLogger.LogState($"WALL RUN INPUT CHANGE: {prevWallRunHeld} -> {wallRunHeld}, CanWallRun: {canWallRun}, IsWallRunning: {isWallRunning}");
         }
 
-        // Log when wall running state changes
         if (isWallRunning != prevIsWallRunning)
         {
             GameLogger.LogState($"WALL RUNNING STATE CHANGE: {prevIsWallRunning} -> {isWallRunning}, WallRunHeld: {wallRunHeld}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
         }
 
-        // Log when move input changes significantly
         if (Vector2.Distance(moveInput, prevMoveInput) > 0.5f)
         {
             GameLogger.LogVerbose("STATE", $"MOVE INPUT CHANGE: {prevMoveInput} -> {moveInput}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
         }
 
-        // Periodic logging during wall running
         if (shouldLog && (canWallRun || isWallRunning))
         {
             GameLogger.LogVerbose("STATE", $"WALL RUN STATUS: CanWallRun={canWallRun}, IsWallRunning={isWallRunning}, WallDirection={wallDirection}, WallRunHeld={wallRunHeld}, Input.x={moveInput.x:F2}");
@@ -150,12 +132,10 @@ public class PlayerStates : MonoBehaviour
         animator.SetBool(IsWallRunning, isWallRunning);
         animator.SetBool(IsCrouching, isCrouching);
         animator.SetBool(IsStaggered, isStaggered);
-
     }
 
     private void UpdateTimers()
     {
-        // Jump buffer timer
         if (jumpInputBuffered)
         {
             jumpBufferTimer -= Time.deltaTime;
@@ -163,7 +143,6 @@ public class PlayerStates : MonoBehaviour
                 jumpInputBuffered = false;
         }
 
-        // Coyote timer
         if (canCoyoteJump)
         {
             coyoteTimer -= Time.deltaTime;
@@ -171,12 +150,21 @@ public class PlayerStates : MonoBehaviour
                 canCoyoteJump = false;
         }
 
-        // Landing grace timer
         if (justLanded)
         {
             landingGraceTimer -= Time.deltaTime;
             if (landingGraceTimer <= 0f)
                 justLanded = false;
+        }
+
+        if (isKicking)
+        {
+            kickTimer -= Time.deltaTime;
+            if (kickTimer <= 0f)
+            {
+                GameLogger.LogState($"KICK: Timer expired ({kickTimer:F3}s), forcing end");
+                EndKick();
+            }
         }
 
         if (isStaggered)
@@ -188,19 +176,17 @@ public class PlayerStates : MonoBehaviour
 
                 if (isKicking)
                 {
-                    isKicking = false;
-                    GameLogger.LogState("STAGGER END: Also clearing stuck kick state");
+                    GameLogger.LogWarning("KICK", "STAGGER END: Force clearing stuck kick state");
+                    EndKick();
                 }
             }
         }
 
-        // Jump hold timer
         if (isJumping && jumpHeld)
         {
             jumpHoldTimer += Time.deltaTime;
         }
 
-        // Reset pressed flags after one frame
         if (jumpPressed)
             jumpPressed = false;
     }
@@ -211,7 +197,6 @@ public class PlayerStates : MonoBehaviour
         bool previousWallRunning = isWallRunning;
         bool previousStaggered = isStaggered;
 
-        // Update wasGrounded at the end of frame
         if (previousGrounded != isGrounded)
         {
             OnGroundedChanged?.Invoke();
@@ -220,13 +205,18 @@ public class PlayerStates : MonoBehaviour
         if (previousWallRunning != isWallRunning)
         {
             OnWallRunChanged?.Invoke();
+            
+            if (isWallRunning && isKicking)
+            {
+                GameLogger.LogWarning("KICK", "CRITICAL FIX: Wall run started during kick! Forcing kick end.");
+                EndKick();
+            }
         }
 
         if (previousStaggered != isStaggered)
         {
             OnStaggerStateChanged?.Invoke();
         }
-
     }
 
     public void SetJumpPressed()
@@ -242,14 +232,20 @@ public class PlayerStates : MonoBehaviour
         jumpPressed = false;
     }
 
-    public void SetKickPressed()
+    public void SetKickPressed(float kickDuration)
     {
         if (!isKicking)
         {
             animator.SetTrigger(IsKicking);
-
             kickPressed = true;
             isKicking = true;
+            kickTimer = kickDuration;
+            
+            GameLogger.LogState($"KICK: Started - Timer set to {kickTimer:F2}s");
+        }
+        else
+        {
+            GameLogger.LogWarning("KICK", "Kick already active, ignoring new kick request");
         }
     }
 
@@ -258,7 +254,9 @@ public class PlayerStates : MonoBehaviour
         if (isKicking)
         {
             isKicking = false;
-            GameLogger.LogState("KICK: Ended kick state");
+            kickTimer = 0f;
+            animator.ResetTrigger(IsKicking);
+            GameLogger.LogState("KICK: Ended");
         }
     }
 
@@ -281,9 +279,8 @@ public class PlayerStates : MonoBehaviour
 
         if (isKicking)
         {
-            isKicking = false;
-            animator.ResetTrigger(IsKicking);
-            GameLogger.LogState("STAGGER: Forcibly ended active kick to prevent movement lock");
+            GameLogger.LogWarning("KICK", "STAGGER: Force ending active kick to prevent movement lock");
+            EndKick();
         }
     }
 

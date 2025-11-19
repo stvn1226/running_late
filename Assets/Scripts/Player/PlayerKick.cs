@@ -3,24 +3,27 @@ using UnityEngine;
 public class PlayerKick : MonoBehaviour
 {
     private BoxCollider2D kickBox;
-    //private PlayerStates states;
+    private PlayerStates states;
 
     void Start()
     {
         kickBox = GetComponent<BoxCollider2D>();
-        //states = GetComponentInParent<PlayerStates>();
-        EndKick(); // Ensure kick hitbox is disabled at start
-    }
-
-    //void Update()
-    //{
+        states = GetComponentInParent<PlayerStates>();
         
-    //}
+        if (states == null)
+        {
+            GameLogger.LogError("KICK", "PlayerStates not found in parent! Kick system will not work properly.");
+        }
+        
+        EndKick();
+    }
 
     public void PerformKick(float kickDuration)
     {
-        Invoke("StartKick", 0.1f); // Slight delay to sync with animation
-        Invoke("EndKick", kickDuration + 0.1f); // Disable kick hitbox after kick duration
+        Invoke("StartKick", 0.1f);
+        Invoke("EndKick", kickDuration + 0.1f);
+        
+        GameLogger.LogVerbose("KICK", $"PerformKick scheduled - StartKick at T+0.1s, EndKick at T+{kickDuration + 0.1f}s");
     }
 
     private void StartKick()
@@ -28,6 +31,7 @@ public class PlayerKick : MonoBehaviour
         if (kickBox != null)
         {
             kickBox.enabled = true;
+            GameLogger.LogVerbose("KICK", "KickBox ENABLED (Invoke callback)");
             
             if (AnalyticsManager.Instance != null)
             {
@@ -48,9 +52,16 @@ public class PlayerKick : MonoBehaviour
 
     private void EndKick()
     {
-        if (kickBox != null) {
+        if (kickBox != null)
+        {
             kickBox.enabled = false;
-            //states.isKicking = false;
+            GameLogger.LogVerbose("KICK", "KickBox DISABLED (Invoke callback)");
+        }
+        
+        if (states != null && states.isKicking)
+        {
+            states.EndKick();
+            GameLogger.LogVerbose("KICK", "Called states.EndKick() from PlayerKick.EndKick()");
         }
     }
 }

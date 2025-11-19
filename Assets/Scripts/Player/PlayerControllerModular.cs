@@ -164,11 +164,18 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnKick(InputAction.CallbackContext context)
     {
-        if (states != null)
+        if (states != null && config != null)
         {
-            if (states.isKicking) return;
-            states.SetKickPressed();
+            if (states.isKicking)
+            {
+                GameLogger.LogWarning("KICK", "Kick already active, ignoring input");
+                return;
+            }
+            
+            states.SetKickPressed(config.kickDuration);
             kicker.PerformKick(config.kickDuration);
+            
+            GameLogger.LogInput($"Kick input processed - Duration: {config.kickDuration}s");
         }
     }
 
