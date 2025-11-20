@@ -1,0 +1,51 @@
+using UnityEngine;
+
+// TEMPLATE: Copy this template when creating new power-ups
+// 1. Copy this file and rename it (e.g., SpeedBoost.cs)
+// 2. Rename the class to match the filename
+// 3. Implement the ApplyEffect method with your power-up logic
+// 4. Add any specific settings in the header section
+
+/*
+public class YourPowerUpName : PowerUp
+{
+    [Header("Your Power-Up Settings")]
+    [SerializeField] private float effectDuration = 5f;
+    [SerializeField] private float effectStrength = 2f;
+
+    protected override void ApplyEffect(GameObject player)
+    {
+        // Implement your power-up logic here
+        // Examples:
+        
+        // 1. Get a component from the player
+        // PlayerMovement movement = player.GetComponent<PlayerMovement>();
+        // if (movement != null)
+        // {
+        //     movement.speedMultiplier *= effectStrength;
+        // }
+        
+        // 2. Find a manager in the scene
+        // SomeManager manager = FindFirstObjectByType<SomeManager>();
+        // if (manager != null)
+        // {
+        //     manager.DoSomething();
+        // }
+        
+        // 3. Trigger a timed effect with coroutine
+        // StartCoroutine(TimedEffect(player));
+    }
+    
+    // Optional: Add coroutines for timed effects
+    // private System.Collections.IEnumerator TimedEffect(GameObject player)
+    // {
+    //     // Apply effect
+    //     GameLogger.Log("POWERUP", "Effect started");
+    //     
+    //     yield return new WaitForSeconds(effectDuration);
+    //     
+    //     // Remove effect
+    //     GameLogger.Log("POWERUP", "Effect ended");
+    // }
+}
+*/

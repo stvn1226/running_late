@@ -10,7 +10,7 @@ public class AudioManager : MonoBehaviour
         Bounce,
         Powerup,
         Music_Menu,
-        Music_Battle
+        Music_Level
         // Add more sound types as needed
     }
 
