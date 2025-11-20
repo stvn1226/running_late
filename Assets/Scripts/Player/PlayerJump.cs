@@ -57,15 +57,13 @@ public class PlayerJump : MonoBehaviour
     {
         bool shouldLongJump = ShouldPerformLongJump();
         
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-        
         if (shouldLongJump)
         {
             PerformLongJump();
         }
         else
         {
-            rb.AddForce(Vector2.up * config.minJumpForce, ForceMode2D.Impulse);
+            PerformNormalJump();
         }
         
         states.StartJump();
@@ -93,6 +91,14 @@ public class PlayerJump : MonoBehaviour
         }
     }
 
+    private void PerformNormalJump()
+    {
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+        rb.AddForce(Vector2.up * config.minJumpForce, ForceMode2D.Impulse);
+        
+        GameLogger.LogMovement($"NORMAL JUMP! Vertical: {config.minJumpForce:F2}, Horizontal preserved: {rb.linearVelocity.x:F2}");
+    }
+
     private bool ShouldPerformLongJump()
     {
         bool crouchIsHeld = states.crouchHeld;
@@ -104,22 +110,26 @@ public class PlayerJump : MonoBehaviour
 
     private void PerformLongJump()
     {
+        float currentHorizontalVelocity = rb.linearVelocity.x;
+        
         float verticalForce = config.minJumpForce * config.longJumpVerticalMultiplier;
         float horizontalDirection = Mathf.Sign(states.moveInput.x);
         float horizontalForce = config.longJumpHorizontalBoost * horizontalDirection;
         
+        rb.linearVelocity = new Vector2(currentHorizontalVelocity, 0);
         rb.AddForce(Vector2.up * verticalForce, ForceMode2D.Impulse);
         rb.AddForce(Vector2.right * horizontalForce, ForceMode2D.Impulse);
         
         states.isLongJumping = true;
         states.crouchInputBuffered = false;
+        states.longJumpGraceTimer = config.longJumpGracePeriod;
         
         if (states.isCrouching || states.isSliding)
         {
             CancelCrouchSlideStates();
         }
         
-        GameLogger.LogMovement($"LONG JUMP! Vertical: {verticalForce:F2}, Horizontal: {horizontalForce:F2}, Direction: {horizontalDirection}");
+        GameLogger.LogMovement($"LONG JUMP! Vertical: {verticalForce:F2}, Horizontal boost: {horizontalForce:F2}, Base velocity: {currentHorizontalVelocity:F2}, Grace period: {config.longJumpGracePeriod:F2}s");
     }
 
     private void CancelCrouchSlideStates()
@@ -177,7 +187,9 @@ public class PlayerJump : MonoBehaviour
         }
         else if (states.isFalling || states.isJumpCut)
         {
-            rb.gravityScale = (states.crouchHeld && !states.isGrounded) ? config.fastFallGravityScale : config.fallGravityScale;
+            bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
+            bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
+            rb.gravityScale = shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale;
         }
         else
         {
