@@ -68,6 +68,7 @@ public class PlayerJump : MonoBehaviour
         
         states.StartJump();
 
+        AudioManager.Instance?.Play(AudioManager.SoundType.Jump);
         jumpFeedbacks.PlayFeedbacks();
         
         if (AnalyticsManager.Instance != null)
