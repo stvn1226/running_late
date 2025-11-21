@@ -5,8 +5,21 @@ This folder contains the power-up system for the game. The system uses an inheri
 ## Files
 
 - **PowerUp.cs** - Abstract base class for all power-ups
+- **ITimedPowerUp.cs** - Interface for power-ups with duration and UI display support
 - **ExtraTime.cs** - Power-up that adds extra time to the level timer
+- **DoubleJump.cs** - Power-up that grants double jump ability for a limited time
+- **ScoreBoost.cs** - Power-up that adds bonus score points
 - **PowerUpTemplate.cs.txt** - Template for creating new power-ups
+- **TimedPowerUpTemplate.cs.txt** - Template for creating timed power-ups with UI displays
+
+## Creating Timed Power-Ups with UI
+
+For power-ups that have a duration and need a UI display:
+
+1. Implement the `ITimedPowerUp` interface on the component that manages the power-up state
+2. Add the required methods: `IsActive()`, `GetRemainingTime()`, `GetMaxTime()`, `GetPowerUpName()`
+3. Create a UI display using the generic `PowerUpDisplay` component (found in `/Assets/Scripts/UI/`)
+4. See `TimedPowerUpTemplate.cs.txt` for a complete example
 
 ## How to Use the ExtraTime Power-Up
 

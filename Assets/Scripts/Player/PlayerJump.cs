@@ -2,7 +2,7 @@ using MoreMountains.Feedbacks;
 using System;
 using UnityEngine;
 
-public class PlayerJump : MonoBehaviour
+public class PlayerJump : MonoBehaviour, ITimedPowerUp
 {
     [Header("References")]
     public PlayerConfig config;
@@ -57,10 +57,6 @@ public class PlayerJump : MonoBehaviour
     private void HandleJumpInput()
     {
         if (config == null || states.isKicking) return;
-        if (allowDoubleJump)
-        {
-            Debug.Log("I allow Double Jump");
-        }
         // Handle coyote time
         if (states.wasGrounded && !states.isGrounded && !states.isJumping)
         {
@@ -240,5 +236,25 @@ public class PlayerJump : MonoBehaviour
         rb.AddForce(wallJumpDirection * config.maxJumpForce * config.wallJumpMultiplier, ForceMode2D.Impulse);
         states.isWallRunning = false;
         states.StartJump();
+    }
+
+    public bool IsActive()
+    {
+        return allowDoubleJump;
+    }
+
+    public float GetRemainingTime()
+    {
+        return allowDoubleJump ? (maxTime - currentTime) : 0f;
+    }
+
+    public float GetMaxTime()
+    {
+        return maxTime;
+    }
+
+    public string GetPowerUpName()
+    {
+        return "DoubleJump";
     }
 }
