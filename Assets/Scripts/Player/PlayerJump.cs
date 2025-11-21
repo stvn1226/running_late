@@ -1,4 +1,5 @@
 using MoreMountains.Feedbacks;
+using System;
 using UnityEngine;
 
 public class PlayerJump : MonoBehaviour
@@ -10,6 +11,10 @@ public class PlayerJump : MonoBehaviour
     [SerializeField] private PlayerStates states;
     private float originalGravityScale;
     public MMF_Player jumpFeedbacks;
+
+    private float currentTime = 0f;
+    private float maxTime = 10f;
+    private bool allowDoubleJump = false;
 
     private void Awake()
     {
@@ -25,12 +30,37 @@ public class PlayerJump : MonoBehaviour
         }
 
         UpdateJumpPhysics();
+        HandleDoubleJumpPower();
+    }
+
+    public void InvokeDoubleJump()
+    {
+        allowDoubleJump = true;
+        currentTime = 0f;
+        Debug.Log("Double Jump Invoked!");
+    }
+
+    private void HandleDoubleJumpPower()
+    {
+        if (states.isGrounded) jumpCt = 0;
+
+        if (currentTime < maxTime && allowDoubleJump)
+        {
+            currentTime += Time.deltaTime;
+        }
+        else
+        {
+            allowDoubleJump = false;
+        }
     }
 
     private void HandleJumpInput()
     {
         if (config == null || states.isKicking) return;
-
+        if (allowDoubleJump)
+        {
+            Debug.Log("I allow Double Jump");
+        }
         // Handle coyote time
         if (states.wasGrounded && !states.isGrounded && !states.isJumping)
         {
@@ -38,7 +68,7 @@ public class PlayerJump : MonoBehaviour
         }
         
         // Execute jump - jumping should cancel crouch/slide states
-        if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump))
+        if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump || (allowDoubleJump && jumpCt < 1)))
         {
             // Jump cancels crouch and slide states
             if (states.isCrouching || states.isSliding)
@@ -53,8 +83,11 @@ public class PlayerJump : MonoBehaviour
         }
     }
 
+    int jumpCt = 0;
+
     private void PerformJump()
     {
+        jumpCt++;
         bool shouldLongJump = ShouldPerformLongJump();
         
         if (shouldLongJump)
