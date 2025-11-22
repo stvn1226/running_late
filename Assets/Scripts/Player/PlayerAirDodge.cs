@@ -42,16 +42,9 @@ public class PlayerAirDodge : MonoBehaviour
 
     private bool CanPerformAirDodge()
     {
-        bool isInAir = !states.isGrounded;
         bool hasCharges = states.canAirDodge;
         bool notAlreadyDodging = !states.isAirDodging;
         bool cooldownReady = states.airDodgeCooldownTimer <= 0f;
-
-        if (!isInAir)
-        {
-            GameLogger.LogVerbose("AIRDODGE", "Cannot dodge: Player is grounded");
-            return false;
-        }
 
         if (!hasCharges)
         {

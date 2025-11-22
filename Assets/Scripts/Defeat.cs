@@ -96,4 +96,24 @@ public class Defeat : MonoBehaviour
         isDefeated = false;
         elapsedTime = 0f;
     }
+
+    public void AddTime(float seconds)
+    {
+        timeLimit += seconds;
+        
+        if (showDebugInfo)
+        {
+            GameLogger.Log("DEFEAT", $"Added {seconds} seconds. New time limit: {timeLimit}s");
+        }
+    }
+
+    public float GetTimeRemaining()
+    {
+        return Mathf.Max(0f, timeLimit - elapsedTime);
+    }
+
+    public float GetTimeLimit()
+    {
+        return timeLimit;
+    }
 }

@@ -7,8 +7,21 @@ public class HitboxCollider : MonoBehaviour
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
-        if (parent.wasHit || parent.isStaggered)
+        if (parent == null)
         {
+            GameLogger.LogError("HITBOX", "Parent Animal reference is null!");
+            return;
+        }
+
+        if (parent.isStaggered)
+        {
+            GameLogger.LogVerbose("HITBOX", $"[{parent.gameObject.name}] Ignoring collision - already staggered");
+            return;
+        }
+
+        if (parent.wasHit)
+        {
+            GameLogger.LogVerbose("HITBOX", $"[{parent.gameObject.name}] Ignoring collision - recently hit (cooldown active)");
             return;
         }
 
@@ -20,29 +33,26 @@ public class HitboxCollider : MonoBehaviour
             return;
         }
 
-        bool isPlayerStompTag = collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG);
-        
-        if (isPlayerStompTag)
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
-            GameLogger.Log($"[{parent.gameObject.name}] Player collision detected on {collision.gameObject.name} (Tag: {collision.tag})");
+            GameLogger.Log($"[{parent.gameObject.name}] Player collision detected");
             
             Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
             
             if (playerRb != null)
             {
                 float velocityY = playerRb.linearVelocity.y;
-                GameLogger.Log($"[{parent.gameObject.name}] Player velocity Y: {velocityY:F2}, Tag: {collision.tag}");
-
+                
                 bool isStomp = velocityY < 0f;
+
+                GameLogger.Log($"[{parent.gameObject.name}] VelY={velocityY:F2}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
 
                 if (isStomp)
                 {
-                    GameLogger.Log($"[{parent.gameObject.name}] ✓ STOMP CONDITION MET (Tag={collision.tag}, Y={velocityY:F2})");
                     HandleStompOnEnemy(collision, playerRb);
                 }
                 else
                 {
-                    GameLogger.Log($"[{parent.gameObject.name}] ✗ DAMAGE CONDITION (Tag={collision.tag}, Y={velocityY:F2})");
                     HandlePlayerDamage(collision, playerRb);
                 }
             }
@@ -56,21 +66,20 @@ public class HitboxCollider : MonoBehaviour
 
     private void HandleStompOnEnemy(Collider2D collision, Rigidbody2D playerRb)
     {
-        GameLogger.Log($"[{parent.gameObject.name}] Stomped by Player (VelY: {playerRb.linearVelocity.y:F2}) - bouncing!");
+        GameLogger.Log($"[{parent.gameObject.name}] ✓ STOMPED (VelY: {playerRb.linearVelocity.y:F2}) - bouncing!");
         
         parent.TriggerStagger();
         parent.wasHit = true;
 
-        PlayerStomp playerStomp = collision.GetComponent<PlayerStomp>();
+        PlayerStomp playerStomp = collision.GetComponentInParent<PlayerStomp>();
         
         if (playerStomp != null)
         {
-            GameLogger.Log($"[{parent.gameObject.name}] ✓ PlayerStomp found on {collision.gameObject.name}! Calling ExecuteStompBounce()");
             playerStomp.ExecuteStompBounce();
         }
         else
         {
-            GameLogger.LogWarning("HITBOX", $"[{parent.gameObject.name}] PlayerStomp component not found on {collision.gameObject.name}!");
+            GameLogger.LogWarning("HITBOX", $"[{parent.gameObject.name}] PlayerStomp component not found!");
         }
 
         if (AnalyticsManager.Instance != null)
@@ -93,7 +102,7 @@ public class HitboxCollider : MonoBehaviour
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
     {
         float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
-        GameLogger.Log($"[{parent.gameObject.name}] Collided with Player (VelY: {velocityY:F2}) - dealing damage");
+        GameLogger.Log($"[{parent.gameObject.name}] ✗ DAMAGE (VelY: {velocityY:F2})");
 
         if (AnalyticsManager.Instance != null)
         {
@@ -124,6 +133,6 @@ public class HitboxCollider : MonoBehaviour
 
         parent.wasHit = true;
 
-        StartCoroutine(parent.DisableHitboxTemp(2f));
+        Coroutine disableCoroutine = StartCoroutine(parent.DisableHitboxTemp(2f));
     }
 }

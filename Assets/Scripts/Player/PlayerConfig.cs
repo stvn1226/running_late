@@ -68,6 +68,10 @@ public class PlayerConfig : ScriptableObject
     [Range(0.05f, 0.3f)]
     public float longJumpBufferTime = 0.15f;
 
+    [Tooltip("Grace period after long jump where fast-falling is disabled. Recommended: 0.3-0.5")]
+    [Range(0.1f, 1f)]
+    public float longJumpGracePeriod = 0.4f;
+
     // ====================================
     // AIR DODGE MECHANICS
     // ====================================

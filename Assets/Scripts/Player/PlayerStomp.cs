@@ -32,7 +32,7 @@ public class PlayerStomp : MonoBehaviour
 
         GameLogger.LogState($"STOMP BOUNCE EXECUTED! Current VelY: {playerRb.linearVelocity.y:F2}");
         ApplyBounce();
-
+        AudioManager.Instance?.Play(AudioManager.SoundType.Bounce);
         PlayerAirDodge airDodge = GetComponentInParent<PlayerAirDodge>();
         if (airDodge != null)
         {

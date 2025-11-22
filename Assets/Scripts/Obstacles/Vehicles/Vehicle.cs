@@ -13,6 +13,8 @@ public abstract class Vehicle : MonoBehaviour
     public Collider2D[] hitbox = new Collider2D[2];
     [SerializeField] private float activationDistance = 30f;
     private bool wasStomped;
+    private bool wasHit;
+    private Coroutine hitboxDisableCoroutine;
 
     protected virtual void Start()
     {
@@ -21,6 +23,7 @@ public abstract class Vehicle : MonoBehaviour
         isRunning = false;
         hasRan = false;
         wasStomped = false;
+        wasHit = false;
     }
 
     protected virtual void Update()
@@ -50,30 +53,33 @@ public abstract class Vehicle : MonoBehaviour
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
         if (!isRunning) return;
-        
-        bool isPlayerStompTag = collision.gameObject.CompareTag(TagUtils.PLAYERSTOMP_TAG);
-        
-        if (isPlayerStompTag)
+
+        if (wasHit)
         {
-            GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player collision detected on {collision.gameObject.name} (Tag: {collision.tag})");
+            GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Ignoring collision - recently hit (cooldown active)");
+            return;
+        }
+        
+        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
+        {
+            GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player collision detected");
             
             Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
             
             if (playerRb != null)
             {
                 float velocityY = playerRb.linearVelocity.y;
-                GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player velocity Y: {velocityY:F2}, Tag: {collision.tag}");
-
+                
                 bool isStomp = velocityY < 0f;
+
+                GameLogger.Log("VEHICLE", $"[{gameObject.name}] VelY={velocityY:F2}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
 
                 if (isStomp)
                 {
-                    GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✓ STOMP CONDITION MET (Tag={collision.tag}, Y={velocityY:F2})");
                     HandleStompOnVehicle(collision, playerRb);
                 }
                 else
                 {
-                    GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✗ DAMAGE CONDITION (Tag={collision.tag}, Y={velocityY:F2})");
                     HandlePlayerDamage(collision, playerRb);
                 }
             }
@@ -89,20 +95,20 @@ public abstract class Vehicle : MonoBehaviour
     {
         if (wasStomped) return;
         
-        GameLogger.Log("VEHICLE", $"[{gameObject.name}] Stomped by Player (VelY: {playerRb.linearVelocity.y:F2}) - bouncing!");
+        GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✓ STOMPED (VelY: {playerRb.linearVelocity.y:F2}) - bouncing!");
         
         wasStomped = true;
+        wasHit = true;
 
-        PlayerStomp playerStomp = collision.GetComponent<PlayerStomp>();
+        PlayerStomp playerStomp = collision.GetComponentInParent<PlayerStomp>();
         
         if (playerStomp != null)
         {
-            GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✓ PlayerStomp found on {collision.gameObject.name}! Calling ExecuteStompBounce()");
             playerStomp.ExecuteStompBounce();
         }
         else
         {
-            GameLogger.LogWarning("VEHICLE", $"[{gameObject.name}] PlayerStomp component not found on {collision.gameObject.name}!");
+            GameLogger.LogWarning("VEHICLE", $"[{gameObject.name}] PlayerStomp component not found!");
         }
 
         if (AnalyticsManager.Instance != null)
@@ -121,13 +127,15 @@ public abstract class Vehicle : MonoBehaviour
             AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_STOMP, context);
         }
 
-        StartCoroutine(DisableHitboxTemp(2f));
+        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
     {
         float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
-        GameLogger.Log("VEHICLE", $"[{gameObject.name}] Collided with Player (VelY: {velocityY:F2}) - dealing damage");
+        GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✗ DAMAGE (VelY: {velocityY:F2})");
+
+        wasHit = true;
 
         if (AnalyticsManager.Instance != null)
         {
@@ -156,19 +164,58 @@ public abstract class Vehicle : MonoBehaviour
         if (cachedPlayerMovement != null)
             cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
         
-        StartCoroutine(DisableHitboxTemp(2f));
+        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+    }
+
+    private void ResetHitState()
+    {
+        wasHit = false;
+        GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hit state RESET");
     }
 
     protected IEnumerator DisableHitboxTemp(float duration)
     {
+        GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hitboxes DISABLED for {duration}s");
+        
         foreach (Collider2D c in hitbox)
         {
-            c.enabled = false;
+            if (c != null) c.enabled = false;
         }
+        
         yield return new WaitForSeconds(duration);
+        
+        if (this != null && !wasStomped)
+        {
+            foreach (Collider2D c in hitbox)
+            {
+                if (c != null)
+                {
+                    c.enabled = true;
+                    GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hitbox {c.name} RE-ENABLED");
+                }
+            }
+            ResetHitState();
+            GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hit state reset after cooldown");
+        }
+
+        hitboxDisableCoroutine = null;
+    }
+
+    protected virtual void OnDisable()
+    {
         foreach (Collider2D c in hitbox)
         {
-            c.enabled = true;
+            if (c != null) c.enabled = true;
         }
+        ResetHitState();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (hitboxDisableCoroutine != null)
+        {
+            StopCoroutine(hitboxDisableCoroutine);
+        }
+        StopAllCoroutines();
     }
 }
