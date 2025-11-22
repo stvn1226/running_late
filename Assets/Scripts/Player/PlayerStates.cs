@@ -46,6 +46,7 @@ public class PlayerStates : MonoBehaviour
     public bool crouchInputBuffered = false;
     public float crouchBufferTimer = 0f;
     public bool isLongJumping = false;
+    public float longJumpGraceTimer = 0f;
 
     [Header("Wall Run States")]
     public bool canWallRun;
@@ -166,6 +167,12 @@ public class PlayerStates : MonoBehaviour
             crouchBufferTimer -= Time.deltaTime;
             if (crouchBufferTimer <= 0)
                 crouchInputBuffered = false;
+        }
+
+        // Long jump grace timer
+        if (longJumpGraceTimer > 0f)
+        {
+            longJumpGraceTimer -= Time.deltaTime;
         }
 
         // Landing grace timer

@@ -14,7 +14,9 @@ public class StructureBuilder : MonoBehaviour
     [Header("Rooftop Obstacles")]
     //public Transform roofObstacleSpawnPoint;
     public GameObject[] roofObstaclePrefabs;
+    public GameObject[] powerUps;
     public int obstacleRate = 50; // % chance to spawn rooftop obstacle
+    public int powerUpRate = 20; // % chance to spawn rooftop power-up
 
     public void ConstructStructure()
     {
@@ -50,13 +52,26 @@ public class StructureBuilder : MonoBehaviour
         else return;
 
         int obstacleChance = Random.Range(0, 100);
-        if (obstacleChance < obstacleRate) return; // % chance to spawn rooftop obstacle
-        if (roofObstaclePrefabs.Length > 0)
-        {
-            float varyObstacleSpawnX = Random.Range(-3f, 4f);
-            Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight));
-            GameObject obstacle = Instantiate(roofObstaclePrefabs[Random.Range(0, roofObstaclePrefabs.Length)], obstaclePosition, Quaternion.identity, transform);
+        if (obstacleChance < obstacleRate) // % chance to spawn rooftop obstacle
+        { 
+            if (roofObstaclePrefabs.Length > 0)
+            {
+                float varyObstacleSpawnX = Random.Range(-3f, 4f);
+                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight));
+                GameObject obstacle = Instantiate(roofObstaclePrefabs[Random.Range(0, roofObstaclePrefabs.Length)], obstaclePosition, Quaternion.identity, transform);
+            }
         }
+
+        int powerUpChance = Random.Range(0, 100);
+        if (powerUpChance < powerUpRate) // % chance to spawn rooftop power-up
+        {
+            if (powerUps.Length > 0)
+            {
+                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight) + 1f);
+                GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)], powerUpPosition, Quaternion.identity, transform);
+            }
+        }
+
     }
 
     private void SortTilemap(GameObject toUse, int floorsCt)

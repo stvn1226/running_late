@@ -22,9 +22,10 @@ MonoBehaviour:
   fastFallGravityScale: 9
   jumpBufferTime: 0.12
   coyoteTime: 0.1
-  longJumpVerticalMultiplier: 0.8
+  longJumpVerticalMultiplier: 1
   longJumpHorizontalBoost: 10
   longJumpBufferTime: 0.15
+  longJumpGracePeriod: 0.4
   airDodgeForce: 30
   airDodgeDuration: 0.3
   airDodgeCooldown: 0.15
@@ -50,7 +51,7 @@ MonoBehaviour:
   staggerMovementReduction: 0.2
   landingGracePeriod: 0.5
   slamLandingThreshold: 0
-  momentumConversionRatio: 0.25
+  momentumConversionRatio: 0.2
   crouchSizeMultiplier: {x: 2, y: 0.5}
   dropDownDisableTime: 0.3
   platformLayerMask:

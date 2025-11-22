@@ -1,0 +1,58 @@
+using UnityEngine;
+
+// TEMPLATE: Use this template when creating timed power-ups with UI displays
+// 1. Copy the relevant sections below
+// 2. Implement ITimedPowerUp interface on your component
+// 3. Add the four required methods
+// 4. Track activation time, max time, and active state
+
+/*
+Example: Speed Boost Power-Up that lasts 5 seconds
+
+public class PlayerMovement : MonoBehaviour, ITimedPowerUp
+{
+    [Header("Speed Boost")]
+    private bool speedBoostActive = false;
+    private float speedBoostTimer = 0f;
+    private float speedBoostMaxTime = 5f;
+    
+    public void ActivateSpeedBoost()
+    {
+        speedBoostActive = true;
+        speedBoostTimer = 0f;
+    }
+    
+    private void Update()
+    {
+        if (speedBoostActive)
+        {
+            speedBoostTimer += Time.deltaTime;
+            if (speedBoostTimer >= speedBoostMaxTime)
+            {
+                speedBoostActive = false;
+            }
+        }
+    }
+    
+    // ITimedPowerUp implementation
+    public bool IsActive()
+    {
+        return speedBoostActive;
+    }
+    
+    public float GetRemainingTime()
+    {
+        return speedBoostActive ? (speedBoostMaxTime - speedBoostTimer) : 0f;
+    }
+    
+    public float GetMaxTime()
+    {
+        return speedBoostMaxTime;
+    }
+    
+    public string GetPowerUpName()
+    {
+        return "SpeedBoost";
+    }
+}
+*/
