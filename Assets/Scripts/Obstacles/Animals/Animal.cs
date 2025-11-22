@@ -37,26 +37,42 @@ public abstract class Animal : MonoBehaviour
     protected bool hasRan;
 
     public bool wasHit = false;
-
-
-    //void Start()
-    //{
-        
-    //}
-
-    //// Update is called once per frame
-    //void Update()
-    //{
-        
-    //}
+    private Coroutine hitboxDisableCoroutine;
 
     public abstract void TriggerStagger();
 
+    public void ResetHitState()
+    {
+        wasHit = false;
+        GameLogger.LogVerbose("ANIMAL", $"[{gameObject.name}] Hit state RESET");
+    }
+
     public IEnumerator DisableHitboxTemp(float duration)
     {
+        if (hitbox == null)
+        {
+            GameLogger.LogWarning("ANIMAL", $"[{gameObject.name}] Hitbox is null, cannot disable temporarily");
+            yield break;
+        }
+
+        if (hitboxDisableCoroutine != null)
+        {
+            StopCoroutine(hitboxDisableCoroutine);
+        }
+
         hitbox.enabled = false;
+        GameLogger.LogVerbose("ANIMAL", $"[{gameObject.name}] Hitbox DISABLED for {duration}s");
+        
         yield return new WaitForSeconds(duration);
-        hitbox.enabled = true;
+        
+        if (hitbox != null && this != null && !isStaggered)
+        {
+            hitbox.enabled = true;
+            ResetHitState();
+            GameLogger.LogVerbose("ANIMAL", $"[{gameObject.name}] Hitbox RE-ENABLED and hit state reset");
+        }
+
+        hitboxDisableCoroutine = null;
     }
 
     protected virtual bool PlayerWithinDetectionRadius()
@@ -110,4 +126,19 @@ public abstract class Animal : MonoBehaviour
         }
     }
 
+    protected virtual void OnDisable()
+    {
+        if (hitbox != null) hitbox.enabled = true;
+        if (solidCollider != null) solidCollider.enabled = true;
+        ResetHitState();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (hitboxDisableCoroutine != null)
+        {
+            StopCoroutine(hitboxDisableCoroutine);
+        }
+        StopAllCoroutines();
+    }
 }

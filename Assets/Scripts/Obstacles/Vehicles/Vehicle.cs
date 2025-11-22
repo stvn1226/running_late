@@ -13,6 +13,8 @@ public abstract class Vehicle : MonoBehaviour
     public Collider2D[] hitbox = new Collider2D[2];
     [SerializeField] private float activationDistance = 30f;
     private bool wasStomped;
+    private bool wasHit;
+    private Coroutine hitboxDisableCoroutine;
 
     protected virtual void Start()
     {
@@ -21,6 +23,7 @@ public abstract class Vehicle : MonoBehaviour
         isRunning = false;
         hasRan = false;
         wasStomped = false;
+        wasHit = false;
     }
 
     protected virtual void Update()
@@ -50,6 +53,12 @@ public abstract class Vehicle : MonoBehaviour
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
         if (!isRunning) return;
+
+        if (wasHit)
+        {
+            GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Ignoring collision - recently hit (cooldown active)");
+            return;
+        }
         
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
@@ -89,6 +98,7 @@ public abstract class Vehicle : MonoBehaviour
         GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✓ STOMPED (VelY: {playerRb.linearVelocity.y:F2}) - bouncing!");
         
         wasStomped = true;
+        wasHit = true;
 
         PlayerStomp playerStomp = collision.GetComponentInParent<PlayerStomp>();
         
@@ -117,13 +127,15 @@ public abstract class Vehicle : MonoBehaviour
             AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_STOMP, context);
         }
 
-        StartCoroutine(DisableHitboxTemp(2f));
+        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
     {
         float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
         GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✗ DAMAGE (VelY: {velocityY:F2})");
+
+        wasHit = true;
 
         if (AnalyticsManager.Instance != null)
         {
@@ -152,19 +164,58 @@ public abstract class Vehicle : MonoBehaviour
         if (cachedPlayerMovement != null)
             cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
         
-        StartCoroutine(DisableHitboxTemp(2f));
+        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+    }
+
+    private void ResetHitState()
+    {
+        wasHit = false;
+        GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hit state RESET");
     }
 
     protected IEnumerator DisableHitboxTemp(float duration)
     {
+        GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hitboxes DISABLED for {duration}s");
+        
         foreach (Collider2D c in hitbox)
         {
-            c.enabled = false;
+            if (c != null) c.enabled = false;
         }
+        
         yield return new WaitForSeconds(duration);
+        
+        if (this != null && !wasStomped)
+        {
+            foreach (Collider2D c in hitbox)
+            {
+                if (c != null)
+                {
+                    c.enabled = true;
+                    GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hitbox {c.name} RE-ENABLED");
+                }
+            }
+            ResetHitState();
+            GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Hit state reset after cooldown");
+        }
+
+        hitboxDisableCoroutine = null;
+    }
+
+    protected virtual void OnDisable()
+    {
         foreach (Collider2D c in hitbox)
         {
-            c.enabled = true;
+            if (c != null) c.enabled = true;
         }
+        ResetHitState();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (hitboxDisableCoroutine != null)
+        {
+            StopCoroutine(hitboxDisableCoroutine);
+        }
+        StopAllCoroutines();
     }
 }

@@ -7,8 +7,21 @@ public class HitboxCollider : MonoBehaviour
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
-        if (parent.wasHit || parent.isStaggered)
+        if (parent == null)
         {
+            GameLogger.LogError("HITBOX", "Parent Animal reference is null!");
+            return;
+        }
+
+        if (parent.isStaggered)
+        {
+            GameLogger.LogVerbose("HITBOX", $"[{parent.gameObject.name}] Ignoring collision - already staggered");
+            return;
+        }
+
+        if (parent.wasHit)
+        {
+            GameLogger.LogVerbose("HITBOX", $"[{parent.gameObject.name}] Ignoring collision - recently hit (cooldown active)");
             return;
         }
 
@@ -120,6 +133,6 @@ public class HitboxCollider : MonoBehaviour
 
         parent.wasHit = true;
 
-        StartCoroutine(parent.DisableHitboxTemp(2f));
+        Coroutine disableCoroutine = StartCoroutine(parent.DisableHitboxTemp(2f));
     }
 }
