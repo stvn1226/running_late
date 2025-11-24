@@ -57,6 +57,7 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
     private void HandleJumpInput()
     {
         if (config == null || states.isKicking) return;
+        
         // Handle coyote time
         if (states.wasGrounded && !states.isGrounded && !states.isJumping)
         {
@@ -66,11 +67,23 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
         // Execute jump - jumping should cancel crouch/slide states
         if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump || (allowDoubleJump && jumpCt < 1)))
         {
-            // Jump cancels crouch and slide states
-            if (states.isCrouching || states.isSliding)
+            // Cancel crouch, slide, dive, and roll states when jumping
+            if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling)
             {
                 CancelCrouchSlideStates();
             }
+            
+            // Reset dive ability on double jump
+            bool isDoubleJump = !states.isGrounded && !states.canCoyoteJump && allowDoubleJump && jumpCt < 1;
+            if (isDoubleJump)
+            {
+                PlayerDive dive = GetComponent<PlayerDive>();
+                if (dive != null)
+                {
+                    dive.OnDoubleJump();
+                }
+            }
+            
             PerformJump();
         }
         else if (states.jumpInputBuffered && states.isWallRunning)

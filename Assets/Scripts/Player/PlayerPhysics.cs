@@ -84,6 +84,12 @@ public class PlayerPhysics : MonoBehaviour
             {
                 airDodge.OnLanding();
             }
+
+            PlayerDive dive = GetComponent<PlayerDive>();
+            if (dive != null)
+            {
+                dive.OnLanding();
+            }
         }
 
         if (states.canWallRun != previousCanWallRun || states.wallDirection != previousWallDirection)
@@ -179,7 +185,7 @@ public class PlayerPhysics : MonoBehaviour
 
     public void UpdateColliderSize()
     {
-        bool shouldCrouch = states.isCrouching || states.isSliding;
+        bool shouldCrouch = states.isCrouching || states.isSliding || states.isRolling;
         CapsuleDirection2D newDirection = shouldCrouch ? CapsuleDirection2D.Horizontal : CapsuleDirection2D.Vertical;
         Vector2 newSize = shouldCrouch ? crouchColliderSize : originalColliderSize;
         Vector2 newOffset = shouldCrouch ? crouchColliderOffset : originalColliderOffset;

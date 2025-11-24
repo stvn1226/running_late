@@ -259,8 +259,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (states.isWallRunning)
             HandleWallRunMovement(forceMultiplier);
+        else if (states.isRolling)
+            HandleRollMovement(forceMultiplier);
         else if (states.isSliding)
             HandleSlideMovement(forceMultiplier);
+        else if (states.isDiving)
+            HandleDiveMovement(forceMultiplier);
         else
             HandleNormalMovement(forceMultiplier);
     }
@@ -268,7 +272,7 @@ public class PlayerMovement : MonoBehaviour
     private void HandleNormalMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
-        if (states.isCrouching || states.isSliding) return;
+        if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling) return;
 
         float horizontalInput = states.moveInput.x;
 
@@ -303,6 +307,18 @@ public class PlayerMovement : MonoBehaviour
         // Could add slide steering here if needed
     }
 
+    private void HandleRollMovement(float forceMultiplier)
+    {
+        // Rolling uses momentum only, similar to sliding
+        // No horizontal input processed during roll
+    }
+
+    private void HandleDiveMovement(float forceMultiplier)
+    {
+        // Diving maintains momentum with no horizontal control
+        // Player is committed to the dive direction
+    }
+
     private void HandleWallRunMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
@@ -330,6 +346,16 @@ public class PlayerMovement : MonoBehaviour
     
         if (!states.isGrounded || states.isKicking)
             return;
+        
+        if (states.isRolling)
+        {
+            if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
+            {
+                Vector2 dragForces = -velocity * (config.slideDrag * 0.4f * Time.fixedDeltaTime);
+                rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
+            }
+            return;
+        }
         
         if (states.isSliding)
         {

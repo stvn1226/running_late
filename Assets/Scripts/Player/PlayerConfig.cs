@@ -90,6 +90,31 @@ public class PlayerConfig : ScriptableObject
     public float airDodgeCooldown = 0.15f;
 
     // ====================================
+    // DIVE MECHANICS
+    // ====================================
+
+    [Header("Dive & Roll")]
+    [Tooltip("Horizontal boost force applied when diving. Units: m/s. Recommended: 20-35")]
+    [Range(10f, 50f)]
+    public float diveHorizontalBoost = 25f;
+
+    [Tooltip("Vertical velocity reduction multiplier when diving. 0 = no vertical velocity. Recommended: 0.3-0.6")]
+    [Range(0f, 1f)]
+    public float diveVerticalReduction = 0.4f;
+
+    [Tooltip("Duration of the dive state. Units: seconds. Recommended: 0.3-0.6")]
+    [Range(0.1f, 1f)]
+    public float diveDuration = 0.4f;
+
+    [Tooltip("Duration of the roll animation. Units: seconds. Recommended: 0.4-0.8")]
+    [Range(0.2f, 1.5f)]
+    public float rollDuration = 0.5f;
+
+    [Tooltip("Minimum horizontal velocity required to dive. Units: m/s. Recommended: 2-5")]
+    [Range(0f, 10f)]
+    public float minDiveVelocity = 3f;
+
+    // ====================================
     // WALL RUN MECHANICS
     // ====================================
 

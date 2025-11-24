@@ -8,6 +8,8 @@ public class PlayerStates : MonoBehaviour
     private static readonly int IsWallRunning = Animator.StringToHash("isWallRunning");
     private static readonly int IsCrouching = Animator.StringToHash("isCrouching");
     private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
+    private static readonly int IsDiving = Animator.StringToHash("isDiving");
+    private static readonly int IsRolling = Animator.StringToHash("isRolling");
 
     [Header("Animator")]
     public Animator animator;
@@ -61,6 +63,14 @@ public class PlayerStates : MonoBehaviour
     [Header("Air Dodge States")]
     public float airDodgeCooldownTimer = 0f;
     public Vector2 airDodgeDirection;
+
+    [Header("Dive States")]
+    public bool isDiving = false;
+    public bool isRolling = false;
+    public bool canDive = true;
+    public float diveTimer = 0f;
+    public float rollTimer = 0f;
+    public bool divePressed = false;
 
     [Header("Kick States")]
     public float kickTimer;
@@ -143,6 +153,8 @@ public class PlayerStates : MonoBehaviour
         animator.SetBool(IsWallRunning, isWallRunning);
         animator.SetBool(IsCrouching, isCrouching);
         animator.SetBool(IsStaggered, isStaggered);
+        animator.SetBool(IsDiving, isDiving);
+        animator.SetBool(IsRolling, isRolling);
     }
 
     private void UpdateTimers()
@@ -224,6 +236,25 @@ public class PlayerStates : MonoBehaviour
         if (airDodgePressed)
         {
             airDodgePressed = false;
+        }
+
+        if (isDiving)
+        {
+            diveTimer -= Time.deltaTime;
+        }
+
+        if (isRolling)
+        {
+            rollTimer -= Time.deltaTime;
+            if (rollTimer <= 0f)
+            {
+                EndRoll();
+            }
+        }
+
+        if (divePressed)
+        {
+            divePressed = false;
         }
 
     }
@@ -312,6 +343,51 @@ public class PlayerStates : MonoBehaviour
     public void SetAirDodgePressed()
     {
         airDodgePressed = true;
+    }
+
+    public void SetDivePressed()
+    {
+        divePressed = true;
+    }
+
+    public void StartDive(float duration)
+    {
+        isDiving = true;
+        diveTimer = duration;
+        GameLogger.LogState($"DIVE: Started - Timer set to {diveTimer:F2}s");
+    }
+
+    public void EndDive()
+    {
+        if (isDiving)
+        {
+            isDiving = false;
+            diveTimer = 0f;
+            GameLogger.LogState("DIVE: Ended");
+        }
+    }
+
+    public void StartRoll(float duration)
+    {
+        isRolling = true;
+        rollTimer = duration;
+        GameLogger.LogState($"ROLL: Started - Timer set to {rollTimer:F2}s");
+    }
+
+    public void EndRoll()
+    {
+        if (isRolling)
+        {
+            isRolling = false;
+            rollTimer = 0f;
+            GameLogger.LogState("ROLL: Ended");
+        }
+    }
+
+    public void ResetDive()
+    {
+        canDive = true;
+        GameLogger.LogState("DIVE: Reset - can dive again");
     }
 
 

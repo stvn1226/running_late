@@ -15,6 +15,7 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerKick kicker;
     [SerializeField] private PlayerStateManager stateManager;
     [SerializeField] private PlayerAirDodge airDodge;
+    [SerializeField] private PlayerDive dive;
 
 
     private void Awake()
@@ -102,6 +103,7 @@ public class PlayerControllerModular : MonoBehaviour
         if (physics != null) physics.config = config;
         if (stateManager != null) stateManager.config = config;
         if (airDodge != null) airDodge.config = config;
+        if (dive != null) dive.config = config;
     }
 
     #region Input Callbacks
@@ -223,7 +225,7 @@ public class PlayerControllerModular : MonoBehaviour
         GameLogger.LogInput("OnDive called!");
         if (states != null)
         {
-            //states.SetDivePressed();
+            states.SetDivePressed();
         }
     }
     #endregion
