@@ -24,6 +24,7 @@ public class ModuleBuilder : MonoBehaviour
     public int buildingSpawnChance = 90;
     
     private bool hasGenerated = false;
+    private int actualTerrainHeight = -1;
 
     private void Start()
     {
@@ -38,7 +39,7 @@ public class ModuleBuilder : MonoBehaviour
         }
     }
 
-    public void GenerateModule()
+    public void GenerateModule(int? explicitHeight = null)
     {
         if (hasGenerated)
         {
@@ -56,13 +57,13 @@ public class ModuleBuilder : MonoBehaviour
             placementTracker.position = transform.position;
         }
         
-        GenerateBaseTerrain();
+        GenerateBaseTerrain(explicitHeight);
         GenerateBuildings();
         
         hasGenerated = true;
     }
     
-    private void GenerateBaseTerrain()
+    private void GenerateBaseTerrain(int? explicitHeight = null)
     {
         if (placementTracker == null)
         {
@@ -70,7 +71,17 @@ public class ModuleBuilder : MonoBehaviour
             return;
         }
         
-        int groundBlocksCount = Random.Range(moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight + 1);
+        int groundBlocksCount;
+        if (explicitHeight.HasValue)
+        {
+            groundBlocksCount = Mathf.Clamp(explicitHeight.Value, moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight);
+        }
+        else
+        {
+            groundBlocksCount = Random.Range(moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight + 1);
+        }
+        
+        actualTerrainHeight = groundBlocksCount;
         
         for (int i = 0; i < groundBlocksCount - 1; i++)
         {
@@ -186,6 +197,7 @@ public class ModuleBuilder : MonoBehaviour
     
     public bool HasGenerated => hasGenerated;
     public ModulePlan GetConfig() => moduleConfig;
+    public int GetActualTerrainHeight() => actualTerrainHeight;
     
     private void OnValidate()
     {

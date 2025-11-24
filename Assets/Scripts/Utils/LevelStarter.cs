@@ -341,22 +341,41 @@ public class LevelStarter : MonoBehaviour
         }
         Vector2 moduleSpawner = new Vector2(-newWidth / 2f, 0f);
         moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
+        
         ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, levelParent);
+        int homeHeight = Random.Range(homeModule.moduleConfig.minTerrainHeight, homeModule.moduleConfig.maxTerrainHeight + 1);
+        spawnedHome.GenerateModule(homeHeight);
         modulesInScene.Add(spawnedHome);
         moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
+        
+        int previousHeight = spawnedHome.GetActualTerrainHeight();
+        
         foreach (ModuleBuilder module in modulesToSpawn)
         {
             if (module != homeModule && module != schoolModule)
             {
                 moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
                 ModuleBuilder newModule = Instantiate(module, moduleSpawner, Quaternion.identity, levelParent);
-                newModule.GenerateModule();
+                
+                int heightChange = Random.Range(-2, 3);
+                int nextHeight = previousHeight + heightChange;
+                nextHeight = Mathf.Clamp(nextHeight, module.moduleConfig.minTerrainHeight, module.moduleConfig.maxTerrainHeight);
+                
+                newModule.GenerateModule(nextHeight);
                 modulesInScene.Add(newModule);
                 moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
+                
+                previousHeight = newModule.GetActualTerrainHeight();
             }
         }
         moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+        
+        int schoolHeightChange = Random.Range(-2, 3);
+        int schoolHeight = previousHeight + schoolHeightChange;
+        schoolHeight = Mathf.Clamp(schoolHeight, schoolModule.moduleConfig.minTerrainHeight, schoolModule.moduleConfig.maxTerrainHeight);
+        
         ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, levelParent);
+        spawnedSchool.GenerateModule(schoolHeight);
         modulesInScene.Add(spawnedSchool);
         moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
 
