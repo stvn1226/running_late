@@ -10,6 +10,7 @@ public class PlayerAirDodge : MonoBehaviour
 
     private float dodgeTimer = 0f;
     private bool isDodging = false;
+    private Vector2 preDodgeVelocity;
 
     private void Update()
     {
@@ -80,6 +81,7 @@ public class PlayerAirDodge : MonoBehaviour
         dodgeDirection = dodgeDirection.normalized;
         states.airDodgeDirection = dodgeDirection;
 
+        preDodgeVelocity = rb.linearVelocity;
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(dodgeDirection * config.airDodgeForce, ForceMode2D.Impulse);
 
@@ -87,7 +89,7 @@ public class PlayerAirDodge : MonoBehaviour
         states.canAirDodge = false;
         dodgeTimer = config.airDodgeDuration;
 
-        GameLogger.LogMovement($"AIR DODGE PERFORMED! Direction: {dodgeDirection}, Force: {config.airDodgeForce}, Velocity: {rb.linearVelocity}");
+        GameLogger.LogMovement($"AIR DODGE PERFORMED! Direction: {dodgeDirection}, Force: {config.airDodgeForce}, Velocity: {rb.linearVelocity}, Stored velocity: {preDodgeVelocity}");
 
         if (AnalyticsManager.Instance != null)
         {
@@ -127,9 +129,10 @@ public class PlayerAirDodge : MonoBehaviour
 
             if (dodgeTimer <= 0f)
             {
+                rb.linearVelocity = new Vector2(preDodgeVelocity.x, 0f);
                 states.isAirDodging = false;
                 states.airDodgeCooldownTimer = config.airDodgeCooldown;
-                GameLogger.LogState("AIR DODGE: Ended");
+                GameLogger.LogState($"AIR DODGE: Ended, restored horizontal velocity to {preDodgeVelocity.x}, vertical set to 0");
             }
         }
     }
@@ -144,8 +147,9 @@ public class PlayerAirDodge : MonoBehaviour
     {
         if (states.isAirDodging)
         {
+            rb.linearVelocity = new Vector2(preDodgeVelocity.x, 0f);
             states.isAirDodging = false;
-            GameLogger.LogState("AIR DODGE: Cancelled by landing");
+            GameLogger.LogState($"AIR DODGE: Cancelled by landing, restored horizontal velocity to {preDodgeVelocity.x}, vertical set to 0");
         }
     }
 
