@@ -177,9 +177,14 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
 
     private void CancelCrouchSlideStates()
     {
-        // Force exit crouch and slide states when jumping
+        // Force exit crouch, slide, and roll states when jumping
         states.isCrouching = false;
         states.isSliding = false;
+        
+        if (states.isRolling)
+        {
+            states.EndRoll();
+        }
         
         // Also notify the physics component to reset collider size
         PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();

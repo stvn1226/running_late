@@ -304,6 +304,11 @@ public class PlayerStates : MonoBehaviour
     {
         if (!isKicking)
         {
+            if (isRolling)
+            {
+                EndRoll();
+            }
+            
             animator.SetTrigger(IsKicking);
             kickPressed = true;
             isKicking = true;
@@ -380,7 +385,16 @@ public class PlayerStates : MonoBehaviour
         {
             isRolling = false;
             rollTimer = 0f;
-            GameLogger.LogState("ROLL: Ended");
+            isCrouching = false;
+            isSliding = false;
+            
+            PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
+            if (playerPhysics != null)
+            {
+                playerPhysics.UpdateColliderSize();
+            }
+            
+            GameLogger.LogState("ROLL: Ended - cleared crouch and slide states, reset collider");
         }
     }
 

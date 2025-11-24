@@ -38,6 +38,8 @@ public class PlayerStateManager : MonoBehaviour
         previousWallRunning = states.isWallRunning;
         previousRolling = states.isRolling;
 
+        HandleRollSafety();
+
         HandleCrouchAndSlide();
 
         HandleWallRun(previousWallRunning);
@@ -48,6 +50,28 @@ public class PlayerStateManager : MonoBehaviour
         {
             GameLogger.LogState($"COLLIDER UPDATE TRIGGERED: Crouch {previousCrouching}->{states.isCrouching}, Slide {previousSliding}->{states.isSliding}, Roll {previousRolling}->{states.isRolling}");
             playerPhysics?.UpdateColliderSize();
+        }
+    }
+
+    private void HandleRollSafety()
+    {
+        if (states.isRolling)
+        {
+            if (!states.isGrounded)
+            {
+                GameLogger.LogState("ROLL SAFETY: Player left ground while rolling, ending roll");
+                states.EndRoll();
+            }
+            else if (states.isWallRunning)
+            {
+                GameLogger.LogState("ROLL SAFETY: Player started wall running while rolling, ending roll");
+                states.EndRoll();
+            }
+            else if (states.rollTimer <= 0f && (states.isCrouching || states.isSliding))
+            {
+                GameLogger.LogState("ROLL SAFETY: Roll timer expired but crouch/slide flags still set, force clearing");
+                states.EndRoll();
+            }
         }
     }
 

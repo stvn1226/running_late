@@ -81,6 +81,11 @@ public class PlayerAirDodge : MonoBehaviour
         dodgeDirection = dodgeDirection.normalized;
         states.airDodgeDirection = dodgeDirection;
 
+        if (states.isRolling)
+        {
+            states.EndRoll();
+        }
+
         preDodgeVelocity = rb.linearVelocity;
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(dodgeDirection * config.airDodgeForce, ForceMode2D.Impulse);

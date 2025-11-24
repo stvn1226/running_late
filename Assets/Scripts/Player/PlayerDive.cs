@@ -15,6 +15,16 @@ public class PlayerDive : MonoBehaviour
 
         HandleDiveInput();
         HandleDiveToRollTransition();
+        HandleRollExit();
+    }
+
+    private void HandleRollExit()
+    {
+        if (states.isRolling && !states.isGrounded)
+        {
+            states.EndRoll();
+            GameLogger.LogMovement("ROLL: Cancelled - player left ground");
+        }
     }
 
     private void HandleDiveInput()
