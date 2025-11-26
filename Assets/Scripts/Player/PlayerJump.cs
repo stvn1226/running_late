@@ -86,7 +86,7 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
             
             PerformJump();
         }
-        else if (states.jumpInputBuffered && states.isWallRunning)
+        else if (states.jumpInputBuffered && states.isWallRunning && !states.isVaultingWall)
         {
             WallJump();
         }
@@ -226,6 +226,11 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
     private void UpdateJumpPhysics()
     {
         if (config == null) return;
+
+        if (states.isVaultingWall)
+        {
+            return;
+        }
 
         states.isFalling = rb.linearVelocity.y < -0.1f;
         

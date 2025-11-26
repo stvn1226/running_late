@@ -134,6 +134,11 @@ public class PlayerStateManager : MonoBehaviour
 
     private void HandleWallRun(bool previousWallRunning)
     {
+        if (states.wallRunHeld && !states.canWallRun)
+        {
+            states.RecordWallClimbInput();
+        }
+
         bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f;
         
         if (shouldWallRun && !previousWallRunning && rb.linearVelocity.y < -1f)

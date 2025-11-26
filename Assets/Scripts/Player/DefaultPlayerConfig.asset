@@ -37,6 +37,14 @@ MonoBehaviour:
   wallRunForce: 2500
   wallRunGravityScale: 1
   wallJumpMultiplier: 1
+  perfectClimbWindow: 0.15
+  perfectClimbBoostMultiplier: 1.5
+  wallVaultTriggerDistance: 1.5
+  wallVaultHorizontalBoost: 25
+  wallVaultVerticalDamping: 0.3
+  wallVaultDuration: 0.25
+  maxWallHeightCheck: 20
+  wallHeightCheckInterval: 0.1
   groundDrag: 50
   airDrag: 50
   slideDrag: 10

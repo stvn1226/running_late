@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PlayerStates states;
     [SerializeField] private BoxCollider2D kickBox;
+    [SerializeField] private PlayerWallClimb wallClimb;
 
     [SerializeField] private SpriteRenderer playerSprite;
     
@@ -45,6 +46,11 @@ public class PlayerMovement : MonoBehaviour
         if (kickBox != null)
         {
             kickBox.enabled = false;
+        }
+
+        if (wallClimb == null)
+        {
+            wallClimb = GetComponent<PlayerWallClimb>();
         }
         
         GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
@@ -323,7 +329,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (states.isKicking) return;
 
-        rb.AddForce(Vector2.up * (config.wallRunForce * forceMultiplier * Time.fixedDeltaTime), ForceMode2D.Force);
+        float climbBoost = wallClimb != null ? wallClimb.GetWallRunForceMultiplier() : 1f;
+        float totalMultiplier = forceMultiplier * climbBoost;
+
+        rb.AddForce(Vector2.up * (config.wallRunForce * totalMultiplier * Time.fixedDeltaTime), ForceMode2D.Force);
 
         float horizontalInput = states.moveInput.x;
         if (Mathf.Abs(horizontalInput) > 0.1f)

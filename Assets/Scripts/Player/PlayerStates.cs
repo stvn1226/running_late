@@ -10,6 +10,7 @@ public class PlayerStates : MonoBehaviour
     private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
     private static readonly int IsDiving = Animator.StringToHash("isDiving");
     private static readonly int IsRolling = Animator.StringToHash("isRolling");
+    private static readonly int IsVaulting = Animator.StringToHash("isVaulting");
 
     [Header("Animator")]
     public Animator animator;
@@ -53,6 +54,16 @@ public class PlayerStates : MonoBehaviour
     [Header("Wall Run States")]
     public bool canWallRun;
     public int wallDirection;
+
+    [Header("Wall Climbing Advanced States")]
+    public bool isPerfectClimb = false;
+    public bool isVaultingWall = false;
+    public float wallClimbInputTime = -999f;
+    public float wallContactTime = -999f;
+    public float storedMomentum = 0f;
+    public float distanceToWallTop = 999f;
+    public bool isNearWallTop = false;
+    public float vaultTimer = 0f;
 
     [Header("Landing States")]
     public bool justLanded = false;
@@ -155,6 +166,7 @@ public class PlayerStates : MonoBehaviour
         animator.SetBool(IsStaggered, isStaggered);
         animator.SetBool(IsDiving, isDiving);
         animator.SetBool(IsRolling, isRolling);
+        animator.SetBool(IsVaulting, isVaultingWall);
     }
 
     private void UpdateTimers()
@@ -255,6 +267,15 @@ public class PlayerStates : MonoBehaviour
         if (divePressed)
         {
             divePressed = false;
+        }
+
+        if (isVaultingWall)
+        {
+            vaultTimer -= Time.deltaTime;
+            if (vaultTimer <= 0f)
+            {
+                EndVault();
+            }
         }
 
     }
@@ -454,5 +475,33 @@ public class PlayerStates : MonoBehaviour
     {
         crouchInputBuffered = true;
         crouchBufferTimer = bufferTime;
+    }
+
+    public void StartVault(float duration)
+    {
+        isVaultingWall = true;
+        vaultTimer = duration;
+        isWallRunning = false;
+        canWallRun = false;
+        isPerfectClimb = false;
+    }
+
+    public void EndVault()
+    {
+        if (isVaultingWall)
+        {
+            isVaultingWall = false;
+            vaultTimer = 0f;
+        }
+    }
+
+    public void RecordWallClimbInput()
+    {
+        wallClimbInputTime = Time.time;
+    }
+
+    public void RecordWallContact()
+    {
+        wallContactTime = Time.time;
     }
 }

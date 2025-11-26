@@ -21,6 +21,9 @@ public class PlayerPhysics : MonoBehaviour
     private float lastPhysicsLog = 0f;
     private const float PHYSICS_LOG_INTERVAL = 1f;
 
+    // Wall height detection
+    private float lastWallHeightCheck = 0f;
+
     private void Awake()
     {
         if (playerCollider == null)
@@ -156,22 +159,26 @@ public class PlayerPhysics : MonoBehaviour
         if (rightHit.collider != null && states.moveInput.x > 0.1f)
         {
             states.canWallRun = true;
-            states.wallDirection = 1; // Right wall
+            states.wallDirection = 1;
             if (!previousCanWallRun) 
             {
+                states.RecordWallContact();
                 string hitInfo = $"{rightHit.collider.name} (Layer: {LayerMask.LayerToName(rightHit.collider.gameObject.layer)}, Tag: {rightHit.collider.tag})";
                 GameLogger.LogPhysics($"RIGHT WALL DETECTED: {hitInfo}, Distance: {rightHit.distance:F3}");
             }
+            DetectWallHeight(rightHit, 1);
         }
         else if (leftHit.collider != null && states.moveInput.x < -0.1f)
         {
             states.canWallRun = true;
-            states.wallDirection = -1; // Left wall
+            states.wallDirection = -1;
             if (!previousCanWallRun)
             {
+                states.RecordWallContact();
                 string hitInfo = $"{leftHit.collider.name} (Layer: {LayerMask.LayerToName(leftHit.collider.gameObject.layer)}, Tag: {leftHit.collider.tag})";
                 GameLogger.LogPhysics($"LEFT WALL DETECTED: {hitInfo}, Distance: {leftHit.distance:F3}");
             }
+            DetectWallHeight(leftHit, -1);
         }
         else
         {
@@ -180,6 +187,41 @@ public class PlayerPhysics : MonoBehaviour
                 GameLogger.LogVerbose("PHYSICS", $"Wall run lost - RightHit: {rightHit.collider != null}, LeftHit: {leftHit.collider != null}, Input.x: {states.moveInput.x:F2}");
             }
             states.canWallRun = false;
+        }
+    }
+
+    private void DetectWallHeight(RaycastHit2D wallHit, int direction)
+    {
+        if (Time.time - lastWallHeightCheck < config.wallHeightCheckInterval)
+        {
+            return;
+        }
+
+        lastWallHeightCheck = Time.time;
+
+        Vector2 rayStart = (Vector2)transform.position + playerCollider.offset;
+        
+        states.distanceToWallTop = config.maxWallHeightCheck;
+        states.isNearWallTop = false;
+
+        for (float h = 0.5f; h < config.maxWallHeightCheck; h += 0.5f)
+        {
+            Vector2 checkPos = rayStart + Vector2.up * h;
+            RaycastHit2D check = Physics2D.Raycast(
+                checkPos, 
+                Vector2.right * direction, 
+                config.wallCheckDistance * 1.5f, 
+                config.wallLayer
+            );
+
+            if (check.collider == null)
+            {
+                states.distanceToWallTop = h;
+                states.isNearWallTop = h < config.wallVaultTriggerDistance;
+                
+                GameLogger.LogVerbose("PHYSICS", $"Wall top detected at height: {h:F2}, Near top: {states.isNearWallTop}");
+                break;
+            }
         }
     }
 
