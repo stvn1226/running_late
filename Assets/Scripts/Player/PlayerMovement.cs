@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PlayerStates states;
     [SerializeField] private BoxCollider2D kickBox;
+    [SerializeField] private PlayerWallClimb wallClimb;
 
     [SerializeField] private SpriteRenderer playerSprite;
     
@@ -45,6 +46,11 @@ public class PlayerMovement : MonoBehaviour
         if (kickBox != null)
         {
             kickBox.enabled = false;
+        }
+
+        if (wallClimb == null)
+        {
+            wallClimb = GetComponent<PlayerWallClimb>();
         }
         
         GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
@@ -259,8 +265,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (states.isWallRunning)
             HandleWallRunMovement(forceMultiplier);
+        else if (states.isRolling)
+            HandleRollMovement(forceMultiplier);
         else if (states.isSliding)
             HandleSlideMovement(forceMultiplier);
+        else if (states.isDiving)
+            HandleDiveMovement(forceMultiplier);
         else
             HandleNormalMovement(forceMultiplier);
     }
@@ -268,7 +278,7 @@ public class PlayerMovement : MonoBehaviour
     private void HandleNormalMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
-        if (states.isCrouching || states.isSliding) return;
+        if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling) return;
 
         float horizontalInput = states.moveInput.x;
 
@@ -303,11 +313,26 @@ public class PlayerMovement : MonoBehaviour
         // Could add slide steering here if needed
     }
 
+    private void HandleRollMovement(float forceMultiplier)
+    {
+        // Rolling uses momentum only, similar to sliding
+        // No horizontal input processed during roll
+    }
+
+    private void HandleDiveMovement(float forceMultiplier)
+    {
+        // Diving maintains momentum with no horizontal control
+        // Player is committed to the dive direction
+    }
+
     private void HandleWallRunMovement(float forceMultiplier)
     {
         if (states.isKicking) return;
 
-        rb.AddForce(Vector2.up * (config.wallRunForce * forceMultiplier * Time.fixedDeltaTime), ForceMode2D.Force);
+        float climbBoost = wallClimb != null ? wallClimb.GetWallRunForceMultiplier() : 1f;
+        float totalMultiplier = forceMultiplier * climbBoost;
+
+        rb.AddForce(Vector2.up * (config.wallRunForce * totalMultiplier * Time.fixedDeltaTime), ForceMode2D.Force);
 
         float horizontalInput = states.moveInput.x;
         if (Mathf.Abs(horizontalInput) > 0.1f)
@@ -330,6 +355,16 @@ public class PlayerMovement : MonoBehaviour
     
         if (!states.isGrounded || states.isKicking)
             return;
+        
+        if (states.isRolling)
+        {
+            if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
+            {
+                Vector2 dragForces = -velocity * (config.slideDrag * 0.4f * Time.fixedDeltaTime);
+                rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
+            }
+            return;
+        }
         
         if (states.isSliding)
         {

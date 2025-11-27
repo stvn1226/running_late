@@ -29,9 +29,22 @@ MonoBehaviour:
   airDodgeForce: 30
   airDodgeDuration: 0.3
   airDodgeCooldown: 0.15
+  diveHorizontalBoost: 15
+  diveVerticalReduction: 0.8
+  diveDuration: 0.4
+  rollDuration: 0.7
+  minDiveVelocity: 0
   wallRunForce: 2500
   wallRunGravityScale: 1
   wallJumpMultiplier: 1
+  perfectClimbWindow: 0.15
+  perfectClimbBoostMultiplier: 1.5
+  wallVaultTriggerDistance: 1.5
+  wallVaultHorizontalBoost: 25
+  wallVaultVerticalDamping: 0.3
+  wallVaultDuration: 0.25
+  maxWallHeightCheck: 20
+  wallHeightCheckInterval: 0.1
   groundDrag: 50
   airDrag: 50
   slideDrag: 10

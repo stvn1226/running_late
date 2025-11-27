@@ -13,5 +13,8 @@ MonoBehaviour:
   m_Name: SlimModule
   m_EditorClassIdentifier: Assembly-CSharp::ModulePlan
   minTerrainHeight: 1
-  maxTerrainHeight: 5
+  maxTerrainHeight: 10
   currentTerrainWidth: 12
+  groundBlockHeight: 3
+  buildingsInModule: 2
+  extraRandomBuildings: 1

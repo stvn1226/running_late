@@ -99,6 +99,31 @@ public class PlayerConfig : ScriptableObject
     public float airDodgeCooldown = 0.15f;
 
     // ====================================
+    // DIVE MECHANICS
+    // ====================================
+
+    [Header("Dive & Roll")]
+    [Tooltip("Horizontal boost force applied when diving. Units: m/s. Recommended: 20-35")]
+    [Range(10f, 50f)]
+    public float diveHorizontalBoost = 25f;
+
+    [Tooltip("Vertical velocity reduction multiplier when diving. 0 = no vertical velocity. Recommended: 0.3-0.6")]
+    [Range(0f, 1f)]
+    public float diveVerticalReduction = 0.4f;
+
+    [Tooltip("Duration of the dive state. Units: seconds. Recommended: 0.3-0.6")]
+    [Range(0.1f, 1f)]
+    public float diveDuration = 0.4f;
+
+    [Tooltip("Duration of the roll animation. Units: seconds. Recommended: 0.4-0.8")]
+    [Range(0.2f, 1.5f)]
+    public float rollDuration = 0.5f;
+
+    [Tooltip("Minimum horizontal velocity required to dive. Units: m/s. Recommended: 2-5")]
+    [Range(0f, 10f)]
+    public float minDiveVelocity = 3f;
+
+    // ====================================
     // WALL RUN MECHANICS
     // ====================================
 
@@ -114,6 +139,39 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Force multiplier for wall jumps. 1.0 = same as normal jump. Recommended: 0.9-1.2")]
     [Range(0.5f, 2f)]
     public float wallJumpMultiplier = 1f;
+
+    [Header("Wall Climbing Advanced")]
+    [Tooltip("Time window to press wall run before contact for perfect climb. Units: seconds. Recommended: 0.1-0.2")]
+    [Range(0.05f, 0.5f)]
+    public float perfectClimbWindow = 0.15f;
+    
+    [Tooltip("Climb speed multiplier when perfect climb is activated. Recommended: 1.3-2.0")]
+    [Range(1f, 3f)]
+    public float perfectClimbBoostMultiplier = 1.5f;
+    
+    [Tooltip("Distance from wall top to trigger vault. Units: Unity units. Recommended: 1.0-2.0")]
+    [Range(0.5f, 5f)]
+    public float wallVaultTriggerDistance = 1.5f;
+    
+    [Tooltip("Horizontal boost force when vaulting over wall. Units: m/s. Recommended: 20-35")]
+    [Range(10f, 50f)]
+    public float wallVaultHorizontalBoost = 25f;
+    
+    [Tooltip("Vertical velocity reduction during vault. 0.3 = keep 30% of upward speed. Recommended: 0.2-0.5")]
+    [Range(0f, 1f)]
+    public float wallVaultVerticalDamping = 0.3f;
+    
+    [Tooltip("How long the vault state lasts. Units: seconds. Recommended: 0.2-0.4")]
+    [Range(0.1f, 0.6f)]
+    public float wallVaultDuration = 0.25f;
+    
+    [Tooltip("Maximum height to check for wall top. Units: Unity units. Recommended: 15-25")]
+    [Range(5f, 50f)]
+    public float maxWallHeightCheck = 20f;
+    
+    [Tooltip("Interval between wall height checks for performance. Units: seconds. Recommended: 0.3-0.5")]
+    [Range(0.1f, 1f)]
+    public float wallHeightCheckInterval = 0.4f;
 
     // ====================================
     // DRAG & FRICTION
