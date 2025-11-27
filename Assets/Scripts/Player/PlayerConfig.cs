@@ -37,6 +37,15 @@ public class PlayerConfig : ScriptableObject
     [Range(0.1f, 0.6f)]
     public float jumpHoldTime = 0.3f;
 
+    [Header("Jump Physics - Apex Feel")]
+    [Tooltip("Velocidad Y considerada como 'ápice del salto'. Reduce gravedad cerca del punto más alto.")]
+    [Range(0f, 3f)]
+    public float apexThreshold = 2f;
+
+    [Tooltip("Gravedad reducida durante el ápice. Hace que el salto se sienta más flotante arriba.")]
+    [Range(1f, 4f)]
+    public float apexGravityScale = 2.5f;
+    
     [Header("Jump Physics")]
     [Tooltip("Gravity scale when falling or after releasing jump. Higher = faster fall. Recommended: 4-8")]
     [Range(2f, 12f)]

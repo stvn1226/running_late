@@ -30,53 +30,57 @@ public class LevelStarter : MonoBehaviour
     public StructureGenerator structureGenerator;
     public LevelManager levelManager;
     public SpawnManager spawnManager;
-    
+
     [Header("Endpoints")]
     public GameObject home;
     public GameObject school;
-    
+
     [Header("Visual Elements")]
     public SpriteRenderer[] background;
     public SpriteRenderer[] clouds;
     public GameObject backgroundTile;
     public Transform backgroundParent;
     public Transform cloudParent;
-    
+
     [Header("Module Count Settings")]
     public int minModules = 5;
     public int maxModules = 10;
-    
+
     [Header("Level Size")]
     public int minLevelWidth = 1000;
     public int maxLevelWidth = 2000;
     public bool autoClearStructures = true;
-    
+
     [Header("Modular Level Settings")]
     public ModuleBuilder[] modules;
     public ModuleBuilder moduleTest;
     public ModuleBuilder homeModule;
     public ModuleBuilder schoolModule;
-    
+    public ModuleBuilder preplacedHomeModule;
+
     [Header("Building Generation Settings")]
     [Range(10, 50)]
     public int buildingsPerUnit = 20;
     [Range(0.5f, 2.0f)]
     public float buildingDensityMultiplier = 1.0f;
-    
+
     private int newWidth;
     private int numberOfModules;
+    private float levelStartX;
+    private float levelEndX;
     private List<ModuleBuilder> modulesInScene = new List<ModuleBuilder>();
     private List<SpriteRenderer> cloudsInScene = new List<SpriteRenderer>();
     private GameObject cloudCache;
     private bool hasGenerated = false;
-    
+
     private DateTime generationStartTime;
     private DateTime playerSpawnStartTime;
-    
+
     public static LevelStarter Instance { get; private set; }
-    
+
     public System.Action OnLevelGenerationStarted;
     public System.Action OnLevelGenerationCompleted;
+    public System.Action OnCameraBoundsUpdated;
 
     private void Awake()
     {
@@ -92,7 +96,7 @@ public class LevelStarter : MonoBehaviour
             LevelManager.Instance.OnLevelReplayStarted += OnLevelRestart;
         }
     }
-    
+
     private void Start()
     {
         if (PlayerPrefs.GetInt("UseRetrySeed", 0) == 1)
@@ -118,7 +122,6 @@ public class LevelStarter : MonoBehaviour
         }
     }
 
-    
     private void OnDestroy()
     {
         if (LevelManager.Instance != null)
@@ -190,20 +193,20 @@ public class LevelStarter : MonoBehaviour
             GameLogger.Log("LEVEL", $"Level Seed: {currentSeed}");
         }
     }
-    
+
     public void SetManualSeed(int seed)
     {
         manualSeed = seed;
         useManualSeed = true;
         currentSeed = seed;
     }
-    
+
     public void GenerateWithSeed(int seed)
     {
         SetManualSeed(seed);
         RegenerateLevel();
     }
-    
+
     public void RandomizeSeed()
     {
         useManualSeed = false;
@@ -214,16 +217,16 @@ public class LevelStarter : MonoBehaviour
     {
         hasGenerated = false;
     }
-    
+
     private IEnumerator GenerateLevelWithDelay()
     {
         OnLevelGenerationStarted?.Invoke();
         generationStartTime = DateTime.Now;
-    
+
         yield return new WaitForSeconds(generationDelay);
-    
+
         InitializeSeed();
-    
+
         if (AnalyticsManager.Instance != null)
         {
             string levelType = useModularGeneration ? "Modular" : "Procedural";
@@ -250,23 +253,24 @@ public class LevelStarter : MonoBehaviour
         LogCurrentLevel();
         NotifySpawnManager();
     }
-    
+
     private void NotifySpawnManager()
     {
         playerSpawnStartTime = DateTime.Now;
         if (SpawnManager.Instance != null)
         {
+            GameLogger.Log("LEVEL", "Notifying SpawnManager");
             SpawnManager.Instance.OnLevelGenerated();
         }
     }
-    
+
     public void RegenerateLevel()
     {
         if (!hasGenerated) return;
         hasGenerated = false;
         StartCoroutine(GenerateLevelWithDelay());
     }
-    
+
     public void ForceRegenerate()
     {
         hasGenerated = false;
@@ -324,48 +328,144 @@ public class LevelStarter : MonoBehaviour
 
     private void ResizeLevelModular()
     {
+        GameLogger.Log("LEVEL", "=== MODULAR GENERATION START ===");
+        
         newWidth = 0;
         numberOfModules = Random.Range(minModules, maxModules);
         List<ModuleBuilder> modulesToSpawn = new List<ModuleBuilder>();
-        modulesToSpawn.Add(homeModule);
+        
+        bool usePreplacedHome = (preplacedHomeModule != null);
+        
+        float homeWidth = 0f;
+        int previousHeight = 0;
+        
+        if (usePreplacedHome)
+        {
+            homeWidth = preplacedHomeModule.moduleConfig.currentTerrainWidth;
+            float homeX = preplacedHomeModule.transform.position.x;
+            
+            levelStartX = homeX - (homeWidth / 2f);
+            
+            previousHeight = preplacedHomeModule.GetActualTerrainHeight();
+            if (previousHeight <= 0)
+                previousHeight = Random.Range(1, 4);
+            
+            if (!modulesInScene.Contains(preplacedHomeModule))
+                modulesInScene.Add(preplacedHomeModule);
+            
+            GameLogger.Log("LEVEL", $"Using pre-placed Home at X={homeX:F2}, Height={previousHeight}");
+        }
+        else
+        {
+            modulesToSpawn.Add(homeModule);
+            homeWidth = homeModule.moduleConfig.currentTerrainWidth;
+            levelStartX = -homeWidth / 2f;
+            
+            GameLogger.Log("LEVEL", $"Will spawn Home, Width={homeWidth:F2}");
+        }
+        
+        newWidth += (int)homeWidth;
+        
         for (int i = 0; i < numberOfModules; i++)
         {
-            moduleTest = modules[Random.Range(0, modules.Length)];
-            modulesToSpawn.Add(moduleTest);
-        }
-        modulesToSpawn.Add(schoolModule);
-
-        foreach (ModuleBuilder module in modulesToSpawn)
-        {
+            ModuleBuilder module = modules[Random.Range(0, modules.Length)];
+            modulesToSpawn.Add(module);
             newWidth += module.moduleConfig.currentTerrainWidth;
         }
-        Vector2 moduleSpawner = new Vector2(-newWidth / 2f, 0f);
-        moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
-        ModuleBuilder spawnedHome = Instantiate(homeModule, moduleSpawner, Quaternion.identity, levelParent);
-        modulesInScene.Add(spawnedHome);
-        moduleSpawner.x += homeModule.moduleConfig.currentTerrainWidth / 2f;
+        
+        modulesToSpawn.Add(schoolModule);
+        newWidth += schoolModule.moduleConfig.currentTerrainWidth;
+        
+        GameLogger.Log("LEVEL", $"Total modules: {modulesToSpawn.Count}, Width: {newWidth}");
+        
+        float moduleSpawnerX = levelStartX + (homeWidth / 2f);
+        
+        if (!usePreplacedHome)
+        {
+            Vector2 homePos = new Vector2(moduleSpawnerX, 0f);
+            int homeHeight = Random.Range(homeModule.moduleConfig.minTerrainHeight, homeModule.moduleConfig.maxTerrainHeight + 1);
+            
+            ModuleBuilder spawnedHome = Instantiate(homeModule, homePos, Quaternion.identity, levelParent);
+            spawnedHome.GenerateModule(homeHeight);
+            modulesInScene.Add(spawnedHome);
+            
+            previousHeight = spawnedHome.GetActualTerrainHeight();
+            
+            GameLogger.Log("LEVEL", $"Home spawned at X={moduleSpawnerX:F2}, Height={previousHeight}");
+        }
+        
+        moduleSpawnerX += homeWidth / 2f;
+        
         foreach (ModuleBuilder module in modulesToSpawn)
         {
-            if (module != homeModule && module != schoolModule)
-            {
-                moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
-                ModuleBuilder newModule = Instantiate(module, moduleSpawner, Quaternion.identity, levelParent);
-                newModule.GenerateModule();
-                modulesInScene.Add(newModule);
-                moduleSpawner.x += module.moduleConfig.currentTerrainWidth / 2f;
-            }
+            if (module == homeModule || module == schoolModule)
+                continue;
+            
+            moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
+            Vector2 spawnPos = new Vector2(moduleSpawnerX, 0f);
+            
+            int heightChange = Random.Range(0, 3);
+            int nextHeight = previousHeight + heightChange;
+            nextHeight = Mathf.Clamp(nextHeight, module.moduleConfig.minTerrainHeight, module.moduleConfig.maxTerrainHeight);
+            
+            ModuleBuilder newModule = Instantiate(module, spawnPos, Quaternion.identity, levelParent);
+            newModule.GenerateModule(nextHeight);
+            modulesInScene.Add(newModule);
+            
+            GameLogger.Log("LEVEL", $"Module at X={moduleSpawnerX:F2}: Height={nextHeight} (previous={previousHeight}, change=+{heightChange})");
+            
+            previousHeight = newModule.GetActualTerrainHeight();
+            moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
         }
-        moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
-        ModuleBuilder spawnedSchool = Instantiate(schoolModule, moduleSpawner, Quaternion.identity, levelParent);
+        
+        moduleSpawnerX += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+        Vector2 schoolPos = new Vector2(moduleSpawnerX, 0f);
+        
+        int schoolHeightChange = Random.Range(0, 3);
+        int schoolHeight = previousHeight + schoolHeightChange;
+        schoolHeight = Mathf.Clamp(schoolHeight, schoolModule.moduleConfig.minTerrainHeight, schoolModule.moduleConfig.maxTerrainHeight);
+        
+        ModuleBuilder spawnedSchool = Instantiate(schoolModule, schoolPos, Quaternion.identity, levelParent);
+        spawnedSchool.GenerateModule(schoolHeight);
         modulesInScene.Add(spawnedSchool);
-        moduleSpawner.x += schoolModule.moduleConfig.currentTerrainWidth / 2f;
-
-        GameLogger.Log("LEVEL", $"Modular Level: Width={newWidth}, Modules={numberOfModules}, Seed={Random.state}");
+        
+        levelEndX = moduleSpawnerX + (schoolModule.moduleConfig.currentTerrainWidth / 2f);
+        
+        GameLogger.Log("LEVEL", $"School at X={moduleSpawnerX:F2}, Height={schoolHeight} (change=+{schoolHeightChange})");
+        GameLogger.Log("LEVEL", $"=== GENERATION COMPLETE: StartX={levelStartX:F2}, EndX={levelEndX:F2} ===");
 
         ResizeCamBounds(0f);
+        GenerateModularClouds();
         LayOutBackground();
+        
+        OnCameraBoundsUpdated?.Invoke();
     }
-    
+
+    private void GenerateModularClouds()
+    {
+        if (clouds == null || cloudParent == null) return;
+        
+        ClearClouds();
+
+        float levelWidth = levelEndX - levelStartX;
+        int cloudCount = Mathf.RoundToInt(levelWidth / 2f);
+        
+        GameLogger.Log("LEVEL", $"Generating {cloudCount} clouds across {levelWidth:F2} units");
+        
+        for (int i = 0; i < cloudCount; i++)
+        {
+            Vector2 cloudPosition = new Vector2(
+                Random.Range(levelStartX, levelEndX), 
+                Random.Range(8f, 100f)
+            );
+            int cloudIndex = Random.Range(0, clouds.Length);
+            
+            cloudCache = Instantiate(clouds[cloudIndex].gameObject, cloudPosition, Quaternion.identity, cloudParent);
+            cloudsInScene.Add(cloudCache.GetComponent<SpriteRenderer>());
+        }
+    }
+
+
     private void GenerateProceduralClouds()
     {
         if (clouds == null || cloudParent == null) return;
@@ -426,7 +526,12 @@ public class LevelStarter : MonoBehaviour
 
         for (int i = 0; i < levelParent.childCount; i++)
         {
-            modulesToClear.Add(levelParent.GetChild(i));
+            Transform child = levelParent.GetChild(i);
+            
+            if (preplacedHomeModule != null && child == preplacedHomeModule.transform)
+                continue;
+            
+            modulesToClear.Add(child);
         }
 
         if (backgroundParent != null)
@@ -449,6 +554,9 @@ public class LevelStarter : MonoBehaviour
         
         modulesInScene.Clear();
         
+        if (preplacedHomeModule != null)
+            modulesInScene.Add(preplacedHomeModule);
+        
         if (structureGenerator != null)
         {
             structureGenerator.ClearStructuresInEditor();
@@ -457,25 +565,44 @@ public class LevelStarter : MonoBehaviour
 
     private void ResizeCamBounds(float yMin)
     {
-        cameraBounds.points = new Vector2[]
+        if (useModularGeneration)
         {
-            new Vector2(-newWidth / 2f, yMin),
-            new Vector2(-newWidth / 2f, 100f),
-            new Vector2(newWidth / 2f, 100f),
-            new Vector2(newWidth / 2f, yMin)
-        };
+            cameraBounds.points = new Vector2[]
+            {
+                new Vector2(levelStartX, yMin),
+                new Vector2(levelStartX, 100f),
+                new Vector2(levelEndX, 100f),
+                new Vector2(levelEndX, yMin)
+            };
+        }
+        else
+        {
+            cameraBounds.points = new Vector2[]
+            {
+                new Vector2(-newWidth / 2f, yMin),
+                new Vector2(-newWidth / 2f, 100f),
+                new Vector2(newWidth / 2f, 100f),
+                new Vector2(newWidth / 2f, yMin)
+            };
+        }
     }
 
     private void LayOutBackground()
     {
         if (backgroundTile == null || backgroundParent == null) return;
         
-        Vector2 bgPos = new Vector2(-(newWidth / 2) - 5, 0f);
-        for (int i = 0; i <= (newWidth / 10); i++)
+        float tileWidth = 10f;
+        float startX = useModularGeneration ? levelStartX : -newWidth / 2f;
+        float endX = useModularGeneration ? levelEndX : newWidth / 2f;
+        int tilesNeeded = Mathf.CeilToInt((endX - startX) / tileWidth) + 2;
+        
+        for (int i = 0; i < tilesNeeded; i++)
         {
-            bgPos.x += 10;
+            Vector2 bgPos = new Vector2(startX + (i * tileWidth), 0f);
             Instantiate(backgroundTile, bgPos, Quaternion.identity, backgroundParent);
         }
+        
+        GameLogger.Log("LEVEL", $"Background: {tilesNeeded} tiles from {startX:F2} to {endX:F2}");
     }
 
     private void PositionEndPoints(int levelWidth)
@@ -514,7 +641,7 @@ public class LevelStarter : MonoBehaviour
         if (autoClearStructures) ClearModules();
         ResizeLevelModular();
     }
-    
+
     [ContextMenu("Show Level Log")]
     public void ShowLevelLog()
     {
@@ -523,27 +650,27 @@ public class LevelStarter : MonoBehaviour
             LevelLogger.Instance.ShowLogStats();
         }
     }
-    
+
     [ContextMenu("Generate Level (Runtime)")]
     public void GenerateLevelManual()
     {
         hasGenerated = false;
         StartCoroutine(GenerateLevelWithDelay());
     }
-    
+
     [ContextMenu("Clear Level")]
     public void ClearLevelManual()
     {
         ClearModules();
         hasGenerated = false;
     }
-    
+
     [ContextMenu("Generate Random Seed")]
     public void GenerateRandomSeed()
     {
         RandomizeSeed();
     }
-    
+
     [ContextMenu("Regenerate Same Seed")]
     public void RegenerateSameSeed()
     {
@@ -556,4 +683,6 @@ public class LevelStarter : MonoBehaviour
     public int GetCurrentSeed() => currentSeed;
     public bool IsUsingManualSeed() => useManualSeed;
     public bool IsUsingModularGeneration() => useModularGeneration;
+    public float GetLevelStartX() => levelStartX;
+    public float GetLevelEndX() => levelEndX;
 }

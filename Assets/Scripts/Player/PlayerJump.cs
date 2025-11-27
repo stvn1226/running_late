@@ -209,8 +209,10 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
     {
         if (config == null) return;
 
-        states.isFalling = rb.linearVelocity.y < -0.1f;
-        
+        float velocityY = rb.linearVelocity.y;
+    
+        states.isFalling = velocityY < -0.1f;
+    
         if (states.isWallRunning)
         {
             rb.gravityScale = config.wallRunGravityScale;
@@ -220,6 +222,10 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
             bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
             rb.gravityScale = shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale;
+        }
+        else if (Mathf.Abs(velocityY) < config.apexThreshold && !states.isGrounded)
+        {
+            rb.gravityScale = config.apexGravityScale;
         }
         else
         {
@@ -233,7 +239,7 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
 
         Vector2 wallJumpDirection = new Vector2(-states.wallDirection, 1).normalized;
         rb.linearVelocity = Vector2.zero;
-        rb.AddForce(wallJumpDirection * config.maxJumpForce * config.wallJumpMultiplier, ForceMode2D.Impulse);
+        rb.AddForce(wallJumpDirection * (config.maxJumpForce * config.wallJumpMultiplier), ForceMode2D.Impulse);
         states.isWallRunning = false;
         states.StartJump();
     }

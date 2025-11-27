@@ -44,7 +44,6 @@ public class UIManager : MonoBehaviour
     {
         if (inputActions != null)
         {
-            inputActions.Gameplay.Enable();
             inputActions.Gameplay.Pause.performed += OnPausePressed;
             inputActions.UI.Pause.performed += OnPausePressed;
         }

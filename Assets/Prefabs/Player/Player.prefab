@@ -617,6 +617,7 @@ GameObject:
   - component: {fileID: 2374712412831154929}
   - component: {fileID: 1472578967037456669}
   - component: {fileID: 2235664641990637577}
+  - component: {fileID: 4148421020609545807}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -784,6 +785,7 @@ MonoBehaviour:
   crouchInputBuffered: 0
   crouchBufferTimer: 0
   isLongJumping: 0
+  longJumpGraceTimer: 0
   canWallRun: 0
   wallDirection: 0
   justLanded: 0
@@ -887,6 +889,18 @@ MonoBehaviour:
   positiveYColor: {r: 0, g: 1, b: 1, a: 1}
   showDebugText: 1
   logVelocityChanges: 1
+--- !u!114 &4148421020609545807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97bd68d4cb5194a65a1c9a4216f2cffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0
