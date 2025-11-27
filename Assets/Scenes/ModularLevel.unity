@@ -3983,18 +3983,18 @@ MonoBehaviour:
   cameraBounds: {fileID: 699009254}
   structureGenerator: {fileID: 0}
   levelManager: {fileID: 491674138}
-  spawnManager: {fileID: 377434304}
+  spawnManager: {fileID: 0}
   home: {fileID: 0}
   school: {fileID: 0}
   background: []
   clouds: []
   backgroundTile: {fileID: 7743534827117444290, guid: a0cf07547567560408033b5436953da4, type: 3}
   backgroundParent: {fileID: 450632822}
-  cloudParent: {fileID: 182566032}
+  cloudParent: {fileID: 0}
   minModules: 50
   maxModules: 60
-  minLevelWidth: 1000
-  maxLevelWidth: 2000
+  minLevelWidth: 500
+  maxLevelWidth: 600
   autoClearStructures: 1
   modules:
   - {fileID: 3603241969965492453, guid: c122e73c74451e44b90e75ac7e2486a7, type: 3}
@@ -4002,12 +4002,12 @@ MonoBehaviour:
   - {fileID: 5979050493410814231, guid: e218551c61b0d4a4cafdeef27c1cd067, type: 3}
   - {fileID: 4069502681158129930, guid: 57e16db21d00a9449bea79b80e0cc76c, type: 3}
   - {fileID: 4313241089442768526, guid: 5b4c20779a11e8e4aae8b275af10625f, type: 3}
-  moduleTest: {fileID: 0}
+  moduleTest: {fileID: 3603241969965492453, guid: c122e73c74451e44b90e75ac7e2486a7, type: 3}
   homeModule: {fileID: -4956861266619716837, guid: 5d319bf582ca3cc4190fc95dc9571c7e, type: 3}
   schoolModule: {fileID: 7813594483785944249, guid: 0a006d420dff17d44ab0d41f8a959893, type: 3}
   preplacedHomeModule: {fileID: 1423057672}
   buildingsPerUnit: 20
-  buildingDensityMultiplier: 1
+  buildingDensityMultiplier: 2
 --- !u!4 &1998099634
 Transform:
   m_ObjectHideFlags: 0
