@@ -58,6 +58,12 @@ public class MainMenuController : MonoBehaviour
 
     private IEnumerator StartGame()
     {
+        if (LevelStarter.Instance != null)
+        {
+            GameLogger.Log("MENU", "Generating rest of level (clouds, background, buildings)");
+            LevelStarter.Instance.GenerateRestOfLevel();
+        }
+        
         if (menuCanvasGroup != null)
         {
             float elapsed = 0f;
@@ -69,7 +75,11 @@ public class MainMenuController : MonoBehaviour
             }
             menuCanvasGroup.alpha = 0f;
         }
-        gameplayCanvas.gameObject.SetActive(true);
+        
+        if (gameplayCanvas != null)
+        {
+            gameplayCanvas.gameObject.SetActive(true);
+        }
         
         if (menuPanel != null)
             menuPanel.SetActive(false);
