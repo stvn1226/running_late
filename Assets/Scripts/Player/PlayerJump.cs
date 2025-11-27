@@ -232,7 +232,9 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
             return;
         }
 
-        states.isFalling = rb.linearVelocity.y < -0.1f;
+        float velocityY = rb.linearVelocity.y;
+        
+        states.isFalling = velocityY < -0.1f;
 
         if (states.isWallRunning)
         {
