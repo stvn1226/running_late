@@ -10,9 +10,14 @@ public class SpawnManager : MonoBehaviour
     public PlayerConfig playerConfig;
     public float initialImpulseForce = 10f;
     
+    [Header("Countdown Settings")]
+    [SerializeField] private bool useCountdown = true;
+    [SerializeField] private float delayBeforeCountdown = 0.2f;
+    
     private GameObject currentPlayer;
     private SpawnPoint homeSpawnPoint;
     private bool waitingForLevel = false;
+    private bool playerInputDisabled = false;
     
     public static SpawnManager Instance { get; private set; }
     
@@ -74,6 +79,61 @@ public class SpawnManager : MonoBehaviour
         
         FindHomeSpawnPoint();
         SpawnPlayerAtHome();
+        
+        if (useCountdown && StartCountdownController.Instance != null)
+        {
+            DisablePlayerInput();
+            StartCoroutine(StartCountdownSequence());
+        }
+    }
+    
+    private IEnumerator StartCountdownSequence()
+    {
+        yield return new WaitForSeconds(delayBeforeCountdown);
+        
+        StartCountdownController.Instance.OnCountdownComplete += OnCountdownFinished;
+        StartCountdownController.Instance.StartCountdown();
+    }
+    
+    private void OnCountdownFinished()
+    {
+        ApplyInitialVelocity();
+        EnablePlayerInput();
+        
+        if (StartCountdownController.Instance != null)
+        {
+            StartCountdownController.Instance.OnCountdownComplete -= OnCountdownFinished;
+        }
+        
+        GameLogger.Log("SPAWN", "Countdown complete - player launched!");
+    }
+    
+    private void DisablePlayerInput()
+    {
+        if (currentPlayer != null)
+        {
+            PlayerControllerModular controller = currentPlayer.GetComponent<PlayerControllerModular>();
+            if (controller != null)
+            {
+                controller.SetInputEnabled(false);
+                playerInputDisabled = true;
+                GameLogger.Log("SPAWN", "Player input disabled for countdown");
+            }
+        }
+    }
+    
+    private void EnablePlayerInput()
+    {
+        if (currentPlayer != null)
+        {
+            PlayerControllerModular controller = currentPlayer.GetComponent<PlayerControllerModular>();
+            if (controller != null)
+            {
+                controller.SetInputEnabled(true);
+                playerInputDisabled = false;
+                GameLogger.Log("SPAWN", "Player input enabled after countdown");
+            }
+        }
     }
     
     private void FindHomeSpawnPoint()
@@ -122,23 +182,35 @@ public class SpawnManager : MonoBehaviour
 
             GameReferences.Instance.OnPlayerSpawned(currentPlayer);
 
-            Rigidbody2D playerRb = currentPlayer.GetComponent<Rigidbody2D>();
-            PlayerStates playerStates = currentPlayer.GetComponent<PlayerStates>();
+            if (!useCountdown)
+            {
+                ApplyInitialVelocity();
+            }
+        }
+    }
+    
+    private void ApplyInitialVelocity()
+    {
+        if (currentPlayer == null) return;
+        
+        Rigidbody2D playerRb = currentPlayer.GetComponent<Rigidbody2D>();
+        PlayerStates playerStates = currentPlayer.GetComponent<PlayerStates>();
+        
+        if (playerRb != null && playerConfig != null && playerStates != null)
+        {
+            float maxSpeed = playerConfig.maxRunSpeed;
             
-            if (playerRb != null && playerConfig != null && playerStates != null)
-            {
-                float maxSpeed = playerConfig.maxRunSpeed;
-                
-                playerRb.linearVelocity = new Vector2(maxSpeed, 0f);
-                
-                playerStates.justLanded = true;
-                playerStates.landingGraceTimer = playerConfig.landingGracePeriod;
-                playerStates.landingHorizontalVelocity = maxSpeed;
-            }
-            else if (playerRb != null)
-            {
-                playerRb.AddForce(Vector2.right * initialImpulseForce, ForceMode2D.Impulse);
-            }
+            playerRb.linearVelocity = new Vector2(maxSpeed, 0f);
+            
+            playerStates.justLanded = true;
+            playerStates.landingGraceTimer = playerConfig.landingGracePeriod;
+            playerStates.landingHorizontalVelocity = maxSpeed;
+            
+            GameLogger.Log("SPAWN", "Applied initial velocity to player");
+        }
+        else if (playerRb != null)
+        {
+            playerRb.AddForce(Vector2.right * initialImpulseForce, ForceMode2D.Impulse);
         }
     }
     

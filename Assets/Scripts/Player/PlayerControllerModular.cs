@@ -16,6 +16,8 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerStateManager stateManager;
     [SerializeField] private PlayerAirDodge airDodge;
     [SerializeField] private PlayerDive dive;
+    
+    private bool inputEnabled = true;
 
 
     private void Awake()
@@ -80,6 +82,15 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void Update()
     {
+        if (!inputEnabled)
+        {
+            if (inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Disable();
+            }
+            return;
+        }
+        
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
         {
             if (inputActions.Gameplay.enabled)
@@ -239,6 +250,36 @@ public class PlayerControllerModular : MonoBehaviour
 
     public PlayerStates GetStates() => states;
     public PlayerConfig GetConfig() => config;
+    
+    public void SetInputEnabled(bool enabled)
+    {
+        inputEnabled = enabled;
+        
+        if (!enabled)
+        {
+            if (inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Disable();
+            }
+            
+            if (states != null)
+            {
+                states.moveInput = Vector2.zero;
+                states.jumpPressed = false;
+                states.jumpHeld = false;
+            }
+            
+            GameLogger.Log("INPUT", "Player input disabled");
+        }
+        else
+        {
+            if (!inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Enable();
+            }
+            GameLogger.Log("INPUT", "Player input enabled");
+        }
+    }
     #endregion
 
     #region Validation
