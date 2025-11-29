@@ -266,20 +266,13 @@ public class PlayerControllerModular : MonoBehaviour
         }
 
         int currentSeed = LevelStarter.Instance.GetCurrentSeed();
-        
+    
         PlayerPrefs.SetInt("RetrySeed", currentSeed);
         PlayerPrefs.SetInt("UseRetrySeed", 1);
-        
-        Time.timeScale = 1f;
-        
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.HideAllPanels();
-        }
-        
-        LevelManager.Instance.ReplayLevel();
-        
+    
         GameLogger.Log("PLAYER", $"Fast retry triggered for seed: {currentSeed}");
+    
+        LevelManager.Instance.ReplayLevel();
     }
     #endregion
 }

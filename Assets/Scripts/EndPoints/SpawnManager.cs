@@ -275,7 +275,7 @@ public class SpawnManager : MonoBehaviour
         StartCoroutine(SpawnPlayerAtCoroutine(position));
     }
     
-    private void CleanupAllPlayers()
+    public void CleanupAllPlayers()
     {
         GameObject[] allPlayers = GameObject.FindGameObjectsWithTag("Player");
         

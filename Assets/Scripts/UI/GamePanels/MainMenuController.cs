@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
@@ -46,15 +47,49 @@ public class MainMenuController : MonoBehaviour
 
     private void OnPlayClicked()
     {
-        GameLogger.Log("MENU", "Play clicked - Starting game");
-        StartCoroutine(StartGame());
+        GameLogger.Log("MENU", "Play clicked");
+    
+        StartCoroutine(LoadGameplayAndGenerate());
+    }
+    
+    private IEnumerator LoadGameplayAndGenerate()
+    {
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.LoadGameplay();
+        }
+        else
+        {
+            SceneManager.LoadScene("ModularLevel");
+        }
+    
+        yield return new WaitForEndOfFrame();
+    
+        if (LevelStarter.Instance != null)
+        {
+            GameLogger.Log("MENU", "Forcing level generation after scene load");
+            LevelStarter.Instance.ForceRegenerate();
+        }
     }
 
     private void OnQuitClicked()
     {
         GameLogger.Log("MENU", "Quit clicked");
-        Application.Quit();
+    
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.QuitGame();
+        }
+        else
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
     }
+
 
     private IEnumerator StartGame()
     {

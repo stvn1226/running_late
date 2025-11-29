@@ -124,6 +124,12 @@ public class LevelStarter : MonoBehaviour
             homeMask.SetActive(true);
             GameLogger.Log("LEVEL", "Home mask activated for menu");
         }
+    
+        if (generateOnStart)
+        {
+            GameLogger.Log("LEVEL", "Auto-generating level on Start (generateOnStart = true)");
+            ForceRegenerate();
+        }
     }
 
     private void OnDestroy()

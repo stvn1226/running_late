@@ -31,22 +31,26 @@ public class LevelManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
     
-    public void ReplayLevel(bool shouldReload = true)
+    public void ReplayLevel()
     {
         if (isReplaying) return;
-            
+        
         isReplaying = true;
         Time.timeScale = 1f;
 
         OnLevelReplayStarted?.Invoke();
         
-        if (shouldReload) PerformSceneReload();
-    }
-    
-    private void PerformSceneReload()
-    {
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentSceneName);
+        GameLogger.Log("LEVEL", "Reloading scene");
+        
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.ReloadCurrentScene();
+        }
+        else
+        {
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            SceneManager.LoadScene(currentSceneName);
+        }
     }
     
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -66,10 +70,5 @@ public class LevelManager : MonoBehaviour
     public string GetCurrentSceneName()
     {
         return SceneManager.GetActiveScene().name;
-    }
-    
-    private void OnDestroy()
-    {
-        CancelInvoke();
     }
 }
