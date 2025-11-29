@@ -60,8 +60,15 @@ public class MainMenuController : MonoBehaviour
     {
         if (LevelStarter.Instance != null)
         {
-            GameLogger.Log("MENU", "Generating rest of level (clouds, background, buildings)");
-            LevelStarter.Instance.GenerateRestOfLevel();
+            GameLogger.Log("MENU", "Triggering level generation");
+            LevelStarter.Instance.ForceRegenerate();
+            
+            while (!LevelStarter.Instance.HasGeneratedLevel)
+            {
+                yield return null;
+            }
+            
+            GameLogger.Log("MENU", "Level generation complete");
         }
         
         if (menuCanvasGroup != null)

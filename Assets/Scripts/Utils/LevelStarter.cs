@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 public class LevelStarter : MonoBehaviour
 {
     [Header("Level Generation Settings")]
-    public bool generateOnStart = true;
+    public bool generateOnStart = false;
     public bool generateOnSceneReload = true;
     public float generationDelay = 0.1f;
 
@@ -45,7 +45,9 @@ public class LevelStarter : MonoBehaviour
     public ModuleBuilder[] modules;
     public ModuleBuilder homeModule;
     public ModuleBuilder schoolModule;
-    public ModuleBuilder preplacedHomeModule;
+    
+    [Header("Visual Mask")]
+    public GameObject homeMask;
 
     [Header("Building Generation Settings")]
     [Range(10, 50)]
@@ -117,10 +119,10 @@ public class LevelStarter : MonoBehaviour
             GameLogger.Log("LEVEL", $"New level with manual seed: {newSeed}");
         }
 
-        GameLogger.Log("LEVEL", $"GenerateOnStart{generateOnStart} - NotHasGenerated {!hasGenerated} - CanCallGenerateWithDelay {generateOnStart && !hasGenerated}");
-        if (generateOnStart && !hasGenerated)
+        if (homeMask != null)
         {
-            StartCoroutine(GenerateLevelWithDelay());
+            homeMask.SetActive(true);
+            GameLogger.Log("LEVEL", "Home mask activated for menu");
         }
     }
 
@@ -222,17 +224,11 @@ public class LevelStarter : MonoBehaviour
 
     private IEnumerator GenerateLevelWithDelay()
     {
-        GameLogger.Log("LEVEL", "=== GenerateLevelWithDelay STARTED ===");
-        GameLogger.Log("LEVEL", $"preplacedHomeModule is null: {preplacedHomeModule == null}");
-
         OnLevelGenerationStarted?.Invoke();
         generationStartTime = DateTime.Now;
 
-        GameLogger.Log("LEVEL", $"Generation Delay {generationDelay}");
-
         yield return new WaitForSecondsRealtime(generationDelay);
-        GameLogger.Log("LEVEL", $"Passed generationDelay");
-        ;
+
         InitializeSeed();
 
         if (AnalyticsManager.Instance != null)
@@ -241,22 +237,31 @@ public class LevelStarter : MonoBehaviour
             AnalyticsManager.Instance.TrackLevelStart(currentSeed, levelType);
         }
 
-        if (preplacedHomeModule != null)
+        if (useModularGeneration)
         {
-            float homeWidth = preplacedHomeModule.moduleConfig.currentTerrainWidth;
-            float homeX = preplacedHomeModule.transform.position.x;
-
-            levelStartX = homeX - (homeWidth / 2f);
-            float homeEndX = homeX + (homeWidth / 2f) + 5; // 5 is an offset value to don't cut the homeEndX width - to don't leave a blank space 
-
-            GenerateModularCloudsInRange(levelStartX, homeEndX);
-            LayOutBackgroundInRange(levelStartX, homeEndX);
-            GenerateModularBuildingsInRange(levelStartX, homeEndX);
-
-            GameLogger.Log("LEVEL", $"Generated menu visuals (clouds, background, buildings) for Home area: X=[{levelStartX:F2}, {homeEndX:F2}]");
+            if (autoClearStructures) ClearModules();
+            ResizeLevelModular();
+        }
+        else
+        {
+            if (autoClearStructures && structureGenerator != null) 
+                structureGenerator.ClearStructuresInEditor();
+            ResizeLevel();
         }
 
+        if (homeMask != null)
+        {
+            homeMask.SetActive(false);
+            GameLogger.Log("LEVEL", "Home mask deactivated - level generated");
+        }
+
+        hasGenerated = true;
         OnLevelGenerationCompleted?.Invoke();
+
+        yield return new WaitForEndOfFrame();
+
+        LogCurrentLevel();
+        NotifySpawnManager();
     }
 
     private void NotifySpawnManager()
@@ -272,6 +277,13 @@ public class LevelStarter : MonoBehaviour
     {
         if (!hasGenerated) return;
         hasGenerated = false;
+        
+        if (homeMask != null)
+        {
+            homeMask.SetActive(true);
+            GameLogger.Log("LEVEL", "Home mask reactivated for regeneration");
+        }
+        
         StartCoroutine(GenerateLevelWithDelay());
     }
 
@@ -320,35 +332,11 @@ public class LevelStarter : MonoBehaviour
         numberOfModules = Random.Range(minModules, maxModules);
         List<ModuleBuilder> modulesToSpawn = new List<ModuleBuilder>();
 
-        bool usePreplacedHome = (preplacedHomeModule != null);
+        modulesToSpawn.Add(homeModule);
+        float homeWidth = homeModule.moduleConfig.currentTerrainWidth;
+        levelStartX = -homeWidth / 2f;
 
-        float homeWidth = 0f;
-        int previousHeight = 0;
-
-        if (usePreplacedHome)
-        {
-            homeWidth = preplacedHomeModule.moduleConfig.currentTerrainWidth;
-            float homeX = preplacedHomeModule.transform.position.x;
-
-            levelStartX = homeX - (homeWidth / 2f);
-
-            previousHeight = preplacedHomeModule.GetActualTerrainHeight();
-            if (previousHeight <= 0)
-                previousHeight = Random.Range(1, 4);
-
-            if (!modulesInScene.Contains(preplacedHomeModule))
-                modulesInScene.Add(preplacedHomeModule);
-
-            GameLogger.Log("LEVEL", $"Using pre-placed Home at X={homeX:F2}, Height={previousHeight}");
-        }
-        else
-        {
-            modulesToSpawn.Add(homeModule);
-            homeWidth = homeModule.moduleConfig.currentTerrainWidth;
-            levelStartX = -homeWidth / 2f;
-
-            GameLogger.Log("LEVEL", $"Will spawn Home, Width={homeWidth:F2}");
-        }
+        GameLogger.Log("LEVEL", $"Will spawn Home, Width={homeWidth:F2}");
 
         newWidth += (int)homeWidth;
 
@@ -365,20 +353,17 @@ public class LevelStarter : MonoBehaviour
         GameLogger.Log("LEVEL", $"Total modules: {modulesToSpawn.Count}, Width: {newWidth}");
 
         float moduleSpawnerX = levelStartX + (homeWidth / 2f);
+        
+        Vector2 homePos = new Vector2(moduleSpawnerX, 0f);
+        int homeHeight = Random.Range(homeModule.moduleConfig.minTerrainHeight, homeModule.moduleConfig.maxTerrainHeight + 1);
 
-        if (!usePreplacedHome)
-        {
-            Vector2 homePos = new Vector2(moduleSpawnerX, 0f);
-            int homeHeight = Random.Range(homeModule.moduleConfig.minTerrainHeight, homeModule.moduleConfig.maxTerrainHeight + 1);
+        ModuleBuilder spawnedHome = Instantiate(homeModule, homePos, Quaternion.identity, levelParent);
+        spawnedHome.GenerateModule(homeHeight);
+        modulesInScene.Add(spawnedHome);
 
-            ModuleBuilder spawnedHome = Instantiate(homeModule, homePos, Quaternion.identity, levelParent);
-            spawnedHome.GenerateModule(homeHeight);
-            modulesInScene.Add(spawnedHome);
+        int previousHeight = spawnedHome.GetActualTerrainHeight();
 
-            previousHeight = spawnedHome.GetActualTerrainHeight();
-
-            GameLogger.Log("LEVEL", $"Home spawned at X={moduleSpawnerX:F2}, Height={previousHeight}");
-        }
+        GameLogger.Log("LEVEL", $"Home spawned at X={moduleSpawnerX:F2}, Height={previousHeight}");
 
         moduleSpawnerX += homeWidth / 2f;
 
@@ -422,26 +407,11 @@ public class LevelStarter : MonoBehaviour
 
         ResizeCamBounds(0f);
 
-        GenerateModularCloudsInRange(levelStartX, levelStartX + homeWidth);
-        LayOutBackgroundInRange(levelStartX, levelStartX + homeWidth);
+        GenerateModularCloudsInRange(levelStartX, levelEndX);
+        LayOutBackgroundInRange(levelStartX, levelEndX);
 
         OnCameraBoundsUpdated?.Invoke();
     }
-
-    public void GenerateRestOfLevel()
-    {
-        GameLogger.Log("LEVEL", "=== GENERATING FULL LEVEL ===");
-
-        ResizeLevelModular();
-
-        GenerateModularCloudsInRange(levelStartX, levelEndX);
-        LayOutBackgroundInRange(levelStartX, levelEndX);
-        GenerateModularBuildingsInRange(levelStartX, levelEndX);
-
-        hasGenerated = true;
-        NotifySpawnManager();
-    }
-
 
 
     private void GenerateModularCloudsInRange(float startX, float endX)
@@ -594,12 +564,7 @@ public class LevelStarter : MonoBehaviour
         for (int i = 0; i < levelParent.childCount; i++)
         {
             Transform child = levelParent.GetChild(i);
-            ModuleBuilder module = child.GetComponent<ModuleBuilder>();
-
-            if (module == null || module != preplacedHomeModule)
-            {
-                modulesToClear.Add(child);
-            }
+            modulesToClear.Add(child);
         }
 
         if (backgroundParent != null)
@@ -621,12 +586,6 @@ public class LevelStarter : MonoBehaviour
         }
 
         modulesInScene.Clear();
-
-        if (preplacedHomeModule != null)
-        {
-            modulesInScene.Add(preplacedHomeModule);
-            GameLogger.Log("LEVEL", "Pre-placed Home preserved");
-        }
 
         if (structureGenerator != null)
         {
