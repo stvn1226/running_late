@@ -6,14 +6,16 @@ public class Timer : MonoBehaviour
     [Header("Timer Settings")]
     [SerializeField] private bool countUp = true;
     [SerializeField] private string timeFormat = "mm:ss.ff";
+    [SerializeField] private bool waitForStartCountdown = true;
     
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = false;
     
     private TextMeshProUGUI timerText;
     private float elapsedTime = 0f;
-    private bool isRunning = true;
+    private bool isRunning = false;
     private bool isPermanentlyStopped = false;
+    private bool hasStarted = false;
     
     public float ElapsedTime => elapsedTime;
     public bool IsRunning => isRunning;
@@ -29,8 +31,44 @@ public class Timer : MonoBehaviour
         
         ResetTimer();
         
+        if (waitForStartCountdown && StartCountdownController.Instance != null)
+        {
+            isRunning = false;
+            StartCountdownController.Instance.OnCountdownComplete += OnStartCountdownComplete;
+            
+            if (showDebugInfo)
+                GameLogger.Log("TIMER", "Waiting for start countdown to complete");
+        }
+        else
+        {
+            isRunning = true;
+            hasStarted = true;
+            
+            if (showDebugInfo)
+                GameLogger.Log("TIMER", "Initialized and started counting");
+        }
+    }
+    
+    void OnDestroy()
+    {
+        if (StartCountdownController.Instance != null)
+        {
+            StartCountdownController.Instance.OnCountdownComplete -= OnStartCountdownComplete;
+        }
+    }
+    
+    private void OnStartCountdownComplete()
+    {
+        isRunning = true;
+        hasStarted = true;
+        
         if (showDebugInfo)
-            GameLogger.Log("TIMER", "Initialized and started counting");
+            GameLogger.Log("TIMER", "Start countdown complete - timer started");
+        
+        if (StartCountdownController.Instance != null)
+        {
+            StartCountdownController.Instance.OnCountdownComplete -= OnStartCountdownComplete;
+        }
     }
     
     void Update()
@@ -60,6 +98,7 @@ public class Timer : MonoBehaviour
         if (!isPermanentlyStopped)
         {
             isRunning = true;
+            hasStarted = true;
             
             if (showDebugInfo)
                 GameLogger.Log("TIMER", "Started");
@@ -105,8 +144,9 @@ public class Timer : MonoBehaviour
     public void ResetTimer()
     {
         elapsedTime = 0f;
-        isRunning = true;
+        isRunning = waitForStartCountdown ? false : true;
         isPermanentlyStopped = false;
+        hasStarted = false;
         UpdateDisplay();
         
         if (showDebugInfo)
