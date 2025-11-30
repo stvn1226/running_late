@@ -76,9 +76,8 @@ public class StartCountdownController : MonoBehaviour
         isCountingDown = true;
         
         GameLogger.Log("COUNTDOWN", $"Waiting {delayBeforeFreeze}s for level generation...");
-        yield return new WaitForSeconds(delayBeforeFreeze);
+        yield return new WaitForSecondsRealtime(delayBeforeFreeze);
         
-        Time.timeScale = 0f;
         GameLogger.Log("COUNTDOWN", "Game paused for countdown");
         
         if (countdownPanel != null)
