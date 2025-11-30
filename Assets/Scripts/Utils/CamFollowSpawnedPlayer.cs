@@ -128,23 +128,53 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     private void OnPlayerSpawned(GameObject player)
     {
         if (player == null) return;
-        
+    
         playerTransform = player.transform;
-        
+    
         GameLogger.Log("CAMERA", $"Player spawned at {playerTransform.position}");
-        
+    
         if (cinemachineCamera != null)
         {
-            cinemachineCamera.Follow = playerTransform;
-            cinemachineCamera.Priority.Value = gameplayPriority;
+            Transform currentFollow = cinemachineCamera.Follow;
+        
+            // Si hay un Follow target previo (HomeCameraTarget), muévelo a la posición del Player
+            if (currentFollow != null && currentFollow.gameObject.name.Contains("HomeCameraTarget"))
+            {
+                GameLogger.Log("CAMERA", $"Moving HomeCameraTarget from {currentFollow.position} to {playerTransform.position}");
+                currentFollow.position = playerTransform.position;
             
-            GameLogger.Log("CAMERA", $"Camera now following player - Priority={gameplayPriority}");
-            GameLogger.Log("CAMERA", "Keeping menu settings (low damping, no lookahead) for smooth transition");
+                // Esperar un frame para que Cinemachine procese la nueva posición
+                StartCoroutine(DelayedFollowChange());
+            }
+            else
+            {
+                // No hay target previo, cambiar directamente
+                AssignPlayerAsTarget();
+            }
         }
-        
+    
         isFollowingPlayer = true;
-        
-        StartCoroutine(RestoreSettingsAfterDelay());
+    }
+    
+    private IEnumerator DelayedFollowChange()
+    {
+        // Esperar 1 frame para que Cinemachine procese la nueva posición de HomeCameraTarget
+        yield return null;
+    
+        // Ahora cambiar al Player
+        AssignPlayerAsTarget();
+    
+        // Esperar antes de restaurar gameplay settings
+        yield return new WaitForSecondsRealtime(delayBeforeRestoringSettings);
+        RestoreGameplayCameraSettings();
+    }
+
+    private void AssignPlayerAsTarget()
+    {
+        cinemachineCamera.Follow = playerTransform;
+        cinemachineCamera.Priority.Value = gameplayPriority;
+    
+        GameLogger.Log("CAMERA", $"Camera now following player - Priority={gameplayPriority}");
     }
 
     private IEnumerator RestoreSettingsAfterDelay()
