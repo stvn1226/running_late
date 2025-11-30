@@ -104,13 +104,14 @@ public class SpawnManager : MonoBehaviour
         if (useCountdown && StartCountdownController.Instance != null)
         {
             DisablePlayerInput();
+            Time.timeScale = 0f;
             StartCoroutine(StartCountdownSequence());
         }
     }
     
     private IEnumerator StartCountdownSequence()
     {
-        yield return new WaitForSeconds(delayBeforeCountdown);
+        yield return new WaitForSecondsRealtime(delayBeforeCountdown);
         
         StartCountdownController.Instance.OnCountdownComplete += OnCountdownFinished;
         StartCountdownController.Instance.StartCountdown();

@@ -34,7 +34,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     {
         if (cinemachineCamera != null)
         {
-            cinemachineCamera.Follow = null;
+            // cinemachineCamera.Follow = null;
             cinemachineCamera.Priority.Value = menuPriority;
             
             composer = cinemachineCamera.GetComponent<CinemachinePositionComposer>();
