@@ -13,6 +13,7 @@ public class PlayerStateManager : MonoBehaviour
     private bool previousCrouching;
     private bool previousSliding;
     private bool previousWallRunning;
+    private bool previousRolling;
     private float lastStateLog = 0f;
     private const float STATE_LOG_INTERVAL = 1f;
 
@@ -23,7 +24,7 @@ public class PlayerStateManager : MonoBehaviour
         // Periodic state logging
         if (Time.time - lastStateLog > STATE_LOG_INTERVAL)
         {
-            GameLogger.LogVerbose("STATE", $"STATE: Crouch={states.isCrouching}, Slide={states.isSliding}, WallRun={states.isWallRunning}, Grounded={states.isGrounded}, Speed={Mathf.Abs(rb.linearVelocity.x):F1}");
+            GameLogger.LogVerbose("STATE", $"STATE: Crouch={states.isCrouching}, Slide={states.isSliding}, Roll={states.isRolling}, Dive={states.isDiving}, WallRun={states.isWallRunning}, Grounded={states.isGrounded}, Speed={Mathf.Abs(rb.linearVelocity.x):F1}");
             lastStateLog = Time.time;
         }
     }
@@ -35,6 +36,9 @@ public class PlayerStateManager : MonoBehaviour
         previousCrouching = states.isCrouching;
         previousSliding = states.isSliding;
         previousWallRunning = states.isWallRunning;
+        previousRolling = states.isRolling;
+
+        HandleRollSafety();
 
         HandleCrouchAndSlide();
 
@@ -42,15 +46,40 @@ public class PlayerStateManager : MonoBehaviour
 
         HandleKick();
 
-        if (previousCrouching != states.isCrouching || previousSliding != states.isSliding)
+        if (previousCrouching != states.isCrouching || previousSliding != states.isSliding || previousRolling != states.isRolling)
         {
-            GameLogger.LogState($"COLLIDER UPDATE TRIGGERED: Crouch {previousCrouching}->{states.isCrouching}, Slide {previousSliding}->{states.isSliding}");
+            GameLogger.LogState($"COLLIDER UPDATE TRIGGERED: Crouch {previousCrouching}->{states.isCrouching}, Slide {previousSliding}->{states.isSliding}, Roll {previousRolling}->{states.isRolling}");
             playerPhysics?.UpdateColliderSize();
+        }
+    }
+
+    private void HandleRollSafety()
+    {
+        if (states.isRolling)
+        {
+            if (!states.isGrounded)
+            {
+                GameLogger.LogState("ROLL SAFETY: Player left ground while rolling, ending roll");
+                states.EndRoll();
+            }
+            else if (states.isWallRunning)
+            {
+                GameLogger.LogState("ROLL SAFETY: Player started wall running while rolling, ending roll");
+                states.EndRoll();
+            }
+            else if (states.rollTimer <= 0f && (states.isCrouching || states.isSliding))
+            {
+                GameLogger.LogState("ROLL SAFETY: Roll timer expired but crouch/slide flags still set, force clearing");
+                states.EndRoll();
+            }
         }
     }
 
     private void HandleCrouchAndSlide()
     {
+        // Don't interfere with rolling state
+        if (states.isRolling) return;
+
         bool shouldProcessCrouchSlide = states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping;
         
         if (shouldProcessCrouchSlide)
@@ -105,6 +134,11 @@ public class PlayerStateManager : MonoBehaviour
 
     private void HandleWallRun(bool previousWallRunning)
     {
+        if (states.wallRunHeld && !states.canWallRun)
+        {
+            states.RecordWallClimbInput();
+        }
+
         bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f;
         
         if (shouldWallRun && !previousWallRunning && rb.linearVelocity.y < -1f)

@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Utils;
 
 public class DefeatPanel : BaseMenuPanel
 {
     [Header("Defeat UI")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI currentTimeText;
+    [SerializeField] private TextMeshProUGUI bestTimeText;
     [SerializeField] private TextMeshProUGUI seedText;
     
     [Header("Buttons")]
@@ -31,6 +33,7 @@ public class DefeatPanel : BaseMenuPanel
     [Header("References")]
     [SerializeField] private Timer timer;
     
+    private float completionTime;
     private int currentSeed;
     private bool isManualSeedMode = false;
     
@@ -68,6 +71,7 @@ public class DefeatPanel : BaseMenuPanel
     {
         if (timer != null)
         {
+            completionTime = timer.ElapsedTime;
             currentTimeText.text = $"Time: {timer.GetFormattedTime()}";
         }
         
@@ -75,6 +79,21 @@ public class DefeatPanel : BaseMenuPanel
         {
             currentSeed = LevelStarter.Instance.GetCurrentSeed();
             seedText.text = $"Seed: {currentSeed}";
+        }
+        
+        if (LeaderboardManager.Instance != null && bestTimeText != null)
+        {
+            TimeRecord bestRecord = LeaderboardManager.Instance.GetBestTime(currentSeed);
+            
+            if (bestRecord != null)
+            {
+                bestTimeText.text = $"Best: {bestRecord.GetFormattedTime()}";
+                bestTimeText.color = Color.black;
+            }
+            else
+            {
+                bestTimeText.text = "Best: --:--";
+            }
         }
     }
     
@@ -163,10 +182,17 @@ public class DefeatPanel : BaseMenuPanel
         
         Time.timeScale = 1f;
         
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #else
-        Application.Quit();
-        #endif
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.LoadMainMenu();
+        }
+        else
+        {
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #else
+            Application.Quit();
+            #endif
+        }
     }
 }

@@ -15,6 +15,9 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerKick kicker;
     [SerializeField] private PlayerStateManager stateManager;
     [SerializeField] private PlayerAirDodge airDodge;
+    [SerializeField] private PlayerDive dive;
+    
+    private bool inputEnabled = true;
 
 
     private void Awake()
@@ -79,6 +82,15 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void Update()
     {
+        if (!inputEnabled)
+        {
+            if (inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Disable();
+            }
+            return;
+        }
+        
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
         {
             if (inputActions.Gameplay.enabled)
@@ -102,6 +114,7 @@ public class PlayerControllerModular : MonoBehaviour
         if (physics != null) physics.config = config;
         if (stateManager != null) stateManager.config = config;
         if (airDodge != null) airDodge.config = config;
+        if (dive != null) dive.config = config;
     }
 
     #region Input Callbacks
@@ -223,7 +236,7 @@ public class PlayerControllerModular : MonoBehaviour
         GameLogger.LogInput("OnDive called!");
         if (states != null)
         {
-            //states.SetDivePressed();
+            states.SetDivePressed();
         }
     }
     #endregion
@@ -237,6 +250,36 @@ public class PlayerControllerModular : MonoBehaviour
 
     public PlayerStates GetStates() => states;
     public PlayerConfig GetConfig() => config;
+    
+    public void SetInputEnabled(bool enabled)
+    {
+        inputEnabled = enabled;
+        
+        if (!enabled)
+        {
+            if (inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Disable();
+            }
+            
+            if (states != null)
+            {
+                states.moveInput = Vector2.zero;
+                states.jumpPressed = false;
+                states.jumpHeld = false;
+            }
+            
+            GameLogger.Log("INPUT", "Player input disabled");
+        }
+        else
+        {
+            if (!inputActions.Gameplay.enabled)
+            {
+                inputActions.Gameplay.Enable();
+            }
+            GameLogger.Log("INPUT", "Player input enabled");
+        }
+    }
     #endregion
 
     #region Validation
@@ -264,20 +307,13 @@ public class PlayerControllerModular : MonoBehaviour
         }
 
         int currentSeed = LevelStarter.Instance.GetCurrentSeed();
-        
+    
         PlayerPrefs.SetInt("RetrySeed", currentSeed);
         PlayerPrefs.SetInt("UseRetrySeed", 1);
-        
-        Time.timeScale = 1f;
-        
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.HideAllPanels();
-        }
-        
-        LevelManager.Instance.ReplayLevel();
-        
+    
         GameLogger.Log("PLAYER", $"Fast retry triggered for seed: {currentSeed}");
+    
+        LevelManager.Instance.ReplayLevel();
     }
     #endregion
 }
