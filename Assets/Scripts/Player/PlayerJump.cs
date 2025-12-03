@@ -246,7 +246,11 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
             rb.gravityScale = shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale;
         }
-        else if (Mathf.Abs(velocityY) < config.apexThreshold && !states.isGrounded)
+        // else if (velocityY > -config.apexThreshold && velocityY < config.apexThreshold && !states.isGrounded)
+        // {
+        //     rb.gravityScale = config.apexGravityScale;
+        // }
+        else if (velocityY >= 0f && velocityY < config.apexThreshold && !states.isGrounded)
         {
             rb.gravityScale = config.apexGravityScale;
         }
