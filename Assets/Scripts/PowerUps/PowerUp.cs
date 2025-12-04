@@ -8,7 +8,7 @@ public abstract class PowerUp : MonoBehaviour
 
     [Header("Visual Effects")]
     [SerializeField] private GameObject pickupEffect;
-    [SerializeField] private float effectDuration = 1f;
+    [SerializeField] protected float effectDuration = 1f;
 
     private bool hasBeenPickedUp = false;
 
