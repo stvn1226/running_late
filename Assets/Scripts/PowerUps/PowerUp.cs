@@ -1,14 +1,19 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public abstract class PowerUp : MonoBehaviour
 {
     [Header("Power-Up Settings")]
+    public string powerUpName;
+    public Sprite icon;
+    public Color theme;
     [SerializeField] private bool destroyOnPickup = true;
     [SerializeField] private bool showDebugInfo = true;
+    [SerializeField] protected float activeTime = 10f;
 
     [Header("Visual Effects")]
     [SerializeField] private GameObject pickupEffect;
-    [SerializeField] protected float effectDuration = 1f;
+    [SerializeField] private float effectDuration = 1f;
 
     private bool hasBeenPickedUp = false;
 
@@ -31,7 +36,6 @@ public abstract class PowerUp : MonoBehaviour
     {
         if (hasBeenPickedUp) return;
 
-        hasBeenPickedUp = true;
 
         if (showDebugInfo)
         {
@@ -41,6 +45,14 @@ public abstract class PowerUp : MonoBehaviour
         ApplyEffect(player);
         PlayPickupSound();
         SpawnPickupEffect();
+        UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
+            powerUpName = powerUpName, 
+            image = icon, 
+            color = theme, 
+            duration = activeTime 
+        });
+
+        hasBeenPickedUp = true;
 
         if (destroyOnPickup)
         {

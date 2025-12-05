@@ -2,7 +2,7 @@ using MoreMountains.Feedbacks;
 using System;
 using UnityEngine;
 
-public class PlayerJump : MonoBehaviour, ITimedPowerUp
+public class PlayerJump : MonoBehaviour
 {
     [Header("References")]
     public PlayerConfig config;
@@ -33,10 +33,11 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
         HandleDoubleJumpPower();
     }
 
-    public void InvokeDoubleJump()
+    public void InvokeDoubleJump(float duration)
     {
         allowDoubleJump = true;
         currentTime = 0f;
+        maxTime = duration;
         Debug.Log("Double Jump Invoked!");
     }
 
@@ -265,25 +266,5 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
         rb.AddForce(wallJumpDirection * (config.maxJumpForce * config.wallJumpMultiplier), ForceMode2D.Impulse);
         states.isWallRunning = false;
         states.StartJump();
-    }
-
-    public bool IsActive()
-    {
-        return allowDoubleJump;
-    }
-
-    public float GetRemainingTime()
-    {
-        return allowDoubleJump ? (maxTime - currentTime) : 0f;
-    }
-
-    public float GetMaxTime()
-    {
-        return maxTime;
-    }
-
-    public string GetPowerUpName()
-    {
-        return "DoubleJump";
     }
 }

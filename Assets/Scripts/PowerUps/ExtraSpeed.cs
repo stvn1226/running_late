@@ -9,7 +9,7 @@ public class ExtraSpeed : PowerUp
         PlayerMovement movementController = player.GetComponentInParent<PlayerMovement>();
         if (movementController != null)
         {
-            movementController.InvokeExtraSpeed(extraSpeed, effectDuration); // Increase speed by 8 points
+            movementController.InvokeExtraSpeed(extraSpeed, activeTime); // Increase speed by 8 points
         }
         else
         {

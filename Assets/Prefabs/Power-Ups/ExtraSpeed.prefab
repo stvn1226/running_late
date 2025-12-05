@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5132573950797618465}
   - component: {fileID: 8927109707644948949}
   m_Layer: 0
-  m_Name: RollerSkates
+  m_Name: ExtraSpeed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46,10 +46,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7eeb553dfe2785e46a43cc7f4d171d0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExtraSpeed
+  powerUpName: ExtraSpeed
+  icon: {fileID: 21300000, guid: 23402a19da6e03246a1b0f62a10493ac, type: 3}
+  theme: {r: 0.96470594, g: 0.96470594, b: 0.96470594, a: 1}
   destroyOnPickup: 1
   showDebugInfo: 1
+  activeTime: 10
   pickupEffect: {fileID: 0}
-  effectDuration: 10
+  effectDuration: 1
   extraSpeed: 8
 --- !u!1 &4257187166655963895
 GameObject:
