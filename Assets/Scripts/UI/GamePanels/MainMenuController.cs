@@ -7,6 +7,7 @@ public class MainMenuController : MonoBehaviour
     [Header("Panels")]
     [SerializeField] private MainMenuPanel mainMenuPanel;
     [SerializeField] private CreditsPanel creditsPanel;
+    [SerializeField] private SettingsPanel settingsPanel;
     
     [Header("Fade Settings")]
     [SerializeField] private CanvasGroup menuCanvasGroup;
@@ -49,6 +50,11 @@ public class MainMenuController : MonoBehaviour
         {
             creditsPanel.Initialize(this);
         }
+        
+        if (settingsPanel != null)
+        {
+            settingsPanel.Initialize(this);
+        }
     }
     
     public void ShowMainPanel()
@@ -63,7 +69,7 @@ public class MainMenuController : MonoBehaviour
     
     public void ShowSettingsPanel()
     {
-        GameLogger.LogWarning("MENU", "Settings panel not implemented yet");
+        SwitchToPanel(settingsPanel);
     }
     
     private void SwitchToPanel(BaseMainMenuPanel targetPanel)

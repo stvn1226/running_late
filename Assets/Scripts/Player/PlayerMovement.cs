@@ -241,6 +241,7 @@ public class PlayerMovement : MonoBehaviour
         states.StartStagger(config.staggerDuration);
 
         AudioManager.Instance?.Play(AudioManager.SoundType.Stagger);
+        GamepadVibrationManager.Instance?.TriggerHitVibration();
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
