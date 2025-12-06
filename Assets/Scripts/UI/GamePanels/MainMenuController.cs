@@ -1,33 +1,26 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
-    [Header("UI References")]
-    public GameObject menuPanel;
-    public Button playButton;
-    public Button quitButton;
+    [Header("Panels")]
+    [SerializeField] private MainMenuPanel mainMenuPanel;
+    [SerializeField] private CreditsPanel creditsPanel;
     
     [Header("Fade Settings")]
-    public CanvasGroup menuCanvasGroup;
-    public float fadeOutDuration = 0.5f;
+    [SerializeField] private CanvasGroup menuCanvasGroup;
+    [SerializeField] private float fadeOutDuration = 0.5f;
 
     [Header("UI References")]
-    public Canvas gameplayCanvas;
+    [SerializeField] private Canvas gameplayCanvas;
+    
+    private BaseMainMenuPanel currentPanel;
     
     private void Start()
     {
-        if (playButton != null)
-        {
-            playButton.onClick.AddListener(OnPlayClicked);
-            EventSystem.current.SetSelectedGameObject(playButton.gameObject);
-        }
-        
-        if (quitButton != null)
-            quitButton.onClick.AddListener(OnQuitClicked);
+        InitializePanels();
+        ShowMainPanel();
         
         if (gameplayCanvas != null)
         {
@@ -44,12 +37,75 @@ public class MainMenuController : MonoBehaviour
         
         GameLogger.Log("MENU", "Main Menu ready - UI controls active");
     }
-
-    private void OnPlayClicked()
-    {
-        GameLogger.Log("MENU", "Play clicked");
     
+    private void InitializePanels()
+    {
+        if (mainMenuPanel != null)
+        {
+            mainMenuPanel.Initialize(this);
+        }
+        
+        if (creditsPanel != null)
+        {
+            creditsPanel.Initialize(this);
+        }
+    }
+    
+    public void ShowMainPanel()
+    {
+        SwitchToPanel(mainMenuPanel);
+    }
+    
+    public void ShowCreditsPanel()
+    {
+        SwitchToPanel(creditsPanel);
+    }
+    
+    public void ShowSettingsPanel()
+    {
+        GameLogger.LogWarning("MENU", "Settings panel not implemented yet");
+    }
+    
+    private void SwitchToPanel(BaseMainMenuPanel targetPanel)
+    {
+        if (targetPanel == null)
+        {
+            GameLogger.LogWarning("MENU", "Trying to switch to null panel");
+            return;
+        }
+        
+        if (currentPanel != null)
+        {
+            currentPanel.Hide();
+        }
+        
+        currentPanel = targetPanel;
+        currentPanel.Show();
+        
+        GameLogger.Log("MENU", $"Switched to panel: {targetPanel.GetType().Name}");
+    }
+    
+    public void StartGame()
+    {
         StartCoroutine(LoadGameplayAndGenerate());
+    }
+    
+    public void QuitGame()
+    {
+        GameLogger.Log("MENU", "Quit clicked");
+    
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.QuitGame();
+        }
+        else
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
     }
     
     private IEnumerator LoadGameplayAndGenerate()
@@ -70,70 +126,5 @@ public class MainMenuController : MonoBehaviour
             GameLogger.Log("MENU", "Forcing level generation after scene load");
             LevelStarter.Instance.ForceRegenerate();
         }
-    }
-
-    private void OnQuitClicked()
-    {
-        GameLogger.Log("MENU", "Quit clicked");
-    
-        if (SceneLoader.Instance != null)
-        {
-            SceneLoader.Instance.QuitGame();
-        }
-        else
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
-    }
-
-
-    private IEnumerator StartGame()
-    {
-        if (LevelStarter.Instance != null)
-        {
-            GameLogger.Log("MENU", "Triggering level generation");
-            LevelStarter.Instance.ForceRegenerate();
-            
-            while (!LevelStarter.Instance.HasGeneratedLevel)
-            {
-                yield return null;
-            }
-            
-            GameLogger.Log("MENU", "Level generation complete");
-        }
-        
-        if (menuCanvasGroup != null)
-        {
-            float elapsed = 0f;
-            while (elapsed < fadeOutDuration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                menuCanvasGroup.alpha = 1f - (elapsed / fadeOutDuration);
-                yield return null;
-            }
-            menuCanvasGroup.alpha = 0f;
-        }
-        
-        if (gameplayCanvas != null)
-        {
-            gameplayCanvas.gameObject.SetActive(true);
-        }
-        
-        if (menuPanel != null)
-            menuPanel.SetActive(false);
-        
-        Time.timeScale = 1f;
-        
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.inputActions.UI.Disable();
-            UIManager.Instance.inputActions.Gameplay.Enable();
-        }
-        
-        GameLogger.Log("MENU", "Game started - Gameplay controls active");
     }
 }
