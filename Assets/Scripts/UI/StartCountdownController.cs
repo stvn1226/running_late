@@ -74,49 +74,49 @@ public class StartCountdownController : MonoBehaviour
     private IEnumerator CountdownSequence()
     {
         isCountingDown = true;
-        
+    
         GameLogger.Log("COUNTDOWN", $"Waiting {delayBeforeFreeze}s for level generation...");
-        yield return new WaitForSecondsRealtime(delayBeforeFreeze);
-        
+        yield return StartCoroutine(WaitForRealtimeRespectingPause(delayBeforeFreeze));
+    
         GameLogger.Log("COUNTDOWN", "Game paused for countdown");
-        
+    
         if (countdownPanel != null)
         {
             countdownPanel.SetActive(true);
         }
-        
+    
         GameLogger.Log("COUNTDOWN", "Starting countdown sequence");
-        
+    
         for (int i = countdownFrom; i > 0; i--)
         {
             DisplayNumber(i);
-            
+        
             if (playCountdownSounds)
             {
                 AudioManager.Instance?.Play(AudioManager.SoundType.Jump);
             }
-            
+        
             if (useScaleAnimation)
             {
                 yield return StartCoroutine(AnimateCountdownNumber());
             }
             else
             {
-                yield return new WaitForSecondsRealtime(countdownInterval);
+                yield return StartCoroutine(WaitForRealtimeRespectingPause(countdownInterval));
             }
         }
-        
+    
         DisplayGo();
-        
+    
         if (playCountdownSounds)
         {
             AudioManager.Instance?.Play(AudioManager.SoundType.Powerup);
         }
-        
+    
         Time.timeScale = 1f;
         GameLogger.Log("COUNTDOWN", "GO! - Game resumed and player launched!");
         OnCountdownComplete?.Invoke();
-        
+    
         if (useScaleAnimation)
         {
             yield return StartCoroutine(AnimateCountdownNumber());
@@ -125,14 +125,14 @@ public class StartCountdownController : MonoBehaviour
         {
             yield return new WaitForSeconds(goDisplayDuration);
         }
-        
+    
         if (countdownPanel != null)
         {
             countdownPanel.SetActive(false);
         }
-        
+    
         isCountingDown = false;
-        
+    
         GameLogger.Log("COUNTDOWN", "Countdown UI hidden");
     }
     
@@ -158,28 +158,53 @@ public class StartCountdownController : MonoBehaviour
     {
         float elapsed = 0f;
         Vector3 originalScale = countdownText != null ? countdownText.transform.localScale : Vector3.one;
-        
+    
         while (elapsed < scaleAnimationDuration)
         {
-            elapsed += Time.unscaledDeltaTime;
+            if (!IsPaused())
+            {
+                elapsed += Time.unscaledDeltaTime;
+            }
+        
             float normalizedTime = elapsed / scaleAnimationDuration;
             float scaleValue = scaleCurve.Evaluate(normalizedTime);
-            
+        
             if (countdownText != null)
             {
                 countdownText.transform.localScale = originalScale * (1f + scaleValue * 0.5f);
             }
-            
+        
             yield return null;
         }
-        
+    
         if (countdownText != null)
         {
             countdownText.transform.localScale = originalScale;
         }
-        
-        yield return new WaitForSecondsRealtime(countdownInterval - scaleAnimationDuration);
+    
+        yield return StartCoroutine(WaitForRealtimeRespectingPause(countdownInterval - scaleAnimationDuration));
     }
     
     public bool IsCountingDown => isCountingDown;
+    
+    
+    private IEnumerator WaitForRealtimeRespectingPause(float duration)
+    {
+        float elapsed = 0f;
+    
+        while (elapsed < duration)
+        {
+            if (!IsPaused())
+            {
+                elapsed += Time.unscaledDeltaTime;
+            }
+            yield return null;
+        }
+    }
+
+    private bool IsPaused()
+    {
+        return UIManager.Instance != null && UIManager.Instance.IsPaused;
+    }
+
 }

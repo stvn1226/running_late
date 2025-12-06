@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c41b17080544638b3e3925cc62c5571, type: 3}
+  m_Name: CreditsConfiguration
+  m_EditorClassIdentifier: Assembly-CSharp::CreditsConfiguration
+  studioName: Unbreakable Interactive
+  gameName: Running Late
+  copyrightYear: 2025
+  allMembers:
+  - {fileID: 11400000, guid: 2c9cf051e641a4cb5a1969353dee7f1c, type: 2}
+  - {fileID: 11400000, guid: 1407f0a51639945e690101fde803b2af, type: 2}
+  - {fileID: 11400000, guid: b8b3d926305c84432bc86ad27a8a7363, type: 2}
+  additionalCredits: 
+  showSocialHandles: 1
+  groupByDepartment: 1
+  groupByContributorType: 1
+  showAllRolesInline: 1
+  studioBannerSize: 70
+  gameNameSize: 60
+  sectionTitleSize: 40
+  subsectionTitleSize: 30
+  nameSize: 24
+  roleSize: 20
+  socialSize: 16

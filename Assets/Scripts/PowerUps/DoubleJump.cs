@@ -3,7 +3,6 @@ using UnityEngine;
 public class DoubleJump : PowerUp
 {
     PlayerJump playerJump;
-    [SerializeField] private float activationTime = 10f;
 
     protected override void ApplyEffect(GameObject player)
     {
@@ -14,7 +13,7 @@ public class DoubleJump : PowerUp
 
         if (playerJump != null)
         {
-            playerJump.InvokeDoubleJump();
+            playerJump.InvokeDoubleJump(activeTime);
         }
         else
         {

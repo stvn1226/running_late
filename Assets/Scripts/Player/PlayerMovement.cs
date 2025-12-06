@@ -1,4 +1,6 @@
 using MoreMountains.Feedbacks;
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -37,12 +39,17 @@ public class PlayerMovement : MonoBehaviour
     private float lastWallRunVelocity = 0f;
     public MMF_Player landingFeedbacks;
 
+    private float maxRunSpeed;
+    private Coroutine activeSpeedBoostCoroutine;
+
     private void Start()
     {
         rb.linearDamping = 0f;
         rb.linearDamping = 0f;
         previousSpriteFlipX = playerSprite.flipX;
-        
+
+        maxRunSpeed = config.maxRunSpeed;
+
         if (kickBox != null)
         {
             kickBox.enabled = false;
@@ -54,6 +61,32 @@ public class PlayerMovement : MonoBehaviour
         }
         
         GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
+    }
+
+    public void InvokeExtraSpeed(float extraSpeed, float duration)
+    {
+        if (activeSpeedBoostCoroutine != null)
+        {
+            StopCoroutine(activeSpeedBoostCoroutine);
+            maxRunSpeed = config.maxRunSpeed;
+            GameLogger.Log("POWERUP", "Extra Speed effect refreshed - resetting timer");
+        }
+        activeSpeedBoostCoroutine = StartCoroutine(ExtraSpeedCoroutine(extraSpeed, duration));
+    }
+
+    private IEnumerator ExtraSpeedCoroutine(float extraSpeed, float duration)
+    {
+        float originalMaxSpeed = config.maxRunSpeed;
+        maxRunSpeed = originalMaxSpeed + extraSpeed;
+        
+        GameLogger.Log("POWERUP", $"Extra Speed activated! Max speed: {originalMaxSpeed} -> {maxRunSpeed} for {duration} seconds");
+        
+        yield return new WaitForSeconds(duration);
+        
+        maxRunSpeed = originalMaxSpeed;
+        activeSpeedBoostCoroutine = null;
+        
+        GameLogger.Log("POWERUP", $"Extra Speed expired! Max speed restored to {maxRunSpeed}");
     }
 
     public void HandleKickBox()
@@ -241,6 +274,7 @@ public class PlayerMovement : MonoBehaviour
         states.StartStagger(config.staggerDuration);
 
         AudioManager.Instance?.Play(AudioManager.SoundType.Stagger);
+        GamepadVibrationManager.Instance?.TriggerHitVibration();
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
@@ -284,11 +318,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (Mathf.Abs(horizontalInput) > 0.1f)
         {
-            float targetSpeed = horizontalInput * config.maxRunSpeed;
+            float targetSpeed = horizontalInput * maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
     
             bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
-            bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < config.maxRunSpeed;
+            bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < maxRunSpeed;
     
             if (isAccelerating || isBelowMaxSpeed)
             {
@@ -430,7 +464,7 @@ public class PlayerMovement : MonoBehaviour
                 float slideBoost = horizontalBoost * inputDirection;
                 float newHorizontalVelocity = preservedMomentum + slideBoost;
                 
-                newHorizontalVelocity = Mathf.Clamp(newHorizontalVelocity, -config.maxRunSpeed * 2.5f, config.maxRunSpeed * 2.5f);
+                newHorizontalVelocity = Mathf.Clamp(newHorizontalVelocity, -maxRunSpeed * 2.5f, maxRunSpeed * 2.5f);
                 
                 rb.linearVelocity = new Vector2(newHorizontalVelocity, 0f);
                 states.landingHorizontalVelocity = newHorizontalVelocity;

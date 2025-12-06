@@ -2,7 +2,7 @@ using MoreMountains.Feedbacks;
 using System;
 using UnityEngine;
 
-public class PlayerJump : MonoBehaviour, ITimedPowerUp
+public class PlayerJump : MonoBehaviour
 {
     [Header("References")]
     public PlayerConfig config;
@@ -33,10 +33,11 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
         HandleDoubleJumpPower();
     }
 
-    public void InvokeDoubleJump()
+    public void InvokeDoubleJump(float duration)
     {
         allowDoubleJump = true;
         currentTime = 0f;
+        maxTime = duration;
         Debug.Log("Double Jump Invoked!");
     }
 
@@ -52,6 +53,16 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
         {
             allowDoubleJump = false;
         }
+    }
+
+    public void InvokeExtraJumpHeight(float extraHeight, float duration)
+    {
+        //if (config == null) return;
+        //config.minJumpForce += extraHeight;
+        //config.maxJumpForce += extraHeight;
+        //Debug.Log($"Extra Jump Height Invoked! New Min Jump Force: {config.minJumpForce}, New Max Jump Force: {config.maxJumpForce}");
+        //// Schedule reset after duration
+        //Invoke(nameof(ResetJumpHeight), duration);
     }
 
     private void HandleJumpInput()
@@ -246,7 +257,11 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
             rb.gravityScale = shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale;
         }
-        else if (Mathf.Abs(velocityY) < config.apexThreshold && !states.isGrounded)
+        // else if (velocityY > -config.apexThreshold && velocityY < config.apexThreshold && !states.isGrounded)
+        // {
+        //     rb.gravityScale = config.apexGravityScale;
+        // }
+        else if (velocityY >= 0f && velocityY < config.apexThreshold && !states.isGrounded)
         {
             rb.gravityScale = config.apexGravityScale;
         }
@@ -265,25 +280,5 @@ public class PlayerJump : MonoBehaviour, ITimedPowerUp
         rb.AddForce(wallJumpDirection * (config.maxJumpForce * config.wallJumpMultiplier), ForceMode2D.Impulse);
         states.isWallRunning = false;
         states.StartJump();
-    }
-
-    public bool IsActive()
-    {
-        return allowDoubleJump;
-    }
-
-    public float GetRemainingTime()
-    {
-        return allowDoubleJump ? (maxTime - currentTime) : 0f;
-    }
-
-    public float GetMaxTime()
-    {
-        return maxTime;
-    }
-
-    public string GetPowerUpName()
-    {
-        return "DoubleJump";
     }
 }
