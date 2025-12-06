@@ -55,6 +55,16 @@ public class PlayerJump : MonoBehaviour
         }
     }
 
+    public void InvokeExtraJumpHeight(float extraHeight, float duration)
+    {
+        //if (config == null) return;
+        //config.minJumpForce += extraHeight;
+        //config.maxJumpForce += extraHeight;
+        //Debug.Log($"Extra Jump Height Invoked! New Min Jump Force: {config.minJumpForce}, New Max Jump Force: {config.maxJumpForce}");
+        //// Schedule reset after duration
+        //Invoke(nameof(ResetJumpHeight), duration);
+    }
+
     private void HandleJumpInput()
     {
         if (config == null || states.isKicking) return;
