@@ -269,6 +269,8 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
+        if (states.isInvincible) return;
+
         GameLogger.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
     
         states.StartStagger(config.staggerDuration);

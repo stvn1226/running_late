@@ -37,6 +37,9 @@ public class PlayerStates : MonoBehaviour
     public bool isAirDodging;
     public bool canAirDodge;
 
+    [Header("Power-Up States")]
+    public bool isInvincible = false;
+
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
     public float jumpBufferTimer = 0f;
@@ -98,6 +101,8 @@ public class PlayerStates : MonoBehaviour
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
 
+    private Coroutine activeInvincibility;
+
     public bool IsWallRunHeld => wallRunHeld;
 
     public System.Action OnGroundedChanged;
@@ -112,6 +117,23 @@ public class PlayerStates : MonoBehaviour
         CheckStateChanges();
         UpdateAnimator();
         UpdatePreviousValues();
+    }
+
+    public void InvokeInvincibility(float duration)
+    {
+        if (activeInvincibility != null)
+        {
+            StopCoroutine(activeInvincibility);
+        }
+        activeInvincibility = StartCoroutine(InvincibilityCoroutine(duration));
+    }
+
+    private IEnumerator InvincibilityCoroutine(float duration)
+    {
+        isInvincible = true;
+        yield return new WaitForSeconds(duration);
+        isInvincible = false;
+        activeInvincibility = null;
     }
 
     private void LogWallRunStates()

@@ -133,37 +133,67 @@ public abstract class Vehicle : MonoBehaviour
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
     {
         float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
-        GameLogger.Log("VEHICLE", $"[{gameObject.name}] ✗ DAMAGE (VelY: {velocityY:F2})");
+
+        if (cachedPlayerMovement == null)
+            cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+
+        PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
+        bool isInvincible = playerStates != null && playerStates.isInvincible;
+
+        if (isInvincible)
+        {
+            GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player is INVINCIBLE - no damage dealt!");
+
+            wasHit = true;
+
+            if (AnalyticsManager.Instance != null)
+            {
+                float playerSpeed = 0f;
+                if (cachedPlayerMovement != null)
+                {
+                    Rigidbody2D rb = cachedPlayerMovement.GetComponent<Rigidbody2D>();
+                    playerSpeed = rb != null ? Mathf.Abs(rb.linearVelocity.x) : 0f;
+                }
+
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "obstacle_type", this.GetType().Name },
+                { "position_x", transform.position.x },
+                { "player_speed", playerSpeed },
+                { "player_velocity_y", velocityY },
+                { "player_invincible", true }
+            });
+            }
+
+            hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+            return;
+        }
+
+        GameLogger.Log("VEHICLE", $"[{gameObject.name}] >> DAMAGE (VelY: {velocityY:F2})");
 
         wasHit = true;
 
         if (AnalyticsManager.Instance != null)
         {
-            if (cachedPlayerMovement == null)
-                cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
-        
             float playerSpeed = 0f;
             if (cachedPlayerMovement != null)
             {
                 Rigidbody2D rb = cachedPlayerMovement.GetComponent<Rigidbody2D>();
                 playerSpeed = rb != null ? Mathf.Abs(rb.linearVelocity.x) : 0f;
             }
-        
+
             AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
-            {
-                { "obstacle_type", this.GetType().Name },
-                { "position_x", transform.position.x },
-                { "player_speed", playerSpeed },
-                { "player_velocity_y", velocityY }
-            });
+        {
+            { "obstacle_type", this.GetType().Name },
+            { "position_x", transform.position.x },
+            { "player_speed", playerSpeed },
+            { "player_velocity_y", velocityY }
+        });
         }
-        
-        if (cachedPlayerMovement == null)
-            cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
-        
+
         if (cachedPlayerMovement != null)
             cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
-        
+
         hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
