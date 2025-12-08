@@ -44,6 +44,7 @@ public class PlayerStates : MonoBehaviour
     public bool canCoyoteJump = false;
     public bool isJumpCut = false;
     public bool isFalling = false;
+    public bool isGraceFalling = false;
     public float jumpHoldTimer = 0f;
     public bool isJumping = false;
     public bool crouchInputBuffered = false;

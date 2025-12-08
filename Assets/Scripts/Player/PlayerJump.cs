@@ -20,13 +20,17 @@ public class PlayerJump : MonoBehaviour
     private float minJumpForce;
     private float maxJumpForce;
 
+    private bool canSlowFall;
+
     private Coroutine activeHeightCoroutine;
+    private Coroutine activeFloatCoroutine;
 
     private void Awake()
     {
         originalGravityScale = rb.gravityScale;
         minJumpForce = config.minJumpForce;
         maxJumpForce = config.maxJumpForce;
+        canSlowFall = false;
     }
 
     private void Update()
@@ -84,6 +88,22 @@ public class PlayerJump : MonoBehaviour
         activeHeightCoroutine = null;
     }
 
+    public void InvokeAirFloat(float duration)
+    {
+        if (activeFloatCoroutine != null)
+        {
+            StopCoroutine(activeFloatCoroutine);
+        }
+        activeFloatCoroutine = StartCoroutine(AirFloatCoroutine(duration));
+    }
+
+    private IEnumerator AirFloatCoroutine(float duration)
+    {
+        canSlowFall = true;
+        yield return new WaitForSeconds(duration);
+        canSlowFall = false;
+        activeFloatCoroutine = null;
+    }
     private void HandleJumpInput()
     {
         if (config == null || states.isKicking) return;
@@ -264,7 +284,8 @@ public class PlayerJump : MonoBehaviour
 
         float velocityY = rb.linearVelocity.y;
         
-        states.isFalling = velocityY < -0.1f;
+        states.isFalling = velocityY < -0.01f;
+        states.isGraceFalling = velocityY < 1f;
 
         if (states.isWallRunning)
         {
@@ -274,7 +295,16 @@ public class PlayerJump : MonoBehaviour
         {
             bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
-            rb.gravityScale = shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale;
+            bool shouldSlowFall = states.jumpHeld && !states.isGrounded && states.isFalling && canSlowFall;
+            if (shouldSlowFall)
+            {
+                Debug.Log("Air Float Active");
+            }
+            if (shouldFastFall)
+            {
+                Debug.Log("Fast Fall Active");
+            }
+            rb.gravityScale = shouldSlowFall ? (config.fallGravityScale * 0.4f) : (shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale);
         }
         // else if (velocityY > -config.apexThreshold && velocityY < config.apexThreshold && !states.isGrounded)
         // {
