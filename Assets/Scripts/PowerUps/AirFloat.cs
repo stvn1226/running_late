@@ -4,7 +4,7 @@ public class AirFloat : PowerUp
 {
     protected override void ApplyEffect(GameObject player)
     {
-        PlayerJump playerJump = player.GetComponent<PlayerJump>();
+        PlayerJump playerJump = player.GetComponentInParent<PlayerJump>();
         if (playerJump != null)
         {
             playerJump.InvokeAirFloat(activeTime);

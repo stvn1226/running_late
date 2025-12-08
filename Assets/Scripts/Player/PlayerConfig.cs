@@ -99,6 +99,15 @@ public class PlayerConfig : ScriptableObject
     public float airDodgeCooldown = 0.15f;
 
     // ====================================
+    // POWER-UPS
+    // ====================================
+
+    [Header("Power-Ups")]
+    [Tooltip("Gravity multiplier when slow-fall power-up is active and jump is held while falling. Recommended: 0.3-0.5")]
+    [Range(0.1f, 0.8f)]
+    public float slowFallGravityMultiplier = 0.4f;
+
+    // ====================================
     // DIVE MECHANICS
     // ====================================
 

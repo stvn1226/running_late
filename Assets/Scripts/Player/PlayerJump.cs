@@ -296,15 +296,15 @@ public class PlayerJump : MonoBehaviour
             bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
             bool shouldSlowFall = states.jumpHeld && !states.isGrounded && states.isFalling && canSlowFall;
-            if (shouldSlowFall)
-            {
-                Debug.Log("Air Float Active");
-            }
-            if (shouldFastFall)
-            {
-                Debug.Log("Fast Fall Active");
-            }
-            rb.gravityScale = shouldSlowFall ? (config.fallGravityScale * 0.4f) : (shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale);
+            //if (shouldSlowFall)
+            //{
+            //    Debug.Log("Air Float Active");
+            //}
+            //if (shouldFastFall)
+            //{
+            //    Debug.Log("Fast Fall Active");
+            //}
+            rb.gravityScale = shouldSlowFall ? (config.fallGravityScale * config.slowFallGravityMultiplier) : (shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale);
         }
         // else if (velocityY > -config.apexThreshold && velocityY < config.apexThreshold && !states.isGrounded)
         // {
