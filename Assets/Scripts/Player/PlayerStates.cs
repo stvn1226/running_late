@@ -39,6 +39,7 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Power-Up States")]
     public bool isInvincible = false;
+    public bool isShielded = false;
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -134,6 +135,17 @@ public class PlayerStates : MonoBehaviour
         yield return new WaitForSeconds(duration);
         isInvincible = false;
         activeInvincibility = null;
+    }
+
+    public void InvokeShield()
+    {
+        isShielded = true;
+    }
+
+    public void RemoveShield()
+    {
+        isShielded = false;
+        UIPowerUp.RemoveShield();
     }
 
     private void LogWallRunStates()

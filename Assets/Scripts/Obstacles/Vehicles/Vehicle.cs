@@ -139,11 +139,13 @@ public abstract class Vehicle : MonoBehaviour
 
         PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
         bool isInvincible = playerStates != null && playerStates.isInvincible;
+        bool isShielded = playerStates != null && playerStates.isShielded;
 
-        if (isInvincible)
+        if (isInvincible || isShielded)
         {
             GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player is INVINCIBLE - no damage dealt!");
 
+            playerStates.RemoveShield();
             wasHit = true;
 
             if (AnalyticsManager.Instance != null)

@@ -107,11 +107,13 @@ public class HitboxCollider : MonoBehaviour
 
         PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
         bool isInvincible = playerStates != null && playerStates.isInvincible;
+        bool isShielded = playerStates != null && playerStates.isShielded;
 
-        if (isInvincible)
+        if (isInvincible || isShielded)
         {
             GameLogger.Log($"[{parent.gameObject.name}] Player is INVINCIBLE - staggering enemy instead!");
 
+            playerStates.RemoveShield();
             parent.TriggerStagger();
             parent.wasHit = true;
 
