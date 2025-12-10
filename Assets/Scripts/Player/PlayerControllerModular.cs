@@ -17,6 +17,8 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerAirDodge airDodge;
     [SerializeField] private PlayerDive dive;
     
+    public Transform camTarget;
+    
     private bool inputEnabled = true;
 
 

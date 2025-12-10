@@ -880,7 +880,8 @@ MonoBehaviour:
   kicker: {fileID: 6235658728137499135}
   stateManager: {fileID: 936994605630686359}
   airDodge: {fileID: 9074128693007361277}
-  dive: {fileID: 0}
+  dive: {fileID: 5182206428601251989}
+  camTarget: {fileID: 6246371687470053857}
 --- !u!114 &2374712412831154929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -950,6 +951,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97bd68d4cb5194a65a1c9a4216f2cffa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  rb: {fileID: 0}
+  states: {fileID: 0}
+  logEveryFrame: 0
+  logPositionChanges: 1
+  logVelocityChanges: 1
+  logCollisions: 1
+  significantPositionChange: 1
+  significantVelocityChange: 2
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0
