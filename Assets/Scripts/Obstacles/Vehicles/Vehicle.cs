@@ -4,7 +4,7 @@ using Utils;
 
 public abstract class Vehicle : MonoBehaviour
 {
-    private Rigidbody2D rb;
+    protected Rigidbody2D rb;
     private Camera mainCamera;
     private PlayerMovement cachedPlayerMovement;
     [SerializeField] private float speed = 5f;

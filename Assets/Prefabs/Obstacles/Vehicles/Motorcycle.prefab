@@ -156,7 +156,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.05}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -247,6 +247,9 @@ MonoBehaviour:
   hitbox:
   - {fileID: 2115612047579161601}
   activationDistance: 50
+  solidCollider: {fileID: 8792862714590888694}
+  staggerForce: {x: -100, y: 5}
+  staggerGravity: 2
 --- !u!1 &7045359799342508971
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,7 +316,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.3}
+  m_Offset: {x: 0, y: -0.25}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}

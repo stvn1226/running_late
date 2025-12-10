@@ -248,6 +248,9 @@ MonoBehaviour:
   - {fileID: 2115612047579161601}
   - {fileID: 2708431669689300783}
   activationDistance: 50
+  solidCollider: {fileID: 8792862714590888694}
+  staggerForce: {x: -100, y: 5}
+  staggerGravity: 2
 --- !u!1 &7045359799342508971
 GameObject:
   m_ObjectHideFlags: 0
