@@ -19,7 +19,7 @@ public class UIPowerUp : MonoBehaviour
     private CanvasGroup _canvasGroup;
     [SerializeField] private float _fadeSpeed = 5f;
 
-    private UIPowerUpHandler _UIPowerUpHandler;
+    private static UIPowerUpHandler _UIPowerUpHandler;
 
     public void AssignHandler(UIPowerUpHandler handler)
     {
@@ -84,5 +84,10 @@ public class UIPowerUp : MonoBehaviour
         {
             _UIPowerUpHandler.UnregisterPowerUp(powerUpName);
         }
+    }
+
+    public static void RemoveShield()
+    {
+        _UIPowerUpHandler.UnregisterPowerUp("Shield");
     }
 }
