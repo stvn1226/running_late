@@ -7,6 +7,7 @@ public abstract class BaseMainMenuPanel : MonoBehaviour
     [Header("Base Panel Settings")]
     [SerializeField] protected GameObject panelRoot;
     [SerializeField] protected Button defaultSelectedButton;
+    [SerializeField] protected Selectable defaultSelected;
     
     protected MainMenuController menuController;
     protected bool isVisible = false;
@@ -46,6 +47,10 @@ public abstract class BaseMainMenuPanel : MonoBehaviour
         if (defaultSelectedButton != null && EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(defaultSelectedButton.gameObject);
+        }
+        else if (defaultSelected != null && EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(defaultSelected.gameObject);
         }
     }
     

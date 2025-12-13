@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
 public class SettingsPanel : BaseMainMenuPanel
 {
@@ -9,10 +10,12 @@ public class SettingsPanel : BaseMainMenuPanel
     [SerializeField] private TextMeshProUGUI masterVolumeText;
     [SerializeField] private Toggle masterMuteToggle;
     
+    [Space]
     [SerializeField] private Slider musicVolumeSlider;
     [SerializeField] private TextMeshProUGUI musicVolumeText;
     [SerializeField] private Toggle musicMuteToggle;
     
+    [Space]
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private TextMeshProUGUI sfxVolumeText;
     [SerializeField] private Toggle sfxMuteToggle;
@@ -29,13 +32,140 @@ public class SettingsPanel : BaseMainMenuPanel
     [SerializeField] private Button backButton;
     [SerializeField] private Button resetButton;
     
+    [Header("Scroll View")]
+    [SerializeField] private ScrollRect scrollRect;
+    
+    private Selectable firstSelectable;
+    
     protected override void SetupPanel()
     {
+        firstSelectable = defaultSelected != null ? defaultSelected : defaultSelectedButton;
+        
         SetupAudioSliders();
         SetupAudioMuteToggles();
         SetupDisplayToggles();
         SetupVibrationToggle();
         SetupButtons();
+        SetupScrollNavigation();
+    }
+    
+    private void SetupScrollNavigation()
+    {
+        Debug.Log("=== SETUP SCROLL NAVIGATION ===");
+    
+        AddScrollListener(masterVolumeSlider, "MasterVolumeSlider");
+        AddScrollListener(masterMuteToggle, "MasterMuteToggle");
+        AddScrollListener(musicVolumeSlider, "MusicVolumeSlider");
+        AddScrollListener(musicMuteToggle, "MusicMuteToggle");
+        AddScrollListener(sfxVolumeSlider, "SFXVolumeSlider");
+        AddScrollListener(sfxMuteToggle, "SFXMuteToggle");
+        AddScrollListener(vSyncToggle, "VSyncToggle");
+        AddScrollListener(fps60Toggle, "60FPSToggle");
+        AddScrollListener(fps120Toggle, "120FPSToggle");
+        AddScrollListener(vibrationToggle, "VibrationToggle");
+        AddScrollListener(backButton, "BackButton");
+        AddScrollListener(resetButton, "ResetButton");
+    }
+
+    private void AddScrollListener(Selectable selectable, string debugName)
+    {
+        if (selectable == null) return;
+    
+        RectTransform rect = selectable.GetComponent<RectTransform>();
+        if (rect != null && scrollRect != null)
+        {
+            float absY = GetAbsoluteYPositionInContent(rect, scrollRect.content);
+            Debug.Log($"  {debugName}: AbsY = {absY:F1}");
+        }
+    
+        EventTrigger trigger = selectable.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = selectable.gameObject.AddComponent<EventTrigger>();
+        }
+    
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.Select;
+        entry.callback.AddListener((data) => { ScrollToSelectable(selectable); });
+        trigger.triggers.Add(entry);
+    }
+    
+    private void AddScrollListener(Selectable selectable)
+    {
+        if (selectable == null) return;
+        
+        EventTrigger trigger = selectable.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = selectable.gameObject.AddComponent<EventTrigger>();
+        }
+        
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.Select;
+        entry.callback.AddListener((data) => { ScrollToSelectable(selectable); });
+        trigger.triggers.Add(entry);
+    }
+    
+    private void ScrollToSelectable(Selectable selectable)
+    {
+        if (scrollRect == null || selectable == null)
+            return;
+
+        RectTransform selectableRect = selectable.GetComponent<RectTransform>();
+        if (selectableRect == null)
+            return;
+
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform content = scrollRect.content;
+        RectTransform viewport = scrollRect.viewport;
+
+        float viewportHeight = viewport.rect.height;
+        float contentHeight = content.rect.height;
+
+        if (contentHeight <= viewportHeight)
+            return;
+
+        float elementLocalY = GetAbsoluteYPositionInContent(selectableRect, content);
+        float elementHeight = selectableRect.rect.height;
+
+        float targetScrollPos;
+        
+        if (selectable == firstSelectable)
+        {
+            targetScrollPos = 0f;
+        }
+        else if (elementLocalY < viewportHeight * 0.6f)
+        {
+            targetScrollPos = Mathf.Max(0f, elementLocalY - 150f);
+        }
+        else
+        {
+            float elementCenter = elementLocalY + (elementHeight * 0.5f);
+            float viewportCenter = viewportHeight * 0.5f;
+            targetScrollPos = elementCenter - viewportCenter;
+        }
+
+        float maxScrollPos = contentHeight - viewportHeight;
+        targetScrollPos = Mathf.Clamp(targetScrollPos, 0f, maxScrollPos);
+
+        Debug.Log($"Element: {selectable.name}, AbsY: {elementLocalY:F1}, Current: {content.anchoredPosition.y:F1}, Target: {targetScrollPos:F1}");
+
+        content.anchoredPosition = new Vector2(content.anchoredPosition.x, targetScrollPos);
+    }
+
+    private float GetAbsoluteYPositionInContent(RectTransform element, RectTransform content)
+    {
+        float totalY = 0f;
+        RectTransform current = element;
+        
+        while (current != null && current != content)
+        {
+            totalY += Mathf.Abs(current.anchoredPosition.y);
+            current = current.parent as RectTransform;
+        }
+        
+        return totalY;
     }
     
     private void SetupAudioSliders()
@@ -62,15 +192,48 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             masterMuteToggle.onValueChanged.AddListener(OnMasterMuteToggled);
         }
-        
+    
         if (musicMuteToggle != null)
         {
             musicMuteToggle.onValueChanged.AddListener(OnMusicMuteToggled);
         }
-        
+    
         if (sfxMuteToggle != null)
         {
             sfxMuteToggle.onValueChanged.AddListener(OnSFXMuteToggled);
+        }
+    }
+
+    private void OnMasterMuteToggled(bool enabled)
+    {
+        bool muted = !enabled;
+        AudioSettingsManager.Instance?.SetMasterMuted(muted);
+    
+        if (masterVolumeSlider != null)
+        {
+            masterVolumeSlider.interactable = enabled;
+        }
+    }
+
+    private void OnMusicMuteToggled(bool enabled)
+    {
+        bool muted = !enabled;
+        AudioSettingsManager.Instance?.SetMusicMuted(muted);
+    
+        if (musicVolumeSlider != null)
+        {
+            musicVolumeSlider.interactable = enabled;
+        }
+    }
+
+    private void OnSFXMuteToggled(bool enabled)
+    {
+        bool muted = !enabled;
+        AudioSettingsManager.Instance?.SetSFXMuted(muted);
+    
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.interactable = enabled;
         }
     }
     
@@ -120,6 +283,15 @@ public class SettingsPanel : BaseMainMenuPanel
     protected override void OnShow()
     {
         LoadCurrentSettings();
+        ResetScrollToTop();
+    }
+
+    private void ResetScrollToTop()
+    {
+        if (scrollRect != null && scrollRect.content != null)
+        {
+            scrollRect.content.anchoredPosition = new Vector2(scrollRect.content.anchoredPosition.x, 0f);
+        }
     }
     
     private void LoadCurrentSettings()
@@ -137,34 +309,37 @@ public class SettingsPanel : BaseMainMenuPanel
             if (masterVolumeSlider != null)
             {
                 masterVolumeSlider.SetValueWithoutNotify(masterVolume);
+                masterVolumeSlider.interactable = !masterMuted;
                 UpdateVolumeText(masterVolumeText, masterVolume);
             }
             
             if (musicVolumeSlider != null)
             {
                 musicVolumeSlider.SetValueWithoutNotify(musicVolume);
+                musicVolumeSlider.interactable = !musicMuted;
                 UpdateVolumeText(musicVolumeText, musicVolume);
             }
             
             if (sfxVolumeSlider != null)
             {
                 sfxVolumeSlider.SetValueWithoutNotify(sfxVolume);
+                sfxVolumeSlider.interactable = !sfxMuted;
                 UpdateVolumeText(sfxVolumeText, sfxVolume);
             }
             
             if (masterMuteToggle != null)
             {
-                masterMuteToggle.SetIsOnWithoutNotify(masterMuted);
+                masterMuteToggle.SetIsOnWithoutNotify(!masterMuted);
             }
             
             if (musicMuteToggle != null)
             {
-                musicMuteToggle.SetIsOnWithoutNotify(musicMuted);
+                musicMuteToggle.SetIsOnWithoutNotify(!musicMuted);
             }
             
             if (sfxMuteToggle != null)
             {
-                sfxMuteToggle.SetIsOnWithoutNotify(sfxMuted);
+                sfxMuteToggle.SetIsOnWithoutNotify(!sfxMuted);
             }
         }
         
@@ -224,21 +399,6 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             textComponent.text = $"{Mathf.RoundToInt(volume * 100)}%";
         }
-    }
-    
-    private void OnMasterMuteToggled(bool muted)
-    {
-        AudioSettingsManager.Instance?.SetMasterMuted(muted);
-    }
-    
-    private void OnMusicMuteToggled(bool muted)
-    {
-        AudioSettingsManager.Instance?.SetMusicMuted(muted);
-    }
-    
-    private void OnSFXMuteToggled(bool muted)
-    {
-        AudioSettingsManager.Instance?.SetSFXMuted(muted);
     }
     
     private void OnVSyncToggled(bool enabled)
