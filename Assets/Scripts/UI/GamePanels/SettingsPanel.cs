@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class SettingsPanel : BaseMainMenuPanel
 {
@@ -24,6 +25,8 @@ public class SettingsPanel : BaseMainMenuPanel
     [SerializeField] private Toggle vSyncToggle;
     [SerializeField] private Toggle fps60Toggle;
     [SerializeField] private Toggle fps120Toggle;
+    [SerializeField] private TMP_Dropdown fullscreenModeDropdown;
+    [SerializeField] private TMP_Dropdown resolutionDropdown;
     
     [Header("Controller Settings")]
     [SerializeField] private Toggle vibrationToggle;
@@ -62,6 +65,8 @@ public class SettingsPanel : BaseMainMenuPanel
         AddScrollListener(vSyncToggle, "VSyncToggle");
         AddScrollListener(fps60Toggle, "60FPSToggle");
         AddScrollListener(fps120Toggle, "120FPSToggle");
+        AddScrollListener(fullscreenModeDropdown, "FullscreenDropdown");
+        AddScrollListener(resolutionDropdown, "ResolutionDropdown");
         AddScrollListener(vibrationToggle, "VibrationToggle");
         AddScrollListener(backButton, "BackButton");
         AddScrollListener(resetButton, "ResetButton");
@@ -84,22 +89,6 @@ public class SettingsPanel : BaseMainMenuPanel
             trigger = selectable.gameObject.AddComponent<EventTrigger>();
         }
     
-        EventTrigger.Entry entry = new EventTrigger.Entry();
-        entry.eventID = EventTriggerType.Select;
-        entry.callback.AddListener((data) => { ScrollToSelectable(selectable); });
-        trigger.triggers.Add(entry);
-    }
-    
-    private void AddScrollListener(Selectable selectable)
-    {
-        if (selectable == null) return;
-        
-        EventTrigger trigger = selectable.gameObject.GetComponent<EventTrigger>();
-        if (trigger == null)
-        {
-            trigger = selectable.gameObject.AddComponent<EventTrigger>();
-        }
-        
         EventTrigger.Entry entry = new EventTrigger.Entry();
         entry.eventID = EventTriggerType.Select;
         entry.callback.AddListener((data) => { ScrollToSelectable(selectable); });
@@ -131,7 +120,9 @@ public class SettingsPanel : BaseMainMenuPanel
 
         float targetScrollPos;
         
-        if (selectable == firstSelectable)
+        float topSectionThreshold = 600f;
+        
+        if (elementLocalY <= topSectionThreshold)
         {
             targetScrollPos = 0f;
         }
@@ -213,6 +204,8 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             masterVolumeSlider.interactable = enabled;
         }
+        
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
     }
 
     private void OnMusicMuteToggled(bool enabled)
@@ -224,6 +217,8 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             musicVolumeSlider.interactable = enabled;
         }
+        
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
     }
 
     private void OnSFXMuteToggled(bool enabled)
@@ -235,6 +230,8 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             sfxVolumeSlider.interactable = enabled;
         }
+        
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
     }
     
     private void SetupDisplayToggles()
@@ -256,6 +253,38 @@ public class SettingsPanel : BaseMainMenuPanel
             fps120Toggle.onValueChanged.AddListener((isOn) => {
                 if (isOn) OnFrameRateSelected(120);
             });
+        }
+        
+        if (fullscreenModeDropdown != null)
+        {
+            fullscreenModeDropdown.ClearOptions();
+            fullscreenModeDropdown.AddOptions(new List<string>
+            {
+                "Fullscreen",
+                "Windowed",
+                "Borderless"
+            });
+            fullscreenModeDropdown.onValueChanged.AddListener(OnFullscreenModeChanged);
+        }
+        
+        if (resolutionDropdown != null)
+        {
+            resolutionDropdown.ClearOptions();
+            
+            if (DisplaySettingsManager.Instance != null)
+            {
+                List<Resolution> resolutions = DisplaySettingsManager.Instance.GetAvailableResolutions();
+                List<string> options = new List<string>();
+                
+                for (int i = 0; i < resolutions.Count; i++)
+                {
+                    options.Add(DisplaySettingsManager.Instance.GetResolutionLabel(i));
+                }
+                
+                resolutionDropdown.AddOptions(options);
+            }
+            
+            resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
         }
     }
     
@@ -347,6 +376,8 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             bool vSyncEnabled = DisplaySettingsManager.Instance.IsVSyncEnabled();
             int targetFPS = DisplaySettingsManager.Instance.GetTargetFrameRate();
+            FullScreenMode fullscreenMode = DisplaySettingsManager.Instance.GetFullscreenMode();
+            int resolutionIndex = DisplaySettingsManager.Instance.GetCurrentResolutionIndex();
             
             if (vSyncToggle != null)
             {
@@ -361,6 +392,29 @@ public class SettingsPanel : BaseMainMenuPanel
             if (fps120Toggle != null)
             {
                 fps120Toggle.SetIsOnWithoutNotify(targetFPS == 120);
+            }
+            
+            if (fullscreenModeDropdown != null)
+            {
+                int modeIndex = 0;
+                switch (fullscreenMode)
+                {
+                    case FullScreenMode.ExclusiveFullScreen:
+                        modeIndex = 0;
+                        break;
+                    case FullScreenMode.Windowed:
+                        modeIndex = 1;
+                        break;
+                    case FullScreenMode.FullScreenWindow:
+                        modeIndex = 2;
+                        break;
+                }
+                fullscreenModeDropdown.SetValueWithoutNotify(modeIndex);
+            }
+            
+            if (resolutionDropdown != null)
+            {
+                resolutionDropdown.SetValueWithoutNotify(resolutionIndex);
             }
         }
         
@@ -404,6 +458,7 @@ public class SettingsPanel : BaseMainMenuPanel
     private void OnVSyncToggled(bool enabled)
     {
         DisplaySettingsManager.Instance?.SetVSync(enabled ? 1 : 0);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
     }
     
     private void OnFrameRateSelected(int targetFPS)
@@ -419,15 +474,50 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             fps120Toggle.SetIsOnWithoutNotify(targetFPS == 120);
         }
+        
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
+    }
+    
+    private void OnFullscreenModeChanged(int modeIndex)
+    {
+        FullScreenMode mode = FullScreenMode.ExclusiveFullScreen;
+        
+        switch (modeIndex)
+        {
+            case 0:
+                mode = FullScreenMode.ExclusiveFullScreen;
+                break;
+            case 1:
+                mode = FullScreenMode.Windowed;
+                break;
+            case 2:
+                mode = FullScreenMode.FullScreenWindow;
+                break;
+        }
+        
+        DisplaySettingsManager.Instance?.SetFullscreenMode(mode);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
+    }
+    
+    private void OnResolutionChanged(int resolutionIndex)
+    {
+        DisplaySettingsManager.Instance?.SetResolution(resolutionIndex);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
     }
     
     private void OnVibrationToggled(bool enabled)
     {
         GamepadVibrationManager.Instance?.SetVibrationEnabled(enabled);
+        
+        if (enabled)
+        {
+            GamepadVibrationManager.Instance?.TriggerMediumVibration(0.15f);
+        }
     }
     
     private void OnBackClicked()
     {
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
         menuController?.ShowMainPanel();
     }
     
@@ -439,6 +529,7 @@ public class SettingsPanel : BaseMainMenuPanel
         
         LoadCurrentSettings();
         
+        GamepadVibrationManager.Instance?.TriggerMediumVibration(0.15f);
         GameLogger.Log("SETTINGS", "All settings reset to defaults");
     }
 }
