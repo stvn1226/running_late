@@ -7,6 +7,7 @@ public abstract class PowerUp : MonoBehaviour
     public string powerUpName;
     public Sprite icon;
     public Color theme;
+    public string desc;
     [SerializeField] private bool destroyOnPickup = true;
     [SerializeField] private bool showDebugInfo = true;
     [SerializeField] protected float activeTime = 10f;
@@ -49,7 +50,8 @@ public abstract class PowerUp : MonoBehaviour
             powerUpName = powerUpName, 
             image = icon, 
             color = theme, 
-            duration = activeTime 
+            duration = activeTime,
+            description = desc
         });
 
         hasBeenPickedUp = true;

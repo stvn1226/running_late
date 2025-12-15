@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -7,10 +8,12 @@ public class UIPowerUp : MonoBehaviour
     public string powerUpName;
     private Sprite _icon;
     private Color _theme;
+    private string _description;
     private float _duration;
 
     private Image _timerCircle;
     [SerializeField] private Image _powerIcon;
+    [SerializeField] private TextMeshProUGUI _powerText;
 
     private float _targetAlpha = 1f;
 
@@ -31,6 +34,7 @@ public class UIPowerUp : MonoBehaviour
         powerUpName = powerUpContract.powerUpName;
         _icon = powerUpContract.image;
         _theme = powerUpContract.color;
+        _description = powerUpContract.description;
         _duration = powerUpContract.duration;
 
         _currentTime = 0f;
@@ -40,6 +44,7 @@ public class UIPowerUp : MonoBehaviour
 
         _timerCircle.color = _theme;
         _powerIcon.sprite = _icon;
+        _powerText.text = _description;
 
         if (_canvasGroup == null)
         {
