@@ -139,13 +139,6 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (config == null) return;
 
-        if (states.isGrounded)
-        {
-            if (states.canWallRun) GameLogger.LogVerbose("PHYSICS", "Wall run disabled - player grounded");
-            states.canWallRun = false;
-            return;
-        }
-
         Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
         Vector2 boxSize = new Vector2(config.wallCheckDistance, playerCollider.size.y);
 
