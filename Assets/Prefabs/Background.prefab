@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 2802225631487844555}
   - component: {fileID: 6279701999176854146}
   - component: {fileID: 6263565013753479327}
+  - component: {fileID: 5790304007623945266}
   m_Layer: 0
   m_Name: BackBuildings
   m_TagString: Untagged
@@ -1504,6 +1505,19 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &5790304007623945266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5007006173362428606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3e1aefb9dc9a64ea255ccd46a3188b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParallaxController
+  parallaxEffect: 0.2
 --- !u!1 &5326282868122512318
 GameObject:
   m_ObjectHideFlags: 0
@@ -1515,6 +1529,7 @@ GameObject:
   - component: {fileID: 250740231178666282}
   - component: {fileID: 8442161109782592717}
   - component: {fileID: 5795559893459871922}
+  - component: {fileID: 7471866197018230502}
   m_Layer: 0
   m_Name: Sky
   m_TagString: Untagged
@@ -11754,6 +11769,19 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &7471866197018230502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5326282868122512318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3e1aefb9dc9a64ea255ccd46a3188b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParallaxController
+  parallaxEffect: 1
 --- !u!1 &7238183781883605849
 GameObject:
   m_ObjectHideFlags: 0
@@ -11765,6 +11793,7 @@ GameObject:
   - component: {fileID: 6330596355430529203}
   - component: {fileID: 6363885979939377276}
   - component: {fileID: 6405671745064905484}
+  - component: {fileID: 8085061469095136206}
   m_Layer: 0
   m_Name: Buildings
   m_TagString: Untagged
@@ -12768,6 +12797,19 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &8085061469095136206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7238183781883605849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3e1aefb9dc9a64ea255ccd46a3188b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParallaxController
+  parallaxEffect: 0.1
 --- !u!1 &7743534827117444290
 GameObject:
   m_ObjectHideFlags: 0
@@ -12833,9 +12875,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 250740231178666282}
-  - {fileID: 6330596355430529203}
-  - {fileID: 2802225631487844555}
   - {fileID: 4791737607985184306}
+  - {fileID: 2802225631487844555}
+  - {fileID: 6330596355430529203}
   m_Father: {fileID: 6047462755743629053}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!156049354 &7607623981408299373
@@ -12861,6 +12903,7 @@ GameObject:
   - component: {fileID: 4791737607985184306}
   - component: {fileID: 606479656632197125}
   - component: {fileID: 7966597001706311054}
+  - component: {fileID: 7224881159706183470}
   m_Layer: 0
   m_Name: Clouds
   m_TagString: Untagged
@@ -14344,6 +14387,19 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &7224881159706183470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7886690800640595124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3e1aefb9dc9a64ea255ccd46a3188b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParallaxController
+  parallaxEffect: 0.5
 --- !u!1 &8027377588303268416
 GameObject:
   m_ObjectHideFlags: 0
