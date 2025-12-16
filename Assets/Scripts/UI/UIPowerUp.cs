@@ -45,6 +45,7 @@ public class UIPowerUp : MonoBehaviour
         _timerCircle.color = _theme;
         _powerIcon.sprite = _icon;
         _powerText.text = _description;
+        if (powerUpName != "Shield") _powerText.color = _theme;
 
         if (_canvasGroup == null)
         {
