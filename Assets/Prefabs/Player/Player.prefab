@@ -45,6 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PanCamObject
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
+  inputDeadzone: 0.15
+  showDebug: 0
 --- !u!1 &3284795178058735958
 GameObject:
   m_ObjectHideFlags: 0
@@ -663,7 +665,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1.3
+  m_GravityScale: 1.8
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -808,12 +810,15 @@ MonoBehaviour:
   isStaggered: 0
   isAirDodging: 0
   canAirDodge: 0
+  isInvincible: 0
+  isShielded: 0
   jumpInputBuffered: 0
   jumpBufferTimer: 0
   coyoteTimer: 0
   canCoyoteJump: 0
   isJumpCut: 0
   isFalling: 0
+  isGraceFalling: 0
   jumpHoldTimer: 0
   isJumping: 0
   crouchInputBuffered: 0
