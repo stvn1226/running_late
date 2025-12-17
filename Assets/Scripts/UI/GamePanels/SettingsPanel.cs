@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -39,6 +40,26 @@ public class SettingsPanel : BaseMainMenuPanel
     [SerializeField] private ScrollRect scrollRect;
     
     private Selectable firstSelectable;
+    [SerializeField] private PauseMenuPanel pauseMenuReference;
+    private bool isInitialized = false;
+    
+    private void Awake()
+    {
+        if (!isInitialized)
+        {
+            SetupPanel();
+            isInitialized = true;
+        }
+    }
+    
+    public override void Initialize(MainMenuController controller)
+    {
+        if (!isInitialized)
+        {
+            base.Initialize(controller);
+            isInitialized = true;
+        }
+    }
     
     protected override void SetupPanel()
     {
@@ -515,12 +536,6 @@ public class SettingsPanel : BaseMainMenuPanel
         }
     }
     
-    private void OnBackClicked()
-    {
-        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
-        menuController?.ShowMainPanel();
-    }
-    
     private void OnResetClicked()
     {
         AudioSettingsManager.Instance?.ResetToDefaults();
@@ -531,5 +546,38 @@ public class SettingsPanel : BaseMainMenuPanel
         
         GamepadVibrationManager.Instance?.TriggerMediumVibration(0.15f);
         GameLogger.Log("SETTINGS", "All settings reset to defaults");
+    }
+    
+    public void ShowFromPause()
+    {
+        Show();
+        
+        StartCoroutine(ForceSelectionNextFrame());
+    }
+    
+    private IEnumerator ForceSelectionNextFrame()
+    {
+        yield return null;
+        
+        EventSystem.current.SetSelectedGameObject(null);
+        
+        yield return null;
+        
+        SetDefaultSelection();
+    }
+    
+    private void OnBackClicked()
+    {
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+    
+        if (pauseMenuReference != null)
+        {
+            Hide();
+            pauseMenuReference.ShowFromSettings();
+        }
+        else
+        {
+            menuController?.ShowMainPanel();
+        }
     }
 }

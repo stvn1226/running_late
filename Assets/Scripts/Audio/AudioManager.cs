@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 using System.Collections.Generic;
 
 public class AudioManager : MonoBehaviour
@@ -11,7 +12,6 @@ public class AudioManager : MonoBehaviour
         Powerup,
         Music_Menu,
         Music_Level
-        // Add more sound types as needed
     }
 
     [System.Serializable]
@@ -22,77 +22,117 @@ public class AudioManager : MonoBehaviour
 
         [Range(0f, 1f)]
         public float Volume = 1f;
-
-        [HideInInspector]
-        public AudioSource Source;
+        
+        public bool IsMusic = false;
     }
 
-    //Singleton
     public static AudioManager Instance;
 
-    //All sounds and their associated type - Set these in the inspector
+    [Header("Audio Settings")]
     public Sound[] AllSounds;
+    
+    [Header("Audio Mixer Groups")]
+    [SerializeField] private AudioMixerGroup sfxMixerGroup;
+    [SerializeField] private AudioMixerGroup musicMixerGroup;
 
-    //Runtime collections
     private Dictionary<SoundType, Sound> _soundDictionary = new Dictionary<SoundType, Sound>();
     private AudioSource _musicSource;
 
     private void Awake()
     {
-        //Assign singleton
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
         Instance = this;
+        DontDestroyOnLoad(gameObject);
 
-        //Set up sounds
         foreach (var s in AllSounds)
         {
             _soundDictionary[s.Type] = s;
         }
     }
 
-
-
-    //Call this method to play a sound
     public void Play(SoundType type)
     {
-        //Make sure there's a sound assigned to your specified type
         if (!_soundDictionary.TryGetValue(type, out Sound s))
         {
-            Debug.LogWarning($"Sound type {type} not found!");
+            GameLogger.LogWarning("Audio", $"Sound type {type} not found!");
             return;
         }
 
-        //Creates a new sound object
         var soundObj = new GameObject($"Sound_{type}");
+        soundObj.transform.SetParent(transform);
         var audioSrc = soundObj.AddComponent<AudioSource>();
 
-        //Assigns your sound properties
         audioSrc.clip = s.Clip;
         audioSrc.volume = s.Volume;
+        audioSrc.playOnAwake = false;
+        
+        if (s.IsMusic && musicMixerGroup != null)
+        {
+            audioSrc.outputAudioMixerGroup = musicMixerGroup;
+        }
+        else if (!s.IsMusic && sfxMixerGroup != null)
+        {
+            audioSrc.outputAudioMixerGroup = sfxMixerGroup;
+        }
 
-        //Play the sound
         audioSrc.Play();
 
-        //Destroy the object
-        Destroy(soundObj, s.Clip.length);
+        Destroy(soundObj, s.Clip.length + 0.1f);
     }
 
-    //Call this method to change music tracks
     public void ChangeMusic(SoundType type)
     {
         if (!_soundDictionary.TryGetValue(type, out Sound track))
         {
-            Debug.LogWarning($"Music track {type} not found!");
+            GameLogger.LogWarning("Audio", $"Music track {type} not found!");
             return;
         }
 
         if (_musicSource == null)
         {
-            var container = new GameObject("SoundTrackObj");
+            var container = new GameObject("MusicSourceObj");
+            container.transform.SetParent(transform);
             _musicSource = container.AddComponent<AudioSource>();
             _musicSource.loop = true;
+            _musicSource.playOnAwake = false;
+            
+            if (musicMixerGroup != null)
+            {
+                _musicSource.outputAudioMixerGroup = musicMixerGroup;
+            }
+        }
+
+        if (_musicSource.isPlaying)
+        {
+            _musicSource.Stop();
         }
 
         _musicSource.clip = track.Clip;
+        _musicSource.volume = track.Volume;
         _musicSource.Play();
+        
+        GameLogger.Log("Audio", $"Music changed to {type}");
+    }
+    
+    public void StopMusic()
+    {
+        if (_musicSource != null && _musicSource.isPlaying)
+        {
+            _musicSource.Stop();
+            GameLogger.Log("Audio", "Music stopped");
+        }
+    }
+    
+    public void SetMusicVolume(float volume)
+    {
+        if (_musicSource != null)
+        {
+            _musicSource.volume = Mathf.Clamp01(volume);
+        }
     }
 }

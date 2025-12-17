@@ -7,6 +7,7 @@ public class PauseMenuPanel : BaseMenuPanel
     [Header("Pause Menu Buttons")]
     [SerializeField] private Button retryButton;
     [SerializeField] private Button newLevelButton;
+    [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
     
     [Header("Seed Controls")]
@@ -17,10 +18,10 @@ public class PauseMenuPanel : BaseMenuPanel
     [SerializeField] private Toggle fps60Toggle;
     [SerializeField] private Toggle fps120Toggle;
     
-    
     [Header("References")]
     [SerializeField] private LevelStarter levelStarter;
     [SerializeField] private LevelManager levelManager;
+    [SerializeField] private SettingsPanel settingsPanel;
     
     private bool isManualSeedMode = false;
     
@@ -33,20 +34,20 @@ public class PauseMenuPanel : BaseMenuPanel
     {
         retryButton.onClick.AddListener(OnRetryClicked);
         newLevelButton.onClick.AddListener(OnNewLevelClicked);
+        settingsButton?.onClick.AddListener(OnSettingsClicked);
         quitButton?.onClick.AddListener(OnQuitClicked);
         seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.AddListener(OnSeedInputChanged);
-        
     }
     
     protected override void UnregisterButtonCallbacks()
     {
         retryButton.onClick.RemoveListener(OnRetryClicked);
         newLevelButton.onClick.RemoveListener(OnNewLevelClicked);
+        settingsButton?.onClick.RemoveListener(OnSettingsClicked);
         quitButton?.onClick.RemoveListener(OnQuitClicked);
         seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.RemoveListener(OnSeedInputChanged);
-        
     }
     
     protected override void OnShow()
@@ -95,7 +96,7 @@ public class PauseMenuPanel : BaseMenuPanel
         #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
         #else
-        Application.Quit();
+        SceneLoader.Instance.LoadMainMenu();
         #endif
     }
     
@@ -148,5 +149,26 @@ public class PauseMenuPanel : BaseMenuPanel
     {
         int savedFrameRate = PlayerPrefs.GetInt("TargetFrameRate", 60);
         SetTargetFrameRate(savedFrameRate);
+    }
+    
+    private void OnSettingsClicked()
+    {
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+        
+        if (settingsPanel != null)
+        {
+            settingsPanel.ShowFromPause();
+            Hide();
+            GameLogger.LogWarning("UI", "Passing settings to ShowFromPause");
+        }
+        else
+        {
+            GameLogger.LogWarning("UI", "SettingsPanel reference is missing!");
+        }
+    }
+    
+    public void ShowFromSettings()
+    {
+        Show();
     }
 }
