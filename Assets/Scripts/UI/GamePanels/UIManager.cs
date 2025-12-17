@@ -9,6 +9,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private VictoryPanel victoryPanel;
     [SerializeField] private DefeatPanel defeatPanel;
     
+    [Header("Other Panels")]
+    [SerializeField] private SettingsPanel settingsPanel;
+    
     public PlayerInputActions inputActions;
     private bool isPaused = false;
     private bool isEndGameActive = false;
@@ -68,6 +71,11 @@ public class UIManager : MonoBehaviour
             return;
         }
         
+        if (settingsPanel != null && settingsPanel.IsVisible)
+        {
+            return;
+        }
+        
         if (currentActivePanel == pauseMenuPanel)
         {
             HideAllPanels();
@@ -94,7 +102,7 @@ public class UIManager : MonoBehaviour
             
             if (panel is PauseMenuPanel && AnalyticsManager.Instance != null)
             {
-                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_PAUSE, new System.Collections.Generic.Dictionary<string, object>
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_PAUSE, new Dictionary<string, object>
                 {
                     { "panel_name", typeof(T).Name }
                 });
@@ -120,6 +128,9 @@ public class UIManager : MonoBehaviour
         
         if (defeatPanel != null)
             defeatPanel.Hide();
+        
+        if (settingsPanel != null)
+            settingsPanel.Hide();
         
         currentActivePanel = null;
         isPaused = false;
@@ -193,6 +204,19 @@ public class UIManager : MonoBehaviour
     public void ShowEndGamePanel()
     {
         ShowVictoryPanel();
+    }
+    
+    public void NotifyPanelClosed()
+    {
+        currentActivePanel = null;
+        isPaused = false;
+        SetInputContext(false);
+        Time.timeScale = 1f;
+    
+        if (AnalyticsManager.Instance != null)
+        {
+            AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_RESUME, null);
+        }
     }
     
     public bool IsPaused => isPaused;
