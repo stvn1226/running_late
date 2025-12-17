@@ -932,19 +932,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7125465894438893714, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7125465894438893714, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7125465894438893714, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 310.11
       objectReference: {fileID: 0}
     - target: {fileID: 7125465894438893714, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -555.2691
       objectReference: {fileID: 0}
     - target: {fileID: 7225070651791298234, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
@@ -962,6 +962,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -50
       objectReference: {fileID: 0}
+    - target: {fileID: 7231256348591078398, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_Navigation.m_SelectOnDown
+      value: 
+      objectReference: {fileID: 1588175683}
     - target: {fileID: 7510696216726212328, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -1197,6 +1201,10 @@ PrefabInstance:
     - target: {fileID: 8349780736375917983, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -103.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 8759735060304892721, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8804686957608017158, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: timer
@@ -2615,6 +2623,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIPowerUpHandler
   _template: {fileID: 949269550229956772, guid: 8bd2a6f6d237dbf4b96d12ca96ddd8a0, type: 3}
+--- !u!114 &1041878463 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7231256348591078398, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+  m_PrefabInstance: {fileID: 226731308}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &1080795889
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3067,6 +3086,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8198988207315262916, guid: 7f69a470ebf314236af396195e0438e4, type: 3}
+      propertyPath: m_Navigation.m_SelectOnDown
+      value: 
+      objectReference: {fileID: 1080795892}
     - target: {fileID: 8298301433130267554, guid: 7f69a470ebf314236af396195e0438e4, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -3079,6 +3102,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.y
       value: 0.41279408
       objectReference: {fileID: 0}
+    - target: {fileID: 8552905421954796583, guid: 7f69a470ebf314236af396195e0438e4, type: 3}
+      propertyPath: m_Navigation.m_SelectOnUp
+      value: 
+      objectReference: {fileID: 1080795892}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3100,6 +3127,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6f4693cac3949f8a4fa78fa647e3481, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SettingsPanel
+--- !u!114 &1080795892 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8198988207315262916, guid: 7f69a470ebf314236af396195e0438e4, type: 3}
+  m_PrefabInstance: {fileID: 1080795889}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &1099705102
 GameObject:
   m_ObjectHideFlags: 0
@@ -3642,7 +3680,7 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 1838237176}
+    m_SelectOnUp: {fileID: 1041878463}
     m_SelectOnDown: {fileID: 1838237177}
     m_SelectOnLeft: {fileID: 226731312}
     m_SelectOnRight: {fileID: 226731311}
@@ -4146,17 +4184,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1838237176 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7893108166648292116, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
-  m_PrefabInstance: {fileID: 226731308}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!114 &1838237177 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 532137343350530965, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
