@@ -17,6 +17,9 @@ public class ModuleBuilder : MonoBehaviour
 
     [Header("Obstacles")]
     public GameObject[] obstaclePrefabs;
+    public GameObject[] flyingObstaclePrefabs;
+    public int obstacleRate = 40;
+    public int flyingObstacleRate = 20;
 
     [Header("Generation Settings")]
     public bool autoGenerateOnStart = false;
@@ -66,6 +69,7 @@ public class ModuleBuilder : MonoBehaviour
 
         GenerateBaseTerrain(explicitHeight);
         GenerateBuildings();
+        SpawnFlyingObstacles(explicitHeight);
 
         hasGenerated = true;
         GameLogger.Log("MODULE", $"✓ Module '{gameObject.name}' generated with height={actualTerrainHeight}");
@@ -121,7 +125,7 @@ public class ModuleBuilder : MonoBehaviour
             );
 
             int obstacleRoll = Random.Range(0, 100);
-            if (obstacleRoll < 40)
+            if (obstacleRoll < obstacleRate)
             {
                 GameObject obstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
                 GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
@@ -180,6 +184,22 @@ public class ModuleBuilder : MonoBehaviour
         }
 
         GameLogger.Log("MODULE", $"  - Buildings: {buildingsSpawned}/{buildingSpawnPoints.Length} spawn points used");
+    }
+
+    private void SpawnFlyingObstacles(int? explicitHeight = 0)
+    {
+        if (flyingObstaclePrefabs == null || flyingObstaclePrefabs.Length == 0) return;
+
+        float flyingObstacleRoll = Random.Range(0, 100);
+
+        if (flyingObstacleRoll < flyingObstacleRate)
+        {
+            GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
+            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * 3) + 50, transform.position.z);
+            GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
+            newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
+            GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {flyingPosition}");
+        }
     }
 
     public void ClearGeneratedContent()
