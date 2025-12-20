@@ -10,6 +10,13 @@ public class CreditsConfiguration : ScriptableObject
     public string gameName = "Running Late";
     public string copyrightYear = "2024";
     
+    [Header("Visual Assets")]
+    [Tooltip("Optional studio logo/banner image")]
+    public Sprite studioLogo;
+    
+    [Tooltip("Optional game logo image")]
+    public Sprite gameLogo;
+    
     [Header("Team Members")]
     public List<TeamMember> allMembers = new List<TeamMember>();
     
@@ -73,7 +80,7 @@ public class CreditsConfiguration : ScriptableObject
     private string GenerateCoreTeamSection()
     {
         var coreTeam = allMembers
-            .Where(m => m.contributorType == ContributorType.CoreTeam)
+            .Where(m => m != null && m.contributorType == ContributorType.CoreTeam)
             .OrderBy(m => m.GetPrimarySortOrder())
             .ToList();
         
@@ -122,7 +129,7 @@ public class CreditsConfiguration : ScriptableObject
     private string GenerateFreelancerSection()
     {
         var freelancers = allMembers
-            .Where(m => m.contributorType == ContributorType.Freelancer)
+            .Where(m => m != null && m.contributorType == ContributorType.Freelancer)
             .OrderBy(m => m.GetPrimarySortOrder())
             .ToList();
         
@@ -170,7 +177,7 @@ public class CreditsConfiguration : ScriptableObject
     private string GenerateBackersSection()
     {
         var backers = allMembers
-            .Where(m => m.contributorType == ContributorType.Backer)
+            .Where(m => m != null && m.contributorType == ContributorType.Backer)
             .OrderBy(m => m.displayOrder)
             .ThenBy(m => m.displayName)
             .ToList();
@@ -202,7 +209,7 @@ public class CreditsConfiguration : ScriptableObject
     private string GenerateSpecialThanksSection()
     {
         var specialThanks = allMembers
-            .Where(m => m.contributorType == ContributorType.SpecialThanks)
+            .Where(m => m != null && m.contributorType == ContributorType.SpecialThanks)
             .OrderBy(m => m.displayOrder)
             .ToList();
         
@@ -233,7 +240,7 @@ public class CreditsConfiguration : ScriptableObject
     private string GenerateToolingSection()
     {
         var tools = allMembers
-            .Where(m => m.contributorType == ContributorType.Tooling)
+            .Where(m => m != null && m.contributorType == ContributorType.Tooling)
             .OrderBy(m => m.displayOrder)
             .ToList();
         
@@ -264,7 +271,7 @@ public class CreditsConfiguration : ScriptableObject
     {
         string section = "";
         
-        foreach (var member in allMembers.OrderBy(m => m.GetPrimarySortOrder()))
+        foreach (var member in allMembers.Where(m => m != null).OrderBy(m => m.GetPrimarySortOrder()))
         {
             section += FormatMember(member);
         }

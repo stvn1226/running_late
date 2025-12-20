@@ -9,6 +9,10 @@ public class CreditsPanel : BaseMainMenuPanel
     [SerializeField] private ScrollRect scrollRect;
     [SerializeField] private TextMeshProUGUI creditsText;
     
+    [Header("Logo Display")]
+    [SerializeField] private Image studioLogoImage;
+    [SerializeField] private Image gameLogoImage;
+    
     [Header("Credits Data")]
     [SerializeField] private CreditsConfiguration creditsConfig;
     
@@ -37,6 +41,8 @@ public class CreditsPanel : BaseMainMenuPanel
     
     protected override void OnShow()
     {
+        LoadLogos();
+        
         if (creditsText != null)
         {
             if (creditsConfig != null)
@@ -73,6 +79,39 @@ public class CreditsPanel : BaseMainMenuPanel
         }
         
         GameLogger.Log("CREDITS", "Credits panel hidden");
+    }
+    
+    private void LoadLogos()
+    {
+        if (creditsConfig == null) return;
+        
+        if (studioLogoImage != null)
+        {
+            if (creditsConfig.studioLogo != null)
+            {
+                studioLogoImage.sprite = creditsConfig.studioLogo;
+                studioLogoImage.gameObject.SetActive(true);
+                studioLogoImage.preserveAspect = true;
+            }
+            else
+            {
+                studioLogoImage.gameObject.SetActive(false);
+            }
+        }
+        
+        if (gameLogoImage != null)
+        {
+            if (creditsConfig.gameLogo != null)
+            {
+                gameLogoImage.sprite = creditsConfig.gameLogo;
+                gameLogoImage.gameObject.SetActive(true);
+                gameLogoImage.preserveAspect = true;
+            }
+            else
+            {
+                gameLogoImage.gameObject.SetActive(false);
+            }
+        }
     }
     
     private void OnBackClicked()

@@ -153,10 +153,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7823604595746692801}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 951.5, y: -21.605}
-  m_SizeDelta: {x: 1803, y: 43.21}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9109759857757456490
 CanvasRenderer:
@@ -290,7 +290,7 @@ RectTransform:
   m_Father: {fileID: 8757032296117092277}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1014,6 +1014,8 @@ MonoBehaviour:
   defaultSelected: {fileID: 0}
   scrollRect: {fileID: 3881478136931068237}
   creditsText: {fileID: 150328578282830238}
+  studioLogoImage: {fileID: 0}
+  gameLogoImage: {fileID: 0}
   creditsConfig: {fileID: 11400000, guid: d9c74defc67c147e1bdcef198a601156, type: 2}
   autoScroll: 1
   scrollSpeed: 0.1
@@ -2112,9 +2114,9 @@ RectTransform:
   m_Father: {fileID: 7647784199917846423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -17, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &2557228477430081700
 CanvasRenderer:
@@ -2203,7 +2205,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -0.0009682361, y: 0}
-  m_SizeDelta: {x: 0, y: 43.21}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &3346533018316973671
 MonoBehaviour:
