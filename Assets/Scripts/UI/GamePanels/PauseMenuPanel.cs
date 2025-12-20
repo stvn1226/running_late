@@ -93,11 +93,11 @@ public class PauseMenuPanel : BaseMenuPanel
     {
         GameLogger.LogUI("Quitting application...");
         
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #else
+        // #if UNITY_EDITOR
+        // UnityEditor.EditorApplication.isPlaying = false;
+        // #else
         SceneLoader.Instance.LoadMainMenu();
-        #endif
+        // #endif
     }
     
     private void OnSeedToggleChanged(bool useManualSeed)

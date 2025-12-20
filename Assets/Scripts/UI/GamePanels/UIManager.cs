@@ -49,6 +49,7 @@ public class UIManager : MonoBehaviour
         {
             inputActions.Gameplay.Pause.performed += OnPausePressed;
             inputActions.UI.Pause.performed += OnPausePressed;
+            inputActions.UI.Cancel.performed += OnCancelPressed;
         }
     }
     
@@ -58,9 +59,32 @@ public class UIManager : MonoBehaviour
         {
             inputActions.Gameplay.Pause.performed -= OnPausePressed;
             inputActions.UI.Pause.performed -= OnPausePressed;
+            inputActions.UI.Cancel.performed -= OnCancelPressed;
             
             inputActions.Gameplay.Disable();
             inputActions.UI.Disable();
+        }
+    }
+    
+    private void OnCancelPressed(InputAction.CallbackContext context)
+    {
+        if (settingsPanel != null && settingsPanel.IsVisible)
+        {
+            settingsPanel.Hide();
+        
+            if (pauseMenuPanel != null)
+            {
+                pauseMenuPanel.Show();
+                currentActivePanel = pauseMenuPanel;
+            }
+        
+            GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+            return;
+        }
+    
+        if (currentActivePanel == pauseMenuPanel)
+        {
+            HideAllPanels();
         }
     }
     
