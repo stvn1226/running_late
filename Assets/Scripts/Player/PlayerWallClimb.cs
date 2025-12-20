@@ -33,6 +33,7 @@ public class PlayerWallClimb : MonoBehaviour
         if (states.isWallRunning && !states.isVaultingWall)
         {
             CheckForPerfectClimb();
+            CheckCornerClimb();
             wallDirection = states.wallDirection;
             wasOnWall = true;
             
@@ -94,6 +95,49 @@ public class PlayerWallClimb : MonoBehaviour
             {
                 ActivatePerfectClimb();
             }
+        }
+    }
+    
+    private void CheckCornerClimb()
+    {
+        if (config == null) return;
+        if (!config.enableCornerClimb) return;
+        if (states.isCornerClimbing) return;
+        if (states.isVaultingWall) return;
+    
+        bool isInCornerRange = states.distanceToWallTop < config.cornerClimbDetectionDistance 
+                               && states.distanceToWallTop > config.wallVaultTriggerDistance;
+    
+        bool hasProblematicVelocity = rb.linearVelocity.y > config.cornerClimbMinVelocity 
+                                      && rb.linearVelocity.y < config.cornerClimbMaxVelocity;
+    
+        bool isOnWall = states.isWallRunning || (states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f);
+    
+        if (isInCornerRange && hasProblematicVelocity && isOnWall)
+        {
+            GameLogger.LogState($"[CORNER CLIMB ASSIST] Activating! Distance: {states.distanceToWallTop:F2}m, VelY: {rb.linearVelocity.y:F2} m/s");
+            TriggerCornerClimb();
+        }
+    }
+    
+    private void TriggerCornerClimb()
+    {
+        states.isCornerClimbing = true;
+        states.cornerClimbTimer = config.cornerClimbDuration;
+    
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, config.cornerClimbBoostForce);
+    
+        GameLogger.LogState($"CORNER CLIMB BOOST! Applied {config.cornerClimbBoostForce} m/s upward velocity");
+    
+        if (AnalyticsManager.Instance != null)
+        {
+            AnalyticsManager.Instance.TrackEvent("corner_climb_triggered", new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "distance_to_top", states.distanceToWallTop },
+                { "velocity_y_before", rb.linearVelocity.y },
+                { "boost_applied", config.cornerClimbBoostForce },
+                { "wall_direction", states.wallDirection }
+            });
         }
     }
 

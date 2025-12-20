@@ -94,6 +94,10 @@ public class PlayerStates : MonoBehaviour
     [Header("Stagger States")]
     public float staggerTimer;
 
+    [Header("Corner Climb States")]
+    public bool isCornerClimbing = false;
+    public float cornerClimbTimer = 0f;
+    
     private bool prevCanWallRun;
     private int prevWallDirection;
     private bool prevWallRunHeld;
@@ -270,6 +274,16 @@ public class PlayerStates : MonoBehaviour
         if (isJumping && jumpHeld)
         {
             jumpHoldTimer += Time.deltaTime;
+        }
+        
+        // Corner climb timer
+        if (cornerClimbTimer > 0f)
+        {
+            cornerClimbTimer -= Time.deltaTime;
+            if (cornerClimbTimer <= 0f)
+            {
+                isCornerClimbing = false;
+            }
         }
 
         if (jumpPressed)

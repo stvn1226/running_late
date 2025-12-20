@@ -366,6 +366,10 @@ public class PlayerMovement : MonoBehaviour
         if (states.isKicking) return;
 
         float climbBoost = wallClimb != null ? wallClimb.GetWallRunForceMultiplier() : 1f;
+        
+        if (states.isCornerClimbing)
+            climbBoost *= 0.3f;
+        
         float totalMultiplier = forceMultiplier * climbBoost;
 
         rb.AddForce(Vector2.up * (config.wallRunForce * totalMultiplier * Time.fixedDeltaTime), ForceMode2D.Force);

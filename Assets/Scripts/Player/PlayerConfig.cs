@@ -182,6 +182,32 @@ public class PlayerConfig : ScriptableObject
     [Range(0.1f, 1f)]
     public float wallHeightCheckInterval = 0.4f;
 
+    
+    [Header("Corner Climb (Auto-Assist)")]
+    [Tooltip("Enable automatic corner climbing when approaching wall corners with low velocity")]
+    public bool enableCornerClimb = true;
+
+    [Tooltip("Minimum vertical velocity to trigger corner climb. Negative = falling slowly")]
+    [Range(-3f, 0f)]
+    public float cornerClimbMinVelocity = -1.0f;
+
+    [Tooltip("Maximum vertical velocity to trigger corner climb. Prevents activation when already climbing fast")]
+    [Range(0f, 3f)]
+    public float cornerClimbMaxVelocity = 1.5f;
+
+    [Tooltip("Distance from wall top to activate corner climb assist. Should be larger than wallVaultTriggerDistance")]
+    [Range(1.5f, 4f)]
+    public float cornerClimbDetectionDistance = 2.5f;
+
+    [Tooltip("Upward velocity boost applied during corner climb")]
+    [Range(5f, 20f)]
+    public float cornerClimbBoostForce = 12f;
+
+    [Tooltip("How long the corner climb boost effect lasts")]
+    [Range(0.1f, 0.5f)]
+    public float cornerClimbDuration = 0.2f;
+
+    
     // ====================================
     // DRAG & FRICTION
     // ====================================
@@ -360,6 +386,20 @@ public class PlayerConfig : ScriptableObject
         if (returnSpeed < panSpeed)
         {
             Debug.LogWarning("[PlayerConfig] returnSpeed is slower than panSpeed. Camera may feel sluggish returning to center.");
+        }
+        
+        // Ensure corner climb detection is larger than vault trigger
+        if (cornerClimbDetectionDistance < wallVaultTriggerDistance)
+        {
+            cornerClimbDetectionDistance = wallVaultTriggerDistance + 0.5f;
+            Debug.LogWarning($"[PlayerConfig] cornerClimbDetectionDistance must be larger than wallVaultTriggerDistance. Adjusted to {cornerClimbDetectionDistance}");
+        }
+
+        // Ensure velocity range makes sense
+        if (cornerClimbMaxVelocity < cornerClimbMinVelocity)
+        {
+            cornerClimbMaxVelocity = cornerClimbMinVelocity + 1f;
+            Debug.LogWarning($"[PlayerConfig] cornerClimbMaxVelocity must be greater than cornerClimbMinVelocity. Adjusted to {cornerClimbMaxVelocity}");
         }
     }
 #endif
