@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class CableLeft : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public bool hasBeenUsed = false;
     void Start()
     {
-        
+        CableManager.instance.AddCableEnd(this);
     }
 }

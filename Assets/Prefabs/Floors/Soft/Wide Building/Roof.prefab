@@ -40,7 +40,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3047273909224315756}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -81,8 +81,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c42d54c036630943a53c7f9b9ff9854, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CableRight
-  minDistance: 0
-  maxDistance: 0
+  minDistance: 5
+  maxDistance: 50
 --- !u!1 &3779555381404274128
 GameObject:
   m_ObjectHideFlags: 0
@@ -1589,7 +1589,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7666693717483043224}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -1630,6 +1630,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a42fcf5c562ab134eb334b17dc5d3d51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CableLeft
+  hasBeenUsed: 0
 --- !u!1 &7674499980409501289
 GameObject:
   m_ObjectHideFlags: 0
