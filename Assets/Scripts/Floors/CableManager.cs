@@ -79,6 +79,14 @@ public class CableManager : MonoBehaviour
         newCable.SetStartPoint(start.transform);
         newCable.SetEndPoint(end.transform);
         newCable.ropeLength = Vector3.Distance(start.transform.position, end.transform.position) + 10f;
+
+        LineRenderer lineRenderer = newCable.GetComponent<LineRenderer>();
+        MeshCollider meshCollider = newCable.GetComponent<MeshCollider>();
+
+        Mesh mesh = new Mesh();
+        lineRenderer.BakeMesh(mesh, true);
+        meshCollider.sharedMesh = mesh;
+
         return true;
     }
 }
