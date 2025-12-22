@@ -8,10 +8,13 @@ public class CableManager : MonoBehaviour
     private List<CableRight> _rightCorners;
     private List<CableLeft> _leftCorners;
 
+    private List<Rope> _cablesList;
+
     [SerializeField] private Rope _cablePrefab;
     [SerializeField] private float _cableChance = .4f; //40% chance cable will be built if requirements are met 
 
     private bool _cablesSet;
+    private bool _collidersSet;
 
     private void Awake()
     {
@@ -24,6 +27,9 @@ public class CableManager : MonoBehaviour
         _rightCorners = new List<CableRight>();
         _leftCorners = new List<CableLeft>();
         _cablesSet = false;
+
+        _cablesList = new List<Rope>();
+        _collidersSet = false;
     }
 
     private void Start()
@@ -37,6 +43,19 @@ public class CableManager : MonoBehaviour
         {
             SetupCables();
             _cablesSet = true;
+        }
+        if (_cablesSet == true && _collidersSet == false)
+        {
+            _collidersSet = true;
+            foreach (Rope c in _cablesList)
+            {
+                if (c.GetComponent<LineRenderer>().positionCount <= 0)
+                {
+                    _collidersSet = false;
+                    break;
+                }
+                c.GetComponent<MeshCollider>().sharedMesh = MakeCollider(c);
+            }
         }
     }
 
@@ -66,27 +85,36 @@ public class CableManager : MonoBehaviour
                     endPoint.transform.position.y < (startPoint.transform.position.y - startPoint.minDistance) &&
                     endPoint.transform.position.y > (startPoint.transform.position.y - startPoint.maxDistance))
                 {
-                    endPoint.hasBeenUsed = BuildCable(startPoint, endPoint);
+                    Rope newCable = BuildCable(startPoint, endPoint);
+                    _cablesList.Add(newCable);
+                    //newCable.GetComponent<MeshCollider>().sharedMesh = MakeCollider(newCable);
+                    endPoint.hasBeenUsed = true;
                     break;
                 }
             }
         }
     }
 
-    private bool BuildCable(CableRight start, CableLeft end)
+    private Rope BuildCable(CableRight start, CableLeft end)
     {
         Rope newCable = Instantiate(_cablePrefab, transform);
         newCable.SetStartPoint(start.transform);
         newCable.SetEndPoint(end.transform);
         newCable.ropeLength = Vector3.Distance(start.transform.position, end.transform.position) + 10f;
 
-        LineRenderer lineRenderer = newCable.GetComponent<LineRenderer>();
-        MeshCollider meshCollider = newCable.GetComponent<MeshCollider>();
+        return newCable;
+    }
+
+    private Mesh MakeCollider(Rope thisCable)
+    {
+        LineRenderer lineRenderer = thisCable.GetComponent<LineRenderer>();
+        MeshCollider meshCollider = thisCable.GetComponent<MeshCollider>();
+
+        //lineRenderer.useWorldSpace = false;
 
         Mesh mesh = new Mesh();
         lineRenderer.BakeMesh(mesh, true);
-        meshCollider.sharedMesh = mesh;
+        return mesh;
 
-        return true;
     }
 }
