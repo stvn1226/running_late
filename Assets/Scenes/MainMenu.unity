@@ -184,6 +184,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+--- !u!114 &417791122 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3047181441560404571, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 8452309257800145660}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &761049360
 GameObject:
   m_ObjectHideFlags: 0
@@ -1563,6 +1574,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3456639960676419494, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: m_Navigation.m_SelectOnUp
+      value: 
+      objectReference: {fileID: 417791122}
     - target: {fileID: 5390658968514930081, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
