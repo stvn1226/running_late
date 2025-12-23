@@ -20,6 +20,8 @@ public class PlayerStateManager : MonoBehaviour
     private void Update()
     {
         HandleStates();
+
+        CableManager.instance.isFastFalling = states.crouchHeld;
         
         // Periodic state logging
         if (Time.time - lastStateLog > STATE_LOG_INTERVAL)
