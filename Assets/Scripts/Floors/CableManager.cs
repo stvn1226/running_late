@@ -16,6 +16,8 @@ public class CableManager : MonoBehaviour
     private bool _cablesSet;
     private bool _collidersSet;
 
+    public bool isFastFalling = false;
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -54,9 +56,21 @@ public class CableManager : MonoBehaviour
                     _collidersSet = false;
                     break;
                 }
-                //c.GetComponent<MeshCollider>().sharedMesh = MakeCollider(c);
-                //c.GetComponent<PolygonCollider2D>().points
                 c.GetComponent<EdgeCollider2D>().SetPoints(MakeCollider(c));
+            }
+        }
+        if (_cablesSet && _collidersSet && isFastFalling)
+        {
+            foreach (Rope c in _cablesList)
+            {
+                c.GetComponent<EdgeCollider2D>().isTrigger = false;
+            }
+        }
+        else
+        {
+            foreach (Rope c in _cablesList)
+            {
+                c.GetComponent<EdgeCollider2D>().isTrigger = true;
             }
         }
     }
@@ -89,7 +103,6 @@ public class CableManager : MonoBehaviour
                 {
                     Rope newCable = BuildCable(startPoint, endPoint);
                     _cablesList.Add(newCable);
-                    //newCable.GetComponent<MeshCollider>().sharedMesh = MakeCollider(newCable);
                     endPoint.hasBeenUsed = true;
                     break;
                 }
@@ -106,17 +119,6 @@ public class CableManager : MonoBehaviour
 
         return newCable;
     }
-
-    //private Mesh MakeCollider(Rope thisCable)
-    //{
-    //    LineRenderer lineRenderer = thisCable.GetComponent<LineRenderer>();
-    //    MeshCollider meshCollider = thisCable.GetComponent<MeshCollider>();
-
-    //    Mesh mesh = new Mesh();
-    //    lineRenderer.BakeMesh(mesh, true);
-    //    return mesh;
-
-    //}
 
     private List<Vector2> MakeCollider(Rope thisCable)
     {

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -8018253754595951691}
   - component: {fileID: 3790879107733699992}
   - component: {fileID: -2939614219072834403}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Cable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -203,7 +203,7 @@ EdgeCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
