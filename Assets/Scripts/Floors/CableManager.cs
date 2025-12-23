@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CableManager : MonoBehaviour
-{
+{    
     public static CableManager instance { get; private set; }
     private List<CableRight> _rightCorners;
     private List<CableLeft> _leftCorners;
@@ -54,7 +54,9 @@ public class CableManager : MonoBehaviour
                     _collidersSet = false;
                     break;
                 }
-                c.GetComponent<MeshCollider>().sharedMesh = MakeCollider(c);
+                //c.GetComponent<MeshCollider>().sharedMesh = MakeCollider(c);
+                //c.GetComponent<PolygonCollider2D>().points
+                c.GetComponent<EdgeCollider2D>().SetPoints(MakeCollider(c));
             }
         }
     }
@@ -105,16 +107,25 @@ public class CableManager : MonoBehaviour
         return newCable;
     }
 
-    private Mesh MakeCollider(Rope thisCable)
+    //private Mesh MakeCollider(Rope thisCable)
+    //{
+    //    LineRenderer lineRenderer = thisCable.GetComponent<LineRenderer>();
+    //    MeshCollider meshCollider = thisCable.GetComponent<MeshCollider>();
+
+    //    Mesh mesh = new Mesh();
+    //    lineRenderer.BakeMesh(mesh, true);
+    //    return mesh;
+
+    //}
+
+    private List<Vector2> MakeCollider(Rope thisCable)
     {
-        LineRenderer lineRenderer = thisCable.GetComponent<LineRenderer>();
-        MeshCollider meshCollider = thisCable.GetComponent<MeshCollider>();
+        List<Vector2> positions = new List<Vector2>();
+        for (int i = 0; i < thisCable.linePoints; i++)
+        {
+            positions.Add(thisCable.GetComponent<LineRenderer>().GetPosition(i));
+        }
 
-        //lineRenderer.useWorldSpace = false;
-
-        Mesh mesh = new Mesh();
-        lineRenderer.BakeMesh(mesh, true);
-        return mesh;
-
+        return positions;
     }
 }
