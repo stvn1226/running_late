@@ -43,6 +43,12 @@ public class SettingsPanel : BaseMainMenuPanel
     [SerializeField] private PauseMenuPanel pauseMenuReference;
     private bool isInitialized = false;
     
+    [Header("Input Prompts")]
+    [SerializeField] private InputPromptUI submitButtonPrompt;
+    [SerializeField] private InputPromptUI backButtonPrompt;
+    [SerializeField] private TextMeshProUGUI controllerTypeText;
+
+    
     private void Awake()
     {
         if (!isInitialized)
@@ -334,6 +340,59 @@ public class SettingsPanel : BaseMainMenuPanel
     {
         LoadCurrentSettings();
         ResetScrollToTop();
+        UpdateControllerTypeDisplay();
+    }
+    
+    private void UpdateControllerTypeDisplay()
+    {
+        if (controllerTypeText != null && ControllerTypeDetector.Instance != null)
+        {
+            ControllerType currentType = ControllerTypeDetector.Instance.CurrentControllerType;
+            string deviceName = "";
+        
+            switch (currentType)
+            {
+                case ControllerType.Keyboard:
+                    deviceName = "Keyboard & Mouse";
+                    break;
+                case ControllerType.Xbox:
+                    deviceName = "Xbox Controller";
+                    break;
+                case ControllerType.Playstation:
+                    deviceName = "PlayStation Controller";
+                    break;
+                case ControllerType.Switch:
+                    deviceName = "Switch Controller";
+                    break;
+                case ControllerType.Generic:
+                    deviceName = "Generic Gamepad";
+                    break;
+            }
+        
+            controllerTypeText.text = $"Device: {deviceName}";
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (ControllerTypeDetector.Instance != null)
+        {
+            ControllerTypeDetector.Instance.OnControllerChanged += OnControllerTypeChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (ControllerTypeDetector.Instance != null)
+        {
+            ControllerTypeDetector.Instance.OnControllerChanged -= OnControllerTypeChanged;
+        }
+    }
+
+    private void OnControllerTypeChanged(ControllerType newType)
+    {
+        UpdateControllerTypeDisplay();
+        GameLogger.LogInput($"Settings menu updated for controller: {newType}");
     }
 
     private void ResetScrollToTop()

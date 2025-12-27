@@ -19,6 +19,11 @@ public class InputModeSwitcher : MonoBehaviour
 
         UpdateCursorState(playerInput.currentControlScheme);
         lastControlScheme = playerInput.currentControlScheme;
+        
+        if (ControllerTypeDetector.Instance != null)
+        {
+            ControllerTypeDetector.Instance.SetPlayerInput(playerInput);
+        }
     }
 
     void Update()
@@ -72,5 +77,11 @@ public class InputModeSwitcher : MonoBehaviour
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
+    
+        if (ControllerTypeDetector.Instance != null)
+        {
+            ControllerTypeDetector.Instance.SetPlayerInput(playerInput);
+        }
     }
+
 }
