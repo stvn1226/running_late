@@ -1,5 +1,4 @@
 using System;
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.DualShock;
@@ -22,14 +21,14 @@ public class ControllerTypeDetector : MonoBehaviour
     public event Action<ControllerType> OnControllerChanged;
     
     [Header("Stability Settings")]
-    [SerializeField] private float switchCooldown = 0.8f;
-    [SerializeField] private bool enableStabilization = true;
+    [SerializeField] private float gracePeriod = 2.0f;
+    [SerializeField] private bool enableGracePeriod = true;
     
     private ControllerType currentControllerType = ControllerType.Keyboard;
     private InputDevice lastUsedDevice;
     private PlayerInput playerInput;
     private string lastControlScheme = "Keyboard";
-    private float timeSinceLastSwitch = 999f;
+    private float timeSinceLastInput = 0f;
     
     public ControllerType CurrentControllerType => currentControllerType;
     public bool IsUsingGamepad => currentControllerType != ControllerType.Keyboard;
@@ -44,7 +43,7 @@ public class ControllerTypeDetector : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         
-        playerInput = FindObjectOfType<PlayerInput>();
+        GameLogger.LogInput("ControllerTypeDetector initialized");
     }
 
     private void OnEnable()
@@ -64,25 +63,58 @@ public class ControllerTypeDetector : MonoBehaviour
 
     private void Update()
     {
-        timeSinceLastSwitch += Time.unscaledDeltaTime;
+        timeSinceLastInput += Time.unscaledDeltaTime;
         
-        if (playerInput != null)
+        if (playerInput == null)
         {
-            string currentScheme = playerInput.currentControlScheme;
-            
-            if (currentScheme != lastControlScheme)
+            DetectInputWithoutPlayerInput();
+        }
+    }
+
+    public void NotifyControlSchemeChanged(string newScheme)
+    {
+        if (newScheme == lastControlScheme)
+        {
+            timeSinceLastInput = 0f;
+            return;
+        }
+        
+        if (!enableGracePeriod || timeSinceLastInput >= gracePeriod)
+        {
+            GameLogger.LogInput($"Control scheme change accepted: {lastControlScheme} → {newScheme} (grace: {timeSinceLastInput:F2}s)");
+            lastControlScheme = newScheme;
+            timeSinceLastInput = 0f;
+            UpdateControllerTypeFromScheme(newScheme);
+        }
+        else
+        {
+            GameLogger.LogInput($"Control scheme change IGNORED: {lastControlScheme} → {newScheme} (grace: {timeSinceLastInput:F2}s < {gracePeriod}s)");
+        }
+    }
+
+    private void DetectInputWithoutPlayerInput()
+    {
+        if (!enableGracePeriod || timeSinceLastInput >= gracePeriod)
+        {
+            if (Gamepad.current != null && Gamepad.current.wasUpdatedThisFrame)
             {
-                if (!enableStabilization || timeSinceLastSwitch >= switchCooldown)
-                {
-                    lastControlScheme = currentScheme;
-                    UpdateControllerTypeFromScheme(currentScheme);
-                }
+                DetectDeviceFromControl(Gamepad.current);
+            }
+            else if (Mouse.current != null && Mouse.current.delta.ReadValue().sqrMagnitude > 0.01f)
+            {
+                DetectDeviceFromControl(Mouse.current);
+            }
+            else if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
+            {
+                DetectDeviceFromControl(Keyboard.current);
             }
         }
     }
 
     private void UpdateControllerTypeFromScheme(string scheme)
     {
+        GameLogger.LogInput($"Updating controller type from scheme: {scheme}");
+        
         if (scheme == "Keyboard")
         {
             SetControllerType(ControllerType.Keyboard);
@@ -102,11 +134,11 @@ public class ControllerTypeDetector : MonoBehaviour
 
     private void OnActionChange(object obj, InputActionChange change)
     {
-        if (!enableStabilization || timeSinceLastSwitch >= switchCooldown)
+        if (change == InputActionChange.ActionPerformed)
         {
-            if (change == InputActionChange.ActionPerformed)
+            if (obj is InputAction action && action.activeControl != null)
             {
-                if (obj is InputAction action && action.activeControl != null)
+                if (!enableGracePeriod || timeSinceLastInput >= gracePeriod)
                 {
                     DetectDeviceFromControl(action.activeControl.device);
                 }
@@ -123,19 +155,25 @@ public class ControllerTypeDetector : MonoBehaviour
         else if (Gamepad.current != null)
         {
             DetectDeviceFromControl(Gamepad.current);
+            GameLogger.LogInput("Detected gamepad without PlayerInput");
         }
         else if (Keyboard.current != null)
         {
             DetectDeviceFromControl(Keyboard.current);
+            GameLogger.LogInput("Detected keyboard without PlayerInput");
         }
     }
 
     private void DetectDeviceFromControl(InputDevice device)
     {
         if (device == lastUsedDevice)
+        {
+            timeSinceLastInput = 0f;
             return;
+        }
 
         lastUsedDevice = device;
+        timeSinceLastInput = 0f;
         ControllerType newType = GetControllerTypeFromDevice(device);
         SetControllerType(newType);
     }
@@ -145,7 +183,6 @@ public class ControllerTypeDetector : MonoBehaviour
         if (newType != currentControllerType)
         {
             currentControllerType = newType;
-            timeSinceLastSwitch = 0f;
             GameLogger.LogInput($"Controller type changed to: {currentControllerType}");
             OnControllerChanged?.Invoke(currentControllerType);
         }
@@ -255,8 +292,8 @@ public class ControllerTypeDetector : MonoBehaviour
         if (playerInput != null)
         {
             lastControlScheme = playerInput.currentControlScheme;
+            GameLogger.LogInput($"PlayerInput assigned: {lastControlScheme}");
             UpdateControllerTypeFromScheme(lastControlScheme);
         }
     }
 }
-
