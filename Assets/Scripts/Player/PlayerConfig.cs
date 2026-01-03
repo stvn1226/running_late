@@ -340,6 +340,34 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Invert vertical camera pan axis")]
     public bool invertYAxis = false;
 
+    // ====================================
+    // SLOPE DETECTION
+    // ====================================
+
+    [Header("Slope Detection")]
+    [Tooltip("Enable slope detection and movement adjustments")]
+    public bool enableSlopeDetection = true;
+
+    [Tooltip("Maximum angle (in degrees) the player can walk on. Slopes steeper than this will cause sliding. Recommended: 35-50")]
+    [Range(0f, 60f)]
+    public float maxWalkableSlope = 45f;
+
+    [Tooltip("Distance to cast slope detection ray downward. Should be slightly more than groundCheckDistance. Recommended: 0.2-0.4")]
+    [Range(0.1f, 1f)]
+    public float slopeCheckDistance = 0.3f;
+
+    [Tooltip("Force multiplier when moving uphill. Lower = slower uphill movement. Recommended: 0.7-0.9")]
+    [Range(0.3f, 1f)]
+    public float uphillForceMultiplier = 0.8f;
+
+    [Tooltip("Force multiplier when moving downhill. Higher = faster downhill movement. Recommended: 1.1-1.4")]
+    [Range(1f, 2f)]
+    public float downhillForceMultiplier = 1.2f;
+
+    [Tooltip("Gravity multiplier on slopes steeper than maxWalkableSlope. Higher = faster sliding. Recommended: 1.5-3")]
+    [Range(1f, 5f)]
+    public float slopeSlideGravityMultiplier = 2f;
+    
 
     // ====================================
     // VALIDATION (Editor Only)

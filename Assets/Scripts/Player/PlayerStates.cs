@@ -37,6 +37,12 @@ public class PlayerStates : MonoBehaviour
     public bool isAirDodging;
     public bool canAirDodge;
 
+    [Header("Slope States")]
+    public bool isOnSlope = false;
+    public float slopeAngle = 0f;
+    public Vector2 slopeNormal = Vector2.up;
+    public bool isSlopeTooSteep = false;
+    
     [Header("Power-Up States")]
     public bool isInvincible = false;
     public bool isShielded = false;

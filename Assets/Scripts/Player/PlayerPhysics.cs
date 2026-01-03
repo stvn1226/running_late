@@ -66,6 +66,7 @@ public class PlayerPhysics : MonoBehaviour
     {
         CheckGrounded();
         CheckWallRun();
+        CheckSlope();
         
         // Log physics state changes
         if (states.isGrounded != previousGrounded)
@@ -103,7 +104,7 @@ public class PlayerPhysics : MonoBehaviour
         // Periodic physics logging
         if (Time.time - lastPhysicsLog > PHYSICS_LOG_INTERVAL)
         {
-            GameLogger.LogVerbose("PHYSICS", $"STATUS: Grounded={states.isGrounded}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}, Pos={transform.position}, ColliderPos={playerCollider.transform.position}");
+            GameLogger.Log("PHYSICS", $"STATUS: Grounded={states.isGrounded}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}, Pos={transform.position}, ColliderPos={playerCollider.transform.position}");
             lastPhysicsLog = Time.time;
         }
         
@@ -118,19 +119,12 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (config == null) return;
 
-        // Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
         Vector2 boxCenter = (Vector2)playerCollider.transform.position + playerCollider.offset;
         Vector2 boxSize = playerCollider.size;
 
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance, config.groundLayer);
         
         bool newGrounded = hit.collider != null && rb.linearVelocity.y <= 0.1f;
-        
-        if (hit.collider != null && states.isGrounded != newGrounded)
-        {
-            string hitObjectInfo = $"{hit.collider.name} (Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}, Tag: {hit.collider.tag})";
-            GameLogger.LogPhysics($"GROUND CHECK HIT: {hitObjectInfo}, VelY: {rb.linearVelocity.y:F2}, Distance: {hit.distance:F3}");
-        }
         
         states.isGrounded = newGrounded;
     }
@@ -177,12 +171,68 @@ public class PlayerPhysics : MonoBehaviour
         {
             if (states.canWallRun)
             {
-                GameLogger.LogVerbose("PHYSICS", $"Wall run lost - RightHit: {rightHit.collider != null}, LeftHit: {leftHit.collider != null}, Input.x: {states.moveInput.x:F2}");
+                GameLogger.Log("PHYSICS", $"Wall run lost - RightHit: {rightHit.collider != null}, LeftHit: {leftHit.collider != null}, Input.x: {states.moveInput.x:F2}");
             }
             states.canWallRun = false;
         }
     }
 
+    private void CheckSlope()
+    {
+        if (config == null || !config.enableSlopeDetection)
+        {
+            states.slopeNormal = Vector2.up;
+            states.slopeAngle = 0f;
+            states.isOnSlope = false;
+            states.isSlopeTooSteep = false;
+            return;
+        }
+
+        Vector2 playerBottom = (Vector2)playerCollider.transform.position + 
+                               playerCollider.offset - 
+                               Vector2.up * (playerCollider.size.y * 0.5f);
+    
+        float checkDistance = config.slopeCheckDistance + 0.15f;
+    
+        RaycastHit2D hit = Physics2D.Raycast(
+            playerBottom, 
+            Vector2.down, 
+            checkDistance, 
+            config.groundLayer
+        );
+
+        bool wasOnSlope = states.isOnSlope;
+
+        if (hit.collider != null)
+        {
+            states.slopeNormal = hit.normal;
+            states.slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+            states.isOnSlope = states.slopeAngle > 0.1f;
+            states.isSlopeTooSteep = states.slopeAngle > config.maxWalkableSlope;
+
+            if (states.isOnSlope && !wasOnSlope)
+            {
+                GameLogger.Log("SLOPE", $"ENTERED SLOPE: Angle={states.slopeAngle:F1}°, Normal={states.slopeNormal}, TooSteep={states.isSlopeTooSteep}, Obj={hit.collider.name}");
+            }
+            else if (states.isOnSlope)
+            {
+                GameLogger.LogVerbose("SLOPE", $"ON SLOPE: Angle={states.slopeAngle:F1}°, Normal={states.slopeNormal}, Grounded={states.isGrounded}, VelY={rb.linearVelocity.y:F2}");
+            }
+        }
+        else
+        {
+            if (wasOnSlope)
+            {
+                GameLogger.Log("SLOPE", "EXITED SLOPE: No raycast hit");
+            }
+            
+            states.slopeNormal = Vector2.up;
+            states.slopeAngle = 0f;
+            states.isOnSlope = false;
+            states.isSlopeTooSteep = false;
+        }
+    }
+    
     private void DetectWallHeight(RaycastHit2D wallHit, int direction)
     {
         if (Time.time - lastWallHeightCheck < config.wallHeightCheckInterval)
@@ -212,7 +262,7 @@ public class PlayerPhysics : MonoBehaviour
                 states.distanceToWallTop = h;
                 states.isNearWallTop = h < config.wallVaultTriggerDistance;
                 
-                GameLogger.LogVerbose("PHYSICS", $"Wall top detected at height: {h:F2}, Near top: {states.isNearWallTop}");
+                GameLogger.Log("PHYSICS", $"Wall top detected at height: {h:F2}, Near top: {states.isNearWallTop}");
                 break;
             }
         }
@@ -248,5 +298,24 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 wallCheckSize = new Vector2(config.wallCheckDistance, boxSize.y);
         Gizmos.DrawWireCube(boxCenter + Vector2.right * config.wallCheckDistance, wallCheckSize);
         Gizmos.DrawWireCube(boxCenter + Vector2.left * config.wallCheckDistance, wallCheckSize);
+
+        // Slope Visualization
+        if (config.enableSlopeDetection && states != null)
+        {
+            Vector2 playerBottom = (Vector2)transform.position + 
+                                   playerCollider.offset - 
+                                   Vector2.up * (playerCollider.size.y * 0.5f);
+    
+            float checkDistance = config.slopeCheckDistance + 0.15f;
+    
+            Gizmos.color = states.isOnSlope ? Color.yellow : Color.cyan;
+            Gizmos.DrawLine(playerBottom, playerBottom + Vector2.down * checkDistance);
+    
+            if (states.isOnSlope)
+            {
+                Gizmos.color = states.isSlopeTooSteep ? Color.red : Color.green;
+                Gizmos.DrawLine(playerBottom, playerBottom + states.slopeNormal * 2f);
+            }
+        }
     }
 }

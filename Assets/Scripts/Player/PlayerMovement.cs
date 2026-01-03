@@ -118,6 +118,7 @@ public class PlayerMovement : MonoBehaviour
       
         HandleSpriteFlipping();
         HandleMovement();
+        PreventSlopeSliding();
         
         AnalyzeFlipBehavior();
 
@@ -322,17 +323,31 @@ public class PlayerMovement : MonoBehaviour
         {
             float targetSpeed = horizontalInput * maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
-    
+        
             bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
             bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < maxRunSpeed;
-    
+        
             if (isAccelerating || isBelowMaxSpeed)
             {
-                float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
-                force *= forceMultiplier;
+                float baseForce = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+                baseForce *= forceMultiplier;
 
-                float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
-                rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                float appliedForce = Mathf.Clamp(speedDifference * baseForce, -baseForce, baseForce);
+                
+                if (states.isOnSlope && !states.isSlopeTooSteep)
+                {
+                    Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+                    float inputDir = Mathf.Sign(horizontalInput);
+                    Vector2 moveDirection = slopeRight * inputDir;
+                    
+                    GameLogger.Log("SLOPE", $"APPLYING SLOPE FORCE: Input={horizontalInput:F2}, Dir={moveDirection}, Force={appliedForce:F0}, Normal={states.slopeNormal}, Angle={states.slopeAngle:F1}°");
+                    
+                    rb.AddForce(moveDirection * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                }
+                else
+                {
+                    rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                }
             }
         }
 
@@ -342,6 +357,13 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void PreventSlopeSliding()
+    {
+        if (states.isOnSlope && states.isGrounded && !states.isSlopeTooSteep && Mathf.Abs(states.moveInput.x) < 0.1f)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        }
+    }
 
     private void HandleSlideMovement(float forceMultiplier)
     {
