@@ -194,4 +194,5 @@ public class PlayerStateManager : MonoBehaviour
             states.kickPressed = false;
         }
     }
+
 }

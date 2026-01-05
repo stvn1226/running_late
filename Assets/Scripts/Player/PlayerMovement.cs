@@ -301,6 +301,8 @@ public class PlayerMovement : MonoBehaviour
 
         if (states.isWallRunning)
             HandleWallRunMovement(forceMultiplier);
+        else if (states.isSlidingOnCable)
+            HandleCableSlideMovement();
         else if (states.isRolling)
             HandleRollMovement(forceMultiplier);
         else if (states.isSliding)
@@ -505,5 +507,30 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, -config.maxFallSpeed);
         }
+    }
+
+    private void HandleCableSlideMovement()
+    {
+        Vector2 closestPoint = FindClosestPointOnCable(states.currentCable);
+        Vector2 directionToPoint = (closestPoint - rb.position).normalized;
+        float slideForceMagnitude = config.cableSlideForce;
+        Vector2 slideForce = directionToPoint * slideForceMagnitude;
+        rb.AddForce(slideForce * Time.fixedDeltaTime, ForceMode2D.Impulse);
+    }
+
+    private Vector2 FindClosestPointOnCable(EdgeCollider2D cableCollider)
+    {
+        Vector2 playerPosition = rb.position;
+        Vector2[] cablePoints = cableCollider.points;
+        Vector2 closestPoint = cableCollider.transform.TransformPoint(cablePoints[cablePoints.Length - 1]);
+        foreach (Vector2 point in cablePoints)
+        {
+            Vector2 worldPoint = cableCollider.transform.TransformPoint(point);
+            if (worldPoint.x < playerPosition.x) continue;
+            closestPoint = worldPoint;
+            break;
+
+        }
+        return closestPoint;
     }
 }
