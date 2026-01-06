@@ -123,7 +123,7 @@ public class CableManager : MonoBehaviour
     private List<Vector2> MakeCollider(Rope thisCable)
     {
         List<Vector2> positions = new List<Vector2>();
-        for (int i = 0; i < thisCable.linePoints; i++)
+        for (int i = 0; i <= thisCable.linePoints; i++)
         {
             positions.Add(thisCable.GetComponent<LineRenderer>().GetPosition(i));
         }

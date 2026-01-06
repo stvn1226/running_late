@@ -527,7 +527,7 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector2 worldPoint = cableCollider.transform.TransformPoint(point);
             if (worldPoint.x < playerPosition.x) continue;
-            closestPoint = worldPoint;
+            closestPoint = new Vector2 (worldPoint.x, worldPoint.y + 1);
             break;
 
         }
