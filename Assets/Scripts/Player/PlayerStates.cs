@@ -539,12 +539,14 @@ public class PlayerStates : MonoBehaviour
     {
         isSlidingOnCable = true;
         currentCable = cableCollider;
+        isSliding = true;
     }
 
     public void EndCableSlide()
     {
         isSlidingOnCable = false;
         currentCable = null;
+        isSliding = false;
     }
 
     public void RecordWallClimbInput()

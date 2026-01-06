@@ -81,6 +81,7 @@ public class PlayerStateManager : MonoBehaviour
     {
         // Don't interfere with rolling state
         if (states.isRolling) return;
+        if (states.isSlidingOnCable) return;
 
         bool shouldProcessCrouchSlide = states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping;
         
