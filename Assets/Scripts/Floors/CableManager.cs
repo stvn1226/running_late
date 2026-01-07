@@ -67,13 +67,13 @@ public class CableManager : MonoBehaviour
         {
             foreach (Rope c in _cablesList)
             {
-                if (_cableDisableState.Item1 && c.GetComponent<EdgeCollider2D>() != _cableDisableState.Item2)
+                if (_cableDisableState.Item1 && c.GetComponent<EdgeCollider2D>() == _cableDisableState.Item2)
                 {
-                    c.GetComponent<EdgeCollider2D>().isTrigger = true;
+                    c.GetComponent<EdgeCollider2D>().isTrigger = false;
                 }
                 else
                 {
-                    c.GetComponent<EdgeCollider2D>().isTrigger = false;
+                    c.GetComponent<EdgeCollider2D>().isTrigger = true;
                 }
                 //c.GetComponent<EdgeCollider2D>().isTrigger = false;
             }
@@ -143,10 +143,6 @@ public class CableManager : MonoBehaviour
         return positions;
     }
 
-    //public (bool, EdgeCollider2D) DisableOtherCables(bool truth, EdgeCollider2D cableCollider)
-    //{
-    //    return (truth, cableCollider);
-    //}
     public void DisableOtherCables(bool truth, EdgeCollider2D cableCollider)
     {
         _cableDisableState = (truth, cableCollider);
