@@ -18,6 +18,8 @@ public class CableManager : MonoBehaviour
 
     public bool isFastFalling = false;
 
+    private (bool, EdgeCollider2D) _cableDisableState = (false, null);
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -46,6 +48,7 @@ public class CableManager : MonoBehaviour
             SetupCables();
             _cablesSet = true;
         }
+
         if (_cablesSet == true && _collidersSet == false)
         {
             _collidersSet = true;
@@ -59,11 +62,20 @@ public class CableManager : MonoBehaviour
                 c.GetComponent<EdgeCollider2D>().SetPoints(MakeCollider(c));
             }
         }
+
         if (_cablesSet && _collidersSet && isFastFalling)
         {
             foreach (Rope c in _cablesList)
             {
-                c.GetComponent<EdgeCollider2D>().isTrigger = false;
+                if (_cableDisableState.Item1 && c.GetComponent<EdgeCollider2D>() != _cableDisableState.Item2)
+                {
+                    c.GetComponent<EdgeCollider2D>().isTrigger = true;
+                }
+                else
+                {
+                    c.GetComponent<EdgeCollider2D>().isTrigger = false;
+                }
+                //c.GetComponent<EdgeCollider2D>().isTrigger = false;
             }
         }
         else
@@ -129,5 +141,14 @@ public class CableManager : MonoBehaviour
         }
 
         return positions;
+    }
+
+    //public (bool, EdgeCollider2D) DisableOtherCables(bool truth, EdgeCollider2D cableCollider)
+    //{
+    //    return (truth, cableCollider);
+    //}
+    public void DisableOtherCables(bool truth, EdgeCollider2D cableCollider)
+    {
+        _cableDisableState = (truth, cableCollider);
     }
 }

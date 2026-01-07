@@ -292,7 +292,7 @@ public class PlayerConfig : ScriptableObject
     public LayerMask platformLayerMask = -1;
 
     [Header("Cables")]
-    public float cableSlideForce = 2000f;
+    public float cableSlideForce = 100f;
 
     // ====================================
     // CAMERA CONTROLS
