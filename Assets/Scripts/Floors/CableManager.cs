@@ -67,13 +67,13 @@ public class CableManager : MonoBehaviour
         {
             foreach (Rope c in _cablesList)
             {
-                if (_cableDisableState.Item1 && c.GetComponent<EdgeCollider2D>() == _cableDisableState.Item2)
+                if (_cableDisableState.Item1 && c.GetComponent<EdgeCollider2D>() != _cableDisableState.Item2)
                 {
-                    c.GetComponent<EdgeCollider2D>().isTrigger = false;
+                    c.GetComponent<EdgeCollider2D>().isTrigger = true;
                 }
                 else
                 {
-                    c.GetComponent<EdgeCollider2D>().isTrigger = true;
+                    c.GetComponent<EdgeCollider2D>().isTrigger = false;
                 }
                 //c.GetComponent<EdgeCollider2D>().isTrigger = false;
             }
