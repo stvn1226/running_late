@@ -113,6 +113,11 @@ public class PlayerStates : MonoBehaviour
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
 
+    [Header("Cable Sliding")]
+    public bool isSlidingOnCable = false;
+    public EdgeCollider2D currentCable;
+    public float cableSlideSpeed = 0f;
+
     private Coroutine activeInvincibility;
 
     public bool IsWallRunHeld => wallRunHeld;
@@ -549,6 +554,20 @@ public class PlayerStates : MonoBehaviour
             isVaultingWall = false;
             vaultTimer = 0f;
         }
+    }
+
+    public void StartCableSlide(EdgeCollider2D cableCollider)
+    {
+        isSlidingOnCable = true;
+        currentCable = cableCollider;
+        isSliding = true;
+    }
+
+    public void EndCableSlide()
+    {
+        isSlidingOnCable = false;
+        currentCable = null;
+        isSliding = false;
     }
 
     public void RecordWallClimbInput()

@@ -317,10 +317,13 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Layer(s) considered as one-way platforms. Usually 'OneWayPlatform' layer.")]
     public LayerMask platformLayerMask = -1;
 
+    [Header("Cables")]
+    public float cableSlideForce = 100f;
+
     // ====================================
     // CAMERA CONTROLS
     // ====================================
-    
+
     [Header("Camera Pan (Right Stick)")]
     [Tooltip("Maximum distance the camera can pan from player. Units: Unity units. Recommended: 3-8")]
     [Range(1f, 15f)]
