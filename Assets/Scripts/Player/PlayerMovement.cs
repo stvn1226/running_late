@@ -350,7 +350,7 @@ public class PlayerMovement : MonoBehaviour
                     
                     rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
                     
-                    GameLogger.LogVerbose("SLOPE", $"SlopeMove: Input={horizontalInput:F2}, Dir={moveDirection}, CurSpeed={slopeCurrentSpeed:F2}, Target={slopeTargetSpeed:F2}, Force={slopeForceAmount:F0}");
+                    GameLogger.LogVerbose("SLOPE", $"SlopeMove: Input={horizontalInput:F2}, CurSpeed={slopeCurrentSpeed:F2}, Target={slopeTargetSpeed:F2}, Force={slopeForceAmount:F0}");
                 }
                 else
                 {
@@ -367,25 +367,26 @@ public class PlayerMovement : MonoBehaviour
 
     private void StickToSlope()
     {
-        // Decrementar timer
         slopeSnapDisableTimer -= Time.fixedDeltaTime;
     
         if (!states.isOnSlope || states.isSlopeTooSteep)
             return;
 
-        // No stick durante acciones
         if (states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking)
             return;
 
-        // No stick justo después de saltar (grace period)
         if (slopeSnapDisableTimer > 0f)
             return;
 
-        // SOLO cancelar componente perpendicular a la superficie
+        if (Mathf.Abs(states.moveInput.x) > 0.1f)
+            return;
+
+        if (rb.linearVelocity.y > 0.2f)
+            return;
+
         Vector2 perpendicular = states.slopeNormal;
         float perpendicularVel = Vector2.Dot(rb.linearVelocity, perpendicular);
     
-        // Si hay velocidad alejándose del slope, cancelarla gradualmente
         if (perpendicularVel > 0.01f)
         {
             Vector2 correctionForce = -perpendicular * (perpendicularVel * config.slopeStickStrength / Time.fixedDeltaTime);
@@ -511,10 +512,14 @@ public class PlayerMovement : MonoBehaviour
             }
     
             bool inputOpposesMovement = (horizontalInput * velocityAlongSlope) < 0;
-            float slopeTargetDrag = inputOpposesMovement ? config.groundDrag * 1.5f : config.groundDrag * 0.1f;
-    
-            Vector2 slopeDragForce = -slopeDirection * (velocityAlongSlope * (slopeTargetDrag * Time.fixedDeltaTime));
-            rb.AddForce(slopeDragForce, ForceMode2D.Force);
+            
+            if (inputOpposesMovement)
+            {
+                float slopeTargetDrag = config.groundDrag * 1.5f;
+                Vector2 slopeDragForce = -slopeDirection * (velocityAlongSlope * (slopeTargetDrag * Time.fixedDeltaTime));
+                rb.AddForce(slopeDragForce, ForceMode2D.Force);
+            }
+            
             return;
         }
         

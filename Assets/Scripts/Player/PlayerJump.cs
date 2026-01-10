@@ -294,10 +294,15 @@ public class PlayerJump : MonoBehaviour
 
         float velocityY = rb.linearVelocity.y;
         
-        states.isFalling = velocityY < -0.01f;
-        states.isGraceFalling = velocityY < 1f;
+        bool isOnValidSlope = states.isOnSlope && !states.isSlopeTooSteep && states.isGrounded;
+        bool isActuallyFalling = velocityY < -0.01f && !isOnValidSlope;
+        states.isFalling = isActuallyFalling;
+        states.isGraceFalling = velocityY < 1f && !isOnValidSlope;
 
-        if (states.isOnSlope && !states.isSlopeTooSteep && states.isGrounded && !states.isJumping && !states.isSliding && !states.isRolling && !states.isDiving && !states.isKicking)
+        bool isDoingAction = states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking;
+        bool shouldDisableGravity = states.isOnSlope && !states.isSlopeTooSteep && states.isGrounded && velocityY <= 0.01f && !isDoingAction;
+        
+        if (shouldDisableGravity)
         {
             rb.gravityScale = 0f;
         }

@@ -192,6 +192,8 @@ public class PlayerPhysics : MonoBehaviour
 
     private void CheckSlope()
     {
+        states.slopeBuffer = Mathf.Max(0f, states.slopeBuffer - Time.fixedDeltaTime);
+        
         if (config == null || !config.enableSlopeDetection)
         {
             states.slopeNormal = Vector2.up;
@@ -231,13 +233,24 @@ public class PlayerPhysics : MonoBehaviour
             Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x).normalized;
             states.slopeTangent = slopeRight;
             
-            // Solo considerar slope si está grounded y ángulo > threshold
-            states.isOnSlope = states.isGrounded && states.slopeAngle > 0.5f && states.slopeAngle <= config.maxWalkableSlope;
+            bool isSlopeAngleValid = states.slopeAngle > 0.5f && states.slopeAngle <= config.maxWalkableSlope;
+            bool shouldBeOnSlope = states.isGrounded && isSlopeAngleValid;
+            
+            if (shouldBeOnSlope)
+            {
+                states.slopeBuffer = 0.15f;
+            }
+            
+            states.isOnSlope = shouldBeOnSlope || states.slopeBuffer > 0f;
             states.isSlopeTooSteep = states.slopeAngle > config.maxWalkableSlope;
 
             if (states.isOnSlope && !wasOnSlope)
             {
                 GameLogger.Log("SLOPE", $"ENTERED SLOPE: Angle={states.slopeAngle:F1}°, Normal={states.slopeNormal}, Tangent={states.slopeTangent}, Obj={hit.collider.name}");
+            }
+            else if (!states.isOnSlope && wasOnSlope && states.isGrounded)
+            {
+                GameLogger.Log("SLOPE", $"EXITED SLOPE TO FLAT: Angle now {states.slopeAngle:F1}°");
             }
         }
         else
