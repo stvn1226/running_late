@@ -378,9 +378,6 @@ public class PlayerMovement : MonoBehaviour
         if (slopeSnapDisableTimer > 0f)
             return;
 
-        if (Mathf.Abs(states.moveInput.x) > 0.1f)
-            return;
-
         if (rb.linearVelocity.y > 0.2f)
             return;
 
