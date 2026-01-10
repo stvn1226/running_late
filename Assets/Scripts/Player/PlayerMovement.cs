@@ -41,7 +41,8 @@ public class PlayerMovement : MonoBehaviour
 
     private float maxRunSpeed;
     private Coroutine activeSpeedBoostCoroutine;
-
+    private float slopeSnapDisableTimer = 0f;
+    
     private void Start()
     {
         rb.linearDamping = 0f;
@@ -116,9 +117,9 @@ public class PlayerMovement : MonoBehaviour
 
         if (states.isStaggered) return;
       
+        StickToSlope();
         HandleSpriteFlipping();
         HandleMovement();
-        PreventSlopeSliding();
         
         AnalyzeFlipBehavior();
 
@@ -334,15 +335,20 @@ public class PlayerMovement : MonoBehaviour
 
                 float appliedForce = Mathf.Clamp(speedDifference * baseForce, -baseForce, baseForce);
                 
-                if (states.isOnSlope && !states.isSlopeTooSteep)
+                if (states.isOnSlope && !states.isSlopeTooSteep && states.isGrounded)
                 {
-                    Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
-                    float inputDir = Mathf.Sign(horizontalInput);
-                    Vector2 moveDirection = slopeRight * inputDir;
+                    Vector2 moveDirection = states.slopeTangent * horizontalInput;
                     
-                    GameLogger.Log("SLOPE", $"APPLYING SLOPE FORCE: Input={horizontalInput:F2}, Dir={moveDirection}, Force={appliedForce:F0}, Normal={states.slopeNormal}, Angle={states.slopeAngle:F1}°");
+                    float slopeCurrentSpeed = Vector2.Dot(rb.linearVelocity, moveDirection.normalized);
+                    float slopeTargetSpeed = moveDirection.magnitude * maxRunSpeed;
                     
-                    rb.AddForce(moveDirection * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                    float slopeSpeedDiff = slopeTargetSpeed - slopeCurrentSpeed;
+                    float slopeAccel = config.slopeMoveAccel * forceMultiplier;
+                    float slopeForceAmount = Mathf.Clamp(slopeSpeedDiff * slopeAccel, -slopeAccel, slopeAccel);
+                    
+                    rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
+                    
+                    GameLogger.LogVerbose("SLOPE", $"SlopeMove: Input={horizontalInput:F2}, Dir={moveDirection}, CurSpeed={slopeCurrentSpeed:F2}, Target={slopeTargetSpeed:F2}, Force={slopeForceAmount:F0}");
                 }
                 else
                 {
@@ -357,24 +363,73 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void PreventSlopeSliding()
+    private void StickToSlope()
     {
-        if (states.isOnSlope && states.isGrounded && !states.isSlopeTooSteep && Mathf.Abs(states.moveInput.x) < 0.1f)
+        // Decrementar timer
+        slopeSnapDisableTimer -= Time.fixedDeltaTime;
+    
+        if (!states.isOnSlope || states.isSlopeTooSteep)
+            return;
+
+        // No stick durante acciones
+        if (states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking)
+            return;
+
+        // No stick justo después de saltar (grace period)
+        if (slopeSnapDisableTimer > 0f)
+            return;
+
+        // SOLO cancelar componente perpendicular a la superficie
+        Vector2 perpendicular = states.slopeNormal;
+        float perpendicularVel = Vector2.Dot(rb.linearVelocity, perpendicular);
+    
+        // Si hay velocidad alejándose del slope, cancelarla gradualmente
+        if (perpendicularVel > 0.01f)
         {
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            Vector2 correctionForce = -perpendicular * (perpendicularVel * config.slopeStickStrength / Time.fixedDeltaTime);
+            rb.AddForce(correctionForce, ForceMode2D.Force);
+        
+            GameLogger.LogVerbose("SLOPE", $"STICK: Cancelled perpendicular={perpendicularVel:F2}");
         }
+    }
+
+    public void DisableSlopeSnapForJump()
+    {
+        slopeSnapDisableTimer = config.slopeSnapDisableTime;
     }
 
     private void HandleSlideMovement(float forceMultiplier)
     {
-        // Sliding uses momentum only - no horizontal input processed
-        // Could add slide steering here if needed
+        if (states.isOnSlope && !states.isSlopeTooSteep)
+        {
+            Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+            float currentDir = Mathf.Sign(rb.linearVelocity.x);
+            if (currentDir == 0f) currentDir = 1f;
+            
+            Vector2 slopeDir = slopeRight * currentDir;
+            float slopeBoost = slopeDir.y < 0f ? 500f : 0f;
+            
+            rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+            
+            GameLogger.LogVerbose("SLOPE", $"SLIDE ON SLOPE: Boost={slopeBoost:F0}, Dir={slopeDir}, VelX={rb.linearVelocity.x:F2}");
+        }
     }
 
     private void HandleRollMovement(float forceMultiplier)
     {
-        // Rolling uses momentum only, similar to sliding
-        // No horizontal input processed during roll
+        if (states.isOnSlope && !states.isSlopeTooSteep)
+        {
+            Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+            float currentDir = Mathf.Sign(rb.linearVelocity.x);
+            if (currentDir == 0f) currentDir = 1f;
+            
+            Vector2 slopeDir = slopeRight * currentDir;
+            float slopeBoost = slopeDir.y < 0f ? 500f : 0f;
+            
+            rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+            
+            GameLogger.LogVerbose("SLOPE", $"ROLL ON SLOPE: Boost={slopeBoost:F0}, Dir={slopeDir}, VelX={rb.linearVelocity.x:F2}");
+        }
     }
 
     private void HandleDiveMovement(float forceMultiplier)
@@ -435,6 +490,29 @@ public class PlayerMovement : MonoBehaviour
                 Vector2 dragForces = -velocity * (config.slideDrag * 0.3f * Time.fixedDeltaTime);
                 rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             }
+            return;
+        }
+        
+        if (states.isOnSlope && !states.isSlopeTooSteep)
+        {
+            Vector2 slopeDirection = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+            float velocityAlongSlope = Vector2.Dot(velocity, slopeDirection);
+    
+            if (Mathf.Abs(horizontalInput) < 0.1f)
+            {
+                if (Mathf.Abs(velocityAlongSlope) > 0.1f)
+                {
+                    Vector2 stopForce = -slopeDirection * (velocityAlongSlope * (config.slopeStopDecel * Time.fixedDeltaTime));
+                    rb.AddForce(stopForce, ForceMode2D.Force);
+                }
+                return;
+            }
+    
+            bool inputOpposesMovement = (horizontalInput * velocityAlongSlope) < 0;
+            float slopeTargetDrag = inputOpposesMovement ? config.groundDrag * 1.5f : config.groundDrag * 0.1f;
+    
+            Vector2 slopeDragForce = -slopeDirection * (velocityAlongSlope * (slopeTargetDrag * Time.fixedDeltaTime));
+            rb.AddForce(slopeDragForce, ForceMode2D.Force);
             return;
         }
         

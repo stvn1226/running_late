@@ -396,7 +396,7 @@ public class LevelStarter : MonoBehaviour
                 break;
             }
 
-            int heightChange = Random.Range(-2, 3);
+            int heightChange = Random.Range(-1, 2);
             int nextHeight = previousHeight + heightChange;
             nextHeight = Mathf.Clamp(nextHeight, module.moduleConfig.minTerrainHeight, module.moduleConfig.maxTerrainHeight);
 

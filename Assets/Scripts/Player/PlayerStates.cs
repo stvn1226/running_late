@@ -42,7 +42,8 @@ public class PlayerStates : MonoBehaviour
     public float slopeAngle = 0f;
     public Vector2 slopeNormal = Vector2.up;
     public bool isSlopeTooSteep = false;
-    
+    public Vector2 slopeTangent = Vector2.right;
+
     [Header("Power-Up States")]
     public bool isInvincible = false;
     public bool isShielded = false;

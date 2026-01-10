@@ -348,26 +348,35 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Enable slope detection and movement adjustments")]
     public bool enableSlopeDetection = true;
 
-    [Tooltip("Maximum angle (in degrees) the player can walk on. Slopes steeper than this will cause sliding. Recommended: 35-50")]
-    [Range(0f, 60f)]
+    [Tooltip("Maximum angle (in degrees) the player can walk on. Slopes steeper than this will cause sliding. Recommended: 40-50")]
+    [Range(20f, 70f)]
     public float maxWalkableSlope = 45f;
 
     [Tooltip("Distance to cast slope detection ray downward. Should be slightly more than groundCheckDistance. Recommended: 0.2-0.4")]
     [Range(0.1f, 1f)]
     public float slopeCheckDistance = 0.3f;
 
-    [Tooltip("Force multiplier when moving uphill. Lower = slower uphill movement. Recommended: 0.7-0.9")]
-    [Range(0.3f, 1f)]
-    public float uphillForceMultiplier = 0.8f;
+    [Header("Slope Movement - NEW TANGENTIAL SYSTEM")]
+    [Tooltip("Acceleration applied along the slope surface when moving. Same feel as flat ground. Recommended: Same as runForce")]
+    [Range(1000f, 6000f)]
+    public float slopeMoveAccel = 3000f;
 
-    [Tooltip("Force multiplier when moving downhill. Higher = faster downhill movement. Recommended: 1.1-1.4")]
-    [Range(1f, 2f)]
-    public float downhillForceMultiplier = 1.2f;
+    [Tooltip("Deceleration applied when no input on slope (prevents sliding). Higher = stops faster. Recommended: 80-120")]
+    [Range(40f, 200f)]
+    public float slopeStopDecel = 100f;
 
-    [Tooltip("Gravity multiplier on slopes steeper than maxWalkableSlope. Higher = faster sliding. Recommended: 1.5-3")]
-    [Range(1f, 5f)]
-    public float slopeSlideGravityMultiplier = 2f;
-    
+    [Tooltip("How strongly to stick to slope surface (cancels perpendicular velocity). 1.0 = instant stick. Recommended: 0.8-1.0")]
+    [Range(0.5f, 1f)]
+    public float slopeStickStrength = 1f;
+
+    [Tooltip("Distance to snap down to slope when descending (prevents bouncing). Recommended: 0.3-0.5")]
+    [Range(0.1f, 1f)]
+    public float slopeSnapDistance = 0.4f;
+
+    [Tooltip("Grace time after jump where slope snap is disabled (prevents jump cancellation). Recommended: 0.1-0.15")]
+    [Range(0.05f, 0.3f)]
+    public float slopeSnapDisableTime = 0.12f;
+
 
     // ====================================
     // VALIDATION (Editor Only)
