@@ -61,7 +61,20 @@ public class PlayerMovement : MonoBehaviour
             wallClimb = GetComponent<PlayerWallClimb>();
         }
         
+        if (states != null)
+        {
+            states.OnLanded += HandleLanding;
+        }
+        
         GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
+    }
+
+    private void OnDestroy()
+    {
+        if (states != null)
+        {
+            states.OnLanded -= HandleLanding;
+        }
     }
 
     public void InvokeExtraSpeed(float extraSpeed, float duration)
@@ -298,9 +311,6 @@ public class PlayerMovement : MonoBehaviour
             forceMultiplier *= config.staggerMovementReduction;
         }
 
-        states.animator.SetFloat(XVelocity, Mathf.Abs(rb.linearVelocity.x));
-        states.animator.SetFloat(YVelocity, rb.linearVelocity.y);
-
         if (states.isWallRunning)
             HandleWallRunMovement(forceMultiplier);
         else if (states.isSlidingOnCable)
@@ -372,7 +382,7 @@ public class PlayerMovement : MonoBehaviour
         if (!states.isOnSlope || states.isSlopeTooSteep)
             return;
 
-        if (states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking)
+        if (states.isJumping || states.isRolling || states.isDiving || states.isKicking)
             return;
 
         if (slopeSnapDisableTimer > 0f)

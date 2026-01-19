@@ -3,17 +3,10 @@ using UnityEngine;
 
 public class PlayerStates : MonoBehaviour
 {
-    private static readonly int IsKicking = Animator.StringToHash("isKicking");
-    private static readonly int IsSliding = Animator.StringToHash("isSliding");
-    private static readonly int IsWallRunning = Animator.StringToHash("isWallRunning");
-    private static readonly int IsCrouching = Animator.StringToHash("isCrouching");
-    private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
-    private static readonly int IsDiving = Animator.StringToHash("isDiving");
-    private static readonly int IsRolling = Animator.StringToHash("isRolling");
-    private static readonly int IsVaulting = Animator.StringToHash("isVaulting");
-
     [Header("Animator")]
     public Animator animator;
+    
+    private PlayerAnimatorController animatorController;
 
     [Header("Input States")]
     public Vector2 moveInput;
@@ -127,13 +120,18 @@ public class PlayerStates : MonoBehaviour
     public System.Action OnWallRunChanged;
     public System.Action OnJumpStateChanged;
     public System.Action OnStaggerStateChanged;
+    public System.Action OnLanded;
+
+    private void Start()
+    {
+        animatorController = GetComponent<PlayerAnimatorController>();
+    }
 
     private void Update()
     {
         LogWallRunStates();
         UpdateTimers();
         CheckStateChanges();
-        UpdateAnimator();
         UpdatePreviousValues();
     }
 
@@ -208,17 +206,6 @@ public class PlayerStates : MonoBehaviour
         prevWallRunHeld = wallRunHeld;
         prevIsWallRunning = isWallRunning;
         prevMoveInput = moveInput;
-    }
-
-    private void UpdateAnimator()
-    {
-        animator.SetBool(IsSliding, isSliding);
-        animator.SetBool(IsWallRunning, isWallRunning);
-        animator.SetBool(IsCrouching, isCrouching);
-        animator.SetBool(IsStaggered, isStaggered);
-        animator.SetBool(IsDiving, isDiving);
-        animator.SetBool(IsRolling, isRolling);
-        animator.SetBool(IsVaulting, isVaultingWall);
     }
 
     private void UpdateTimers()
@@ -392,7 +379,11 @@ public class PlayerStates : MonoBehaviour
                 EndRoll();
             }
             
-            animator.SetTrigger(IsKicking);
+            if (animatorController != null)
+            {
+                animatorController.TriggerKick();
+            }
+            
             kickPressed = true;
             isKicking = true;
             kickTimer = kickDuration;
@@ -411,7 +402,6 @@ public class PlayerStates : MonoBehaviour
         {
             isKicking = false;
             kickTimer = 0f;
-            animator.ResetTrigger(IsKicking);
             GameLogger.LogState("KICK: Ended");
         }
     }

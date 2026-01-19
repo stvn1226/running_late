@@ -79,11 +79,11 @@ public class PlayerStateManager : MonoBehaviour
 
     private void HandleCrouchAndSlide()
     {
-        // Don't interfere with rolling state
         if (states.isRolling) return;
         if (states.isSlidingOnCable) return;
 
-        bool shouldProcessCrouchSlide = states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping;
+        bool isOnGroundOrSlope = states.isGrounded || (states.isOnSlope && rb.linearVelocity.y < 2f);
+        bool shouldProcessCrouchSlide = states.crouchHeld && isOnGroundOrSlope && !states.isWallRunning && !states.isJumping;
         
         if (shouldProcessCrouchSlide)
         {
@@ -114,7 +114,7 @@ public class PlayerStateManager : MonoBehaviour
                 states.isCrouching = false;
                 states.isSliding = true;
             }
-            else
+            else if (!states.isSliding)
             {
                 if (!states.isCrouching)
                 {

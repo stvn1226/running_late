@@ -12,6 +12,22 @@ public class PlayerAirDodge : MonoBehaviour
     private bool isDodging = false;
     private Vector2 preDodgeVelocity;
 
+    private void Start()
+    {
+        if (states != null)
+        {
+            states.OnLanded += OnLanding;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (states != null)
+        {
+            states.OnLanded -= OnLanding;
+        }
+    }
+
     private void Update()
     {
         UpdateAirDodgeAvailability();

@@ -1,0 +1,93 @@
+using UnityEngine;
+
+public class PlayerAnimatorController : MonoBehaviour
+{
+    private static readonly int IsKicking = Animator.StringToHash("isKicking");
+    private static readonly int IsSliding = Animator.StringToHash("isSliding");
+    private static readonly int IsWallRunning = Animator.StringToHash("isWallRunning");
+    private static readonly int IsCrouching = Animator.StringToHash("isCrouching");
+    private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
+    private static readonly int IsDiving = Animator.StringToHash("isDiving");
+    private static readonly int IsRolling = Animator.StringToHash("isRolling");
+    private static readonly int IsVaulting = Animator.StringToHash("isVaulting");
+    private static readonly int XVelocity = Animator.StringToHash("xVelocity");
+    private static readonly int YVelocity = Animator.StringToHash("yVelocity");
+    private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
+    private static readonly int IsOnSlope = Animator.StringToHash("isOnSlope");
+
+    [Header("References")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private PlayerStates states;
+
+    private void Awake()
+    {
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
+        if (rb == null)
+        {
+            rb = GetComponent<Rigidbody2D>();
+        }
+
+        if (states == null)
+        {
+            states = GetComponent<PlayerStates>();
+        }
+    }
+
+    private void LateUpdate()
+    {
+        UpdateAnimator();
+    }
+
+    private void UpdateAnimator()
+    {
+        if (animator == null || states == null) return;
+
+        if (rb != null)
+        {
+            float xVel = Mathf.Abs(rb.linearVelocity.x);
+            
+            if (xVel < 0.2f)
+            {
+                xVel = 0f;
+            }
+            
+            animator.SetFloat(XVelocity, xVel);
+            
+            float yVelocityToSet = rb.linearVelocity.y;
+            
+            if (states.isOnSlope)
+            {
+                yVelocityToSet = 0f;
+            }
+            else if (states.isSliding)
+            {
+                yVelocityToSet = 0f;
+            }
+            
+            animator.SetFloat(YVelocity, yVelocityToSet);
+        }
+        
+        animator.SetBool(IsGrounded, states.isGrounded);
+        animator.SetBool(IsOnSlope, states.isOnSlope);
+        animator.SetBool(IsSliding, states.isSliding);
+        animator.SetBool(IsWallRunning, states.isWallRunning);
+        animator.SetBool(IsCrouching, states.isCrouching);
+        animator.SetBool(IsStaggered, states.isStaggered);
+        animator.SetBool(IsDiving, states.isDiving);
+        animator.SetBool(IsRolling, states.isRolling);
+        animator.SetBool(IsVaulting, states.isVaultingWall);
+    }
+
+    public void TriggerKick()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger(IsKicking);
+        }
+    }
+}

@@ -654,6 +654,12 @@ GameObject:
   - component: {fileID: 1472578967037456669}
   - component: {fileID: 2235664641990637577}
   - component: {fileID: 4148421020609545807}
+  - component: {fileID: -6996090404843809405}
+  - component: {fileID: 7486487876220108317}
+  - component: {fileID: 4153542583054546825}
+  - component: {fileID: 2499517802002011944}
+  - component: {fileID: 7157028683347527248}
+  - component: {fileID: 4145764174526361314}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -725,7 +731,6 @@ MonoBehaviour:
   rb: {fileID: 5328747980780883216}
   playerCollider: {fileID: 3391139825406007247}
   states: {fileID: 6913775742238925164}
-  playerMovement: {fileID: 8651723166033491134}
   originalColliderSize: {x: 0, y: 0}
   originalColliderOffset: {x: 0, y: 0}
   crouchColliderSize: {x: 0, y: 0}
@@ -765,6 +770,7 @@ MonoBehaviour:
   rb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
   jumpFeedbacks: {fileID: 2034557323466851438}
+  playerMovement: {fileID: 0}
 --- !u!114 &9074128693007361277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -842,6 +848,12 @@ MonoBehaviour:
   isStaggered: 0
   isAirDodging: 0
   canAirDodge: 0
+  isOnSlope: 0
+  slopeAngle: 0
+  slopeNormal: {x: 0, y: 1}
+  isSlopeTooSteep: 0
+  slopeTangent: {x: 1, y: 0}
+  slopeBuffer: 0
   isInvincible: 0
   isShielded: 0
   jumpInputBuffered: 0
@@ -881,6 +893,11 @@ MonoBehaviour:
   divePressed: 0
   kickTimer: 0
   staggerTimer: 0
+  isCornerClimbing: 0
+  cornerClimbTimer: 0
+  isSlidingOnCable: 0
+  currentCable: {fileID: 0}
+  cableSlideSpeed: 0
 --- !u!114 &936994605630686359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -968,7 +985,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 211ef171ae8248f1886e72fd3620cae1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVelocityDebugger
-  rb: {fileID: 0}
+  rb: {fileID: 5328747980780883216}
   showVelocityGizmo: 1
   velocityScale: 0.5
   velocityColor: {r: 0, g: 1, b: 0, a: 1}
@@ -996,6 +1013,106 @@ MonoBehaviour:
   logCollisions: 1
   significantPositionChange: 1
   significantVelocityChange: 2
+--- !u!114 &-6996090404843809405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b59ce19454e7d40cd8debb5c9199c6d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimatorController
+  animator: {fileID: 1472578967037456669}
+  rb: {fileID: 5328747980780883216}
+  states: {fileID: 6913775742238925164}
+--- !u!114 &7486487876220108317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20ad9e36260ef40fc99cbb4290f6320f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorStateDebugger
+  enableLogging: 1
+  showOnScreenDebug: 1
+  toggleKey: 282
+  listStatesKey: 286
+  animator: {fileID: 1472578967037456669}
+  states: {fileID: 6913775742238925164}
+  rb: {fileID: 5328747980780883216}
+--- !u!114 &4153542583054546825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eb34e2aa3d30408e98146e0619ee677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorTransitionBlocker
+  blockTransitions: 0
+  toggleBlockKey: 283
+  forceSlideKey: 284
+  forceIdleKey: 285
+  overrideIsSliding: 0
+  forceSlidingValue: 1
+  overrideYVelocity: 0
+  forceYVelocityValue: 0
+  animator: {fileID: 1472578967037456669}
+  states: {fileID: 6913775742238925164}
+  rb: {fileID: 5328747980780883216}
+--- !u!114 &2499517802002011944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed094ed68ef3449499107cae11d7fe78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorHashResolver
+  animator: {fileID: 1472578967037456669}
+  targetHash: 1426794457
+  foundStateName: 
+--- !u!114 &7157028683347527248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93c1abcb2bf08435ba63a362f6ed8a73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorTransitionAnalyzer
+  animator: {fileID: 1472578967037456669}
+  fromState: Slide
+  toState: JumpFall
+--- !u!114 &4145764174526361314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b68a0fc906fc45879602a646e1d91d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorTransitionFixer
+  animator: {fileID: 1472578967037456669}
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,7 +8,6 @@ public class PlayerPhysics : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private CapsuleCollider2D playerCollider;
     [SerializeField] private PlayerStates states;
-    [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private Vector2 originalColliderSize;
     [SerializeField] private Vector2 originalColliderOffset;
     [SerializeField] private Vector2 crouchColliderSize;
@@ -21,17 +20,14 @@ public class PlayerPhysics : MonoBehaviour
     private const float PHYSICS_LOG_INTERVAL = 1f;
 
     private float lastWallHeightCheck = 0f;
+    private float groundedBufferTimer = 0f;
+    private const float GROUNDED_BUFFER_TIME = 0.1f;
 
     private void Awake()
     {
         if (playerCollider == null)
         {
             GameLogger.LogError("PHYSICS", "No CapsuleCollider2D found in children!");
-        }
-        
-        if (playerMovement == null)
-        {
-            playerMovement = GetComponent<PlayerMovement>();
         }
         
         originalColliderSize = playerCollider.size;
@@ -66,36 +62,22 @@ public class PlayerPhysics : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         CheckSlope();
         CheckGrounded();
         CheckWallRun();
-        
+    }
+
+    private void Update()
+    {
         if (states.isGrounded != previousGrounded)
         {
             GameLogger.LogPhysics($"GROUNDED CHANGE: {previousGrounded} -> {states.isGrounded}, Velocity.y: {rb.linearVelocity.y:F2}, OnSlope: {states.isOnSlope}");
             
-            if (states.isGrounded && !previousGrounded && playerMovement != null)
+            if (states.isGrounded && !previousGrounded)
             {
-                playerMovement.HandleLanding();
-            }
-        }
-
-        if (states.isGrounded && !previousGrounded && playerMovement != null)
-        {
-            playerMovement.HandleLanding();
-
-            PlayerAirDodge airDodge = GetComponent<PlayerAirDodge>();
-            if (airDodge != null)
-            {
-                airDodge.OnLanding();
-            }
-
-            PlayerDive dive = GetComponent<PlayerDive>();
-            if (dive != null)
-            {
-                dive.OnLanding();
+                states.OnLanded?.Invoke();
             }
         }
 
@@ -124,12 +106,54 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 boxCenter = (Vector2)playerCollider.transform.position + playerCollider.offset;
         Vector2 boxSize = playerCollider.size;
 
-        float extraDistance = states.slopeAngle > 0.5f ? 0.15f : 0f;
+        float extraDistance = states.isOnSlope ? 0.2f : 0f;
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance + extraDistance, config.groundLayer);
         
-        bool boxcastGrounded = hit.collider != null && rb.linearVelocity.y <= 0.1f;
+        bool hitGround = hit.collider != null;
         
-        states.isGrounded = boxcastGrounded;
+        if (hitGround)
+        {
+            if (states.isOnSlope)
+            {
+                bool shouldBeGrounded = rb.linearVelocity.y <= 1.5f;
+                if (shouldBeGrounded)
+                {
+                    states.isGrounded = true;
+                    groundedBufferTimer = GROUNDED_BUFFER_TIME;
+                }
+                else
+                {
+                    if (groundedBufferTimer > 0f)
+                    {
+                        states.isGrounded = true;
+                        groundedBufferTimer -= Time.fixedDeltaTime;
+                    }
+                    else
+                    {
+                        states.isGrounded = false;
+                    }
+                }
+            }
+            else
+            {
+                bool shouldBeGrounded = rb.linearVelocity.y <= 0.1f;
+                if (shouldBeGrounded)
+                {
+                    states.isGrounded = true;
+                    groundedBufferTimer = GROUNDED_BUFFER_TIME;
+                }
+                else
+                {
+                    states.isGrounded = false;
+                    groundedBufferTimer = 0f;
+                }
+            }
+        }
+        else
+        {
+            states.isGrounded = false;
+            groundedBufferTimer = 0f;
+        }
     }
 
     private void CheckWallRun()
@@ -224,7 +248,7 @@ public class PlayerPhysics : MonoBehaviour
             states.slopeTangent = slopeRight;
             
             bool isSlopeAngleValid = states.slopeAngle > 0.5f && states.slopeAngle <= config.maxWalkableSlope;
-            bool shouldBeOnSlope = isSlopeAngleValid && rb.linearVelocity.y <= 0.15f;
+            bool shouldBeOnSlope = isSlopeAngleValid;
             
             if (shouldBeOnSlope)
             {
