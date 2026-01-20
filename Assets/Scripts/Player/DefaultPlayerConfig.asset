@@ -79,7 +79,7 @@ MonoBehaviour:
   platformLayerMask:
     serializedVersion: 2
     m_Bits: 131200
-  cableSlideForce: 100
+  cableSlideForce: 50
   panAmount: 5
   panSpeed: 5
   returnSpeed: 8
@@ -88,6 +88,8 @@ MonoBehaviour:
   enableSlopeDetection: 1
   maxWalkableSlope: 45
   slopeCheckDistance: 0.5
-  uphillForceMultiplier: 0.8
-  downhillForceMultiplier: 1.2
-  slopeSlideGravityMultiplier: 2
+  slopeMoveAccel: 3000
+  slopeStopDecel: 100
+  slopeStickStrength: 1
+  slopeSnapDistance: 0.4
+  slopeSnapDisableTime: 0.12

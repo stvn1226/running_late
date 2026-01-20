@@ -655,11 +655,6 @@ GameObject:
   - component: {fileID: 2235664641990637577}
   - component: {fileID: 4148421020609545807}
   - component: {fileID: -6996090404843809405}
-  - component: {fileID: 7486487876220108317}
-  - component: {fileID: 4153542583054546825}
-  - component: {fileID: 2499517802002011944}
-  - component: {fileID: 7157028683347527248}
-  - component: {fileID: 4145764174526361314}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -700,10 +695,10 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 1.3
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1.8
+  m_GravityScale: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -1028,91 +1023,6 @@ MonoBehaviour:
   animator: {fileID: 1472578967037456669}
   rb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
---- !u!114 &7486487876220108317
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7558522345653489904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20ad9e36260ef40fc99cbb4290f6320f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimatorStateDebugger
-  enableLogging: 1
-  showOnScreenDebug: 1
-  toggleKey: 282
-  listStatesKey: 286
-  animator: {fileID: 1472578967037456669}
-  states: {fileID: 6913775742238925164}
-  rb: {fileID: 5328747980780883216}
---- !u!114 &4153542583054546825
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7558522345653489904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3eb34e2aa3d30408e98146e0619ee677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimatorTransitionBlocker
-  blockTransitions: 0
-  toggleBlockKey: 283
-  forceSlideKey: 284
-  forceIdleKey: 285
-  overrideIsSliding: 0
-  forceSlidingValue: 1
-  overrideYVelocity: 0
-  forceYVelocityValue: 0
-  animator: {fileID: 1472578967037456669}
-  states: {fileID: 6913775742238925164}
-  rb: {fileID: 5328747980780883216}
---- !u!114 &2499517802002011944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7558522345653489904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed094ed68ef3449499107cae11d7fe78, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimatorHashResolver
-  animator: {fileID: 1472578967037456669}
-  targetHash: 1426794457
-  foundStateName: 
---- !u!114 &7157028683347527248
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7558522345653489904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93c1abcb2bf08435ba63a362f6ed8a73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimatorTransitionAnalyzer
-  animator: {fileID: 1472578967037456669}
-  fromState: Slide
-  toState: JumpFall
---- !u!114 &4145764174526361314
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7558522345653489904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b68a0fc906fc45879602a646e1d91d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimatorTransitionFixer
-  animator: {fileID: 1472578967037456669}
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0
