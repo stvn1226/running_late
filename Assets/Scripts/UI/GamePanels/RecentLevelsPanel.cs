@@ -2,19 +2,39 @@ using UnityEngine;
 
 public class RecentLevelsPanel : BaseMainMenuPanel
 {
+    [SerializeField] SavedLevelEntry savedLevelEntry;
+
     protected override void SetupPanel()
     {
-        if (defaultSelectedButton != null)
+        //if (defaultSelectedButton != null)
+        //{
+        //    defaultSelectedButton.onClick.AddListener(OnBackClicked);
+        //}
+        if (savedLevelEntry != null)
         {
-            defaultSelectedButton.onClick.AddListener(OnBackClicked);
+            savedLevelEntry.startButton.onClick.AddListener(OnPlayClicked);
         }
     }
 
     private void OnDestroy()
     {
-        if (defaultSelectedButton != null)
+        //if (defaultSelectedButton != null)
+        //{
+        //    defaultSelectedButton.onClick.RemoveListener(OnBackClicked);
+        //}
+        if (savedLevelEntry != null)
         {
-            defaultSelectedButton.onClick.RemoveListener(OnBackClicked);
+            savedLevelEntry.startButton.onClick.RemoveListener(OnPlayClicked);
+        }
+    }
+
+    private void OnPlayClicked()
+    {
+        GameLogger.Log("RECENTS", "Play clicked");
+
+        if (menuController != null)
+        {
+            menuController.StartGame();
         }
     }
 

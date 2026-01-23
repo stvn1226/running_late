@@ -577,6 +577,7 @@ GameObject:
   - component: {fileID: 7568708925639570525}
   - component: {fileID: 2186762066844458149}
   - component: {fileID: 2890894769733500411}
+  - component: {fileID: 3387049554745576029}
   m_Layer: 5
   m_Name: SavedLevelEntry
   m_TagString: Untagged
@@ -672,6 +673,25 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &3387049554745576029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3268588171230969633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fc2f778ad245b742b82f8700ae00d64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SavedLevelPanel
+  levelNameDisplay: {fileID: 4796021834540275587}
+  levelSeedDisplay: {fileID: 3395988474341495055}
+  levelName: PILOT
+  levelSeed: 0
+  startButton: {fileID: 526871836317970083}
+  renameButton: {fileID: 4426642657148134837}
+  deleteButton: {fileID: 9220664641592940027}
 --- !u!1 &3406580495110307361
 GameObject:
   m_ObjectHideFlags: 0
