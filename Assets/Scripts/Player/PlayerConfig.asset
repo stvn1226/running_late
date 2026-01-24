@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96173508aea0fd5428491c311e1c500b, type: 3}
+  m_Name: PlayerConfig
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerConfig
+  runForce: 3000
+  maxRunSpeed: 30
+  airControlMultiplier: 0.8
+  minJumpForce: 12
+  maxJumpForce: 18
+  jumpHoldTime: 0.3
+  apexThreshold: 2
+  apexGravityScale: 2.5
+  fallGravityScale: 6
+  fastFallGravityScale: 9
+  jumpBufferTime: 0.12
+  coyoteTime: 0.1
+  longJumpVerticalMultiplier: 0.6
+  longJumpHorizontalBoost: 20
+  longJumpBufferTime: 0.15
+  longJumpGracePeriod: 0.4
+  airDodgeForce: 20
+  airDodgeDuration: 0.3
+  airDodgeCooldown: 0.15
+  slowFallGravityMultiplier: 0.4
+  diveHorizontalBoost: 25
+  diveVerticalReduction: 0.4
+  diveDuration: 0.4
+  rollDuration: 0.5
+  minDiveVelocity: 3
+  wallRunForce: 3000
+  wallRunGravityScale: 1
+  wallJumpMultiplier: 1
+  perfectClimbWindow: 0.15
+  perfectClimbBoostMultiplier: 1.5
+  wallVaultTriggerDistance: 1.5
+  wallVaultHorizontalBoost: 25
+  wallVaultVerticalDamping: 0.3
+  wallVaultDuration: 0.25
+  maxWallHeightCheck: 20
+  wallHeightCheckInterval: 0.4
+  enableCornerClimb: 1
+  cornerClimbMinVelocity: -1
+  cornerClimbMaxVelocity: 1.5
+  cornerClimbDetectionDistance: 2.5
+  cornerClimbBoostForce: 12
+  cornerClimbDuration: 0.2
+  groundDrag: 50
+  airDrag: 50
+  slideDrag: 10
+  maxFallSpeed: 20
+  groundCheckDistance: 0.1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  wallCheckDistance: 0.5
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  kickDuration: 0.25
+  kickForceReduction: 0.5
+  staggerDuration: 0.8
+  staggerKnockbackForce: 20
+  staggerMovementReduction: 0.2
+  landingGracePeriod: 0.5
+  slamLandingThreshold: -0.1
+  momentumConversionRatio: 0.6
+  crouchSizeMultiplier: {x: 1.33, y: 0.33}
+  dropDownDisableTime: 0.3
+  platformLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  cableSlideForce: 100
+  panAmount: 5
+  panSpeed: 5
+  returnSpeed: 8
+  invertXAxis: 0
+  invertYAxis: 0
+  enableSlopeDetection: 1
+  maxWalkableSlope: 45
+  minSlopeAngle: 0.5
+  slopeCheckDistance: 0.3
+  slopeGroundCheckExtra: 0.2
+  slopeGroundedYVelocityThreshold: 1.5
+  slopeMoveAccel: 3000
+  slopeStopDecel: 100
+  slopeStickStrength: 1
+  slopeSnapDistance: 0.4
+  slopeSnapDisableTime: 0.12

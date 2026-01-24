@@ -59,6 +59,8 @@ public class PlayerStateManager : MonoBehaviour
     {
         if (states.isRolling)
         {
+            float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+            
             if (!states.isGrounded)
             {
                 GameLogger.LogState("ROLL SAFETY: Player left ground while rolling, ending roll");
@@ -67,6 +69,11 @@ public class PlayerStateManager : MonoBehaviour
             else if (states.isWallRunning)
             {
                 GameLogger.LogState("ROLL SAFETY: Player started wall running while rolling, ending roll");
+                states.EndRoll();
+            }
+            else if (currentSpeed < 0.3f)
+            {
+                GameLogger.LogState($"ROLL ENDED: Speed too low ({currentSpeed:F2})");
                 states.EndRoll();
             }
             else if (states.rollTimer <= 0f && (states.isCrouching || states.isSliding))
@@ -90,6 +97,14 @@ public class PlayerStateManager : MonoBehaviour
             float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
             
             bool shouldSlide = currentSpeed > 2f || (states.justLanded && currentSpeed > 1f);
+            
+            if (states.isSliding && currentSpeed < 0.3f)
+            {
+                GameLogger.LogState($"SLIDE ENDED: Speed too low ({currentSpeed:F2})");
+                states.isSliding = false;
+                states.isCrouching = true;
+                return;
+            }
             
             if (shouldSlide)
             {

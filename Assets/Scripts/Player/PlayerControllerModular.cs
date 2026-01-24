@@ -193,6 +193,8 @@ public class PlayerControllerModular : MonoBehaviour
     {
         if (states != null && config != null)
         {
+            GameLogger.Log("KICK", $"Input received - isGrounded={states.isGrounded}, isKicking={states.isKicking}");
+            
             if (states.isKicking)
             {
                 GameLogger.LogWarning("KICK", "Kick already active, ignoring input");
@@ -202,7 +204,7 @@ public class PlayerControllerModular : MonoBehaviour
             states.SetKickPressed(config.kickDuration);
             kicker.PerformKick(config.kickDuration);
             
-            GameLogger.LogInput($"Kick input processed - Duration: {config.kickDuration}s");
+            GameLogger.LogInput($"KICK: Input processed - Duration: {config.kickDuration}s");
         }
     }
 

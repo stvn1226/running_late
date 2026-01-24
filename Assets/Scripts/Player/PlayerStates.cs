@@ -251,7 +251,7 @@ public class PlayerStates : MonoBehaviour
             kickTimer -= Time.deltaTime;
             if (kickTimer <= 0f)
             {
-                GameLogger.LogState($"KICK: Timer expired ({kickTimer:F3}s), forcing end");
+                GameLogger.Log("KICK", $"Timer expired ({kickTimer:F3}s), forcing end");
                 EndKick();
             }
         }
@@ -372,27 +372,27 @@ public class PlayerStates : MonoBehaviour
 
     public void SetKickPressed(float kickDuration)
     {
-        if (!isKicking)
+        if (isKicking)
         {
-            if (isRolling)
-            {
-                EndRoll();
-            }
-            
-            if (animatorController != null)
-            {
-                animatorController.TriggerKick();
-            }
-            
-            kickPressed = true;
-            isKicking = true;
-            kickTimer = kickDuration;
-
-            GameLogger.LogState($"KICK: Started - Timer set to {kickTimer:F2}s");
+            GameLogger.LogWarning("KICK", "Kick already active, ignoring new kick request in PlayerStates");
+            return;
         }
-        else
+        
+        if (isRolling)
         {
-            GameLogger.LogWarning("KICK", "Kick already active, ignoring new kick request");
+            GameLogger.Log("KICK", "Ending roll to allow kick");
+            EndRoll();
+        }
+        
+        kickPressed = true;
+        isKicking = true;
+        kickTimer = kickDuration;
+
+        GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Timer={kickTimer:F2}s, isGrounded={isGrounded}");
+        
+        if (animatorController != null)
+        {
+            animatorController.TriggerKick();
         }
     }
 
@@ -402,7 +402,7 @@ public class PlayerStates : MonoBehaviour
         {
             isKicking = false;
             kickTimer = 0f;
-            GameLogger.LogState("KICK: Ended");
+            GameLogger.Log("KICK", "STATE: isKicking SET TO FALSE - Kick ended");
         }
     }
 

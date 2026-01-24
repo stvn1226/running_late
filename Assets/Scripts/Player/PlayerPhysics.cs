@@ -106,7 +106,7 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 boxCenter = (Vector2)playerCollider.transform.position + playerCollider.offset;
         Vector2 boxSize = playerCollider.size;
 
-        float extraDistance = states.isOnSlope ? 0.2f : 0f;
+        float extraDistance = states.isOnSlope ? config.slopeGroundCheckExtra : 0f;
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance + extraDistance, config.groundLayer);
         
         bool hitGround = hit.collider != null;
@@ -115,7 +115,7 @@ public class PlayerPhysics : MonoBehaviour
         {
             if (states.isOnSlope)
             {
-                bool shouldBeGrounded = rb.linearVelocity.y <= 1.5f;
+                bool shouldBeGrounded = rb.linearVelocity.y <= config.slopeGroundedYVelocityThreshold;
                 if (shouldBeGrounded)
                 {
                     states.isGrounded = true;
@@ -247,7 +247,7 @@ public class PlayerPhysics : MonoBehaviour
             Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x).normalized;
             states.slopeTangent = slopeRight;
             
-            bool isSlopeAngleValid = states.slopeAngle > 0.5f && states.slopeAngle <= config.maxWalkableSlope;
+            bool isSlopeAngleValid = states.slopeAngle > config.minSlopeAngle && states.slopeAngle <= config.maxWalkableSlope;
             bool shouldBeOnSlope = isSlopeAngleValid;
             
             if (shouldBeOnSlope)

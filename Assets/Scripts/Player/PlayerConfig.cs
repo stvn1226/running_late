@@ -355,9 +355,21 @@ public class PlayerConfig : ScriptableObject
     [Range(20f, 70f)]
     public float maxWalkableSlope = 45f;
 
+    [Tooltip("Minimum angle to be considered a slope (prevents detecting tiny bumps). Recommended: 0.5-2")]
+    [Range(0.1f, 5f)]
+    public float minSlopeAngle = 0.5f;
+
     [Tooltip("Distance to cast slope detection ray downward. Should be slightly more than groundCheckDistance. Recommended: 0.2-0.4")]
     [Range(0.1f, 1f)]
     public float slopeCheckDistance = 0.3f;
+
+    [Tooltip("Extra ground check distance when on slope (prevents false ungrounded). Recommended: 0.15-0.3")]
+    [Range(0.05f, 0.5f)]
+    public float slopeGroundCheckExtra = 0.2f;
+
+    [Tooltip("Max Y velocity to be considered grounded on slope. Higher = more forgiving on steep slopes. Recommended: 1.0-2.5")]
+    [Range(0.5f, 5f)]
+    public float slopeGroundedYVelocityThreshold = 1.5f;
 
     [Header("Slope Movement - NEW TANGENTIAL SYSTEM")]
     [Tooltip("Acceleration applied along the slope surface when moving. Same feel as flat ground. Recommended: Same as runForce")]
