@@ -9,7 +9,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private MainMenuPanel mainMenuPanel;
     [SerializeField] private CreditsPanel creditsPanel;
     [SerializeField] private SettingsPanel settingsPanel;
-    [SerializeField] private RecentLevelsPanel recentLevelsPanel;
+    [SerializeField] private SavedLevelsPanel recentLevelsPanel;
     [SerializeField] private SavedLevelsPanel savedLevelsPanel;
 
     [Header("Fade Settings")]
