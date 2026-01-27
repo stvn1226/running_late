@@ -1,26 +1,28 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SavedLevelsPanel : BaseMainMenuPanel
 {
-    [SerializeField] SavedLevelEntry savedLevelEntry;
+    [SerializeField] private VerticalLayoutGroup entriesLayoutGroup;
+    [SerializeField] private SavedLevelEntry[] savedLevelEntries;
+    [SerializeField] private TextInputPanel renamePanel;
 
     protected override void SetupPanel()
     {
-        //if (savedLevelEntry != null)
-        //{
-        //    savedLevelEntry.startButton.onClick.AddListener(OnPlayClicked);
-        //}
+        entriesLayoutGroup = GetComponentInChildren<VerticalLayoutGroup>();
+
+        if (entriesLayoutGroup != null)
+        {
+            // populate entriesLayoutGroup with savedLevelEntries
+        }
     }
 
     private void OnDestroy()
     {
-        //if (savedLevelEntry != null)
-        //{
-        //    savedLevelEntry.startButton.onClick.RemoveListener(OnPlayClicked);
-        //}
+
     }
 
-    public void OnPlayClicked()
+    public void OnPlayClicked(SavedLevelEntry savedLevelEntry)
     {
         GameLogger.Log("RECENTS", "Play clicked");
 
@@ -31,6 +33,17 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         if (menuController != null)
         {
             menuController.StartGame();
+        }
+    }
+
+    public void OnRenameClicked(SavedLevelEntry savedLevelEntry)
+    {
+        GameLogger.Log("SAVED LEVELS", "Rename clicked");
+        if (renamePanel != null)
+        {
+            renamePanel.SetActiveEntry(savedLevelEntry);
+            renamePanel.ChangePlaceholderText(savedLevelEntry);
+            renamePanel.Show();
         }
     }
 

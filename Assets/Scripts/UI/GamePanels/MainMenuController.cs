@@ -11,6 +11,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private SettingsPanel settingsPanel;
     [SerializeField] private SavedLevelsPanel recentLevelsPanel;
     [SerializeField] private SavedLevelsPanel savedLevelsPanel;
+    [SerializeField] private TextInputPanel textInputPanel;
 
     [Header("Fade Settings")]
     [SerializeField] private CanvasGroup menuCanvasGroup;
@@ -97,6 +98,11 @@ public class MainMenuController : MonoBehaviour
         {
             savedLevelsPanel.Initialize(this);
         }
+
+        if (textInputPanel != null)
+        {
+            textInputPanel.Initialize(this);
+        }
     }
 
     public void ShowMainPanel()
@@ -122,6 +128,11 @@ public class MainMenuController : MonoBehaviour
     public void ShowSavedLevelsPanel()
     {
         SwitchToPanel(savedLevelsPanel);
+    }
+
+    public void ShowTextInputPanel()
+    {
+        SwitchToPanel(textInputPanel);
     }
 
     private void SwitchToPanel(BaseMainMenuPanel targetPanel)

@@ -228,28 +228,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &951923090 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5802000494664107525, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-  m_PrefabInstance: {fileID: 8452309257800145660}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7fc2f778ad245b742b82f8700ae00d64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SavedLevelPanel
---- !u!114 &1241030257 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7215929330213520133, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-  m_PrefabInstance: {fileID: 8452309257800145660}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1 &1263599385
 GameObject:
   m_ObjectHideFlags: 0
@@ -647,38 +625,6 @@ Transform:
   - {fileID: 4096399022968211746}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1894905451 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 850650482229451751, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-  m_PrefabInstance: {fileID: 8452309257800145660}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1894905456
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1894905451}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3442c985aae19914ebe8ed0b61c853e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SavedLevelsPanel
-  panelRoot: {fileID: 1894905451}
-  defaultSelectedButton: {fileID: 1241030257}
-  defaultSelected: {fileID: 0}
-  savedLevelEntry: {fileID: 1916115695}
---- !u!114 &1916115695 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5506430947216697339, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-  m_PrefabInstance: {fileID: 8452309257800145660}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7fc2f778ad245b742b82f8700ae00d64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SavedLevelPanel
 --- !u!1001 &121654382704160665
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1617,10 +1563,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1852714630}
-    - target: {fileID: 1701328098731811303, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: savedLevelEntry
-      value: 
-      objectReference: {fileID: 1916115695}
     - target: {fileID: 2508071374247533284, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1636,14 +1578,6 @@ PrefabInstance:
     - target: {fileID: 2508071374247533284, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4232322029452982379, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: recentLevelsPanel
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 5254322732156585507, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: m_text
-      value: Start
       objectReference: {fileID: 0}
     - target: {fileID: 5390658968514930081, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1661,14 +1595,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5506430947216697339, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: levelSeed
-      value: 123456
-      objectReference: {fileID: 0}
-    - target: {fileID: 5579112103579909189, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: savedLevelEntry
-      value: 
-      objectReference: {fileID: 951923090}
     - target: {fileID: 6817466938000521855, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1801,14 +1727,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 1701328098731811303, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 850650482229451751, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1894905456}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -10,6 +10,7 @@ public class SavedLevelEntry : MonoBehaviour
     [SerializeField] public int levelSeed;
     [SerializeField] public Button startButton;
     [SerializeField] public Button renameButton;
+    [SerializeField] public Button saveButton;
     [SerializeField] public Button deleteButton;
 
     private SavedLevelsPanel parent;
@@ -18,17 +19,68 @@ public class SavedLevelEntry : MonoBehaviour
 
     private void Start()
     {
-        //string pureLevelSeedDisplay = levelSeedDisplay.text.Replace("Seed: ", "");
-        //levelNameDisplay.text = levelName;
-        //levelSeed = int.Parse(pureLevelSeedDisplay);
-
+        LoadLevelNameFromPlayerPrefs();
+        
         parent = GetComponentInParent<SavedLevelsPanel>();
 
         startButton.onClick.AddListener(StartLevel);
+        renameButton.onClick.AddListener(OpenRenamePanel);
+        deleteButton.onClick.AddListener(DeleteLevel);
     }
 
     private void StartLevel()
     {
-        parent.OnPlayClicked();
+        parent.OnPlayClicked(this);
+    }
+
+    private void OpenRenamePanel() //Used only in the Saved Levels menu
+    {
+        parent.OnRenameClicked(this);
+    }
+
+    public void RenameLevel(string newName) //Used only in the Saved Levels menu
+    {
+        levelName = newName;
+        levelNameDisplay.text = levelName;
+        
+        SaveLevelNameToPlayerPrefs();
+    }
+    
+    private void SaveLevelNameToPlayerPrefs()
+    {
+        string key = $"SavedLevel_{levelSeed}_Name";
+        PlayerPrefs.SetString(key, levelName);
+        PlayerPrefs.Save();
+        GameLogger.Log("SAVED LEVELS", $"Saved level name '{levelName}' for seed {levelSeed}");
+    }
+    
+    public void LoadLevelNameFromPlayerPrefs()
+    {
+        string key = $"SavedLevel_{levelSeed}_Name";
+        if (PlayerPrefs.HasKey(key))
+        {
+            levelName = PlayerPrefs.GetString(key);
+            if (levelNameDisplay != null)
+            {
+                levelNameDisplay.text = levelName;
+            }
+            GameLogger.Log("SAVED LEVELS", $"Loaded level name '{levelName}' for seed {levelSeed}");
+        }
+    }
+
+    private void SaveLevel() //Used only in the Recent Levels menu
+    {
+
+    }
+
+    private void DeleteLevel()
+    {
+        string key = $"SavedLevel_{levelSeed}_Name";
+        if (PlayerPrefs.HasKey(key))
+        {
+            PlayerPrefs.DeleteKey(key);
+            PlayerPrefs.Save();
+            GameLogger.Log("SAVED LEVELS", $"Deleted saved level name for seed {levelSeed}");
+        }
     }
 }
