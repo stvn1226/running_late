@@ -351,28 +351,27 @@ public class SpawnManager : MonoBehaviour
     
     public void CleanupAllPlayers()
     {
-        GameObject[] allPlayers = GameObject.FindGameObjectsWithTag("Player");
-        
-        GameLogger.Log("SPAWN", $"CleanupAllPlayers - Found {allPlayers.Length} player(s)");
-        
-        foreach (GameObject player in allPlayers)
-        {
-            if (player != null)
-            {
-                GameLogger.Log("SPAWN", $"  Destroying: {player.name}");
-                if (player == currentPlayer)
-                {
-                    currentPlayer = null;
-                }
-                Destroy(player);
-            }
-        }
-        
         if (currentPlayer != null)
         {
-            GameLogger.Log("SPAWN", "  Destroying current player reference");
+            GameLogger.Log("SPAWN", $"CleanupAllPlayers - Destroying current player: {currentPlayer.name}");
             Destroy(currentPlayer);
             currentPlayer = null;
+        }
+        
+        GameObject[] allPlayers = GameObject.FindGameObjectsWithTag("Player");
+        
+        if (allPlayers.Length > 0)
+        {
+            GameLogger.Log("SPAWN", $"Found {allPlayers.Length} additional player(s) to clean up");
+            
+            foreach (GameObject player in allPlayers)
+            {
+                if (player != null)
+                {
+                    GameLogger.Log("SPAWN", $"  Destroying: {player.name}");
+                    Destroy(player);
+                }
+            }
         }
 
         GameReferences.Instance.OnPlayerDestroyed();
@@ -401,31 +400,52 @@ public class SpawnManager : MonoBehaviour
     
     public void EnsureOnlyOnePlayer()
     {
-        GameObject[] allPlayers = GameObject.FindGameObjectsWithTag("Player");
-        
-        if (allPlayers.Length <= 1)
+        if (currentPlayer != null)
         {
-            if (allPlayers.Length == 1)
+            GameObject[] allPlayers = GameObject.FindGameObjectsWithTag("Player");
+            
+            if (allPlayers.Length <= 1)
+                return;
+            
+            GameLogger.LogWarning("SPAWN", $"DUPLICATE PLAYERS FOUND: {allPlayers.Length} players exist, cleaning up");
+            
+            foreach (GameObject player in allPlayers)
             {
-                currentPlayer = allPlayers[0];
+                if (player != currentPlayer && player != null)
+                {
+                    GameLogger.Log("SPAWN", $"  Destroying duplicate: {player.name}");
+                    Destroy(player);
+                }
             }
+            
+            GameLogger.Log("SPAWN", $"  Kept player: {currentPlayer.name}");
             return;
         }
         
-        GameLogger.LogWarning("SPAWN", $"DUPLICATE PLAYERS FOUND: {allPlayers.Length} players exist, cleaning up");
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         
-        GameObject playerToKeep = currentPlayer != null ? currentPlayer : allPlayers[0];
-        
-        foreach (GameObject player in allPlayers)
+        if (players.Length == 0)
+            return;
+            
+        if (players.Length == 1)
         {
-            if (player != playerToKeep && player != null)
+            currentPlayer = players[0];
+            return;
+        }
+        
+        GameLogger.LogWarning("SPAWN", $"DUPLICATE PLAYERS FOUND: {players.Length} players exist, cleaning up");
+        
+        currentPlayer = players[0];
+        
+        for (int i = 1; i < players.Length; i++)
+        {
+            if (players[i] != null)
             {
-                GameLogger.Log("SPAWN", $"  Destroying duplicate: {player.name}");
-                Destroy(player);
+                GameLogger.Log("SPAWN", $"  Destroying duplicate: {players[i].name}");
+                Destroy(players[i]);
             }
         }
         
-        currentPlayer = playerToKeep;
         GameLogger.Log("SPAWN", $"  Kept player: {currentPlayer.name}");
     }
     

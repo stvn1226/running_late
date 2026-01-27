@@ -11,10 +11,22 @@ public class Goal : MonoBehaviour
     [SerializeField] private bool showDebugInfo = true;
 
     private bool hasTriggered = false;
+    private Timer cachedTimer;
 
     private void Start()
     {
         ValidateCollider();
+        CacheReferences();
+    }
+
+    private void CacheReferences()
+    {
+        cachedTimer = FindObjectOfType<Timer>();
+        
+        if (cachedTimer == null && showDebugInfo)
+        {
+            GameLogger.LogWarning("GOAL", "Timer not found in scene during initialization");
+        }
     }
 
     private void ValidateCollider()
@@ -55,8 +67,7 @@ public class Goal : MonoBehaviour
             GameLogger.Log("GOAL", "=== VICTORY TRIGGERED ===");
         }
 
-        Timer timer = FindObjectOfType<Timer>();
-        float completionTime = timer != null ? timer.ElapsedTime : 0f;
+        float completionTime = cachedTimer != null ? cachedTimer.ElapsedTime : 0f;
     
         int currentSeed = LevelStarter.Instance != null ? LevelStarter.Instance.GetCurrentSeed() : 0;
     
@@ -72,15 +83,13 @@ public class Goal : MonoBehaviour
 
     private void StopTimer()
     {
-        Timer timer = FindObjectOfType<Timer>();
-        
-        if (timer != null)
+        if (cachedTimer != null)
         {
-            timer.StopTimerPermanently();
+            cachedTimer.StopTimerPermanently();
             
             if (showDebugInfo)
             {
-                GameLogger.Log("GOAL", $"Timer stopped at {timer.GetFormattedTime()}");
+                GameLogger.Log("GOAL", $"Timer stopped at {cachedTimer.GetFormattedTime()}");
             }
         }
         else
