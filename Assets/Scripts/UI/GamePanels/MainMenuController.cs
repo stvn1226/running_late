@@ -123,6 +123,7 @@ public class MainMenuController : MonoBehaviour
     public void ShowRecentLevelsPanel()
     {
         SwitchToPanel(recentLevelsPanel);
+        recentLevelsPanel.PopulateMenu();
     }
 
     public void ShowSavedLevelsPanel()

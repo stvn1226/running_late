@@ -270,6 +270,7 @@ public class LevelStarter : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
 
+        RecentLevelsList.instance.AddRecentLevel(currentSeed);
         LogCurrentLevel();
         NotifySpawnManager();
     }

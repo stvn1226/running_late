@@ -15,6 +15,12 @@ public class SavedLevelEntry : MonoBehaviour
 
     private SavedLevelsPanel parent;
 
+    public SavedLevelEntry(int seed, string name)
+    {
+        levelSeed = seed;
+        levelName = name;
+    }
+
     //if startButton is pressed, start the level with the given seed
 
     private void Start()
@@ -26,6 +32,21 @@ public class SavedLevelEntry : MonoBehaviour
         startButton.onClick.AddListener(StartLevel);
         renameButton.onClick.AddListener(OpenRenamePanel);
         deleteButton.onClick.AddListener(DeleteLevel);
+    }
+
+    public SavedLevelEntry SetupEntry(int seed, string name)
+    {
+        levelSeed = seed;
+        levelName = name;
+        if (levelNameDisplay != null)
+        {
+            levelNameDisplay.text = levelName;
+        }
+        if (levelSeedDisplay != null)
+        {
+            levelSeedDisplay.text = $"Seed: {levelSeed}";
+        }
+        return this;
     }
 
     private void StartLevel()

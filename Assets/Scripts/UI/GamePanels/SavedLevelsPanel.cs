@@ -1,20 +1,25 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SavedLevelsPanel : BaseMainMenuPanel
 {
+    public bool isRecentsPanel = true;
     [SerializeField] private VerticalLayoutGroup entriesLayoutGroup;
-    [SerializeField] private SavedLevelEntry[] savedLevelEntries;
+    [SerializeField] private List<SavedLevelEntry> savedLevelEntries;
+    [SerializeField] private SavedLevelEntry exampleEntry;
     [SerializeField] private TextInputPanel renamePanel;
 
     protected override void SetupPanel()
     {
         entriesLayoutGroup = GetComponentInChildren<VerticalLayoutGroup>();
+        savedLevelEntries = new List<SavedLevelEntry>();
 
-        if (entriesLayoutGroup != null)
-        {
-            // populate entriesLayoutGroup with savedLevelEntries
-        }
+        //if (entriesLayoutGroup != null)
+        //{
+        //    // populate entriesLayoutGroup with savedLevelEntries
+        //}
     }
 
     private void OnDestroy()
@@ -52,6 +57,40 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         if (menuController != null)
         {
             menuController.ShowMainPanel();
+        }
+    }
+
+    public void PopulateMenu()
+    {
+        savedLevelEntries.Clear();
+        SavedLevelEntry[] existingEntries = entriesLayoutGroup.GetComponentsInChildren<SavedLevelEntry>();
+        foreach (SavedLevelEntry entry in existingEntries)
+        {
+            Destroy(entry.gameObject);
+        }
+
+        if (isRecentsPanel)
+        {
+            // Load recent levels and populate savedLevelEntries
+            foreach (LevelSavingParams l in RecentLevelsList.instance.GetRecentLevels())
+            {
+                // Create SavedLevelEntry for each recent level and add to savedLevelEntries
+                SavedLevelEntry newEntry = exampleEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName);
+                //SavedLevelEntry newEntry = new SavedLevelEntry(l.savedLevelSeed, l.savedLevelName);
+                //newEntry.startButton = exampleEntry.startButton;
+                //newEntry.saveButton = exampleEntry.saveButton;
+                //newEntry.deleteButton = exampleEntry.deleteButton;
+                savedLevelEntries.Add(newEntry);
+            }
+        }
+        else
+        {
+            // Load all saved levels and populate savedLevelEntries
+        }
+
+        foreach (SavedLevelEntry entry in savedLevelEntries)
+        {
+            Instantiate(entry,entriesLayoutGroup.transform);
         }
     }
 }

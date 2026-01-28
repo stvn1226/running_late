@@ -6,23 +6,29 @@ public class LevelSavingParams : ScriptableObject
     public int savedLevelSeed;
     public string savedLevelName;
 
-    public int minModules;
-    public int maxModules;
+    public LevelSavingParams(int seed, string name)
+    {
+        savedLevelSeed = seed;
+        savedLevelName = name;
+    }
 
-    public ModulePlan[] modulePlans; //contains module height params + number of buildings
+    //public int minModules;
+    //public int maxModules;
 
-    public int buildingSpawnChance;
+    //public ModulePlan[] modulePlans; //contains module height params + number of buildings
 
-    public FloorPlan[] floorPlans; //contains distance between buildings + number of floors
+    //public int buildingSpawnChance;
 
-    public int groundObstacleSpawnRate;
-    public int rooftopObstacleSpawnRate;
-    public int flyingObstacleSpawnRate;
+    //public FloorPlan[] floorPlans; //contains distance between buildings + number of floors
 
-    public int powerUpSpawnRate;
+    //public int groundObstacleSpawnRate;
+    //public int rooftopObstacleSpawnRate;
+    //public int flyingObstacleSpawnRate;
 
-    public int cableSpawnRate;
+    //public int powerUpSpawnRate;
 
-    public int cableMinDistance;
-    public int cableMaxDistance;
+    //public int cableSpawnRate;
+
+    //public int cableMinDistance;
+    //public int cableMaxDistance;
 }
