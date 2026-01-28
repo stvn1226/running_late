@@ -3,10 +3,6 @@ using UnityEngine;
 
 public class PlayerStates : MonoBehaviour
 {
-    [Header("Animator")]
-    public Animator animator;
-    
-    private PlayerAnimatorController animatorController;
 
     [Header("Input States")]
     public Vector2 moveInput;
@@ -122,9 +118,13 @@ public class PlayerStates : MonoBehaviour
     public System.Action OnStaggerStateChanged;
     public System.Action OnLanded;
 
-    private void Start()
+    private void OnDisable()
     {
-        animatorController = GetComponent<PlayerAnimatorController>();
+        if (activeInvincibility != null)
+        {
+            StopCoroutine(activeInvincibility);
+            activeInvincibility = null;
+        }
     }
 
     private void Update()
@@ -246,16 +246,6 @@ public class PlayerStates : MonoBehaviour
                 justLanded = false;
         }
 
-        if (isKicking)
-        {
-            kickTimer -= Time.deltaTime;
-            if (kickTimer <= 0f)
-            {
-                GameLogger.Log("KICK", $"Timer expired ({kickTimer:F3}s), forcing end");
-                EndKick();
-            }
-        }
-
         if (isStaggered)
         {
             staggerTimer -= Time.deltaTime;
@@ -310,6 +300,15 @@ public class PlayerStates : MonoBehaviour
             if (rollTimer <= 0f)
             {
                 EndRoll();
+            }
+        }
+
+        if (isKicking)
+        {
+            kickTimer -= Time.deltaTime;
+            if (kickTimer <= 0f)
+            {
+                EndKick();
             }
         }
 
@@ -372,27 +371,18 @@ public class PlayerStates : MonoBehaviour
 
     public void SetKickPressed(float kickDuration)
     {
-        if (isKicking)
+        if (!isKicking)
         {
-            GameLogger.LogWarning("KICK", "Kick already active, ignoring new kick request in PlayerStates");
-            return;
-        }
-        
-        if (isRolling)
-        {
-            GameLogger.Log("KICK", "Ending roll to allow kick");
-            EndRoll();
-        }
-        
-        kickPressed = true;
-        isKicking = true;
-        kickTimer = kickDuration;
+            if (isRolling)
+            {
+                EndRoll();
+            }
+            
+            kickPressed = true;
+            isKicking = true;
+            kickTimer = kickDuration;
 
-        GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Timer={kickTimer:F2}s, isGrounded={isGrounded}");
-        
-        if (animatorController != null)
-        {
-            animatorController.TriggerKick();
+            GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
         }
     }
 

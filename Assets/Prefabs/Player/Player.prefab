@@ -550,7 +550,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6548746730491546072}
   - component: {fileID: 4371136031473598767}
-  - component: {fileID: 6235658728137499135}
+  - component: {fileID: 8620254752093392297}
   m_Layer: 6
   m_Name: KickCollider
   m_TagString: PlayerKick
@@ -619,7 +619,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.4, y: 2}
   m_EdgeRadius: 0
---- !u!114 &6235658728137499135
+--- !u!114 &8620254752093392297
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -628,9 +628,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7148078753344947992}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 052d49840c42b8c4db16e36ddf10a7fd, type: 3}
+  m_Script: {fileID: 11500000, guid: b2343b1cbf9d84dbda2e77203b76465d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: '::'
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerKickColliderManager
+  states: {fileID: 6913775742238925164}
+  kickBox: {fileID: 4371136031473598767}
+  kickActivationDelay: 0.1
 --- !u!1 &7558522345653489904
 GameObject:
   m_ObjectHideFlags: 0
@@ -654,7 +657,8 @@ GameObject:
   - component: {fileID: 1472578967037456669}
   - component: {fileID: 2235664641990637577}
   - component: {fileID: 4148421020609545807}
-  - component: {fileID: -6996090404843809405}
+  - component: {fileID: 8265364356619269271}
+  - component: {fileID: 4559617286583674113}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -748,6 +752,7 @@ MonoBehaviour:
   kickBox: {fileID: 4371136031473598767}
   wallClimb: {fileID: 0}
   playerSprite: {fileID: 552495587634977725}
+  slideDragMultiplier: 3.5
   landingFeedbacks: {fileID: 1644686769216045677}
 --- !u!114 &4252047688613260771
 MonoBehaviour:
@@ -824,7 +829,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43bbfcefdbe3d044a9d6a07df76f9498, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStates
-  animator: {fileID: 1472578967037456669}
   moveInput: {x: 0, y: 0}
   jumpPressed: 0
   jumpHeld: 0
@@ -926,7 +930,6 @@ MonoBehaviour:
   movement: {fileID: 8651723166033491134}
   jump: {fileID: 4252047688613260771}
   physics: {fileID: 534057958294108713}
-  kicker: {fileID: 6235658728137499135}
   stateManager: {fileID: 936994605630686359}
   airDodge: {fileID: 9074128693007361277}
   dive: {fileID: 5182206428601251989}
@@ -956,7 +959,7 @@ Animator:
   m_GameObject: {fileID: 7558522345653489904}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6443d9e09b48ff34a93f91ed62ed7d5b, type: 2}
+  m_Controller: {fileID: 9100000, guid: 60c2107f9739b4f12b693f43ae22b361, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -986,8 +989,8 @@ MonoBehaviour:
   velocityColor: {r: 0, g: 1, b: 0, a: 1}
   negativeYColor: {r: 1, g: 0, b: 0, a: 1}
   positiveYColor: {r: 0, g: 1, b: 1, a: 1}
-  showDebugText: 1
-  logVelocityChanges: 1
+  showDebugText: 0
+  logVelocityChanges: 0
 --- !u!114 &4148421020609545807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1003,12 +1006,12 @@ MonoBehaviour:
   rb: {fileID: 0}
   states: {fileID: 0}
   logEveryFrame: 0
-  logPositionChanges: 1
-  logVelocityChanges: 1
-  logCollisions: 1
+  logPositionChanges: 0
+  logVelocityChanges: 0
+  logCollisions: 0
   significantPositionChange: 1
   significantVelocityChange: 2
---- !u!114 &-6996090404843809405
+--- !u!114 &8265364356619269271
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1017,12 +1020,63 @@ MonoBehaviour:
   m_GameObject: {fileID: 7558522345653489904}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b59ce19454e7d40cd8debb5c9199c6d0, type: 3}
+  m_Script: {fileID: 11500000, guid: f82ae1342b6894416b0c4a069eb0d3b9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimatorController
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   animator: {fileID: 1472578967037456669}
   rb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
+  crossFadeDuration: 0.1
+  velocityDeadzone: 0.2
+  runSpeedThreshold: 0.5
+  fallThreshold: -0.5
+  riseThreshold: 2
+  randomizeKickVariations: 0
+  lastKickIndex: -1
+  performanceMode: 1
+  skipFramesInLocomotion: 2
+  enableDebugLogs: 0
+  currentStateName: None
+  currentStateHash: 0
+--- !u!114 &4559617286583674113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d11f0cf28dbfa4e87bb3d0a185d29e40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimationDebugger
+  states: {fileID: 6913775742238925164}
+  rb: {fileID: 5328747980780883216}
+  playerAnimator: {fileID: 8265364356619269271}
+  animator: {fileID: 1472578967037456669}
+  isGrounded: 0
+  isKicking: 0
+  isRolling: 0
+  isDiving: 0
+  isWallRunning: 0
+  isSliding: 0
+  isCrouching: 0
+  isStaggered: 0
+  isVaulting: 0
+  kickTimer: 0
+  rollTimer: 0
+  diveTimer: 0
+  staggerTimer: 0
+  velocity: {x: 0, y: 0}
+  velocityX: 0
+  velocityY: 0
+  speed: 0
+  currentAnimationState: 
+  currentStateHash: 0
+  normalizedTime: 0
+  isAnimatorEnabled: 0
+  logStateChanges: 0
+  logEveryFrame: 0
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0

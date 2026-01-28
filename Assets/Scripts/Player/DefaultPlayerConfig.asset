@@ -66,7 +66,7 @@ MonoBehaviour:
   wallLayer:
     serializedVersion: 2
     m_Bits: 35840
-  kickDuration: 0.5
+  kickDuration: 0.25
   kickForceReduction: 0.5
   staggerDuration: 0.8
   staggerKnockbackForce: 20
@@ -87,7 +87,10 @@ MonoBehaviour:
   invertYAxis: 0
   enableSlopeDetection: 1
   maxWalkableSlope: 45
+  minSlopeAngle: 0.5
   slopeCheckDistance: 0.5
+  slopeGroundCheckExtra: 0.2
+  slopeGroundedYVelocityThreshold: 1.5
   slopeMoveAccel: 3000
   slopeStopDecel: 100
   slopeStickStrength: 1

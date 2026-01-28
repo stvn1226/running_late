@@ -308,7 +308,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (config == null) return;
 
-        float forceMultiplier = states.isKicking ? config.kickForceReduction : 1f;
+        float forceMultiplier = 1f;
 
         if (states.isStaggered)
         {
@@ -513,7 +513,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
     
-        if (!states.isGrounded || states.isKicking)
+        if (!states.isGrounded)
             return;
         
         if (states.isRolling)
