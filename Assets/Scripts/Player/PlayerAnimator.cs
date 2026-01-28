@@ -154,6 +154,27 @@ public class PlayerAnimator : MonoBehaviour
             }
         }
 
+        if (states.isOnSlope && states.isGrounded)
+        {
+            if (states.isSliding)
+            {
+                return AnimHash.Slide;
+            }
+            
+            if (states.isCrouching)
+            {
+                return AnimHash.Crouch;
+            }
+            
+            float slopeAbsVelX = Mathf.Abs(rb.linearVelocity.x);
+            if (slopeAbsVelX > runSpeedThreshold)
+            {
+                return AnimHash.Run;
+            }
+            
+            return AnimHash.Idle;
+        }
+
         if (!states.isGrounded)
         {
             float velY = rb.linearVelocity.y;

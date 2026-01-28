@@ -38,7 +38,7 @@ public class PlayerAnimationDebugger : MonoBehaviour
     [SerializeField] private bool isAnimatorEnabled;
 
     [Header("Logs")]
-    [SerializeField] private bool logStateChanges = true;
+    [SerializeField] private bool logStateChanges = false;
     [SerializeField] private bool logEveryFrame = false;
 
     private bool wasKicking = false;

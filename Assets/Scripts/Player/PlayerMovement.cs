@@ -19,7 +19,7 @@ public class PlayerMovement : MonoBehaviour
     
     [Header("Slide & Roll Drag Multiplier")]
     [Tooltip("Multiplier applied to config.slideDrag for slide and roll deceleration. Higher = faster stop. Current: 3.5x")]
-    [Range(1f, 5f)]
+    [Range(1f, 10f)]
     [SerializeField] private float slideDragMultiplier = 3.5f;
     
     [Header("Wall Detection")]

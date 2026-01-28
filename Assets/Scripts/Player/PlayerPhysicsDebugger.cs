@@ -8,9 +8,9 @@ public class PlayerPhysicsDebugger : MonoBehaviour
     
     [Header("Logging Settings")]
     [SerializeField] private bool logEveryFrame = false;
-    [SerializeField] private bool logPositionChanges = true;
-    [SerializeField] private bool logVelocityChanges = true;
-    [SerializeField] private bool logCollisions = true;
+    [SerializeField] private bool logPositionChanges = false;
+    [SerializeField] private bool logVelocityChanges = false;
+    [SerializeField] private bool logCollisions = false;
     [SerializeField] private float significantPositionChange = 1f;
     [SerializeField] private float significantVelocityChange = 2f;
     
