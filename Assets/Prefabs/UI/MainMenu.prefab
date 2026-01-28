@@ -591,6 +591,7 @@ MonoBehaviour:
   isRecentsPanel: 1
   entriesLayoutGroup: {fileID: 7809749707037826768}
   savedLevelEntries: []
+  exampleEntry: {fileID: 3387049554745576029, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
   renamePanel: {fileID: 0}
 --- !u!1 &887326413676199379
 GameObject:
@@ -3194,6 +3195,7 @@ MonoBehaviour:
   isRecentsPanel: 0
   entriesLayoutGroup: {fileID: 5279624616996784630}
   savedLevelEntries: []
+  exampleEntry: {fileID: 3387049554745576029, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
   renamePanel: {fileID: 5501054782424442515}
 --- !u!1 &5359649820086804808
 GameObject:
@@ -5809,8 +5811,20 @@ PrefabInstance:
       value: SavedLevelEntry
       objectReference: {fileID: 0}
     - target: {fileID: 3387049554745576029, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: levelName
+      value: Default
+      objectReference: {fileID: 0}
+    - target: {fileID: 3387049554745576029, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
       propertyPath: levelSeed
       value: 123456
+      objectReference: {fileID: 0}
+    - target: {fileID: 3395988474341495055, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: m_text
+      value: 'Seed: 000000'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4796021834540275587, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: m_text
+      value: 000000
       objectReference: {fileID: 0}
     - target: {fileID: 6544198365549577054, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
       propertyPath: m_Pivot.x
@@ -5988,6 +6002,22 @@ PrefabInstance:
     - target: {fileID: 3268588171230969633, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
       propertyPath: m_Name
       value: SavedLevelEntry
+      objectReference: {fileID: 0}
+    - target: {fileID: 3387049554745576029, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: levelName
+      value: Default
+      objectReference: {fileID: 0}
+    - target: {fileID: 3387049554745576029, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: levelSeed
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3395988474341495055, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: m_text
+      value: 'Seed: 000000'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4796021834540275587, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
+      propertyPath: m_text
+      value: 000000
       objectReference: {fileID: 0}
     - target: {fileID: 6544198365549577054, guid: 8f478a0b7f983c941952b2fd448d90b9, type: 3}
       propertyPath: m_Pivot.x

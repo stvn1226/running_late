@@ -75,22 +75,14 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             foreach (LevelSavingParams l in RecentLevelsList.instance.GetRecentLevels())
             {
                 // Create SavedLevelEntry for each recent level and add to savedLevelEntries
-                SavedLevelEntry newEntry = exampleEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName);
-                //SavedLevelEntry newEntry = new SavedLevelEntry(l.savedLevelSeed, l.savedLevelName);
-                //newEntry.startButton = exampleEntry.startButton;
-                //newEntry.saveButton = exampleEntry.saveButton;
-                //newEntry.deleteButton = exampleEntry.deleteButton;
+                SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
+                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName);
                 savedLevelEntries.Add(newEntry);
             }
         }
         else
         {
             // Load all saved levels and populate savedLevelEntries
-        }
-
-        foreach (SavedLevelEntry entry in savedLevelEntries)
-        {
-            Instantiate(entry,entriesLayoutGroup.transform);
         }
     }
 }
