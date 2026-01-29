@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +6,8 @@ public class SavedLevelsList : MonoBehaviour
     public static SavedLevelsList instance;
 
     private const int MAX_SAVED_LEVELS = 5;
+
+    private const string SAVE_KEY = "SavedLevelsData";
 
     [SerializeField] private List<LevelSavingParams> savedLevels;
 
@@ -20,37 +21,85 @@ public class SavedLevelsList : MonoBehaviour
         else instance = this;
         DontDestroyOnLoad(gameObject);  // Add this line
 
-        savedLevels = new List<LevelSavingParams>();
+        //savedLevels = new List<LevelSavingParams>();
+        LoadFromPlayerPrefs();
     }
 
     public void AddSavedLevel(int seed)
     {
-        LevelSavingParams levelEntry = new LevelSavingParams(seed, $"{seed}");
         savedLevels.RemoveAll(l => l.savedLevelSeed == seed);
+
+        string levelName = $"{seed}";
+        string key = $"SavedLevel_{seed}_Name";
+        if (PlayerPrefs.HasKey(key))
+        {
+            levelName = PlayerPrefs.GetString(key);
+        }
+
+        LevelSavingParams levelEntry = new LevelSavingParams(seed, levelName);
 
         if (!savedLevels.Exists(l => l.savedLevelSeed == seed))
         {
             savedLevels.Insert(0, levelEntry);
         }
 
-        if (savedLevels.Count > MAX_SAVED_LEVELS)
-        {
-            savedLevels.RemoveRange(MAX_SAVED_LEVELS, savedLevels.Count - MAX_SAVED_LEVELS);
-        }
+        SaveToPlayerPrefs();
     }
 
     public void RemoveSavedLevel(int seed)
     {
         if (savedLevels.Exists(l => l.savedLevelSeed == seed))
         {
-            //savedLevels.Remove(levelEntry);
             savedLevels.RemoveAll(l => l.savedLevelSeed == seed);
+            SaveToPlayerPrefs();
         }
+
     }
 
     public List<LevelSavingParams> GetSavedLevels()
     {
         return savedLevels;
+    }
+
+    private void SaveToPlayerPrefs()
+    {
+        LevelListData data = new LevelListData();
+        foreach (var level in savedLevels)
+        {
+            data.levels.Add(new LevelSaveData(level.savedLevelSeed, level.savedLevelName));
+        }
+
+        string json = JsonUtility.ToJson(data);
+        PlayerPrefs.SetString(SAVE_KEY, json);
+        PlayerPrefs.Save();
+
+        GameLogger.Log("SAVED LEVELS", $"Saved {savedLevels.Count} saved levels to PlayerPrefs");
+    }
+
+    private void LoadFromPlayerPrefs()
+    {
+        savedLevels = new List<LevelSavingParams>();
+
+        if (PlayerPrefs.HasKey(SAVE_KEY))
+        {
+            string json = PlayerPrefs.GetString(SAVE_KEY);
+            LevelListData data = JsonUtility.FromJson<LevelListData>(json);
+
+            if (data != null && data.levels != null)
+            {
+                foreach (var levelData in data.levels)
+                {
+                    LevelSavingParams level = new LevelSavingParams(levelData.seed, levelData.name);
+                    savedLevels.Add(level);
+                }
+
+                GameLogger.Log("SAVED LEVELS", $"Loaded {savedLevels.Count} saved levels from PlayerPrefs");
+            }
+        }
+        else
+        {
+            GameLogger.Log("SAVED LEVELS", "No saved levels found, starting fresh");
+        }
     }
 
 }

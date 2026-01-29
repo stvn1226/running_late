@@ -129,21 +129,23 @@ public class SavedLevelEntry : MonoBehaviour
 
     private void DeleteLevel()
     {
-        string key = $"SavedLevel_{levelSeed}_Name";
-        if (PlayerPrefs.HasKey(key))
-        {
-            PlayerPrefs.DeleteKey(key);
-            PlayerPrefs.Save();
-            GameLogger.Log("SAVED LEVELS", $"Deleted saved level name for seed {levelSeed}");
-        }
-
         if (isRecentsEntry)
         {
             RecentLevelsList.instance.RemoveRecentLevel(levelSeed);
+            GameLogger.Log("RECENT LEVELS", $"Removed level {levelSeed} from Recent Levels");
         }
         else
         {
+            string key = $"SavedLevel_{levelSeed}_Name";
+            if (PlayerPrefs.HasKey(key))
+            {
+                PlayerPrefs.DeleteKey(key);
+                PlayerPrefs.Save();
+                GameLogger.Log("SAVED LEVELS", $"Deleted saved level name for seed {levelSeed}");
+            }
+
             SavedLevelsList.instance.RemoveSavedLevel(levelSeed);
+            GameLogger.Log("SAVED LEVELS", $"Removed level {levelSeed} from Saved Levels");
         }
 
         parent.PopulateMenu();

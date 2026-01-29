@@ -1,6 +1,4 @@
-using NUnit.Framework;
 using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 
 public class RecentLevelsList : MonoBehaviour
@@ -8,6 +6,7 @@ public class RecentLevelsList : MonoBehaviour
     public static RecentLevelsList instance { get; private set; }
 
     private const int MAX_RECENT_LEVELS = 5;
+    private const string SAVE_KEY = "RecentLevelsData";
 
     [SerializeField] private List<LevelSavingParams> recentLevels;
 
@@ -21,7 +20,8 @@ public class RecentLevelsList : MonoBehaviour
         else instance = this;
         DontDestroyOnLoad(gameObject);  // Add this line
 
-        recentLevels = new List<LevelSavingParams>();
+        //recentLevels = new List<LevelSavingParams>();
+        LoadFromPlayerPrefs();
     }
 
     public void AddRecentLevel(int seed)
@@ -39,14 +39,15 @@ public class RecentLevelsList : MonoBehaviour
             recentLevels.RemoveRange(MAX_RECENT_LEVELS, recentLevels.Count - MAX_RECENT_LEVELS);
         }
 
+        SaveToPlayerPrefs();
     }
 
     public void RemoveRecentLevel(int seed)
     {
         if (recentLevels.Exists(l => l.savedLevelSeed == seed))
         {
-            //recentLevels.Remove(levelEntry);
             recentLevels.RemoveAll(l => l.savedLevelSeed == seed);
+            SaveToPlayerPrefs();
         }
     }
 
@@ -54,4 +55,46 @@ public class RecentLevelsList : MonoBehaviour
     {
         return recentLevels;
     }
+
+    private void SaveToPlayerPrefs()
+    {
+        LevelListData data = new LevelListData();
+        foreach (var level in recentLevels)
+        {
+            data.levels.Add(new LevelSaveData(level.savedLevelSeed, level.savedLevelName));
+        }
+
+        string json = JsonUtility.ToJson(data);
+        PlayerPrefs.SetString(SAVE_KEY, json);
+        PlayerPrefs.Save();
+
+        GameLogger.Log("RECENT LEVELS", $"Saved {recentLevels.Count} recent levels to PlayerPrefs");
+    }
+
+    private void LoadFromPlayerPrefs()
+    {
+        recentLevels = new List<LevelSavingParams>();
+
+        if (PlayerPrefs.HasKey(SAVE_KEY))
+        {
+            string json = PlayerPrefs.GetString(SAVE_KEY);
+            LevelListData data = JsonUtility.FromJson<LevelListData>(json);
+
+            if (data != null && data.levels != null)
+            {
+                foreach (var levelData in data.levels)
+                {
+                    LevelSavingParams level = new LevelSavingParams(levelData.seed, levelData.name);
+                    recentLevels.Add(level);
+                }
+
+                GameLogger.Log("RECENT LEVELS", $"Loaded {recentLevels.Count} recent levels from PlayerPrefs");
+            }
+        }
+        else
+        {
+            GameLogger.Log("RECENT LEVELS", "No saved recent levels found, starting fresh");
+        }
+    }
+
 }
