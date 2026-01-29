@@ -34,7 +34,7 @@ public class SavedLevelEntry : MonoBehaviour
         deleteButton.onClick.AddListener(DeleteLevel);
     }
 
-    public SavedLevelEntry SetupEntry(int seed, string name)
+    public void SetupEntry(int seed, string name, bool isRecents)
     {
         levelSeed = seed;
         levelName = name;
@@ -46,7 +46,9 @@ public class SavedLevelEntry : MonoBehaviour
         {
             levelSeedDisplay.text = $"Seed: {levelSeed}";
         }
-        return this;
+        
+        saveButton.gameObject.SetActive(isRecents);
+        renameButton.gameObject.SetActive(!isRecents);
     }
 
     private void StartLevel()
@@ -103,5 +105,16 @@ public class SavedLevelEntry : MonoBehaviour
             PlayerPrefs.Save();
             GameLogger.Log("SAVED LEVELS", $"Deleted saved level name for seed {levelSeed}");
         }
+
+        if (saveButton.IsActive())
+        {
+            RecentLevelsList.instance.RemoveRecentLevel(levelSeed);
+        }
+        else
+        {
+            SavedLevelsList.instance.RemoveSavedLevel(levelSeed);
+        }
+
+        parent.PopulateMenu();
     }
 }
