@@ -5,7 +5,7 @@ public class RecentLevelsList : MonoBehaviour
 {
     public static RecentLevelsList instance { get; private set; }
 
-    private const int MAX_RECENT_LEVELS = 5;
+    private const int MAX_RECENT_LEVELS = 20;
     private const string SAVE_KEY = "RecentLevelsData";
 
     [SerializeField] private List<LevelSavingParams> recentLevels;

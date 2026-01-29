@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,13 +12,11 @@ public class SavedLevelsPanel : BaseMainMenuPanel
 
     protected override void SetupPanel()
     {
-        entriesLayoutGroup = GetComponentInChildren<VerticalLayoutGroup>();
+        if (entriesLayoutGroup == null)
+        {
+            entriesLayoutGroup = GetComponentInChildren<VerticalLayoutGroup>();
+        }
         savedLevelEntries = new List<SavedLevelEntry>();
-
-        //if (entriesLayoutGroup != null)
-        //{
-        //    // populate entriesLayoutGroup with savedLevelEntries
-        //}
     }
 
     private void OnDestroy()

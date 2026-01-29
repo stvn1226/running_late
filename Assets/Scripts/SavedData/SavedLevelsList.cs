@@ -5,7 +5,7 @@ public class SavedLevelsList : MonoBehaviour
 {
     public static SavedLevelsList instance;
 
-    private const int MAX_SAVED_LEVELS = 5;
+    //private const int MAX_SAVED_LEVELS = 5;
 
     private const string SAVE_KEY = "SavedLevelsData";
 
