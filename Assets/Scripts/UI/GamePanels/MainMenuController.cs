@@ -129,6 +129,7 @@ public class MainMenuController : MonoBehaviour
     public void ShowSavedLevelsPanel()
     {
         SwitchToPanel(savedLevelsPanel);
+        savedLevelsPanel.PopulateMenu();
     }
 
     public void ShowTextInputPanel()

@@ -14,6 +14,7 @@ public class SavedLevelEntry : MonoBehaviour
     [SerializeField] public Button deleteButton;
 
     private SavedLevelsPanel parent;
+    private bool isRecentsEntry;
 
     public SavedLevelEntry(int seed, string name)
     {
@@ -31,6 +32,7 @@ public class SavedLevelEntry : MonoBehaviour
 
         startButton.onClick.AddListener(StartLevel);
         renameButton.onClick.AddListener(OpenRenamePanel);
+        saveButton.onClick.AddListener(SaveLevel);
         deleteButton.onClick.AddListener(DeleteLevel);
     }
 
@@ -38,6 +40,17 @@ public class SavedLevelEntry : MonoBehaviour
     {
         levelSeed = seed;
         levelName = name;
+        isRecentsEntry = isRecents;
+
+        if (isRecents)
+        {
+            levelName = name;
+        }
+        else
+        {
+            LoadLevelNameFromPlayerPrefs();
+        }
+
         if (levelNameDisplay != null)
         {
             levelNameDisplay.text = levelName;
@@ -46,9 +59,15 @@ public class SavedLevelEntry : MonoBehaviour
         {
             levelSeedDisplay.text = $"Seed: {levelSeed}";
         }
-        
-        saveButton.gameObject.SetActive(isRecents);
-        renameButton.gameObject.SetActive(!isRecents);
+
+        if (saveButton != null)
+        {
+            saveButton.gameObject.SetActive(isRecents);
+        }
+        if (renameButton != null)
+        {
+            renameButton.gameObject.SetActive(!isRecents);
+        }
     }
 
     private void StartLevel()
@@ -93,6 +112,18 @@ public class SavedLevelEntry : MonoBehaviour
 
     private void SaveLevel() //Used only in the Recent Levels menu
     {
+        if (SavedLevelsList.instance != null)
+        {
+            SavedLevelsList.instance.AddSavedLevel(levelSeed);
+
+            SaveLevelNameToPlayerPrefs();
+
+            GameLogger.Log("SAVED LEVELS", $"Saved level {levelSeed} ('{levelName}') to Saved Levels");
+        }
+        else
+        {
+            GameLogger.LogWarning("SAVED LEVELS", "SavedLevelsList instance not found");
+        }
 
     }
 
@@ -106,7 +137,7 @@ public class SavedLevelEntry : MonoBehaviour
             GameLogger.Log("SAVED LEVELS", $"Deleted saved level name for seed {levelSeed}");
         }
 
-        if (saveButton.IsActive())
+        if (isRecentsEntry)
         {
             RecentLevelsList.instance.RemoveRecentLevel(levelSeed);
         }
