@@ -42,13 +42,17 @@ public class RecentLevelsList : MonoBehaviour
         SaveToPlayerPrefs();
     }
 
-    public void RemoveRecentLevel(int seed)
+    public int RemoveRecentLevel(int seed)
     {
+        int removedLevelLocation = 0;
         if (recentLevels.Exists(l => l.savedLevelSeed == seed))
         {
+            removedLevelLocation = recentLevels.FindIndex(l => l.savedLevelSeed == seed);
             recentLevels.RemoveAll(l => l.savedLevelSeed == seed);
             SaveToPlayerPrefs();
         }
+
+        return removedLevelLocation;
     }
 
     public List<LevelSavingParams> GetRecentLevels()

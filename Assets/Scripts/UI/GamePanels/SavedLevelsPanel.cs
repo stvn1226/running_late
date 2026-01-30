@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class SavedLevelsPanel : BaseMainMenuPanel
@@ -57,7 +58,7 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         }
     }
 
-    public void PopulateMenu()
+    public void PopulateMenu(bool isFromDelete = false, int whereDidRemove = 0)
     {
         savedLevelEntries.Clear();
         SavedLevelEntry[] existingEntries = entriesLayoutGroup.GetComponentsInChildren<SavedLevelEntry>();
@@ -89,5 +90,9 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             }
 
         }
+
+        defaultSelectedButton = savedLevelEntries[0].startButton;
+        if (isFromDelete) EventSystem.current.SetSelectedGameObject(savedLevelEntries[whereDidRemove].deleteButton.gameObject);
+
     }
 }

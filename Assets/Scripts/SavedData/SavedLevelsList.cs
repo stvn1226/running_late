@@ -46,14 +46,17 @@ public class SavedLevelsList : MonoBehaviour
         SaveToPlayerPrefs();
     }
 
-    public void RemoveSavedLevel(int seed)
+    public int RemoveSavedLevel(int seed)
     {
+        int removedLevelLocation = 0;
         if (savedLevels.Exists(l => l.savedLevelSeed == seed))
         {
+            removedLevelLocation = savedLevels.FindIndex(l => l.savedLevelSeed == seed);
             savedLevels.RemoveAll(l => l.savedLevelSeed == seed);
             SaveToPlayerPrefs();
         }
 
+        return removedLevelLocation;
     }
 
     public List<LevelSavingParams> GetSavedLevels()

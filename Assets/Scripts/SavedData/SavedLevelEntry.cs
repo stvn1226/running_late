@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class SavedLevelEntry : MonoBehaviour
@@ -129,9 +130,11 @@ public class SavedLevelEntry : MonoBehaviour
 
     private void DeleteLevel()
     {
+        int whereDidRemove = 0;
+
         if (isRecentsEntry)
         {
-            RecentLevelsList.instance.RemoveRecentLevel(levelSeed);
+            whereDidRemove = RecentLevelsList.instance.RemoveRecentLevel(levelSeed);
             GameLogger.Log("RECENT LEVELS", $"Removed level {levelSeed} from Recent Levels");
         }
         else
@@ -144,10 +147,10 @@ public class SavedLevelEntry : MonoBehaviour
                 GameLogger.Log("SAVED LEVELS", $"Deleted saved level name for seed {levelSeed}");
             }
 
-            SavedLevelsList.instance.RemoveSavedLevel(levelSeed);
+            whereDidRemove = SavedLevelsList.instance.RemoveSavedLevel(levelSeed);
             GameLogger.Log("SAVED LEVELS", $"Removed level {levelSeed} from Saved Levels");
         }
 
-        parent.PopulateMenu();
+        parent.PopulateMenu(true, whereDidRemove);
     }
 }
