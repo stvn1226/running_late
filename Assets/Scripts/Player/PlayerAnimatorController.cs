@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerAnimatorController : MonoBehaviour
 {
-    private static readonly int IsKicking = Animator.StringToHash("isKicking");
+    private static readonly int IsKicking = Animator.StringToHash("Kicking");
     private static readonly int IsSliding = Animator.StringToHash("isSliding");
     private static readonly int IsWallRunning = Animator.StringToHash("isWallRunning");
     private static readonly int IsCrouching = Animator.StringToHash("isCrouching");
@@ -47,13 +47,20 @@ public class PlayerAnimatorController : MonoBehaviour
     {
         if (animator == null || states == null) return;
 
+        float xVel = 0f;
+        
         if (rb != null)
         {
-            float xVel = Mathf.Abs(rb.linearVelocity.x);
+            xVel = Mathf.Abs(rb.linearVelocity.x);
             
             if (xVel < 0.2f)
             {
                 xVel = 0f;
+            }
+            
+            if (states.isDiving || states.isRolling || states.isSliding)
+            {
+                xVel = Mathf.Clamp(xVel, 0f, 15f);
             }
             
             animator.SetFloat(XVelocity, xVel);
@@ -87,7 +94,19 @@ public class PlayerAnimatorController : MonoBehaviour
     {
         if (animator != null)
         {
-            animator.SetTrigger(IsKicking);
+            animator.SetBool(IsKicking, true);
+            GameLogger.Log("KICK", $"Animator Bool SET TRUE - isGrounded={states?.isGrounded}, yVel={rb?.linearVelocity.y:F2}");
+            
+            Invoke(nameof(ResetKickBool), 0.2f);
+        }
+    }
+    
+    private void ResetKickBool()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(IsKicking, false);
+            GameLogger.Log("KICK", "Animator Bool RESET to FALSE");
         }
     }
 }

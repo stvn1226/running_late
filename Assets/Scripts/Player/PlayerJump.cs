@@ -109,38 +109,40 @@ public class PlayerJump : MonoBehaviour
     }
     private void HandleJumpInput()
     {
-        if (config == null || states.isKicking) return;
+        if (config == null) return;
 
-        // Handle coyote time
         if (states.wasGrounded && !states.isGrounded && !states.isJumping)
         {
             states.StartCoyoteTime(config.coyoteTime);
         }
 
-        // Execute jump - jumping should cancel crouch/slide states
         if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump || (allowDoubleJump && jumpCt < 1)))
         {
-            // Cancel crouch, slide, dive, and roll states when jumping
             if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling)
             {
                 CancelCrouchSlideStates();
             }
 
-            // Reset dive ability on double jump
             bool isDoubleJump = !states.isGrounded && !states.canCoyoteJump && allowDoubleJump && jumpCt < 1;
             if (isDoubleJump)
             {
+                GameLogger.Log("JUMP", $"Double jump executed - isKicking={states.isKicking}");
                 PlayerDive dive = GetComponent<PlayerDive>();
                 if (dive != null)
                 {
                     dive.OnDoubleJump();
                 }
             }
+            else
+            {
+                GameLogger.Log("JUMP", $"Normal jump executed - isGrounded={states.isGrounded}, isKicking={states.isKicking}");
+            }
 
             PerformJump();
         }
         else if (states.jumpInputBuffered && states.isWallRunning && !states.isVaultingWall)
         {
+            GameLogger.Log("JUMP", $"Wall jump executed - isKicking={states.isKicking}");
             WallJump();
         }
     }

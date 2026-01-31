@@ -1,0 +1,101 @@
+=================================================================
+PLAYER PREFAB VALUE CAPTURE REPORT
+Generated: 1/14/2026 12:52:12 AM
+Prefab: Assets/Prefabs/Player/Player.prefab
+=================================================================
+
+--- PlayerMovement ---
+  config: Assets/Scripts/Player/DefaultPlayerConfig.asset
+  rb: Assigned
+  states: Assigned
+  kickBox: Assigned
+  wallClimb: NULL
+  playerSprite: Assigned
+  landingFeedbacks: Assigned
+
+--- PlayerPhysics ---
+  config: Assets/Scripts/Player/DefaultPlayerConfig.asset
+  originalColliderSize: (0.00, 0.00)
+  originalColliderOffset: (0.00, 0.00)
+  crouchColliderSize: (0.00, 0.00)
+  crouchColliderOffset: (0.00, 0.00)
+
+--- PlayerJump ---
+  config: Assets/Scripts/Player/DefaultPlayerConfig.asset
+  jumpFeedbacks: JumpFeedback (MoreMountains.Feedbacks.MMF_Player)
+
+--- PlayerStates ---
+  animator: Assigned
+
+--- PlayerWallClimb ---
+  Found: YES
+
+--- PlayerAirDodge ---
+  Found: YES
+
+--- PlayerDive ---
+  Found: YES
+
+--- Rigidbody2D ---
+  Mass: 1
+  Linear Drag: 0
+  Angular Drag: 0.05
+  Gravity Scale: 1.8
+  Body Type: Dynamic
+  Collision Detection: Continuous
+  Interpolation: Interpolate
+  Constraints: FreezeRotation
+
+--- Colliders ---
+
+--- SpriteRenderer (Child) ---
+  GameObject: Sprite
+  Sprite: Idle01
+  Color: RGBA(0.382, 0.391, 1.000, 1.000)
+  FlipX: False
+  FlipY: False
+  Sorting Layer: Default
+  Sorting Order: 10
+  Material: Sprite
+  Transform.localPosition: (0.00, -1.00, 0.00)
+  Transform.localScale: (1.50, 1.50, 1.50)
+
+--- Transform Hierarchy ---
+Player
+  localPos: (0.00, 0.00, 0.00)
+  localScale: (1.20, 1.20, 1.20)
+  localRot: (0.00, 0.00, 0.00)
+  Sprite
+    localPos: (0.00, -1.00, 0.00)
+    localScale: (1.50, 1.50, 1.50)
+    localRot: (0.00, 0.00, 0.00)
+  Collider
+    localPos: (0.00, -0.10, 0.00)
+    localScale: (1.00, 1.00, 1.00)
+    localRot: (0.00, 0.00, 0.00)
+  KickCollider
+    localPos: (0.00, 0.00, 0.00)
+    localScale: (1.00, 1.00, 1.00)
+    localRot: (0.00, 0.00, 0.00)
+  CamTarget
+    localPos: (0.00, 0.00, 0.00)
+    localScale: (1.00, 1.00, 1.00)
+    localRot: (0.00, 0.00, 0.00)
+  JumpFeedback
+    localPos: (0.00, 0.00, 0.00)
+    localScale: (1.00, 1.00, 1.00)
+    localRot: (0.00, 0.00, 0.00)
+  LandingFeedback
+    localPos: (0.00, 0.00, 0.00)
+    localScale: (1.00, 1.00, 1.00)
+    localRot: (0.00, 0.00, 0.00)
+
+--- MMF_Player Feedbacks ---
+  Count: 2
+  - JumpFeedback: JumpFeedback
+  - LandingFeedback: LandingFeedback
+
+
+=================================================================
+END OF REPORT
+=================================================================

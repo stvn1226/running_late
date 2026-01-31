@@ -3,10 +3,9 @@ using UnityEngine;
 
 public class PlayerStates : MonoBehaviour
 {
-    [Header("Animator")]
-    public Animator animator;
-    
-    private PlayerAnimatorController animatorController;
+    private PlayerConfig config;
+    private BoxCollider2D playerCollider;
+    private new Transform transform;
 
     [Header("Input States")]
     public Vector2 moveInput;
@@ -122,9 +121,20 @@ public class PlayerStates : MonoBehaviour
     public System.Action OnStaggerStateChanged;
     public System.Action OnLanded;
 
-    private void Start()
+    private void OnDisable()
     {
-        animatorController = GetComponent<PlayerAnimatorController>();
+        if (activeInvincibility != null)
+        {
+            StopCoroutine(activeInvincibility);
+            activeInvincibility = null;
+        }
+    }
+
+    private void Awake()
+    {
+        transform = GetComponent<Transform>();
+        playerCollider = GetComponent<BoxCollider2D>();
+        config = GetComponent<PlayerMovement>()?.config;
     }
 
     private void Update()
@@ -246,16 +256,6 @@ public class PlayerStates : MonoBehaviour
                 justLanded = false;
         }
 
-        if (isKicking)
-        {
-            kickTimer -= Time.deltaTime;
-            if (kickTimer <= 0f)
-            {
-                GameLogger.LogState($"KICK: Timer expired ({kickTimer:F3}s), forcing end");
-                EndKick();
-            }
-        }
-
         if (isStaggered)
         {
             staggerTimer -= Time.deltaTime;
@@ -313,15 +313,31 @@ public class PlayerStates : MonoBehaviour
             }
         }
 
+        if (isKicking)
+        {
+            kickTimer -= Time.deltaTime;
+            if (kickTimer <= 0f)
+            {
+                EndKick();
+            }
+        }
+
         if (divePressed)
         {
             divePressed = false;
         }
 
+        // Vault timer with early exit detection
         if (isVaultingWall)
         {
             vaultTimer -= Time.deltaTime;
-            if (vaultTimer <= 0f)
+            
+            // End vault early if player leaves wall contact during vault
+            if (!IsStillTouchingWall(wallDirection))
+            {
+                EndVault();
+            }
+            else if (vaultTimer <= 0f)
             {
                 EndVault();
             }
@@ -379,20 +395,11 @@ public class PlayerStates : MonoBehaviour
                 EndRoll();
             }
             
-            if (animatorController != null)
-            {
-                animatorController.TriggerKick();
-            }
-            
             kickPressed = true;
             isKicking = true;
             kickTimer = kickDuration;
 
-            GameLogger.LogState($"KICK: Started - Timer set to {kickTimer:F2}s");
-        }
-        else
-        {
-            GameLogger.LogWarning("KICK", "Kick already active, ignoring new kick request");
+            GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
         }
     }
 
@@ -402,7 +409,7 @@ public class PlayerStates : MonoBehaviour
         {
             isKicking = false;
             kickTimer = 0f;
-            GameLogger.LogState("KICK: Ended");
+            GameLogger.Log("KICK", "STATE: isKicking SET TO FALSE - Kick ended");
         }
     }
 
@@ -569,5 +576,21 @@ public class PlayerStates : MonoBehaviour
     public void RecordWallContact()
     {
         wallContactTime = Time.time;
+    }
+
+    /// <summary>
+    /// Checks if player is still touching a wall in the specified direction.
+    /// Used for vault early-exit detection - ends vault immediately when player leaves wall.
+    /// </summary>
+    private bool IsStillTouchingWall(int direction)
+    {
+        if (config == null || playerCollider == null) return false;
+
+        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
+        Vector2 boxSize = new Vector2(config.wallCheckDistance, playerCollider.size.y);
+        Vector2 checkDirection = direction > 0 ? Vector2.right : Vector2.left;
+
+        RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, checkDirection, config.wallCheckDistance, config.wallLayer);
+        return hit.collider != null;
     }
 }
