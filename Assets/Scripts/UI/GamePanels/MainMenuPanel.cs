@@ -5,6 +5,8 @@ public class MainMenuPanel : BaseMainMenuPanel
 {
     [Header("Main Menu Buttons")]
     [SerializeField] private Button playButton;
+    [SerializeField] private Button recentLevels;
+    [SerializeField] private Button savedLevels;
     [SerializeField] private Button creditsButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
@@ -15,7 +17,17 @@ public class MainMenuPanel : BaseMainMenuPanel
         {
             playButton.onClick.AddListener(OnPlayClicked);
         }
-        
+
+        if (recentLevels != null)
+        {
+            recentLevels.onClick.AddListener(OnRecentsClicked);
+        }
+
+        if (savedLevels != null)
+        {
+            savedLevels.onClick.AddListener(OnSavedClicked);
+        }
+
         if (creditsButton != null)
         {
             creditsButton.onClick.AddListener(OnCreditsClicked);
@@ -36,7 +48,13 @@ public class MainMenuPanel : BaseMainMenuPanel
     {
         if (playButton != null)
             playButton.onClick.RemoveListener(OnPlayClicked);
-        
+
+        if (recentLevels != null)
+            recentLevels.onClick.RemoveListener(OnRecentsClicked);
+
+        if (savedLevels != null)
+            savedLevels.onClick.RemoveListener(OnSavedClicked);
+
         if (creditsButton != null)
             creditsButton.onClick.RemoveListener(OnCreditsClicked);
         
@@ -57,6 +75,26 @@ public class MainMenuPanel : BaseMainMenuPanel
         }
     }
     
+    private void OnRecentsClicked()
+    {
+        GameLogger.Log("MENU", "Recent levels clicked");
+
+        if (menuController != null)
+        {
+            menuController.ShowRecentLevelsPanel();
+        }
+    }
+
+    private void OnSavedClicked()
+    {
+        GameLogger.Log("MENU", "Saved levels clicked");
+
+        if (menuController != null)
+        {
+            menuController.ShowSavedLevelsPanel();
+        }
+    }
+
     private void OnCreditsClicked()
     {
         GameLogger.Log("MENU", "Credits clicked");

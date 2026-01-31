@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d584a68e98fac43f4a63005d975f2277, type: 3}
+  m_Name: AbilitiesConfig
+  m_EditorClassIdentifier: Assembly-CSharp::AbilitiesConfig
+  airDodgeForce: 30
+  airDodgeDuration: 0.3
+  airDodgeCooldown: 0.15
+  diveHorizontalBoost: 15
+  diveVerticalReduction: 0.8
+  diveDuration: 0.4
+  rollDuration: 0.7
+  minDiveVelocity: 0
+  kickDuration: 0.5
+  kickForceReduction: 0.5
+  crouchSizeMultiplier: {x: 2, y: 0.5}
+  staggerDuration: 0.8
+  staggerKnockbackForce: 20
+  staggerMovementReduction: 0.2

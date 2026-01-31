@@ -9,7 +9,10 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private MainMenuPanel mainMenuPanel;
     [SerializeField] private CreditsPanel creditsPanel;
     [SerializeField] private SettingsPanel settingsPanel;
-    
+    [SerializeField] private SavedLevelsPanel recentLevelsPanel;
+    [SerializeField] private SavedLevelsPanel savedLevelsPanel;
+    [SerializeField] private TextInputPanel textInputPanel;
+
     [Header("Fade Settings")]
     [SerializeField] private CanvasGroup menuCanvasGroup;
     [SerializeField] private float fadeOutDuration = 0.5f;
@@ -85,8 +88,23 @@ public class MainMenuController : MonoBehaviour
         {
             settingsPanel.Initialize(this);
         }
+
+        if (recentLevelsPanel != null)
+        {
+            recentLevelsPanel.Initialize(this);
+        }
+
+        if (savedLevelsPanel != null)
+        {
+            savedLevelsPanel.Initialize(this);
+        }
+
+        if (textInputPanel != null)
+        {
+            textInputPanel.Initialize(this);
+        }
     }
-    
+
     public void ShowMainPanel()
     {
         SwitchToPanel(mainMenuPanel);
@@ -101,7 +119,24 @@ public class MainMenuController : MonoBehaviour
     {
         SwitchToPanel(settingsPanel);
     }
-    
+
+    public void ShowRecentLevelsPanel()
+    {
+        recentLevelsPanel.PopulateMenu();
+        SwitchToPanel(recentLevelsPanel);
+    }
+
+    public void ShowSavedLevelsPanel()
+    {
+        savedLevelsPanel.PopulateMenu();
+        SwitchToPanel(savedLevelsPanel);
+    }
+
+    public void ShowTextInputPanel()
+    {
+        SwitchToPanel(textInputPanel);
+    }
+
     private void SwitchToPanel(BaseMainMenuPanel targetPanel)
     {
         if (targetPanel == null)
@@ -145,7 +180,7 @@ public class MainMenuController : MonoBehaviour
     {
         StartCoroutine(LoadGameplayAndGenerate());
     }
-    
+
     public void QuitGame()
     {
         GameLogger.Log("MENU", "Quit clicked");
