@@ -92,8 +92,23 @@ public class PlayerAnimator : MonoBehaviour
 
         if (targetHash != currentStateHash)
         {
+            // Check if this is a critical transition that should bypass cooldown
+            bool isCritical = IsCriticalTransition(currentStateHash, targetHash);
+            
             float timeSinceLastChange = Time.time - lastAnimationChangeTime;
-            if (timeSinceLastChange >= MIN_ANIMATION_CHANGE_INTERVAL)
+            
+            // LOG: Animation change blocked by cooldown
+            if (!isCritical && timeSinceLastChange < MIN_ANIMATION_CHANGE_INTERVAL)
+            {
+                string fromName = GetStateNameFromHash(currentStateHash);
+                string toName = GetStateNameFromHash(targetHash);
+                Debug.LogWarning($"<color=yellow>[ANIM BLOCKED]</color> {fromName} → {toName} | " +
+                    $"Cooldown: {timeSinceLastChange:F3}s < 0.05s | " +
+                    $"isGrounded={states.isGrounded} | isOnSlope={states.isOnSlope} | " +
+                    $"isWallRun={states.isWallRunning} | velY={rb.linearVelocity.y:F2}");
+            }
+            
+            if (isCritical || timeSinceLastChange >= MIN_ANIMATION_CHANGE_INTERVAL)
             {
                 PlayAnimation(targetHash);
                 lastAnimationChangeTime = Time.time;
@@ -109,6 +124,36 @@ public class PlayerAnimator : MonoBehaviour
         wasStaggered = states.isStaggered;
         wasVaulting = states.isVaultingWall;
         wasSlidingOnCable = states.isSlidingOnCable;
+    }
+    
+    private bool IsCriticalTransition(int fromHash, int toHash)
+    {
+        // Wall run exit → ALWAYS immediate
+        if (fromHash == AnimHash.WallSlide || fromHash == AnimHash.WallClimb)
+        {
+            return true;
+        }
+        
+        // Landing → ALWAYS immediate
+        if (toHash == AnimHash.Land)
+        {
+            return true;
+        }
+        
+        // Stagger/damage → ALWAYS immediate
+        if (toHash == AnimHash.HitDamage)
+        {
+            return true;
+        }
+        
+        // Kick end in air → ALWAYS immediate
+        if ((fromHash == AnimHash.KickA || fromHash == AnimHash.KickB || fromHash == AnimHash.KickC) 
+            && toHash == AnimHash.JumpFall)
+        {
+            return true;
+        }
+        
+        return false;
     }
 
     private int DetermineTargetAnimation()
@@ -160,9 +205,22 @@ public class PlayerAnimator : MonoBehaviour
                 return AnimHash.WallSlide;
             }
         }
-
-        if (states.isOnSlope && states.isGrounded)
+        
+        // LOG: WallRun exit detection
+        if (wasWallRunning && !states.isWallRunning)
         {
+            Debug.Log($"<color=magenta>[WALLRUN EXIT]</color> wasWallRun=TRUE → isWallRun=FALSE | " +
+                $"isGrounded={states.isGrounded} | velY={rb.linearVelocity.y:F2} | " +
+                $"timeSinceLastChange={(Time.time - lastAnimationChangeTime):F3}s");
+        }
+
+        // Check slope FIRST - even if isGrounded flickers, prioritize slope locomotion
+        if (states.isOnSlope)
+        {
+            Debug.Log($"<color=cyan>[SLOPE DETECTED]</color> isOnSlope=TRUE | isGrounded={states.isGrounded} | " +
+                $"slopeAngle={states.slopeAngle:F1}° | velY={rb.linearVelocity.y:F2} | " +
+                $"velX={rb.linearVelocity.x:F2} → Using LOCOMOTION");
+            
             if (states.isSliding)
             {
                 return AnimHash.Slide;
@@ -185,6 +243,13 @@ public class PlayerAnimator : MonoBehaviour
         if (!states.isGrounded)
         {
             float velY = rb.linearVelocity.y;
+            
+            // LOG: Air state with slope info
+            if (states.isOnSlope)
+            {
+                Debug.LogWarning($"<color=red>[SLOPE BUG]</color> isOnSlope=TRUE but isGrounded=FALSE! | " +
+                    $"slopeAngle={states.slopeAngle:F1}° | velY={velY:F2} → Will show JUMP animation!");
+            }
 
             if (velY > riseThreshold)
             {
