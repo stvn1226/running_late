@@ -1,7 +1,15 @@
 using UnityEngine;
 
+/// <summary>
+/// Code-based animation system that replaces Animator Controller logic.
+/// Determines animation states based on PlayerStates and plays them via Animator.CrossFade.
+/// </summary>
 public class PlayerAnimator : MonoBehaviour
 {
+    /// <summary>
+    /// Animation state hashes - cached for performance.
+    /// Maps state names to their hashed values for Animator.CrossFade/Play.
+    /// </summary>
     private static class AnimHash
     {
         public static readonly int Idle = Animator.StringToHash("Idle");
@@ -92,22 +100,11 @@ public class PlayerAnimator : MonoBehaviour
 
         if (targetHash != currentStateHash)
         {
-            // Check if this is a critical transition that should bypass cooldown
+            // Critical transitions (wall run exit, vault, landing, stagger) bypass cooldown for instant response
             bool isCritical = IsCriticalTransition(currentStateHash, targetHash);
-            
             float timeSinceLastChange = Time.time - lastAnimationChangeTime;
             
-            // LOG: Animation change blocked by cooldown
-            if (!isCritical && timeSinceLastChange < MIN_ANIMATION_CHANGE_INTERVAL)
-            {
-                string fromName = GetStateNameFromHash(currentStateHash);
-                string toName = GetStateNameFromHash(targetHash);
-                Debug.LogWarning($"<color=yellow>[ANIM BLOCKED]</color> {fromName} → {toName} | " +
-                    $"Cooldown: {timeSinceLastChange:F3}s < 0.05s | " +
-                    $"isGrounded={states.isGrounded} | isOnSlope={states.isOnSlope} | " +
-                    $"isWallRun={states.isWallRunning} | velY={rb.linearVelocity.y:F2}");
-            }
-            
+            // Apply cooldown to prevent animation flickering, except for critical transitions
             if (isCritical || timeSinceLastChange >= MIN_ANIMATION_CHANGE_INTERVAL)
             {
                 PlayAnimation(targetHash);
@@ -115,6 +112,7 @@ public class PlayerAnimator : MonoBehaviour
             }
         }
 
+        // Cache previous states for transition detection (e.g., detecting kick start, landing, etc.)
         lastVelocityY = rb.linearVelocity.y;
         wasGrounded = states.isGrounded;
         wasKicking = states.isKicking;
@@ -126,116 +124,90 @@ public class PlayerAnimator : MonoBehaviour
         wasSlidingOnCable = states.isSlidingOnCable;
     }
     
+    /// <summary>
+    /// Determines if a transition should bypass the cooldown for instant response.
+    /// Used for critical gameplay moments (wall exit, vault, landing, damage, kick recovery).
+    /// </summary>
     private bool IsCriticalTransition(int fromHash, int toHash)
     {
-        // Wall run exit → ALWAYS immediate
         if (fromHash == AnimHash.WallSlide || fromHash == AnimHash.WallClimb)
-        {
             return true;
-        }
         
-        // Landing → ALWAYS immediate
+        if (toHash == AnimHash.WallJump)
+            return true;
+        
         if (toHash == AnimHash.Land)
-        {
             return true;
-        }
         
-        // Stagger/damage → ALWAYS immediate
         if (toHash == AnimHash.HitDamage)
-        {
             return true;
-        }
         
-        // Kick end in air → ALWAYS immediate
         if ((fromHash == AnimHash.KickA || fromHash == AnimHash.KickB || fromHash == AnimHash.KickC) 
             && toHash == AnimHash.JumpFall)
-        {
             return true;
-        }
         
         return false;
     }
 
+    /// <summary>
+    /// Animation decision logic - determines which animation should play based on player state.
+    /// Priority order (top = highest):
+    /// 1. Stagger/Damage (highest priority - always shows)
+    /// 2. Kick (continues until kick ends)
+    /// 3. Dive/Roll
+    /// 4. Wall vault
+    /// 5. Cable slide
+    /// 6. Wall run (climb/slide)
+    /// 7. Slope locomotion (prioritized to avoid jump flicker on slopes)
+    /// 8. Air states (rise/mid/fall)
+    /// 9. Landing
+    /// 10. Ground locomotion (slide/crouch/run/idle)
+    /// </summary>
     private int DetermineTargetAnimation()
     {
         if (states.isStaggered)
-        {
             return AnimHash.HitDamage;
-        }
 
         if (states.isKicking && !wasKicking)
-        {
             return GetRandomKickVariation();
-        }
 
         if (states.isKicking)
-        {
             return currentStateHash;
-        }
 
         if (states.isDiving)
-        {
             return AnimHash.GroundSlam;
-        }
 
         if (states.isRolling)
-        {
             return AnimHash.Roll;
-        }
 
         if (states.isVaultingWall)
-        {
             return AnimHash.WallJump;
-        }
 
         if (states.isSlidingOnCable)
-        {
             return AnimHash.Slide;
-        }
 
         if (states.isWallRunning)
         {
             float absVelY = Mathf.Abs(rb.linearVelocity.y);
             if (absVelY > velocityDeadzone)
-            {
                 return AnimHash.WallClimb;
-            }
             else
-            {
                 return AnimHash.WallSlide;
-            }
-        }
-        
-        // LOG: WallRun exit detection
-        if (wasWallRunning && !states.isWallRunning)
-        {
-            Debug.Log($"<color=magenta>[WALLRUN EXIT]</color> wasWallRun=TRUE → isWallRun=FALSE | " +
-                $"isGrounded={states.isGrounded} | velY={rb.linearVelocity.y:F2} | " +
-                $"timeSinceLastChange={(Time.time - lastAnimationChangeTime):F3}s");
         }
 
-        // Check slope FIRST - even if isGrounded flickers, prioritize slope locomotion
+        // IMPORTANT: Check slope BEFORE air states to prevent jump flicker on slopes
+        // Even if isGrounded flickers, isOnSlope remains stable and prioritizes locomotion
         if (states.isOnSlope)
         {
-            Debug.Log($"<color=cyan>[SLOPE DETECTED]</color> isOnSlope=TRUE | isGrounded={states.isGrounded} | " +
-                $"slopeAngle={states.slopeAngle:F1}° | velY={rb.linearVelocity.y:F2} | " +
-                $"velX={rb.linearVelocity.x:F2} → Using LOCOMOTION");
-            
             if (states.isSliding)
-            {
                 return AnimHash.Slide;
-            }
             
             if (states.isCrouching)
-            {
                 return AnimHash.Crouch;
-            }
             
             float slopeAbsVelX = Mathf.Abs(rb.linearVelocity.x);
             if (slopeAbsVelX > runSpeedThreshold)
-            {
                 return AnimHash.Run;
-            }
             
             return AnimHash.Idle;
         }
@@ -243,48 +215,27 @@ public class PlayerAnimator : MonoBehaviour
         if (!states.isGrounded)
         {
             float velY = rb.linearVelocity.y;
-            
-            // LOG: Air state with slope info
-            if (states.isOnSlope)
-            {
-                Debug.LogWarning($"<color=red>[SLOPE BUG]</color> isOnSlope=TRUE but isGrounded=FALSE! | " +
-                    $"slopeAngle={states.slopeAngle:F1}° | velY={velY:F2} → Will show JUMP animation!");
-            }
 
             if (velY > riseThreshold)
-            {
                 return AnimHash.JumpRise;
-            }
             else if (velY < fallThreshold)
-            {
                 return AnimHash.JumpFall;
-            }
             else
-            {
                 return AnimHash.JumpMid;
-            }
         }
 
         if (wasGrounded != states.isGrounded && states.isGrounded)
-        {
             return AnimHash.Land;
-        }
 
         if (states.isSliding)
-        {
             return AnimHash.Slide;
-        }
 
         if (states.isCrouching && !states.isSliding)
-        {
             return AnimHash.Crouch;
-        }
 
         float absVelX = Mathf.Abs(rb.linearVelocity.x);
         if (absVelX > runSpeedThreshold)
-        {
             return AnimHash.Run;
-        }
 
         return AnimHash.Idle;
     }
@@ -292,9 +243,7 @@ public class PlayerAnimator : MonoBehaviour
     private int GetRandomKickVariation()
     {
         if (!randomizeKickVariations)
-        {
             return AnimHash.KickA;
-        }
 
         int[] kickVariations = { AnimHash.KickA, AnimHash.KickB, AnimHash.KickC };
         int randomIndex;
@@ -312,21 +261,15 @@ public class PlayerAnimator : MonoBehaviour
     private void PlayAnimation(int stateHash)
     {
         if (crossFadeDuration > 0f)
-        {
             animator.CrossFade(stateHash, crossFadeDuration, 0);
-        }
         else
-        {
             animator.Play(stateHash, 0, 0f);
-        }
 
         currentStateHash = stateHash;
         currentStateName = GetStateNameFromHash(stateHash);
 
         if (enableDebugLogs)
-        {
             GameLogger.Log("ANIM", $"Playing: {currentStateName} | isGrounded={states.isGrounded} | velY={rb.linearVelocity.y:F2}");
-        }
     }
 
     private string GetStateNameFromHash(int hash)
@@ -357,27 +300,21 @@ public class PlayerAnimator : MonoBehaviour
         {
             animator = GetComponent<Animator>();
             if (animator == null)
-            {
                 GameLogger.LogError("ANIM", "Animator component not found!");
-            }
         }
 
         if (rb == null)
         {
             rb = GetComponent<Rigidbody2D>();
             if (rb == null)
-            {
                 GameLogger.LogError("ANIM", "Rigidbody2D component not found!");
-            }
         }
 
         if (states == null)
         {
             states = GetComponent<PlayerStates>();
             if (states == null)
-            {
                 GameLogger.LogError("ANIM", "PlayerStates component not found!");
-            }
         }
     }
 

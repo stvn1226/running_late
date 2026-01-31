@@ -98,7 +98,21 @@ public class PlayerStateManager : MonoBehaviour
             
             bool shouldSlide = currentSpeed > 2f || (states.justLanded && currentSpeed > 1f);
             
-            if (states.isSliding && currentSpeed < 0.3f)
+            bool isSlidingDownhill = states.isOnSlope && !states.isSlopeTooSteep;
+            if (isSlidingDownhill)
+            {
+                Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+                float currentDir = Mathf.Sign(rb.linearVelocity.x);
+                if (currentDir != 0f)
+                {
+                    Vector2 slopeDir = slopeRight * currentDir;
+                    isSlidingDownhill = slopeDir.y < 0f;
+                }
+            }
+            
+            float slideEndThreshold = isSlidingDownhill ? 0.1f : 0.3f;
+            
+            if (states.isSliding && currentSpeed < slideEndThreshold)
             {
                 GameLogger.LogState($"SLIDE ENDED: Speed too low ({currentSpeed:F2})");
                 states.isSliding = false;

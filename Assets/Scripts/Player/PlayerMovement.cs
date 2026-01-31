@@ -439,11 +439,13 @@ public class PlayerMovement : MonoBehaviour
             {
                 float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
                 float momentumFactor = Mathf.Clamp01(currentSpeed / (maxRunSpeed * 0.8f));
-                float slopeBoost = 250f * momentumFactor;
+                float slopeAngleFactor = Mathf.Clamp01(states.slopeAngle / config.maxWalkableSlope);
+                float angleBonus = 1f + (slopeAngleFactor * 0.5f);
+                float slopeBoost = 250f * momentumFactor * angleBonus;
                 
                 rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
                 
-                GameLogger.LogVerbose("SLOPE", $"SLIDE ON SLOPE: MomentumFactor={momentumFactor:F2}, Boost={slopeBoost:F0}, Dir={slopeDir}, VelX={rb.linearVelocity.x:F2}");
+                GameLogger.LogVerbose("SLOPE", $"SLIDE ON SLOPE: MomentumFactor={momentumFactor:F2}, AngleBonus={angleBonus:F2}, Boost={slopeBoost:F0}, VelX={rb.linearVelocity.x:F2}");
             }
         }
     }
