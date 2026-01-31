@@ -57,11 +57,5 @@ public class PlayerKick : MonoBehaviour
             kickBox.enabled = false;
             GameLogger.LogVerbose("KICK", "KickBox DISABLED (Invoke callback)");
         }
-        
-        if (states != null && states.isKicking)
-        {
-            states.EndKick();
-            GameLogger.LogVerbose("KICK", "Called states.EndKick() from PlayerKick.EndKick()");
-        }
     }
 }

@@ -18,4 +18,8 @@ public class PowerUpContract
     /// The color associated with the power-up.
     /// </summary>
     public Color color;
+    /// <summary>
+    /// The power-up's effect
+    /// </summary>
+    public string description;
 }

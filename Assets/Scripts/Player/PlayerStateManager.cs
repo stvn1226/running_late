@@ -20,6 +20,8 @@ public class PlayerStateManager : MonoBehaviour
     private void Update()
     {
         HandleStates();
+
+        CableManager.instance.isFastFalling = states.crouchHeld;
         
         // Periodic state logging
         if (Time.time - lastStateLog > STATE_LOG_INTERVAL)
@@ -57,6 +59,8 @@ public class PlayerStateManager : MonoBehaviour
     {
         if (states.isRolling)
         {
+            float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+            
             if (!states.isGrounded)
             {
                 GameLogger.LogState("ROLL SAFETY: Player left ground while rolling, ending roll");
@@ -65,6 +69,11 @@ public class PlayerStateManager : MonoBehaviour
             else if (states.isWallRunning)
             {
                 GameLogger.LogState("ROLL SAFETY: Player started wall running while rolling, ending roll");
+                states.EndRoll();
+            }
+            else if (currentSpeed < 0.3f)
+            {
+                GameLogger.LogState($"ROLL ENDED: Speed too low ({currentSpeed:F2})");
                 states.EndRoll();
             }
             else if (states.rollTimer <= 0f && (states.isCrouching || states.isSliding))
@@ -77,16 +86,39 @@ public class PlayerStateManager : MonoBehaviour
 
     private void HandleCrouchAndSlide()
     {
-        // Don't interfere with rolling state
         if (states.isRolling) return;
+        if (states.isSlidingOnCable) return;
 
-        bool shouldProcessCrouchSlide = states.crouchHeld && states.isGrounded && !states.isWallRunning && !states.isJumping;
+        bool isOnGroundOrSlope = states.isGrounded || (states.isOnSlope && rb.linearVelocity.y < 2f);
+        bool shouldProcessCrouchSlide = states.crouchHeld && isOnGroundOrSlope && !states.isWallRunning && !states.isJumping;
         
         if (shouldProcessCrouchSlide)
         {
             float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
             
             bool shouldSlide = currentSpeed > 2f || (states.justLanded && currentSpeed > 1f);
+            
+            bool isSlidingDownhill = states.isOnSlope && !states.isSlopeTooSteep;
+            if (isSlidingDownhill)
+            {
+                Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+                float currentDir = Mathf.Sign(rb.linearVelocity.x);
+                if (currentDir != 0f)
+                {
+                    Vector2 slopeDir = slopeRight * currentDir;
+                    isSlidingDownhill = slopeDir.y < 0f;
+                }
+            }
+            
+            float slideEndThreshold = isSlidingDownhill ? 0.1f : 0.3f;
+            
+            if (states.isSliding && currentSpeed < slideEndThreshold)
+            {
+                GameLogger.LogState($"SLIDE ENDED: Speed too low ({currentSpeed:F2})");
+                states.isSliding = false;
+                states.isCrouching = true;
+                return;
+            }
             
             if (shouldSlide)
             {
@@ -111,7 +143,7 @@ public class PlayerStateManager : MonoBehaviour
                 states.isCrouching = false;
                 states.isSliding = true;
             }
-            else
+            else if (!states.isSliding)
             {
                 if (!states.isCrouching)
                 {
@@ -192,4 +224,5 @@ public class PlayerStateManager : MonoBehaviour
             states.kickPressed = false;
         }
     }
+
 }

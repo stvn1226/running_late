@@ -8,21 +8,20 @@ public class PlayerPhysics : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private CapsuleCollider2D playerCollider;
     [SerializeField] private PlayerStates states;
-    [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private Vector2 originalColliderSize;
     [SerializeField] private Vector2 originalColliderOffset;
     [SerializeField] private Vector2 crouchColliderSize;
     [SerializeField] private Vector2 crouchColliderOffset;
 
-    // Logging variables
     private bool previousGrounded;
     private bool previousCanWallRun;
     private int previousWallDirection;
     private float lastPhysicsLog = 0f;
     private const float PHYSICS_LOG_INTERVAL = 1f;
 
-    // Wall height detection
     private float lastWallHeightCheck = 0f;
+    private float groundedBufferTimer = 0f;
+    private const float GROUNDED_BUFFER_TIME = 0.1f;
 
     private void Awake()
     {
@@ -31,15 +30,16 @@ public class PlayerPhysics : MonoBehaviour
             GameLogger.LogError("PHYSICS", "No CapsuleCollider2D found in children!");
         }
         
-        if (playerMovement == null)
-        {
-            playerMovement = GetComponent<PlayerMovement>();
-        }
-        
         originalColliderSize = playerCollider.size;
         originalColliderOffset = playerCollider.offset;
         
-        GameLogger.LogPhysics($"Initialized - Collider: {playerCollider.name}, Size: {originalColliderSize}, Offset: {originalColliderOffset}");
+        PhysicsMaterial2D noBounceMaterial = new PhysicsMaterial2D("PlayerNoB ounce");
+        noBounceMaterial.friction = 0f;
+        noBounceMaterial.bounciness = 0f;
+        playerCollider.sharedMaterial = noBounceMaterial;
+        rb.sharedMaterial = noBounceMaterial;
+        
+        GameLogger.LogPhysics($"Initialized - Collider: {playerCollider.name}, Size: {originalColliderSize}, Offset: {originalColliderOffset}, Material: NoBounceFriction");
     }
 
     private void Start()
@@ -62,36 +62,22 @@ public class PlayerPhysics : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
+        CheckSlope();
         CheckGrounded();
         CheckWallRun();
-        
-        // Log physics state changes
+    }
+
+    private void Update()
+    {
         if (states.isGrounded != previousGrounded)
         {
-            GameLogger.LogPhysics($"GROUNDED CHANGE: {previousGrounded} -> {states.isGrounded}, Velocity.y: {rb.linearVelocity.y:F2}");
+            GameLogger.LogPhysics($"GROUNDED CHANGE: {previousGrounded} -> {states.isGrounded}, Velocity.y: {rb.linearVelocity.y:F2}, OnSlope: {states.isOnSlope}");
             
-            if (states.isGrounded && !previousGrounded && playerMovement != null)
+            if (states.isGrounded && !previousGrounded)
             {
-                playerMovement.HandleLanding();
-            }
-        }
-
-        if (states.isGrounded && !previousGrounded && playerMovement != null)
-        {
-            playerMovement.HandleLanding();
-
-            PlayerAirDodge airDodge = GetComponent<PlayerAirDodge>();
-            if (airDodge != null)
-            {
-                airDodge.OnLanding();
-            }
-
-            PlayerDive dive = GetComponent<PlayerDive>();
-            if (dive != null)
-            {
-                dive.OnLanding();
+                states.OnLanded?.Invoke();
             }
         }
 
@@ -100,10 +86,9 @@ public class PlayerPhysics : MonoBehaviour
             GameLogger.LogPhysics($"WALL RUN CHANGE: CanWallRun={states.canWallRun}, Direction={states.wallDirection}, Input.x={states.moveInput.x:F2}");
         }
         
-        // Periodic physics logging
         if (Time.time - lastPhysicsLog > PHYSICS_LOG_INTERVAL)
         {
-            GameLogger.LogVerbose("PHYSICS", $"STATUS: Grounded={states.isGrounded}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}, Pos={transform.position}, ColliderPos={playerCollider.transform.position}");
+            GameLogger.Log("PHYSICS", $"STATUS: Grounded={states.isGrounded}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}, Pos={transform.position}, ColliderPos={playerCollider.transform.position}");
             lastPhysicsLog = Time.time;
         }
         
@@ -118,30 +103,65 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (config == null) return;
 
-        // Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
         Vector2 boxCenter = (Vector2)playerCollider.transform.position + playerCollider.offset;
         Vector2 boxSize = playerCollider.size;
 
-        RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance, config.groundLayer);
+        float extraDistance = states.isOnSlope ? config.slopeGroundCheckExtra : 0f;
+        RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance + extraDistance, config.groundLayer);
         
-        bool newGrounded = hit.collider != null && rb.linearVelocity.y <= 0.1f;
+        bool hitGround = hit.collider != null;
         
-        if (hit.collider != null && states.isGrounded != newGrounded)
+        if (hitGround)
         {
-            string hitObjectInfo = $"{hit.collider.name} (Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}, Tag: {hit.collider.tag})";
-            GameLogger.LogPhysics($"GROUND CHECK HIT: {hitObjectInfo}, VelY: {rb.linearVelocity.y:F2}, Distance: {hit.distance:F3}");
+            if (states.isOnSlope)
+            {
+                bool shouldBeGrounded = rb.linearVelocity.y <= config.slopeGroundedYVelocityThreshold;
+                if (shouldBeGrounded)
+                {
+                    states.isGrounded = true;
+                    groundedBufferTimer = GROUNDED_BUFFER_TIME;
+                }
+                else
+                {
+                    if (groundedBufferTimer > 0f)
+                    {
+                        states.isGrounded = true;
+                        groundedBufferTimer -= Time.fixedDeltaTime;
+                    }
+                    else
+                    {
+                        states.isGrounded = false;
+                    }
+                }
+            }
+            else
+            {
+                bool shouldBeGrounded = rb.linearVelocity.y <= 0.1f;
+                if (shouldBeGrounded)
+                {
+                    states.isGrounded = true;
+                    groundedBufferTimer = GROUNDED_BUFFER_TIME;
+                }
+                else
+                {
+                    states.isGrounded = false;
+                    groundedBufferTimer = 0f;
+                }
+            }
         }
-        
-        states.isGrounded = newGrounded;
+        else
+        {
+            states.isGrounded = false;
+            groundedBufferTimer = 0f;
+        }
     }
 
     private void CheckWallRun()
     {
         if (config == null) return;
 
-        if (states.isGrounded)
+        if (states.isOnSlope)
         {
-            if (states.canWallRun) GameLogger.LogVerbose("PHYSICS", "Wall run disabled - player grounded");
             states.canWallRun = false;
             return;
         }
@@ -149,9 +169,7 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
         Vector2 boxSize = new Vector2(config.wallCheckDistance, playerCollider.size.y);
 
-        // Check right wall
         RaycastHit2D rightHit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.right, config.wallCheckDistance, config.wallLayer);
-        // Check left wall
         RaycastHit2D leftHit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.left, config.wallCheckDistance, config.wallLayer);
 
         bool previousCanWallRun = states.canWallRun;
@@ -184,12 +202,82 @@ public class PlayerPhysics : MonoBehaviour
         {
             if (states.canWallRun)
             {
-                GameLogger.LogVerbose("PHYSICS", $"Wall run lost - RightHit: {rightHit.collider != null}, LeftHit: {leftHit.collider != null}, Input.x: {states.moveInput.x:F2}");
+                GameLogger.Log("PHYSICS", $"Wall run lost - RightHit: {rightHit.collider != null}, LeftHit: {leftHit.collider != null}, Input.x: {states.moveInput.x:F2}");
             }
             states.canWallRun = false;
         }
     }
 
+    private void CheckSlope()
+    {
+        if (config == null || !config.enableSlopeDetection)
+        {
+            states.slopeNormal = Vector2.up;
+            states.slopeAngle = 0f;
+            states.isOnSlope = false;
+            states.isSlopeTooSteep = false;
+            states.slopeTangent = Vector2.right;
+            return;
+        }
+
+        Vector2 playerBottom = (Vector2)playerCollider.transform.position + 
+                               playerCollider.offset - 
+                               Vector2.up * (playerCollider.size.y * 0.5f);
+
+        float checkDistance = config.slopeCheckDistance + 0.15f;
+
+        RaycastHit2D centerHit = Physics2D.Raycast(playerBottom, Vector2.down, checkDistance, config.groundLayer);
+        RaycastHit2D leftHit = Physics2D.Raycast(playerBottom + Vector2.left * 0.25f, Vector2.down, checkDistance, config.groundLayer);
+        RaycastHit2D rightHit = Physics2D.Raycast(playerBottom + Vector2.right * 0.25f, Vector2.down, checkDistance, config.groundLayer);
+
+        RaycastHit2D hit = default;
+        float closestDist = float.MaxValue;
+        
+        if (centerHit.collider != null && centerHit.distance < closestDist) { hit = centerHit; closestDist = centerHit.distance; }
+        if (leftHit.collider != null && leftHit.distance < closestDist) { hit = leftHit; closestDist = leftHit.distance; }
+        if (rightHit.collider != null && rightHit.distance < closestDist) { hit = rightHit; closestDist = rightHit.distance; }
+
+        bool wasOnSlope = states.isOnSlope;
+
+        if (hit.collider != null)
+        {
+            states.slopeNormal = hit.normal;
+            states.slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+            
+            Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x).normalized;
+            states.slopeTangent = slopeRight;
+            
+            bool isSlopeAngleValid = states.slopeAngle > config.minSlopeAngle && states.slopeAngle <= config.maxWalkableSlope;
+            bool shouldBeOnSlope = isSlopeAngleValid;
+            
+            if (shouldBeOnSlope)
+            {
+                states.slopeBuffer = 0.15f;
+            }
+            
+            states.isOnSlope = shouldBeOnSlope || states.slopeBuffer > 0f;
+            states.isSlopeTooSteep = states.slopeAngle > config.maxWalkableSlope;
+
+            if (states.isOnSlope && !wasOnSlope)
+            {
+                GameLogger.Log("SLOPE", $"ENTERED SLOPE: Angle={states.slopeAngle:F1}°, Normal={states.slopeNormal}, Tangent={states.slopeTangent}, Obj={hit.collider.name}");
+            }
+        }
+        else
+        {
+            if (wasOnSlope)
+            {
+                GameLogger.Log("SLOPE", "EXITED SLOPE: No ground detected");
+            }
+
+            states.slopeNormal = Vector2.up;
+            states.slopeAngle = 0f;
+            states.isOnSlope = false;
+            states.isSlopeTooSteep = false;
+            states.slopeTangent = Vector2.right;
+        }
+    }
+    
     private void DetectWallHeight(RaycastHit2D wallHit, int direction)
     {
         if (Time.time - lastWallHeightCheck < config.wallHeightCheckInterval)
@@ -219,7 +307,7 @@ public class PlayerPhysics : MonoBehaviour
                 states.distanceToWallTop = h;
                 states.isNearWallTop = h < config.wallVaultTriggerDistance;
                 
-                GameLogger.LogVerbose("PHYSICS", $"Wall top detected at height: {h:F2}, Near top: {states.isNearWallTop}");
+                GameLogger.Log("PHYSICS", $"Wall top detected at height: {h:F2}, Near top: {states.isNearWallTop}");
                 break;
             }
         }
@@ -246,14 +334,30 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
         Vector2 boxSize = playerCollider.size;
 
-        // Draw ground check
         Gizmos.color = states != null && states.isGrounded ? Color.green : Color.red;
         Gizmos.DrawWireCube(boxCenter + Vector2.down * config.groundCheckDistance, boxSize);
 
-        // Draw wall check
         Gizmos.color = states != null && states.canWallRun ? Color.blue : Color.gray;
         Vector2 wallCheckSize = new Vector2(config.wallCheckDistance, boxSize.y);
         Gizmos.DrawWireCube(boxCenter + Vector2.right * config.wallCheckDistance, wallCheckSize);
         Gizmos.DrawWireCube(boxCenter + Vector2.left * config.wallCheckDistance, wallCheckSize);
+
+        if (config.enableSlopeDetection && states != null)
+        {
+            Vector2 playerBottom = (Vector2)transform.position + 
+                                   playerCollider.offset - 
+                                   Vector2.up * (playerCollider.size.y * 0.5f);
+    
+            float checkDistance = config.slopeCheckDistance + 0.15f;
+    
+            Gizmos.color = states.isOnSlope ? Color.yellow : Color.cyan;
+            Gizmos.DrawLine(playerBottom, playerBottom + Vector2.down * checkDistance);
+    
+            if (states.isOnSlope)
+            {
+                Gizmos.color = states.isSlopeTooSteep ? Color.red : Color.green;
+                Gizmos.DrawLine(playerBottom, playerBottom + states.slopeNormal * 2f);
+            }
+        }
     }
 }

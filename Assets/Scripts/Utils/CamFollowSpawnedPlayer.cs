@@ -129,7 +129,7 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     {
         if (player == null) return;
     
-        playerTransform = player.transform;
+        playerTransform = player.GetComponent<PlayerControllerModular>().camTarget;
     
         GameLogger.Log("CAMERA", $"Player spawned at {playerTransform.position}");
     
@@ -137,18 +137,15 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         {
             Transform currentFollow = cinemachineCamera.Follow;
         
-            // Si hay un Follow target previo (HomeCameraTarget), muévelo a la posición del Player
             if (currentFollow != null && currentFollow.gameObject.name.Contains("HomeCameraTarget"))
             {
                 GameLogger.Log("CAMERA", $"Moving HomeCameraTarget from {currentFollow.position} to {playerTransform.position}");
                 currentFollow.position = playerTransform.position;
             
-                // Esperar un frame para que Cinemachine procese la nueva posición
                 StartCoroutine(DelayedFollowChange());
             }
             else
             {
-                // No hay target previo, cambiar directamente
                 AssignPlayerAsTarget();
             }
         }
@@ -158,13 +155,10 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     
     private IEnumerator DelayedFollowChange()
     {
-        // Esperar 1 frame para que Cinemachine procese la nueva posición de HomeCameraTarget
         yield return null;
     
-        // Ahora cambiar al Player
         AssignPlayerAsTarget();
     
-        // Esperar antes de restaurar gameplay settings
         yield return new WaitForSecondsRealtime(delayBeforeRestoringSettings);
         RestoreGameplayCameraSettings();
     }

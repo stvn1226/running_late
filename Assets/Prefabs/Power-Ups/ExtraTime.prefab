@@ -57,7 +57,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 2e618d9e677760748814e21a444f5dce, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -221,6 +221,7 @@ MonoBehaviour:
   powerUpName: ExtraTime
   icon: {fileID: 21300000, guid: cde2d560c31ef8c4a9abb6b152a2ffe6, type: 3}
   theme: {r: 0, g: 0, b: 0, a: 1}
+  desc: Extra time limit
   destroyOnPickup: 1
   showDebugInfo: 1
   activeTime: 0

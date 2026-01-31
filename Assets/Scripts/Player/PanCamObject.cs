@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,94 +6,137 @@ public class PanCamObject : MonoBehaviour
     [Header("Configuration")]
     public PlayerConfig config;
 
-    [Header("Component References")]
-    private PlayerInputActions inputActions;
+    [Header("Input Settings")]
+    [Range(0f, 0.3f)]
+    [Tooltip("Dead zone for stick input to prevent drift")]
+    public float inputDeadzone = 0.15f;
 
-    [Header("Cache")]
-    private Vector2 startPosition;
+    [Header("Debug")]
+    public bool showDebug = false;
 
-    [Header("Misc.")]
     private Vector2 panInput;
+    private Vector2 currentVelocity;
     private Vector2 targetLocalPosition = Vector2.zero;
-    private bool isPanning = false;
-
-    private void Awake()
-    {
-        // Create input actions
-        inputActions = new PlayerInputActions();
-    }
-
-    void Start()
-    {
-        startPosition = transform.position;
-    }
 
     private void OnEnable()
     {
-        inputActions.Gameplay.Enable();
-
-        inputActions.Gameplay.PanCamera.performed += OnPanInput;
-        inputActions.Gameplay.PanCamera.canceled += OnPanEnd;
-
+        SubscribeToPanInput();
     }
 
     private void OnDisable()
     {
-        inputActions.Gameplay.Disable();
+        UnsubscribeFromPanInput();
+    }
 
-        inputActions.Gameplay.PanCamera.performed -= OnPanInput;
-        inputActions.Gameplay.PanCamera.canceled -= OnPanEnd;
+    private void SubscribeToPanInput()
+    {
+        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
+        {
+            UIManager.Instance.inputActions.Gameplay.PanCamera.performed += OnPanInput;
+            UIManager.Instance.inputActions.Gameplay.PanCamera.canceled += OnPanInput;
+            
+            if (showDebug)
+                Debug.Log("[PanCam] Successfully subscribed to PanCamera input");
+        }
+        else
+        {
+            Invoke(nameof(SubscribeToPanInput), 0.1f);
+        }
+    }
+
+    private void UnsubscribeFromPanInput()
+    {
+        CancelInvoke(nameof(SubscribeToPanInput));
+        
+        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
+        {
+            UIManager.Instance.inputActions.Gameplay.PanCamera.performed -= OnPanInput;
+            UIManager.Instance.inputActions.Gameplay.PanCamera.canceled -= OnPanInput;
+        }
     }
 
     private void OnPanInput(InputAction.CallbackContext context)
     {
-        panInput = context.ReadValue<Vector2>();
-        isPanning = panInput.magnitude > 0.1f;
-
-        if (isPanning)
+        Vector2 rawInput = context.ReadValue<Vector2>();
+        
+        if (rawInput.magnitude < inputDeadzone)
         {
-            UpdateOrbitPosition();
+            panInput = Vector2.zero;
         }
-    }
-
-    private void OnPanEnd(InputAction.CallbackContext context)
-    {
-        panInput = Vector2.zero;
-        isPanning = false;
+        else
+        {
+            panInput = rawInput;
+        }
+        
+        if (showDebug)
+            Debug.Log($"[PanCam] Raw Input: {rawInput} | Pan Input: {panInput}");
     }
 
     void Update()
     {
+        UpdateTargetPosition();
         ApplyMovement();
-
     }
 
-    private void UpdateOrbitPosition()
+    private void UpdateTargetPosition()
     {
+        if (panInput.magnitude < inputDeadzone)
+        {
+            targetLocalPosition = Vector2.zero;
+            return;
+        }
+
         Vector2 normalizedInput = panInput.normalized;
 
         if (config.invertXAxis) normalizedInput.x = -normalizedInput.x;
         if (config.invertYAxis) normalizedInput.y = -normalizedInput.y;
 
-        float inputMagnitude = Mathf.Clamp01(panInput.magnitude);
-        Vector3 orbitDirection = new Vector3(normalizedInput.x, normalizedInput.y, 0);
-
-        targetLocalPosition = orbitDirection * (config.panAmount * inputMagnitude);
+        float inputMagnitude = Mathf.Clamp01((panInput.magnitude - inputDeadzone) / (1f - inputDeadzone));
+        
+        targetLocalPosition = normalizedInput * (config.panAmount * inputMagnitude);
+        
+        if (showDebug && panInput.magnitude > inputDeadzone)
+        {
+            Debug.Log($"[PanCam] Target: {targetLocalPosition} | X: {targetLocalPosition.x:F2} | Y: {targetLocalPosition.y:F2}");
+        }
     }
 
     private void ApplyMovement()
     {
-        float speed = isPanning ? config.panSpeed : config.returnSpeed;
+        bool isPanning = panInput.magnitude > inputDeadzone;
+        float smoothTime = isPanning ? (1f / config.panSpeed) : (1f / config.returnSpeed);
 
-        transform.localPosition = Vector2.Lerp(
+        Vector2 previousPos = transform.localPosition;
+
+        transform.localPosition = Vector2.SmoothDamp(
             transform.localPosition,
             targetLocalPosition,
-            speed * Time.deltaTime
+            ref currentVelocity,
+            smoothTime
         );
 
-        if (!isPanning && Vector2.Distance(transform.localPosition, Vector3.zero) < 0.01f)
+        if (showDebug && isPanning && Vector2.Distance(previousPos, transform.localPosition) > 0.01f)
+        {
+            Debug.Log($"[PanCam] LocalPos: {transform.localPosition} | X: {transform.localPosition.x:F2} | Y: {transform.localPosition.y:F2}");
+        }
+
+        if (!isPanning && Vector2.Distance(transform.localPosition, Vector2.zero) < 0.01f)
         {
             transform.localPosition = Vector2.zero;
+            currentVelocity = Vector2.zero;
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!Application.isPlaying) return;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 0.3f);
+        
+        Gizmos.color = Color.green;
+        Vector3 targetWorldPos = transform.parent.TransformPoint(targetLocalPosition);
+        Gizmos.DrawLine(transform.position, targetWorldPos);
+        Gizmos.DrawWireSphere(targetWorldPos, 0.2f);
     }
 }

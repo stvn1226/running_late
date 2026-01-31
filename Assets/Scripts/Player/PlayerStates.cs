@@ -3,17 +3,9 @@ using UnityEngine;
 
 public class PlayerStates : MonoBehaviour
 {
-    private static readonly int IsKicking = Animator.StringToHash("isKicking");
-    private static readonly int IsSliding = Animator.StringToHash("isSliding");
-    private static readonly int IsWallRunning = Animator.StringToHash("isWallRunning");
-    private static readonly int IsCrouching = Animator.StringToHash("isCrouching");
-    private static readonly int IsStaggered = Animator.StringToHash("isStaggered");
-    private static readonly int IsDiving = Animator.StringToHash("isDiving");
-    private static readonly int IsRolling = Animator.StringToHash("isRolling");
-    private static readonly int IsVaulting = Animator.StringToHash("isVaulting");
-
-    [Header("Animator")]
-    public Animator animator;
+    private PlayerConfig config;
+    private BoxCollider2D playerCollider;
+    private new Transform transform;
 
     [Header("Input States")]
     public Vector2 moveInput;
@@ -37,6 +29,18 @@ public class PlayerStates : MonoBehaviour
     public bool isAirDodging;
     public bool canAirDodge;
 
+    [Header("Slope States")]
+    public bool isOnSlope = false;
+    public float slopeAngle = 0f;
+    public Vector2 slopeNormal = Vector2.up;
+    public bool isSlopeTooSteep = false;
+    public Vector2 slopeTangent = Vector2.right;
+    public float slopeBuffer = 0f;
+
+    [Header("Power-Up States")]
+    public bool isInvincible = false;
+    public bool isShielded = false;
+
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
     public float jumpBufferTimer = 0f;
@@ -44,6 +48,7 @@ public class PlayerStates : MonoBehaviour
     public bool canCoyoteJump = false;
     public bool isJumpCut = false;
     public bool isFalling = false;
+    public bool isGraceFalling = false;
     public float jumpHoldTimer = 0f;
     public bool isJumping = false;
     public bool crouchInputBuffered = false;
@@ -89,6 +94,10 @@ public class PlayerStates : MonoBehaviour
     [Header("Stagger States")]
     public float staggerTimer;
 
+    [Header("Corner Climb States")]
+    public bool isCornerClimbing = false;
+    public float cornerClimbTimer = 0f;
+    
     private bool prevCanWallRun;
     private int prevWallDirection;
     private bool prevWallRunHeld;
@@ -97,20 +106,71 @@ public class PlayerStates : MonoBehaviour
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
 
+    [Header("Cable Sliding")]
+    public bool isSlidingOnCable = false;
+    public EdgeCollider2D currentCable;
+    public float cableSlideSpeed = 0f;
+
+    private Coroutine activeInvincibility;
+
     public bool IsWallRunHeld => wallRunHeld;
 
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
     public System.Action OnJumpStateChanged;
     public System.Action OnStaggerStateChanged;
+    public System.Action OnLanded;
+
+    private void OnDisable()
+    {
+        if (activeInvincibility != null)
+        {
+            StopCoroutine(activeInvincibility);
+            activeInvincibility = null;
+        }
+    }
+
+    private void Awake()
+    {
+        transform = GetComponent<Transform>();
+        playerCollider = GetComponent<BoxCollider2D>();
+        config = GetComponent<PlayerMovement>()?.config;
+    }
 
     private void Update()
     {
         LogWallRunStates();
         UpdateTimers();
         CheckStateChanges();
-        UpdateAnimator();
         UpdatePreviousValues();
+    }
+
+    public void InvokeInvincibility(float duration)
+    {
+        if (activeInvincibility != null)
+        {
+            StopCoroutine(activeInvincibility);
+        }
+        activeInvincibility = StartCoroutine(InvincibilityCoroutine(duration));
+    }
+
+    private IEnumerator InvincibilityCoroutine(float duration)
+    {
+        isInvincible = true;
+        yield return new WaitForSeconds(duration);
+        isInvincible = false;
+        activeInvincibility = null;
+    }
+
+    public void InvokeShield()
+    {
+        isShielded = true;
+    }
+
+    public void RemoveShield()
+    {
+        isShielded = false;
+        UIPowerUp.RemoveShield();
     }
 
     private void LogWallRunStates()
@@ -158,17 +218,6 @@ public class PlayerStates : MonoBehaviour
         prevMoveInput = moveInput;
     }
 
-    private void UpdateAnimator()
-    {
-        animator.SetBool(IsSliding, isSliding);
-        animator.SetBool(IsWallRunning, isWallRunning);
-        animator.SetBool(IsCrouching, isCrouching);
-        animator.SetBool(IsStaggered, isStaggered);
-        animator.SetBool(IsDiving, isDiving);
-        animator.SetBool(IsRolling, isRolling);
-        animator.SetBool(IsVaulting, isVaultingWall);
-    }
-
     private void UpdateTimers()
     {
         if (jumpInputBuffered)
@@ -207,16 +256,6 @@ public class PlayerStates : MonoBehaviour
                 justLanded = false;
         }
 
-        if (isKicking)
-        {
-            kickTimer -= Time.deltaTime;
-            if (kickTimer <= 0f)
-            {
-                GameLogger.LogState($"KICK: Timer expired ({kickTimer:F3}s), forcing end");
-                EndKick();
-            }
-        }
-
         if (isStaggered)
         {
             staggerTimer -= Time.deltaTime;
@@ -235,6 +274,16 @@ public class PlayerStates : MonoBehaviour
         if (isJumping && jumpHeld)
         {
             jumpHoldTimer += Time.deltaTime;
+        }
+        
+        // Corner climb timer
+        if (cornerClimbTimer > 0f)
+        {
+            cornerClimbTimer -= Time.deltaTime;
+            if (cornerClimbTimer <= 0f)
+            {
+                isCornerClimbing = false;
+            }
         }
 
         if (jumpPressed)
@@ -264,15 +313,31 @@ public class PlayerStates : MonoBehaviour
             }
         }
 
+        if (isKicking)
+        {
+            kickTimer -= Time.deltaTime;
+            if (kickTimer <= 0f)
+            {
+                EndKick();
+            }
+        }
+
         if (divePressed)
         {
             divePressed = false;
         }
 
+        // Vault timer with early exit detection
         if (isVaultingWall)
         {
             vaultTimer -= Time.deltaTime;
-            if (vaultTimer <= 0f)
+            
+            // End vault early if player leaves wall contact during vault
+            if (!IsStillTouchingWall(wallDirection))
+            {
+                EndVault();
+            }
+            else if (vaultTimer <= 0f)
             {
                 EndVault();
             }
@@ -330,16 +395,11 @@ public class PlayerStates : MonoBehaviour
                 EndRoll();
             }
             
-            animator.SetTrigger(IsKicking);
             kickPressed = true;
             isKicking = true;
             kickTimer = kickDuration;
 
-            GameLogger.LogState($"KICK: Started - Timer set to {kickTimer:F2}s");
-        }
-        else
-        {
-            GameLogger.LogWarning("KICK", "Kick already active, ignoring new kick request");
+            GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
         }
     }
 
@@ -349,8 +409,7 @@ public class PlayerStates : MonoBehaviour
         {
             isKicking = false;
             kickTimer = 0f;
-            animator.ResetTrigger(IsKicking);
-            GameLogger.LogState("KICK: Ended");
+            GameLogger.Log("KICK", "STATE: isKicking SET TO FALSE - Kick ended");
         }
     }
 
@@ -495,6 +554,20 @@ public class PlayerStates : MonoBehaviour
         }
     }
 
+    public void StartCableSlide(EdgeCollider2D cableCollider)
+    {
+        isSlidingOnCable = true;
+        currentCable = cableCollider;
+        isSliding = true;
+    }
+
+    public void EndCableSlide()
+    {
+        isSlidingOnCable = false;
+        currentCable = null;
+        isSliding = false;
+    }
+
     public void RecordWallClimbInput()
     {
         wallClimbInputTime = Time.time;
@@ -503,5 +576,21 @@ public class PlayerStates : MonoBehaviour
     public void RecordWallContact()
     {
         wallContactTime = Time.time;
+    }
+
+    /// <summary>
+    /// Checks if player is still touching a wall in the specified direction.
+    /// Used for vault early-exit detection - ends vault immediately when player leaves wall.
+    /// </summary>
+    private bool IsStillTouchingWall(int direction)
+    {
+        if (config == null || playerCollider == null) return false;
+
+        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
+        Vector2 boxSize = new Vector2(config.wallCheckDistance, playerCollider.size.y);
+        Vector2 checkDirection = direction > 0 ? Vector2.right : Vector2.left;
+
+        RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, checkDirection, config.wallCheckDistance, config.wallLayer);
+        return hit.collider != null;
     }
 }

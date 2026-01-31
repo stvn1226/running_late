@@ -49,6 +49,7 @@ MonoBehaviour:
   powerUpName: DoubleJump
   icon: {fileID: 21300000, guid: 077f0d93730efee4ea7479c5cebacaef, type: 3}
   theme: {r: 0, g: 1, b: 0.39215687, a: 1}
+  desc: Double-jump
   destroyOnPickup: 1
   showDebugInfo: 1
   activeTime: 10
@@ -111,7 +112,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 2e618d9e677760748814e21a444f5dce, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -9,6 +9,22 @@ public class PlayerDive : MonoBehaviour
     [SerializeField] private PlayerStates states;
     [SerializeField] private PlayerPhysics playerPhysics;
 
+    private void Start()
+    {
+        if (states != null)
+        {
+            states.OnLanded += OnLanding;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (states != null)
+        {
+            states.OnLanded -= OnLanding;
+        }
+    }
+
     private void Update()
     {
         if (states.isStaggered || states.isKicking) return;

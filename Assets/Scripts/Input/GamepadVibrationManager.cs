@@ -1,5 +1,8 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
+using MoreMountains.Feedbacks;
+#if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+using Lofelt.NiceVibrations;
+#endif
 
 public class GamepadVibrationManager : MonoBehaviour
 {
@@ -7,9 +10,7 @@ public class GamepadVibrationManager : MonoBehaviour
     public static GamepadVibrationManager Instance => instance;
     
     private const string VIBRATION_ENABLED_KEY = "VibrationEnabled";
-    
     private bool vibrationEnabled = true;
-    private Gamepad currentGamepad;
     
     private void Awake()
     {
@@ -18,6 +19,7 @@ public class GamepadVibrationManager : MonoBehaviour
             instance = this;
             DontDestroyOnLoad(gameObject);
             LoadSettings();
+            InitializeHaptics();
         }
         else
         {
@@ -25,44 +27,28 @@ public class GamepadVibrationManager : MonoBehaviour
         }
     }
     
-    private void OnEnable()
+    private void InitializeHaptics()
     {
-        InputSystem.onDeviceChange += OnDeviceChange;
-        UpdateCurrentGamepad();
-    }
-    
-    private void OnDisable()
-    {
-        InputSystem.onDeviceChange -= OnDeviceChange;
-        StopAllVibrations();
-    }
-    
-    private void OnDeviceChange(InputDevice device, InputDeviceChange change)
-    {
-        if (device is Gamepad)
-        {
-            UpdateCurrentGamepad();
-        }
-    }
-    
-    private void UpdateCurrentGamepad()
-    {
-        currentGamepad = Gamepad.current;
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+        HapticController.Init();
+        GameLogger.Log("HAPTICS", "Nice Vibrations initialized!");
         
-        if (currentGamepad != null)
-        {
-            GameLogger.Log("VIBRATION", $"Gamepad detected: {currentGamepad.displayName}");
-        }
-        else
-        {
-            GameLogger.LogWarning("VIBRATION", "No gamepad connected");
-        }
+        Invoke(nameof(TestHaptic), 2f);
+        #else
+        GameLogger.LogWarning("HAPTICS", "Nice Vibrations NOT installed! Add MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED to scripting defines.");
+        #endif
+    }
+    
+    private void TestHaptic()
+    {
+        GameLogger.Log("HAPTICS", ">>> TESTING HAPTIC FEEDBACK <<<");
+        TriggerHitVibration();
     }
     
     private void LoadSettings()
     {
         vibrationEnabled = PlayerPrefs.GetInt(VIBRATION_ENABLED_KEY, 1) == 1;
-        GameLogger.Log("VIBRATION", $"Vibration loaded: {(vibrationEnabled ? "ENABLED" : "DISABLED")}");
+        GameLogger.Log("HAPTICS", $"Settings: {(vibrationEnabled ? "ENABLED" : "DISABLED")}");
     }
     
     public void SetVibrationEnabled(bool enabled)
@@ -71,12 +57,14 @@ public class GamepadVibrationManager : MonoBehaviour
         PlayerPrefs.SetInt(VIBRATION_ENABLED_KEY, enabled ? 1 : 0);
         PlayerPrefs.Save();
         
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
         if (!enabled)
         {
-            StopAllVibrations();
+            HapticController.Stop();
         }
+        #endif
         
-        GameLogger.Log("VIBRATION", $"Vibration {(enabled ? "ENABLED" : "DISABLED")}");
+        GameLogger.Log("HAPTICS", $"Vibration {(enabled ? "ENABLED" : "DISABLED")}");
     }
     
     public bool IsVibrationEnabled()
@@ -84,54 +72,61 @@ public class GamepadVibrationManager : MonoBehaviour
         return vibrationEnabled;
     }
     
-    public void TriggerVibration(float lowFrequency, float highFrequency, float duration)
+    public void TriggerLightVibration(float duration = 0.05f)
     {
-        if (!vibrationEnabled)
-        {
-            GameLogger.LogVerbose("VIBRATION", "Vibration disabled, skipping");
-            return;
-        }
+        if (!vibrationEnabled) return;
         
-        if (currentGamepad == null)
-        {
-            GameLogger.LogVerbose("VIBRATION", "No gamepad connected");
-            return;
-        }
-        
-        currentGamepad.SetMotorSpeeds(lowFrequency, highFrequency);
-        GameLogger.LogVerbose("VIBRATION", $"Vibration triggered: Low={lowFrequency:F2}, High={highFrequency:F2}, Duration={duration:F2}s");
-        
-        CancelInvoke(nameof(StopAllVibrations));
-        Invoke(nameof(StopAllVibrations), duration);
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+        HapticPatterns.PlayPreset(HapticPatterns.PresetType.LightImpact);
+        GameLogger.Log("HAPTICS", "▶ Light Impact");
+        #endif
     }
     
-    public void TriggerLightVibration(float duration = 0.1f)
+    public void TriggerMediumVibration(float duration = 0.15f)
     {
-        TriggerVibration(0.2f, 0.3f, duration);
+        if (!vibrationEnabled) return;
+        
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+        HapticPatterns.PlayPreset(HapticPatterns.PresetType.MediumImpact);
+        GameLogger.Log("HAPTICS", "▶ Medium Impact");
+        #endif
     }
     
-    public void TriggerMediumVibration(float duration = 0.2f)
+    public void TriggerHeavyVibration(float duration = 0.25f)
     {
-        TriggerVibration(0.4f, 0.6f, duration);
-    }
-    
-    public void TriggerHeavyVibration(float duration = 0.3f)
-    {
-        TriggerVibration(0.7f, 0.9f, duration);
+        if (!vibrationEnabled) return;
+        
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+        HapticPatterns.PlayPreset(HapticPatterns.PresetType.HeavyImpact);
+        GameLogger.Log("HAPTICS", "▶ Heavy Impact");
+        #endif
     }
     
     public void TriggerHitVibration()
     {
-        TriggerVibration(0.5f, 0.7f, 0.15f);
+        if (!vibrationEnabled) return;
+        
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+        HapticPatterns.PlayPreset(HapticPatterns.PresetType.MediumImpact);
+        GameLogger.Log("HAPTICS", "▶ HIT!");
+        #endif
     }
     
     public void StopAllVibrations()
     {
-        if (currentGamepad != null)
-        {
-            currentGamepad.SetMotorSpeeds(0f, 0f);
-        }
-        
-        CancelInvoke(nameof(StopAllVibrations));
+        #if MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+        HapticController.Stop();
+        #endif
+    }
+    
+    private void OnDisable()
+    {
+        StopAllVibrations();
+    }
+    
+    private void OnApplicationQuit()
+    {
+        StopAllVibrations();
     }
 }
+

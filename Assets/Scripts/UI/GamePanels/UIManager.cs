@@ -9,6 +9,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private VictoryPanel victoryPanel;
     [SerializeField] private DefeatPanel defeatPanel;
     
+    [Header("Other Panels")]
+    [SerializeField] private SettingsPanel settingsPanel;
+    
     public PlayerInputActions inputActions;
     private bool isPaused = false;
     private bool isEndGameActive = false;
@@ -46,6 +49,7 @@ public class UIManager : MonoBehaviour
         {
             inputActions.Gameplay.Pause.performed += OnPausePressed;
             inputActions.UI.Pause.performed += OnPausePressed;
+            inputActions.UI.Cancel.performed += OnCancelPressed;
         }
     }
     
@@ -55,15 +59,43 @@ public class UIManager : MonoBehaviour
         {
             inputActions.Gameplay.Pause.performed -= OnPausePressed;
             inputActions.UI.Pause.performed -= OnPausePressed;
+            inputActions.UI.Cancel.performed -= OnCancelPressed;
             
             inputActions.Gameplay.Disable();
             inputActions.UI.Disable();
         }
     }
     
+    private void OnCancelPressed(InputAction.CallbackContext context)
+    {
+        if (settingsPanel != null && settingsPanel.IsVisible)
+        {
+            settingsPanel.Hide();
+        
+            if (pauseMenuPanel != null)
+            {
+                pauseMenuPanel.Show();
+                currentActivePanel = pauseMenuPanel;
+            }
+        
+            GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+            return;
+        }
+    
+        if (currentActivePanel == pauseMenuPanel)
+        {
+            HideAllPanels();
+        }
+    }
+    
     private void OnPausePressed(InputAction.CallbackContext context)
     {
         if (isEndGameActive)
+        {
+            return;
+        }
+        
+        if (settingsPanel != null && settingsPanel.IsVisible)
         {
             return;
         }
@@ -94,7 +126,7 @@ public class UIManager : MonoBehaviour
             
             if (panel is PauseMenuPanel && AnalyticsManager.Instance != null)
             {
-                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_PAUSE, new System.Collections.Generic.Dictionary<string, object>
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_PAUSE, new Dictionary<string, object>
                 {
                     { "panel_name", typeof(T).Name }
                 });
@@ -120,6 +152,9 @@ public class UIManager : MonoBehaviour
         
         if (defeatPanel != null)
             defeatPanel.Hide();
+        
+        if (settingsPanel != null)
+            settingsPanel.Hide();
         
         currentActivePanel = null;
         isPaused = false;
@@ -193,6 +228,19 @@ public class UIManager : MonoBehaviour
     public void ShowEndGamePanel()
     {
         ShowVictoryPanel();
+    }
+    
+    public void NotifyPanelClosed()
+    {
+        currentActivePanel = null;
+        isPaused = false;
+        SetInputContext(false);
+        Time.timeScale = 1f;
+    
+        if (AnalyticsManager.Instance != null)
+        {
+            AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_RESUME, null);
+        }
     }
     
     public bool IsPaused => isPaused;

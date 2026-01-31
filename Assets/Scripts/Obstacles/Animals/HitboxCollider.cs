@@ -102,13 +102,47 @@ public class HitboxCollider : MonoBehaviour
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
     {
         float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
-        GameLogger.Log($"[{parent.gameObject.name}] ✗ DAMAGE (VelY: {velocityY:F2})");
+        if (parent.cachedPlayerMovement == null)
+            parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
+
+        PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
+        bool isInvincible = playerStates != null && playerStates.isInvincible;
+        bool isShielded = playerStates != null && playerStates.isShielded;
+
+        if (isInvincible || isShielded)
+        {
+            GameLogger.Log($"[{parent.gameObject.name}] Player is INVINCIBLE - staggering enemy instead!");
+
+            playerStates.RemoveShield();
+            parent.TriggerStagger();
+            parent.wasHit = true;
+
+            if (AnalyticsManager.Instance != null)
+            {
+                float playerSpeed = 0f;
+                if (parent.cachedPlayerMovement != null)
+                {
+                    Rigidbody2D rb = parent.cachedPlayerMovement.GetComponent<Rigidbody2D>();
+                    playerSpeed = rb != null ? Mathf.Abs(rb.linearVelocity.x) : 0f;
+                }
+
+                AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "obstacle_type", parent.GetType().Name },
+                { "position_x", parent.transform.position.x },
+                { "player_speed", playerSpeed },
+                { "player_velocity_y", velocityY },
+                { "player_invincible", true }
+            });
+            }
+
+            return;
+        }
+
+        GameLogger.Log($"[{parent.gameObject.name}] >> DAMAGE (VelY: {velocityY:F2})");
 
         if (AnalyticsManager.Instance != null)
         {
-            if (parent.cachedPlayerMovement == null)
-                parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
-
             float playerSpeed = 0f;
             if (parent.cachedPlayerMovement != null)
             {
@@ -117,16 +151,13 @@ public class HitboxCollider : MonoBehaviour
             }
 
             AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.OBSTACLE_HIT, new System.Collections.Generic.Dictionary<string, object>
-            {
-                { "obstacle_type", parent.GetType().Name },
-                { "position_x", parent.transform.position.x },
-                { "player_speed", playerSpeed },
-                { "player_velocity_y", velocityY }
-            });
+        {
+            { "obstacle_type", parent.GetType().Name },
+            { "position_x", parent.transform.position.x },
+            { "player_speed", playerSpeed },
+            { "player_velocity_y", velocityY }
+        });
         }
-
-        if (parent.cachedPlayerMovement == null)
-            parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
 
         if (parent.cachedPlayerMovement != null)
             parent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));

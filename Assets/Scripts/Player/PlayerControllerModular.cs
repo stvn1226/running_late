@@ -12,10 +12,11 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerMovement movement;
     [SerializeField] private PlayerJump jump;
     [SerializeField] private PlayerPhysics physics;
-    [SerializeField] private PlayerKick kicker;
     [SerializeField] private PlayerStateManager stateManager;
     [SerializeField] private PlayerAirDodge airDodge;
     [SerializeField] private PlayerDive dive;
+    
+    public Transform camTarget;
     
     private bool inputEnabled = true;
 
@@ -191,16 +192,7 @@ public class PlayerControllerModular : MonoBehaviour
     {
         if (states != null && config != null)
         {
-            if (states.isKicking)
-            {
-                GameLogger.LogWarning("KICK", "Kick already active, ignoring input");
-                return;
-            }
-            
             states.SetKickPressed(config.kickDuration);
-            kicker.PerformKick(config.kickDuration);
-            
-            GameLogger.LogInput($"Kick input processed - Duration: {config.kickDuration}s");
         }
     }
 

@@ -1,6 +1,5 @@
 using MoreMountains.Feedbacks;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -17,6 +16,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private PlayerWallClimb wallClimb;
 
     [SerializeField] private SpriteRenderer playerSprite;
+    
+    [Header("Slide & Roll Drag Multiplier")]
+    [Tooltip("Multiplier applied to config.slideDrag for slide and roll deceleration. Higher = faster stop. Current: 3.5x")]
+    [Range(1f, 10f)]
+    [SerializeField] private float slideDragMultiplier = 3.5f;
     
     [Header("Wall Detection")]
     private bool isNearBuildingWall = false;
@@ -41,7 +45,8 @@ public class PlayerMovement : MonoBehaviour
 
     private float maxRunSpeed;
     private Coroutine activeSpeedBoostCoroutine;
-
+    private float slopeSnapDisableTimer = 0f;
+    
     private void Start()
     {
         rb.linearDamping = 0f;
@@ -60,7 +65,20 @@ public class PlayerMovement : MonoBehaviour
             wallClimb = GetComponent<PlayerWallClimb>();
         }
         
+        if (states != null)
+        {
+            states.OnLanded += HandleLanding;
+        }
+        
         GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
+    }
+
+    private void OnDestroy()
+    {
+        if (states != null)
+        {
+            states.OnLanded -= HandleLanding;
+        }
     }
 
     public void InvokeExtraSpeed(float extraSpeed, float duration)
@@ -116,6 +134,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (states.isStaggered) return;
       
+        StickToSlope();
         HandleSpriteFlipping();
         HandleMovement();
         
@@ -269,6 +288,8 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
+        if (states.isInvincible) return;
+
         GameLogger.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
     
         states.StartStagger(config.staggerDuration);
@@ -287,31 +308,43 @@ public class PlayerMovement : MonoBehaviour
     {
         if (config == null) return;
 
-        float forceMultiplier = states.isKicking ? config.kickForceReduction : 1f;
+        float forceMultiplier = 1f;
 
         if (states.isStaggered)
         {
             forceMultiplier *= config.staggerMovementReduction;
         }
 
-        states.animator.SetFloat(XVelocity, Mathf.Abs(rb.linearVelocity.x));
-        states.animator.SetFloat(YVelocity, rb.linearVelocity.y);
-
         if (states.isWallRunning)
             HandleWallRunMovement(forceMultiplier);
+        else if (states.isSlidingOnCable)
+            HandleCableSlideMovement();
         else if (states.isRolling)
             HandleRollMovement(forceMultiplier);
         else if (states.isSliding)
             HandleSlideMovement(forceMultiplier);
+        else if (states.isCrouching)
+            HandleCrouchMovement();
         else if (states.isDiving)
             HandleDiveMovement(forceMultiplier);
         else
             HandleNormalMovement(forceMultiplier);
     }
+    
+    private void HandleCrouchMovement()
+    {
+        float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+        
+        if (currentSpeed > 0.5f)
+        {
+            Vector2 velocity = rb.linearVelocity;
+            Vector2 dragForces = -velocity * (config.slideDrag * slideDragMultiplier * 0.5f * Time.fixedDeltaTime);
+            rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
+        }
+    }
 
     private void HandleNormalMovement(float forceMultiplier)
     {
-        if (states.isKicking) return;
         if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling) return;
 
         float horizontalInput = states.moveInput.x;
@@ -320,17 +353,36 @@ public class PlayerMovement : MonoBehaviour
         {
             float targetSpeed = horizontalInput * maxRunSpeed;
             float speedDifference = targetSpeed - rb.linearVelocity.x;
-    
+        
             bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
             bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < maxRunSpeed;
-    
+        
             if (isAccelerating || isBelowMaxSpeed)
             {
-                float force = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
-                force *= forceMultiplier;
+                float baseForce = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+                baseForce *= forceMultiplier;
 
-                float appliedForce = Mathf.Clamp(speedDifference * force, -force, force);
-                rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                float appliedForce = Mathf.Clamp(speedDifference * baseForce, -baseForce, baseForce);
+                
+                if (states.isOnSlope && !states.isSlopeTooSteep && states.isGrounded)
+                {
+                    Vector2 moveDirection = states.slopeTangent * horizontalInput;
+                    
+                    float slopeCurrentSpeed = Vector2.Dot(rb.linearVelocity, moveDirection.normalized);
+                    float slopeTargetSpeed = moveDirection.magnitude * maxRunSpeed;
+                    
+                    float slopeSpeedDiff = slopeTargetSpeed - slopeCurrentSpeed;
+                    float slopeAccel = config.slopeMoveAccel * forceMultiplier;
+                    float slopeForceAmount = Mathf.Clamp(slopeSpeedDiff * slopeAccel, -slopeAccel, slopeAccel);
+                    
+                    rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
+                    
+                    GameLogger.LogVerbose("SLOPE", $"SlopeMove: Input={horizontalInput:F2}, CurSpeed={slopeCurrentSpeed:F2}, Target={slopeTargetSpeed:F2}, Force={slopeForceAmount:F0}");
+                }
+                else
+                {
+                    rb.AddForce(Vector2.right * (appliedForce * Time.fixedDeltaTime), ForceMode2D.Force);
+                }
             }
         }
 
@@ -340,17 +392,85 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void StickToSlope()
+    {
+        slopeSnapDisableTimer -= Time.fixedDeltaTime;
+    
+        if (!states.isOnSlope || states.isSlopeTooSteep)
+            return;
+
+        if (states.isJumping || states.isRolling || states.isDiving || states.isKicking)
+            return;
+
+        if (slopeSnapDisableTimer > 0f)
+            return;
+
+        if (rb.linearVelocity.y > 0.2f)
+            return;
+
+        Vector2 perpendicular = states.slopeNormal;
+        float perpendicularVel = Vector2.Dot(rb.linearVelocity, perpendicular);
+    
+        if (perpendicularVel > 0.01f)
+        {
+            Vector2 correctionForce = -perpendicular * (perpendicularVel * config.slopeStickStrength / Time.fixedDeltaTime);
+            rb.AddForce(correctionForce, ForceMode2D.Force);
+        
+            GameLogger.LogVerbose("SLOPE", $"STICK: Cancelled perpendicular={perpendicularVel:F2}");
+        }
+    }
+
+    public void DisableSlopeSnapForJump()
+    {
+        slopeSnapDisableTimer = config.slopeSnapDisableTime;
+    }
 
     private void HandleSlideMovement(float forceMultiplier)
     {
-        // Sliding uses momentum only - no horizontal input processed
-        // Could add slide steering here if needed
+        if (states.isOnSlope && !states.isSlopeTooSteep)
+        {
+            Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+            float currentDir = Mathf.Sign(rb.linearVelocity.x);
+            if (currentDir == 0f) currentDir = 1f;
+            
+            Vector2 slopeDir = slopeRight * currentDir;
+            
+            if (slopeDir.y < 0f && states.landingGraceTimer <= 0f)
+            {
+                float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+                float momentumFactor = Mathf.Clamp01(currentSpeed / (maxRunSpeed * 0.8f));
+                float slopeAngleFactor = Mathf.Clamp01(states.slopeAngle / config.maxWalkableSlope);
+                float angleBonus = 1f + (slopeAngleFactor * 0.5f);
+                float slopeBoost = 250f * momentumFactor * angleBonus;
+                
+                rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+                
+                GameLogger.LogVerbose("SLOPE", $"SLIDE ON SLOPE: MomentumFactor={momentumFactor:F2}, AngleBonus={angleBonus:F2}, Boost={slopeBoost:F0}, VelX={rb.linearVelocity.x:F2}");
+            }
+        }
     }
 
     private void HandleRollMovement(float forceMultiplier)
     {
-        // Rolling uses momentum only, similar to sliding
-        // No horizontal input processed during roll
+        if (states.isOnSlope && !states.isSlopeTooSteep)
+        {
+            Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+            float currentDir = Mathf.Sign(rb.linearVelocity.x);
+            if (currentDir == 0f) currentDir = 1f;
+            
+            Vector2 slopeDir = slopeRight * currentDir;
+            
+            if (slopeDir.y < 0f)
+            {
+                float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+                float momentumFactor = Mathf.Clamp01(currentSpeed / (maxRunSpeed * 0.8f));
+                float slopeBoost = 250f * momentumFactor;
+                
+                rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+                
+                GameLogger.LogVerbose("SLOPE", $"ROLL ON SLOPE: MomentumFactor={momentumFactor:F2}, Boost={slopeBoost:F0}, Dir={slopeDir}, VelX={rb.linearVelocity.x:F2}");
+            }
+        }
     }
 
     private void HandleDiveMovement(float forceMultiplier)
@@ -361,9 +481,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleWallRunMovement(float forceMultiplier)
     {
-        if (states.isKicking) return;
-
         float climbBoost = wallClimb != null ? wallClimb.GetWallRunForceMultiplier() : 1f;
+        
+        if (states.isCornerClimbing)
+            climbBoost *= 0.3f;
+        
         float totalMultiplier = forceMultiplier * climbBoost;
 
         rb.AddForce(Vector2.up * (config.wallRunForce * totalMultiplier * Time.fixedDeltaTime), ForceMode2D.Force);
@@ -381,32 +503,69 @@ public class PlayerMovement : MonoBehaviour
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
         
+        if (Mathf.Abs(velocity.x) < 0.15f && Mathf.Abs(horizontalInput) < 0.1f && states.isGrounded)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+        
         if (states.justLanded && states.landingGraceTimer > 0f)
         {
             GameLogger.LogVerbose("MOVEMENT", $"Landing grace active - maintaining velocity: {rb.linearVelocity.x:F2}, Timer: {states.landingGraceTimer:F2}");
             return;
         }
     
-        if (!states.isGrounded || states.isKicking)
+        if (!states.isGrounded)
             return;
         
         if (states.isRolling)
         {
-            if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
-            {
-                Vector2 dragForces = -velocity * (config.slideDrag * 0.4f * Time.fixedDeltaTime);
-                rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
-            }
+            Vector2 dragForces = -velocity * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime);
+            rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             return;
         }
         
         if (states.isSliding)
         {
-            if (Mathf.Abs(horizontalInput) < 0.1f || (horizontalInput * velocity.x) < 0)
+            if (states.isOnSlope && !states.isSlopeTooSteep)
             {
-                Vector2 dragForces = -velocity * (config.slideDrag * 0.3f * Time.fixedDeltaTime);
+                Vector2 slopeDirection = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+                float velocityAlongSlope = Vector2.Dot(velocity, slopeDirection);
+                Vector2 dragForces = -slopeDirection * (velocityAlongSlope * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime));
+                rb.AddForce(dragForces, ForceMode2D.Force);
+            }
+            else
+            {
+                Vector2 dragForces = -velocity * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime);
                 rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             }
+            return;
+        }
+        
+        if (states.isOnSlope && !states.isSlopeTooSteep)
+        {
+            Vector2 slopeDirection = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
+            float velocityAlongSlope = Vector2.Dot(velocity, slopeDirection);
+    
+            if (Mathf.Abs(horizontalInput) < 0.1f)
+            {
+                if (Mathf.Abs(velocityAlongSlope) > 0.1f)
+                {
+                    Vector2 stopForce = -slopeDirection * (velocityAlongSlope * (config.slopeStopDecel * Time.fixedDeltaTime));
+                    rb.AddForce(stopForce, ForceMode2D.Force);
+                }
+                return;
+            }
+    
+            bool inputOpposesMovement = (horizontalInput * velocityAlongSlope) < 0;
+            
+            if (inputOpposesMovement)
+            {
+                float slopeTargetDrag = config.groundDrag * 1.5f;
+                Vector2 slopeDragForce = -slopeDirection * (velocityAlongSlope * (slopeTargetDrag * Time.fixedDeltaTime));
+                rb.AddForce(slopeDragForce, ForceMode2D.Force);
+            }
+            
             return;
         }
         
@@ -503,5 +662,30 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, -config.maxFallSpeed);
         }
+    }
+
+    private void HandleCableSlideMovement()
+    {
+        Vector2 closestPoint = FindClosestPointOnCable(states.currentCable);
+        Vector2 directionToPoint = (closestPoint - rb.position).normalized;
+        float slideForceMagnitude = config.cableSlideForce;
+        Vector2 slideForce = directionToPoint * slideForceMagnitude;
+        rb.AddForce(slideForce * Time.fixedDeltaTime, ForceMode2D.Impulse);
+    }
+
+    private Vector2 FindClosestPointOnCable(EdgeCollider2D cableCollider)
+    {
+        Vector2 playerPosition = rb.position;
+        Vector2[] cablePoints = cableCollider.points;
+        Vector2 closestPoint = cableCollider.transform.TransformPoint(cablePoints[cablePoints.Length - 1]);
+        foreach (Vector2 point in cablePoints)
+        {
+            Vector2 worldPoint = cableCollider.transform.TransformPoint(point);
+            if (worldPoint.x < playerPosition.x) continue;
+            closestPoint = new Vector2 (worldPoint.x, worldPoint.y + .5f);
+            break;
+
+        }
+        return closestPoint;
     }
 }

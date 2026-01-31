@@ -1,5 +1,6 @@
 using MoreMountains.Feedbacks;
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class PlayerJump : MonoBehaviour
@@ -16,9 +17,23 @@ public class PlayerJump : MonoBehaviour
     private float maxTime = 10f;
     private bool allowDoubleJump = false;
 
+    private float minJumpForce;
+    private float maxJumpForce;
+
+    private bool canSlowFall;
+
+    private Coroutine activeHeightCoroutine;
+    private Coroutine activeFloatCoroutine;
+    
+    [SerializeField] private PlayerMovement playerMovement;
+
+
     private void Awake()
     {
         originalGravityScale = rb.gravityScale;
+        minJumpForce = config.minJumpForce;
+        maxJumpForce = config.maxJumpForce;
+        canSlowFall = false;
     }
 
     private void Update()
@@ -57,48 +72,77 @@ public class PlayerJump : MonoBehaviour
 
     public void InvokeExtraJumpHeight(float extraHeight, float duration)
     {
-        //if (config == null) return;
-        //config.minJumpForce += extraHeight;
-        //config.maxJumpForce += extraHeight;
-        //Debug.Log($"Extra Jump Height Invoked! New Min Jump Force: {config.minJumpForce}, New Max Jump Force: {config.maxJumpForce}");
-        //// Schedule reset after duration
-        //Invoke(nameof(ResetJumpHeight), duration);
+        if (activeHeightCoroutine != null)
+        {
+            StopCoroutine(activeHeightCoroutine);
+            minJumpForce = config.minJumpForce;
+            maxJumpForce = config.maxJumpForce;
+        }
+        activeHeightCoroutine = StartCoroutine(ExtraHeightCoroutine(extraHeight, duration));
     }
 
+    private IEnumerator ExtraHeightCoroutine(float extraHeight, float duration)
+    {
+        minJumpForce = config.minJumpForce + extraHeight;
+        maxJumpForce = config.maxJumpForce + extraHeight;
+        yield return new WaitForSeconds(duration);
+        minJumpForce = config.minJumpForce;
+        maxJumpForce = config.maxJumpForce;
+        activeHeightCoroutine = null;
+    }
+
+    public void InvokeAirFloat(float duration)
+    {
+        if (activeFloatCoroutine != null)
+        {
+            StopCoroutine(activeFloatCoroutine);
+        }
+        activeFloatCoroutine = StartCoroutine(AirFloatCoroutine(duration));
+    }
+
+    private IEnumerator AirFloatCoroutine(float duration)
+    {
+        canSlowFall = true;
+        yield return new WaitForSeconds(duration);
+        canSlowFall = false;
+        activeFloatCoroutine = null;
+    }
     private void HandleJumpInput()
     {
-        if (config == null || states.isKicking) return;
+        if (config == null) return;
 
-        // Handle coyote time
         if (states.wasGrounded && !states.isGrounded && !states.isJumping)
         {
             states.StartCoyoteTime(config.coyoteTime);
         }
 
-        // Execute jump - jumping should cancel crouch/slide states
         if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump || (allowDoubleJump && jumpCt < 1)))
         {
-            // Cancel crouch, slide, dive, and roll states when jumping
             if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling)
             {
                 CancelCrouchSlideStates();
             }
 
-            // Reset dive ability on double jump
             bool isDoubleJump = !states.isGrounded && !states.canCoyoteJump && allowDoubleJump && jumpCt < 1;
             if (isDoubleJump)
             {
+                GameLogger.Log("JUMP", $"Double jump executed - isKicking={states.isKicking}");
                 PlayerDive dive = GetComponent<PlayerDive>();
                 if (dive != null)
                 {
                     dive.OnDoubleJump();
                 }
             }
+            else
+            {
+                GameLogger.Log("JUMP", $"Normal jump executed - isGrounded={states.isGrounded}, isKicking={states.isKicking}");
+            }
 
             PerformJump();
         }
         else if (states.jumpInputBuffered && states.isWallRunning && !states.isVaultingWall)
         {
+            GameLogger.Log("JUMP", $"Wall jump executed - isKicking={states.isKicking}");
             WallJump();
         }
     }
@@ -147,11 +191,18 @@ public class PlayerJump : MonoBehaviour
 
     private void PerformNormalJump()
     {
+        // Desactivar slope snap
+        if (playerMovement != null)
+        {
+            playerMovement.DisableSlopeSnapForJump();
+        }
+    
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-        rb.AddForce(Vector2.up * config.minJumpForce, ForceMode2D.Impulse);
+        rb.AddForce(Vector2.up * minJumpForce, ForceMode2D.Impulse);
 
-        GameLogger.LogMovement($"NORMAL JUMP! Vertical: {config.minJumpForce:F2}, Horizontal preserved: {rb.linearVelocity.x:F2}");
+        GameLogger.LogMovement($"NORMAL JUMP! Vertical: {minJumpForce:F2}, Horizontal preserved: {rb.linearVelocity.x:F2}\")");
     }
+
 
     private bool ShouldPerformLongJump()
     {
@@ -166,7 +217,7 @@ public class PlayerJump : MonoBehaviour
     {
         float currentHorizontalVelocity = rb.linearVelocity.x;
 
-        float verticalForce = config.minJumpForce * config.longJumpVerticalMultiplier;
+        float verticalForce = minJumpForce * config.longJumpVerticalMultiplier;
         float horizontalDirection = Mathf.Sign(states.moveInput.x);
         float horizontalForce = config.longJumpHorizontalBoost * horizontalDirection;
 
@@ -214,7 +265,7 @@ public class PlayerJump : MonoBehaviour
         {
             // Calculate additional force based on how long jump has been held
             float holdProgress = states.jumpHoldTimer / config.jumpHoldTime;
-            float additionalForce = Mathf.Lerp(0f, config.maxJumpForce - config.minJumpForce, holdProgress);
+            float additionalForce = Mathf.Lerp(0f, maxJumpForce - minJumpForce, holdProgress);
 
             // Apply additional upward force for variable jump height
             float frameForce = additionalForce * (Time.deltaTime / config.jumpHoldTime);
@@ -245,9 +296,20 @@ public class PlayerJump : MonoBehaviour
 
         float velocityY = rb.linearVelocity.y;
         
-        states.isFalling = velocityY < -0.1f;
+        bool isOnValidSlope = states.isOnSlope && !states.isSlopeTooSteep;
+        bool isActuallyFalling = velocityY < -0.01f && !isOnValidSlope && !states.isGrounded;
+        states.isFalling = isActuallyFalling;
+        states.isGraceFalling = velocityY < 1f && !isOnValidSlope && !states.isGrounded;
 
-        if (states.isWallRunning)
+        bool isDoingAction = states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking;
+        bool shouldDisableGravity = states.isOnSlope && !states.isSlopeTooSteep && velocityY <= 0.01f && !isDoingAction;
+        
+        if (shouldDisableGravity)
+        {
+            bool isGentleSlope = states.slopeAngle < 20f;
+            rb.gravityScale = isGentleSlope ? (originalGravityScale * 0.4f) : 0f;
+        }
+        else if (states.isWallRunning)
         {
             rb.gravityScale = config.wallRunGravityScale;
         }
@@ -255,12 +317,9 @@ public class PlayerJump : MonoBehaviour
         {
             bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
-            rb.gravityScale = shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale;
+            bool shouldSlowFall = states.jumpHeld && !states.isGrounded && states.isFalling && canSlowFall;
+            rb.gravityScale = shouldSlowFall ? (config.fallGravityScale * config.slowFallGravityMultiplier) : (shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale);
         }
-        // else if (velocityY > -config.apexThreshold && velocityY < config.apexThreshold && !states.isGrounded)
-        // {
-        //     rb.gravityScale = config.apexGravityScale;
-        // }
         else if (velocityY >= 0f && velocityY < config.apexThreshold && !states.isGrounded)
         {
             rb.gravityScale = config.apexGravityScale;
@@ -277,7 +336,7 @@ public class PlayerJump : MonoBehaviour
 
         Vector2 wallJumpDirection = new Vector2(-states.wallDirection, 1).normalized;
         rb.linearVelocity = Vector2.zero;
-        rb.AddForce(wallJumpDirection * (config.maxJumpForce * config.wallJumpMultiplier), ForceMode2D.Impulse);
+        rb.AddForce(wallJumpDirection * (maxJumpForce * config.wallJumpMultiplier), ForceMode2D.Impulse);
         states.isWallRunning = false;
         states.StartJump();
     }

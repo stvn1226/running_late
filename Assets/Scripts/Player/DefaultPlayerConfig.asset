@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: DefaultPlayerConfig
   m_EditorClassIdentifier: Assembly-CSharp::PlayerConfig
   runForce: 2500
-  maxRunSpeed: 34
-  airControlMultiplier: 0.8
+  maxRunSpeed: 30
+  airControlMultiplier: 0.6
   minJumpForce: 12
   maxJumpForce: 18
   jumpHoldTime: 0.3
   apexThreshold: 1.5
-  apexGravityScale: 2.5
+  apexGravityScale: 1
   fallGravityScale: 6
   fastFallGravityScale: 9
   jumpBufferTime: 0.12
@@ -31,6 +31,7 @@ MonoBehaviour:
   airDodgeForce: 30
   airDodgeDuration: 0.3
   airDodgeCooldown: 0.15
+  slowFallGravityMultiplier: 0.3
   diveHorizontalBoost: 15
   diveVerticalReduction: 0.8
   diveDuration: 0.4
@@ -44,9 +45,15 @@ MonoBehaviour:
   wallVaultTriggerDistance: 1.5
   wallVaultHorizontalBoost: 25
   wallVaultVerticalDamping: 0.5
-  wallVaultDuration: 0.25
+  wallVaultDuration: 0.15
   maxWallHeightCheck: 20
   wallHeightCheckInterval: 0.1
+  enableCornerClimb: 1
+  cornerClimbMinVelocity: -1
+  cornerClimbMaxVelocity: 1.5
+  cornerClimbDetectionDistance: 2.5
+  cornerClimbBoostForce: 12
+  cornerClimbDuration: 0.2
   groundDrag: 50
   airDrag: 50
   slideDrag: 10
@@ -59,7 +66,7 @@ MonoBehaviour:
   wallLayer:
     serializedVersion: 2
     m_Bits: 35840
-  kickDuration: 0.5
+  kickDuration: 0.25
   kickForceReduction: 0.5
   staggerDuration: 0.8
   staggerKnockbackForce: 20
@@ -71,9 +78,21 @@ MonoBehaviour:
   dropDownDisableTime: 0.3
   platformLayerMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 131200
+  cableSlideForce: 50
   panAmount: 5
   panSpeed: 5
   returnSpeed: 8
   invertXAxis: 0
   invertYAxis: 0
+  enableSlopeDetection: 1
+  maxWalkableSlope: 45
+  minSlopeAngle: 0.5
+  slopeCheckDistance: 0.5
+  slopeGroundCheckExtra: 0.2
+  slopeGroundedYVelocityThreshold: 1.5
+  slopeMoveAccel: 3000
+  slopeStopDecel: 100
+  slopeStickStrength: 1
+  slopeSnapDistance: 0.4
+  slopeSnapDisableTime: 0.12

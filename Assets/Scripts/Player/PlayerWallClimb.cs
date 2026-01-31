@@ -9,6 +9,7 @@ public class PlayerWallClimb : MonoBehaviour
 
     private float wallDirection = 0f;
     private bool wasOnWall = false;
+    private bool wasWallRunning = false;
 
     private void Awake()
     {
@@ -33,8 +34,10 @@ public class PlayerWallClimb : MonoBehaviour
         if (states.isWallRunning && !states.isVaultingWall)
         {
             CheckForPerfectClimb();
+            CheckCornerClimb();
             wallDirection = states.wallDirection;
             wasOnWall = true;
+            wasWallRunning = true;
             
             if (states.isNearWallTop)
             {
@@ -62,18 +65,61 @@ public class PlayerWallClimb : MonoBehaviour
                 }
             }
             
-            GameLogger.LogState($"LEFT WALL - NearTop={nearTop}, Distance={states.distanceToWallTop:F2}, VelY={rb.linearVelocity.y:F2}");
+            GameLogger.LogState($"LEFT WALL - NearTop={nearTop}, Distance={states.distanceToWallTop:F2}, VelY={rb.linearVelocity.y:F2}, PerfectClimb={states.isPerfectClimb}, StoredMomentum={states.storedMomentum:F2}");
             
             if (nearTop)
             {
                 GameLogger.LogState($"Player cleared wall top! Triggering vault. Distance: {states.distanceToWallTop:F2}, VelY: {rb.linearVelocity.y:F2}");
                 TriggerWallVault();
             }
+            else
+            {
+                HandleEarlyWallRelease();
+            }
             
             states.distanceToWallTop = 999f;
             states.isNearWallTop = false;
             wasOnWall = false;
+            wasWallRunning = false;
         }
+        else if (wasWallRunning && !states.isWallRunning && !states.canWallRun && !states.isVaultingWall)
+        {
+            HandleEarlyWallRelease();
+            wasWallRunning = false;
+        }
+    }
+
+    private void HandleEarlyWallRelease()
+    {
+        if (states.isPerfectClimb && states.storedMomentum > 0f && !states.wallRunHeld)
+        {
+            float currentHorizontalSpeed = Mathf.Abs(rb.linearVelocity.x);
+            
+            if (currentHorizontalSpeed < states.storedMomentum)
+            {
+                float restoredMomentum = states.storedMomentum * wallDirection;
+                rb.linearVelocity = new Vector2(restoredMomentum, rb.linearVelocity.y);
+                
+                GameLogger.LogState($"MOMENTUM RESTORED! Released wall run button early during perfect climb. Restored: {states.storedMomentum:F2} m/s (Direction: {wallDirection}), Current VelX: {rb.linearVelocity.x:F2}, VelY: {rb.linearVelocity.y:F2}");
+                
+                if (AnalyticsManager.Instance != null)
+                {
+                    AnalyticsManager.Instance.TrackEvent("perfect_climb_momentum_restored", new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "stored_momentum", states.storedMomentum },
+                        { "wall_direction", wallDirection },
+                        { "velocity_y", rb.linearVelocity.y },
+                        { "previous_velocity_x", currentHorizontalSpeed }
+                    });
+                }
+            }
+            else
+            {
+                GameLogger.LogVerbose("WALLCLIMB", $"Momentum NOT restored - current speed ({currentHorizontalSpeed:F2}) >= stored ({states.storedMomentum:F2})");
+            }
+        }
+        
+        ResetClimbState();
     }
 
     private void CheckForPerfectClimb()
@@ -94,6 +140,49 @@ public class PlayerWallClimb : MonoBehaviour
             {
                 ActivatePerfectClimb();
             }
+        }
+    }
+    
+    private void CheckCornerClimb()
+    {
+        if (config == null) return;
+        if (!config.enableCornerClimb) return;
+        if (states.isCornerClimbing) return;
+        if (states.isVaultingWall) return;
+    
+        bool isInCornerRange = states.distanceToWallTop < config.cornerClimbDetectionDistance 
+                               && states.distanceToWallTop > config.wallVaultTriggerDistance;
+    
+        bool hasProblematicVelocity = rb.linearVelocity.y > config.cornerClimbMinVelocity 
+                                      && rb.linearVelocity.y < config.cornerClimbMaxVelocity;
+    
+        bool isOnWall = states.isWallRunning || (states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f);
+    
+        if (isInCornerRange && hasProblematicVelocity && isOnWall)
+        {
+            GameLogger.LogState($"[CORNER CLIMB ASSIST] Activating! Distance: {states.distanceToWallTop:F2}m, VelY: {rb.linearVelocity.y:F2} m/s");
+            TriggerCornerClimb();
+        }
+    }
+    
+    private void TriggerCornerClimb()
+    {
+        states.isCornerClimbing = true;
+        states.cornerClimbTimer = config.cornerClimbDuration;
+    
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, config.cornerClimbBoostForce);
+    
+        GameLogger.LogState($"CORNER CLIMB BOOST! Applied {config.cornerClimbBoostForce} m/s upward velocity");
+    
+        if (AnalyticsManager.Instance != null)
+        {
+            AnalyticsManager.Instance.TrackEvent("corner_climb_triggered", new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "distance_to_top", states.distanceToWallTop },
+                { "velocity_y_before", rb.linearVelocity.y },
+                { "boost_applied", config.cornerClimbBoostForce },
+                { "wall_direction", states.wallDirection }
+            });
         }
     }
 
@@ -132,9 +221,12 @@ public class PlayerWallClimb : MonoBehaviour
             {
                 { "distance_to_top", states.distanceToWallTop },
                 { "horizontal_boost", forwardBoost },
-                { "perfect_climb", states.isPerfectClimb }
+                { "perfect_climb", states.isPerfectClimb },
+                { "stored_momentum", states.storedMomentum }
             });
         }
+        
+        ResetClimbState();
     }
 
     public float GetWallRunForceMultiplier()

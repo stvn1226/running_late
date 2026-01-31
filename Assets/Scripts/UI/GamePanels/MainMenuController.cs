@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class MainMenuController : MonoBehaviour
 {
@@ -17,6 +18,14 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private Canvas gameplayCanvas;
     
     private BaseMainMenuPanel currentPanel;
+    private BaseMainMenuPanel previousPanel;
+    
+    private PlayerInputActions inputActions;
+    
+    private void Awake()
+    {
+        inputActions = new PlayerInputActions();
+    }
     
     private void Start()
     {
@@ -30,13 +39,34 @@ public class MainMenuController : MonoBehaviour
         
         Time.timeScale = 0f;
         
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.inputActions.UI.Enable();
-            UIManager.Instance.inputActions.Gameplay.Disable();
-        }
-        
         GameLogger.Log("MENU", "Main Menu ready - UI controls active");
+    }
+    
+    private void OnEnable()
+    {
+        if (inputActions != null)
+        {
+            inputActions.UI.Enable();
+            inputActions.UI.Cancel.performed += OnCancelPressed;
+            GameLogger.Log("MENU", "Cancel button subscribed in Main Menu");
+        }
+    }
+    
+    private void OnDisable()
+    {
+        if (inputActions != null)
+        {
+            inputActions.UI.Cancel.performed -= OnCancelPressed;
+            inputActions.UI.Disable();
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        if (inputActions != null)
+        {
+            inputActions.Dispose();
+        }
     }
     
     private void InitializePanels()
@@ -83,12 +113,32 @@ public class MainMenuController : MonoBehaviour
         if (currentPanel != null)
         {
             currentPanel.Hide();
+            
+            if (targetPanel != mainMenuPanel)
+            {
+                previousPanel = currentPanel;
+            }
         }
         
         currentPanel = targetPanel;
         currentPanel.Show();
         
         GameLogger.Log("MENU", $"Switched to panel: {targetPanel.GetType().Name}");
+    }
+    
+    private void OnCancelPressed(InputAction.CallbackContext context)
+    {
+        if (currentPanel == null) return;
+        
+        if (currentPanel != mainMenuPanel)
+        {
+            GameLogger.Log("MENU", $"Cancel pressed on {currentPanel.GetType().Name}, returning to Main Menu");
+            ShowMainPanel();
+            GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+            return;
+        }
+    
+        GameLogger.Log("MENU", "Cancel pressed on Main Menu - ignoring");
     }
     
     public void StartGame()

@@ -99,6 +99,15 @@ public class PlayerConfig : ScriptableObject
     public float airDodgeCooldown = 0.15f;
 
     // ====================================
+    // POWER-UPS
+    // ====================================
+
+    [Header("Power-Ups")]
+    [Tooltip("Gravity multiplier when slow-fall power-up is active and jump is held while falling. Recommended: 0.3-0.5")]
+    [Range(0.1f, 0.8f)]
+    public float slowFallGravityMultiplier = 0.4f;
+
+    // ====================================
     // DIVE MECHANICS
     // ====================================
 
@@ -173,6 +182,32 @@ public class PlayerConfig : ScriptableObject
     [Range(0.1f, 1f)]
     public float wallHeightCheckInterval = 0.4f;
 
+    
+    [Header("Corner Climb (Auto-Assist)")]
+    [Tooltip("Enable automatic corner climbing when approaching wall corners with low velocity")]
+    public bool enableCornerClimb = true;
+
+    [Tooltip("Minimum vertical velocity to trigger corner climb. Negative = falling slowly")]
+    [Range(-3f, 0f)]
+    public float cornerClimbMinVelocity = -1.0f;
+
+    [Tooltip("Maximum vertical velocity to trigger corner climb. Prevents activation when already climbing fast")]
+    [Range(0f, 3f)]
+    public float cornerClimbMaxVelocity = 1.5f;
+
+    [Tooltip("Distance from wall top to activate corner climb assist. Should be larger than wallVaultTriggerDistance")]
+    [Range(1.5f, 4f)]
+    public float cornerClimbDetectionDistance = 2.5f;
+
+    [Tooltip("Upward velocity boost applied during corner climb")]
+    [Range(5f, 20f)]
+    public float cornerClimbBoostForce = 12f;
+
+    [Tooltip("How long the corner climb boost effect lasts")]
+    [Range(0.1f, 0.5f)]
+    public float cornerClimbDuration = 0.2f;
+
+    
     // ====================================
     // DRAG & FRICTION
     // ====================================
@@ -282,10 +317,13 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Layer(s) considered as one-way platforms. Usually 'OneWayPlatform' layer.")]
     public LayerMask platformLayerMask = -1;
 
+    [Header("Cables")]
+    public float cableSlideForce = 100f;
+
     // ====================================
     // CAMERA CONTROLS
     // ====================================
-    
+
     [Header("Camera Pan (Right Stick)")]
     [Tooltip("Maximum distance the camera can pan from player. Units: Unity units. Recommended: 3-8")]
     [Range(1f, 15f)]
@@ -304,6 +342,55 @@ public class PlayerConfig : ScriptableObject
     
     [Tooltip("Invert vertical camera pan axis")]
     public bool invertYAxis = false;
+
+    // ====================================
+    // SLOPE DETECTION
+    // ====================================
+
+    [Header("Slope Detection")]
+    [Tooltip("Enable slope detection and movement adjustments")]
+    public bool enableSlopeDetection = true;
+
+    [Tooltip("Maximum angle (in degrees) the player can walk on. Slopes steeper than this will cause sliding. Recommended: 40-50")]
+    [Range(20f, 70f)]
+    public float maxWalkableSlope = 45f;
+
+    [Tooltip("Minimum angle to be considered a slope (prevents detecting tiny bumps). Recommended: 0.5-2")]
+    [Range(0.1f, 5f)]
+    public float minSlopeAngle = 0.5f;
+
+    [Tooltip("Distance to cast slope detection ray downward. Should be slightly more than groundCheckDistance. Recommended: 0.2-0.4")]
+    [Range(0.1f, 1f)]
+    public float slopeCheckDistance = 0.3f;
+
+    [Tooltip("Extra ground check distance when on slope (prevents false ungrounded). Recommended: 0.15-0.3")]
+    [Range(0.05f, 0.5f)]
+    public float slopeGroundCheckExtra = 0.2f;
+
+    [Tooltip("Max Y velocity to be considered grounded on slope. Higher = more forgiving on steep slopes. Recommended: 1.0-2.5")]
+    [Range(0.5f, 5f)]
+    public float slopeGroundedYVelocityThreshold = 1.5f;
+
+    [Header("Slope Movement - NEW TANGENTIAL SYSTEM")]
+    [Tooltip("Acceleration applied along the slope surface when moving. Same feel as flat ground. Recommended: Same as runForce")]
+    [Range(1000f, 6000f)]
+    public float slopeMoveAccel = 3000f;
+
+    [Tooltip("Deceleration applied when no input on slope (prevents sliding). Higher = stops faster. Recommended: 80-120")]
+    [Range(40f, 200f)]
+    public float slopeStopDecel = 100f;
+
+    [Tooltip("How strongly to stick to slope surface (cancels perpendicular velocity). 1.0 = instant stick. Recommended: 0.8-1.0")]
+    [Range(0.5f, 1f)]
+    public float slopeStickStrength = 1f;
+
+    [Tooltip("Distance to snap down to slope when descending (prevents bouncing). Recommended: 0.3-0.5")]
+    [Range(0.1f, 1f)]
+    public float slopeSnapDistance = 0.4f;
+
+    [Tooltip("Grace time after jump where slope snap is disabled (prevents jump cancellation). Recommended: 0.1-0.15")]
+    [Range(0.05f, 0.3f)]
+    public float slopeSnapDisableTime = 0.12f;
 
 
     // ====================================
@@ -351,6 +438,20 @@ public class PlayerConfig : ScriptableObject
         if (returnSpeed < panSpeed)
         {
             Debug.LogWarning("[PlayerConfig] returnSpeed is slower than panSpeed. Camera may feel sluggish returning to center.");
+        }
+        
+        // Ensure corner climb detection is larger than vault trigger
+        if (cornerClimbDetectionDistance < wallVaultTriggerDistance)
+        {
+            cornerClimbDetectionDistance = wallVaultTriggerDistance + 0.5f;
+            Debug.LogWarning($"[PlayerConfig] cornerClimbDetectionDistance must be larger than wallVaultTriggerDistance. Adjusted to {cornerClimbDetectionDistance}");
+        }
+
+        // Ensure velocity range makes sense
+        if (cornerClimbMaxVelocity < cornerClimbMinVelocity)
+        {
+            cornerClimbMaxVelocity = cornerClimbMinVelocity + 1f;
+            Debug.LogWarning($"[PlayerConfig] cornerClimbMaxVelocity must be greater than cornerClimbMinVelocity. Adjusted to {cornerClimbMaxVelocity}");
         }
     }
 #endif

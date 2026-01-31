@@ -19,6 +19,12 @@ public class InputModeSwitcher : MonoBehaviour
 
         UpdateCursorState(playerInput.currentControlScheme);
         lastControlScheme = playerInput.currentControlScheme;
+        
+        if (ControllerTypeDetector.Instance != null)
+        {
+            ControllerTypeDetector.Instance.SetPlayerInput(playerInput);
+            GameLogger.LogInput($"InputModeSwitcher registered PlayerInput with ControllerTypeDetector");
+        }
     }
 
     void Update()
@@ -34,6 +40,11 @@ public class InputModeSwitcher : MonoBehaviour
         {
             UpdateCursorState(currentScheme);
             lastControlScheme = currentScheme;
+            
+            if (ControllerTypeDetector.Instance != null)
+            {
+                ControllerTypeDetector.Instance.NotifyControlSchemeChanged(currentScheme);
+            }
         }
     }
 
