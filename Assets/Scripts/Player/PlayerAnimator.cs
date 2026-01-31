@@ -56,6 +56,7 @@ public class PlayerAnimator : MonoBehaviour
     private bool wasWallRunning = false;
     private bool wasStaggered = false;
     private bool wasVaulting = false;
+    private bool wasSlidingOnCable = false;
     private float lastVelocityY = 0f;
     private float lastAnimationChangeTime = 0f;
     private const float MIN_ANIMATION_CHANGE_INTERVAL = 0.05f;
@@ -107,6 +108,7 @@ public class PlayerAnimator : MonoBehaviour
         wasWallRunning = states.isWallRunning;
         wasStaggered = states.isStaggered;
         wasVaulting = states.isVaultingWall;
+        wasSlidingOnCable = states.isSlidingOnCable;
     }
 
     private int DetermineTargetAnimation()
@@ -139,6 +141,11 @@ public class PlayerAnimator : MonoBehaviour
         if (states.isVaultingWall)
         {
             return AnimHash.WallJump;
+        }
+
+        if (states.isSlidingOnCable)
+        {
+            return AnimHash.Slide;
         }
 
         if (states.isWallRunning)
