@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.DualShock;
 using UnityEngine.InputSystem.XInput;
-using UnityEngine.InputSystem.Switch;
 
 public enum ControllerType
 {
@@ -201,10 +200,6 @@ public class ControllerTypeDetector : MonoBehaviour
         else if (device is XInputController)
         {
             return ControllerType.Xbox;
-        }
-        else if (device is SwitchProControllerHID)
-        {
-            return ControllerType.Switch;
         }
         else if (device is Gamepad)
         {
