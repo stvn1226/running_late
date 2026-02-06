@@ -7,6 +7,7 @@ public class PlayerPhysics : MonoBehaviour
 
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private CapsuleCollider2D playerCollider;
+    [SerializeField] private CapsuleCollider2D hitboxCollider;
     [SerializeField] private PlayerStates states;
     [SerializeField] private Vector2 originalColliderSize;
     [SerializeField] private Vector2 originalColliderOffset;
@@ -325,6 +326,9 @@ public class PlayerPhysics : MonoBehaviour
         playerCollider.direction = newDirection;
         playerCollider.size = newSize;
         playerCollider.offset = newOffset;
+        hitboxCollider.direction = newDirection;
+        hitboxCollider.size = newSize;
+        hitboxCollider.offset = newOffset;
     }
 
     private void OnDrawGizmosSelected()

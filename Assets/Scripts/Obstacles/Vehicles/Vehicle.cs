@@ -54,11 +54,11 @@ public abstract class Vehicle : MonoBehaviour
     {
         if (!isRunning) return;
 
-        if (wasHit)
-        {
-            GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Ignoring collision - recently hit (cooldown active)");
-            return;
-        }
+        //if (wasHit)
+        //{
+        //    GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Ignoring collision - recently hit (cooldown active)");
+        //    return;
+        //}
         
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
@@ -80,6 +80,14 @@ public abstract class Vehicle : MonoBehaviour
                 }
                 else
                 {
+                    PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
+                    
+                    if (playerStates != null && playerStates.isInvincible && !playerStates.isShielded)
+                    {
+                        GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player is INVULNERABLE - ignoring damage (no stomp)");
+                        return;
+                    }
+                    
                     HandlePlayerDamage(collision, playerRb);
                 }
             }
@@ -127,7 +135,7 @@ public abstract class Vehicle : MonoBehaviour
             AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_STOMP, context);
         }
 
-        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+        //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
@@ -167,7 +175,7 @@ public abstract class Vehicle : MonoBehaviour
             });
             }
 
-            hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+            //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
             return;
         }
 
@@ -196,7 +204,7 @@ public abstract class Vehicle : MonoBehaviour
         if (cachedPlayerMovement != null)
             cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
 
-        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+        //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
     private void ResetHitState()

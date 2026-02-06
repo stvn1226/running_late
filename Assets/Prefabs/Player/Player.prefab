@@ -47,6 +47,75 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
   inputDeadzone: 0.15
   showDebug: 0
+--- !u!1 &1675756809786303099
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4220403139258078681}
+  - component: {fileID: 8712702073823763395}
+  m_Layer: 6
+  m_Name: Hitbox
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &4220403139258078681
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675756809786303099}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.098, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3490699511422268418}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!70 &8712702073823763395
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675756809786303099}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: 36eabb6392aab2046a26940535f6469b, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 0.73, y: 1.79}
+  m_Direction: 0
 --- !u!1 &3284795178058735958
 GameObject:
   m_ObjectHideFlags: 0
@@ -681,6 +750,7 @@ Transform:
   m_Children:
   - {fileID: 4400897620013463343}
   - {fileID: 2705767874517864308}
+  - {fileID: 4220403139258078681}
   - {fileID: 6548746730491546072}
   - {fileID: 6246371687470053857}
   - {fileID: 4515137283868595823}
@@ -729,6 +799,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
   rb: {fileID: 5328747980780883216}
   playerCollider: {fileID: 3391139825406007247}
+  hitboxCollider: {fileID: 0}
   states: {fileID: 6913775742238925164}
   originalColliderSize: {x: 0, y: 0}
   originalColliderOffset: {x: 0, y: 0}
@@ -829,6 +900,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43bbfcefdbe3d044a9d6a07df76f9498, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStates
+  playerCollider: {fileID: 0}
   moveInput: {x: 0, y: 0}
   jumpPressed: 0
   jumpHeld: 0
