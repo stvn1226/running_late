@@ -56,7 +56,7 @@ MonoBehaviour:
   cornerClimbDuration: 0.2
   groundDrag: 50
   airDrag: 50
-  slideDrag: 10
+  slideDrag: 20
   maxFallSpeed: 80
   groundCheckDistance: 0.3
   groundLayer:
@@ -68,12 +68,12 @@ MonoBehaviour:
     m_Bits: 35840
   kickDuration: 0.25
   kickForceReduction: 0.5
-  staggerDuration: 0.8
+  staggerDuration: 0.6
   staggerKnockbackForce: 20
-  staggerMovementReduction: 0.2
+  staggerMovementReduction: 0
   landingGracePeriod: 0.5
-  slamLandingThreshold: 0
-  momentumConversionRatio: 0.2
+  slamLandingThreshold: -5
+  momentumConversionRatio: 0.1
   crouchSizeMultiplier: {x: 2, y: 0.5}
   dropDownDisableTime: 0.3
   platformLayerMask:
