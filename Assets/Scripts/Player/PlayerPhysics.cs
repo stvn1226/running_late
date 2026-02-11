@@ -209,20 +209,64 @@ public class PlayerPhysics : MonoBehaviour
         Collider2D rightHit = null;
         Collider2D leftHit = null;
 
+        // Helper to check for visual obstruction by foreground buildings
+        bool IsObstructed(RaycastHit2D hit)
+        {
+            BuildingDetector targetBuilding = hit.collider.GetComponentInParent<BuildingDetector>();
+            if (targetBuilding == null) 
+            {
+                // GameLogger.Log("PHYSICS", $"[OBSTRUCTION] No BuildingDetector found on {hit.collider.name}");
+                return false;
+            }
+
+            float playerZ = transform.position.z;
+            float targetDist = Mathf.Abs(targetBuilding.buildingZ - playerZ);
+            
+            // Check all colliders at the hit point to see if any belong to a closer building
+            Collider2D[] overlappers = Physics2D.OverlapPointAll(hit.point);
+            
+            foreach (Collider2D col in overlappers)
+            {
+                // Optimization: Skip self and the specific wall collider we hit
+                if (col == hit.collider) continue;
+                
+                BuildingDetector blocker = col.GetComponentInParent<BuildingDetector>();
+                
+                if (blocker != null && blocker != targetBuilding)
+                {
+                    // ROBUST LANE LOGIC: Use Sorting Order (Integer)
+                    // Higher sorting order = Closer to camera = In Front
+                    bool isCloser = blocker.sortingOrder > targetBuilding.sortingOrder;
+                    
+                    // Debug Log for potential blockers
+                    GameLogger.Log("OBSTRUCTION", $"Target: {targetBuilding.buildingName} (Order:{targetBuilding.sortingOrder}) | Blocker: {blocker.buildingName} (Order:{blocker.sortingOrder}) | IsCloser: {isCloser}");
+
+                    // If blocker is CLOSER to player/camera than target, it's an obstruction
+                    if (isCloser) 
+                    {
+                        GameLogger.Log("OBSTRUCTION", $"BLOCKED! Wall on {targetBuilding.buildingName} (Order:{targetBuilding.sortingOrder}) blocked by {blocker.buildingName} (Order:{blocker.sortingOrder})");
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         // Helper function for 3-ray check
         Collider2D CheckDirection(Vector2 direction)
         {
             RaycastHit2D hitCenter = Physics2D.Raycast(boxCenter, direction, detectionDistance, config.wallLayer);
-            if (hitCenter.collider != null && !hitCenter.collider.isTrigger) return hitCenter.collider;
+            if (hitCenter.collider != null && !hitCenter.collider.isTrigger && !IsObstructed(hitCenter)) return hitCenter.collider;
             
             RaycastHit2D hitTop = Physics2D.Raycast(topOrigin, direction, detectionDistance, config.wallLayer);
-            if (hitTop.collider != null && !hitTop.collider.isTrigger) return hitTop.collider;
+            if (hitTop.collider != null && !hitTop.collider.isTrigger && !IsObstructed(hitTop)) return hitTop.collider;
             
             RaycastHit2D hitBottom = Physics2D.Raycast(bottomOrigin, direction, detectionDistance, config.wallLayer);
-            if (hitBottom.collider != null && !hitBottom.collider.isTrigger) return hitBottom.collider;
+            if (hitBottom.collider != null && !hitBottom.collider.isTrigger && !IsObstructed(hitBottom)) return hitBottom.collider;
             
             return null;
         }
+
 
         // RIGHT CHECK
         rightHit = CheckDirection(Vector2.right);

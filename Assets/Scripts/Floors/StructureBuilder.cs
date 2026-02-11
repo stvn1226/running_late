@@ -130,14 +130,27 @@ public class StructureBuilder : MonoBehaviour
         Transform firstFloor = transform.childCount > 0 ? transform.GetChild(0) : null;
         float buildingZ = firstFloor != null ? firstFloor.position.z : transform.position.z;
         
+        // Get Sorting Order from Sprite/Tilemap for Lane Logic
+        int sortingOrder = 0;
+        if (firstFloor != null)
+        {
+            SpriteRenderer sr = firstFloor.GetComponentInChildren<SpriteRenderer>();
+            if (sr != null) sortingOrder = sr.sortingOrder;
+            else
+            {
+                TilemapRenderer tr = firstFloor.GetComponentInChildren<TilemapRenderer>();
+                if (tr != null) sortingOrder = tr.sortingOrder;
+            }
+        }
+
         // Add BuildingDetector component to store Z and name
         BuildingDetector detector = gameObject.GetComponent<BuildingDetector>();
         if (detector == null)
         {
             detector = gameObject.AddComponent<BuildingDetector>();
         }
-        detector.Initialize(buildingZ, gameObject.name);
+        detector.Initialize(buildingZ, gameObject.name, sortingOrder);
         
-        GameLogger.Log("WallRunWorkflow", $"[BUILDING COLLIDER] {gameObject.name}: Size=({buildingWidth:F1}, {buildingHeight:F1}), Offset=(0, {buildingHeight * 0.5f:F1}), Z={buildingZ:F3}");
+        GameLogger.Log("WallRunWorkflow", $"[BUILDING COLLIDER] {gameObject.name}: Size=({buildingWidth:F1}, {buildingHeight:F1}), Offset=(0, {buildingHeight * 0.5f:F1}), Z={buildingZ:F3}, Order={sortingOrder}");
     }
 }
