@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public abstract class Animal : MonoBehaviour
+public abstract class Animal : MonoBehaviour, IWarningIndicator
 {
     protected static readonly int IsStaggered = Animator.StringToHash("isStaggered");
     protected static readonly int Velocity = Animator.StringToHash("velocity");
@@ -24,6 +24,9 @@ public abstract class Animal : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] protected bool showGizmos = true;
+    
+    [Header("Warning Indicator")]
+    [SerializeField] protected SpriteRenderer spriteRenderer;
 
     protected Transform player;
     public PlayerMovement cachedPlayerMovement;
@@ -140,5 +143,29 @@ public abstract class Animal : MonoBehaviour
             StopCoroutine(hitboxDisableCoroutine);
         }
         StopAllCoroutines();
+    }
+    
+    public virtual Sprite GetWarningSprite()
+    {
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+        
+        if (spriteRenderer != null && spriteRenderer.sprite != null)
+        {
+            return spriteRenderer.sprite;
+        }
+        return null;
+    }
+    
+    public virtual Vector3 GetPosition()
+    {
+        return transform.position;
+    }
+    
+    public virtual bool ShouldShowWarning()
+    {
+        return !isStaggered && !isRunning;
     }
 }
