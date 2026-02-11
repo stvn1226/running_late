@@ -195,10 +195,17 @@ public class VictoryPanel : BaseMenuPanel
         
         Time.timeScale = 1f;
         
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #else
-        Application.Quit();
-        #endif
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.LoadMainMenu();
+        }
+        else
+        {
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #else
+            Application.Quit();
+            #endif
+        }
     }
 }

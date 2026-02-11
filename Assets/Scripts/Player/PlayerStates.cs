@@ -1,11 +1,13 @@
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerStates : MonoBehaviour
 {
     private PlayerConfig config;
-    private BoxCollider2D playerCollider;
+    [SerializeField] private CapsuleCollider2D playerCollider;
     private new Transform transform;
+    private SpriteRenderer spriteRenderer;
 
     [Header("Input States")]
     public Vector2 moveInput;
@@ -133,7 +135,7 @@ public class PlayerStates : MonoBehaviour
     private void Awake()
     {
         transform = GetComponent<Transform>();
-        playerCollider = GetComponent<BoxCollider2D>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         config = GetComponent<PlayerMovement>()?.config;
     }
 
@@ -157,8 +159,12 @@ public class PlayerStates : MonoBehaviour
     private IEnumerator InvincibilityCoroutine(float duration)
     {
         isInvincible = true;
+        GameLogger.Log($"[PLAYER INVULNERABILITY] ENABLED for {duration:F2}s - Can stomp but cannot take damage");
+        
         yield return new WaitForSeconds(duration);
+        
         isInvincible = false;
+        GameLogger.Log("[PLAYER INVULNERABILITY] DISABLED - Player is vulnerable again");
         activeInvincibility = null;
     }
 
@@ -495,7 +501,40 @@ public class PlayerStates : MonoBehaviour
             GameLogger.LogWarning("KICK", "STAGGER: Force ending active kick to prevent movement lock");
             EndKick();
         }
+
+        float invulnerabilityDuration = duration * 1.5f;
+        InvokeInvincibility(invulnerabilityDuration);
+        StartCoroutine(BlinkSprite(invulnerabilityDuration));
+        
+        GameLogger.Log($"[PLAYER STAGGER] Started - Stagger: {duration:F2}s, Invulnerability: {invulnerabilityDuration:F2}s");
     }
+
+    public IEnumerator BlinkSprite(float duration)
+    {
+        if (spriteRenderer == null)
+        {
+            GameLogger.LogWarning("PLAYER", "SpriteRenderer is null, cannot blink sprite");
+            yield break;
+        }
+
+        float elapsed = 0f;
+        float blinkInterval = 0.1f;
+        bool isVisible = true;
+        Color originalColor = spriteRenderer.color;
+
+        while (elapsed < duration)
+        {
+            isVisible = !isVisible;
+            float alpha = isVisible ? 1f : 0.1f;
+            spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            
+            yield return new WaitForSeconds(blinkInterval);
+            elapsed += blinkInterval;
+        }
+
+        spriteRenderer.color = originalColor;
+    }
+
 
     public IEnumerator StartSlowdown(float duration)
     {

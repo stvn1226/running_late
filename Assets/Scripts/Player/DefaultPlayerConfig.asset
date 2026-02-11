@@ -15,13 +15,13 @@ MonoBehaviour:
   runForce: 2500
   maxRunSpeed: 30
   airControlMultiplier: 0.6
-  minJumpForce: 12
-  maxJumpForce: 18
-  jumpHoldTime: 0.3
-  apexThreshold: 1.5
-  apexGravityScale: 1
-  fallGravityScale: 6
-  fastFallGravityScale: 9
+  minJumpForce: 20
+  maxJumpForce: 24
+  jumpHoldTime: 0.4
+  apexThreshold: 3
+  apexGravityScale: 4
+  fallGravityScale: 9
+  fastFallGravityScale: 15
   jumpBufferTime: 0.12
   coyoteTime: 0.1
   longJumpVerticalMultiplier: 1
@@ -56,7 +56,7 @@ MonoBehaviour:
   cornerClimbDuration: 0.2
   groundDrag: 50
   airDrag: 50
-  slideDrag: 10
+  slideDrag: 20
   maxFallSpeed: 80
   groundCheckDistance: 0.3
   groundLayer:
@@ -68,18 +68,18 @@ MonoBehaviour:
     m_Bits: 35840
   kickDuration: 0.25
   kickForceReduction: 0.5
-  staggerDuration: 0.8
+  staggerDuration: 0.6
   staggerKnockbackForce: 20
-  staggerMovementReduction: 0.2
+  staggerMovementReduction: 0
   landingGracePeriod: 0.5
-  slamLandingThreshold: 0
-  momentumConversionRatio: 0.2
+  slamLandingThreshold: -5
+  momentumConversionRatio: 0.1
   crouchSizeMultiplier: {x: 2, y: 0.5}
   dropDownDisableTime: 0.3
   platformLayerMask:
     serializedVersion: 2
     m_Bits: 131200
-  cableSlideForce: 50
+  cableSlideForce: 20
   panAmount: 5
   panSpeed: 5
   returnSpeed: 8
