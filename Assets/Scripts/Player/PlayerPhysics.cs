@@ -1,4 +1,7 @@
+#define ENABLE_VERBOSE_LOGGING
+
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class PlayerPhysics : MonoBehaviour
 {
@@ -8,6 +11,7 @@ public class PlayerPhysics : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private CapsuleCollider2D playerCollider;
     [SerializeField] private PlayerStates states;
+    [SerializeField] private SpriteRenderer playerSprite;
     [SerializeField] private Vector2 originalColliderSize;
     [SerializeField] private Vector2 originalColliderOffset;
     [SerializeField] private Vector2 crouchColliderSize;
@@ -18,16 +22,27 @@ public class PlayerPhysics : MonoBehaviour
     private int previousWallDirection;
     private float lastPhysicsLog = 0f;
     private const float PHYSICS_LOG_INTERVAL = 1f;
+    private const int WALLRUN_DEPTH_THRESHOLD = -12;
 
     private float lastWallHeightCheck = 0f;
     private float groundedBufferTimer = 0f;
     private const float GROUNDED_BUFFER_TIME = 0.1f;
+    private bool hasLoggedDetection = false;
 
     private void Awake()
     {
         if (playerCollider == null)
         {
             GameLogger.LogError("PHYSICS", "No CapsuleCollider2D found in children!");
+        }
+        
+        if (playerSprite == null)
+        {
+            playerSprite = GetComponentInChildren<SpriteRenderer>();
+            if (playerSprite == null)
+            {
+                GameLogger.LogError("PHYSICS", "No SpriteRenderer found in children! Wall depth detection will not work.");
+            }
         }
         
         originalColliderSize = playerCollider.size;
@@ -40,6 +55,11 @@ public class PlayerPhysics : MonoBehaviour
         rb.sharedMaterial = noBounceMaterial;
         
         GameLogger.LogPhysics($"Initialized - Collider: {playerCollider.name}, Size: {originalColliderSize}, Offset: {originalColliderOffset}, Material: NoBounceFriction");
+        
+        if (playerSprite != null)
+        {
+            GameLogger.LogPhysics($"Player Sprite - Layer: {playerSprite.sortingLayerName}, Order: {playerSprite.sortingOrder}");
+        }
     }
 
     private void Start()
@@ -73,7 +93,9 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (states.isGrounded != previousGrounded)
         {
-            GameLogger.LogPhysics($"GROUNDED CHANGE: {previousGrounded} -> {states.isGrounded}, Velocity.y: {rb.linearVelocity.y:F2}, OnSlope: {states.isOnSlope}");
+#if ENABLE_VERBOSE_LOGGING
+            GameLogger.LogPhysics($"GROUNDED CHANGE: {previousGrounded} -> {states.isGrounded}");
+#endif
             
             if (states.isGrounded && !previousGrounded)
             {
@@ -83,14 +105,18 @@ public class PlayerPhysics : MonoBehaviour
 
         if (states.canWallRun != previousCanWallRun || states.wallDirection != previousWallDirection)
         {
-            GameLogger.LogPhysics($"WALL RUN CHANGE: CanWallRun={states.canWallRun}, Direction={states.wallDirection}, Input.x={states.moveInput.x:F2}");
+#if ENABLE_VERBOSE_LOGGING
+            GameLogger.LogPhysics($"WALL RUN CHANGE: CanWallRun={states.canWallRun}, Direction={states.wallDirection}");
+#endif
         }
         
+#if ENABLE_VERBOSE_LOGGING
         if (Time.time - lastPhysicsLog > PHYSICS_LOG_INTERVAL)
         {
-            GameLogger.Log("PHYSICS", $"STATUS: Grounded={states.isGrounded}, CanWallRun={states.canWallRun}, WallDir={states.wallDirection}, Pos={transform.position}, ColliderPos={playerCollider.transform.position}");
+            GameLogger.Log("PHYSICS", $"STATUS: Grounded={states.isGrounded}, CanWallRun={states.canWallRun}");
             lastPhysicsLog = Time.time;
         }
+#endif
         
         previousGrounded = states.isGrounded;
         previousCanWallRun = states.canWallRun;
@@ -167,34 +193,181 @@ public class PlayerPhysics : MonoBehaviour
         }
 
         Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
-        Vector2 boxSize = new Vector2(config.wallCheckDistance, playerCollider.size.y);
-
-        RaycastHit2D rightHit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.right, config.wallCheckDistance, config.wallLayer);
-        RaycastHit2D leftHit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.left, config.wallCheckDistance, config.wallLayer);
+        float playerZ = transform.position.z;
+        
+        // STEP 1: Find ALL buildings nearby
+        float searchRadius = config.wallCheckDistance * 4f;
+        Collider2D[] allColliders = Physics2D.OverlapCircleAll(boxCenter, searchRadius);
+        
+        System.Collections.Generic.List<BuildingDetector> nearbyBuildings = new System.Collections.Generic.List<BuildingDetector>();
+        
+        foreach (Collider2D col in allColliders)
+        {
+            if (col.CompareTag("Building") && col.isTrigger)
+            {
+                BuildingDetector detector = col.GetComponent<BuildingDetector>();
+                if (detector != null)
+                {
+                    nearbyBuildings.Add(detector);
+                }
+            }
+        }
+        
+        if (nearbyBuildings.Count == 0)
+        {
+            states.canWallRun = false;
+            return;
+        }
+        
+        // STEP 2: For EACH building, find its wall colliders and separate by direction
+        // Also verify that there's no building blocking the view
+        Collider2D rightHit = null;
+        Collider2D leftHit = null;
+        float rightMinZDiff = float.MaxValue;
+        float leftMinZDiff = float.MaxValue;
+        BuildingDetector rightBuilding = null;
+        BuildingDetector leftBuilding = null;
+        
+        foreach (BuildingDetector building in nearbyBuildings)
+        {
+            // CRITICAL: Skip if player is INSIDE this building's trigger
+            Collider2D buildingTrigger = building.GetComponent<Collider2D>();
+            if (buildingTrigger != null && buildingTrigger.OverlapPoint(transform.position))
+            {
+                continue;
+            }
+            
+            Collider2D[] buildingColliders = building.GetComponentsInChildren<Collider2D>();
+            
+            foreach (Collider2D col in buildingColliders)
+            {
+                // CRITICAL: Skip the building detection collider (the one on the parent GameObject)
+                if (col.gameObject == building.gameObject) continue;
+                
+                // Skip any triggers
+                if (col.isTrigger) continue;
+                
+                // Check if it's a wall layer
+                if (((1 << col.gameObject.layer) & config.wallLayer) == 0)
+                    continue;
+                
+                // CRITICAL: Check vertical distance - wall must be within reasonable height range
+                float verticalDistance = Mathf.Abs(col.transform.position.y - transform.position.y);
+                float maxVerticalDistance = 5f; // Adjust based on your game's scale
+                if (verticalDistance > maxVerticalDistance)
+                    continue;
+                
+                // CRITICAL: Raycast from player to BUILDING CENTER (not wall collider)
+                // This ensures we detect if another building's BoxCollider2D is blocking
+                Vector2 playerPos = transform.position;
+                Vector2 buildingCenter = building.transform.position;
+                Vector2 direction = (buildingCenter - playerPos).normalized;
+                float distance = Vector2.Distance(playerPos, buildingCenter);
+                
+                // Cast ray to see if any building collider is in the way
+                RaycastHit2D[] hits = Physics2D.RaycastAll(playerPos, direction, distance);
+                bool isBlocked = false;
+                
+                foreach (RaycastHit2D hit in hits)
+                {
+                    // Check if it's a building detection collider (not this building)
+                    BuildingDetector blocker = hit.collider.GetComponent<BuildingDetector>();
+                    if (blocker != null && blocker != building)
+                    {
+                        // Another building is blocking this wall
+                        // Check if the blocker is visually in front
+                        if (Mathf.Abs(blocker.buildingZ - playerZ) < Mathf.Abs(building.buildingZ - playerZ))
+                        {
+                            isBlocked = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (isBlocked) continue;
+                
+                float zDiff = Mathf.Abs(building.buildingZ - playerZ);
+                
+                // CRITICAL: Use HORIZONTAL raycast only (ignore vertical differences)
+                // This prevents detecting walls below when on rooftops
+                Vector2 wallPos = col.transform.position;
+                Vector2 horizontalDirection = wallPos.x > playerPos.x ? Vector2.right : Vector2.left;
+                float horizontalDistance = Mathf.Abs(wallPos.x - playerPos.x);
+                
+                // Cast a HORIZONTAL ray from player towards the wall
+                RaycastHit2D wallCheck = Physics2D.Raycast(playerPos, horizontalDirection, horizontalDistance, config.wallLayer);
+                
+                // If raycast didn't hit this specific collider, skip it
+                if (wallCheck.collider != col)
+                    continue;
+                
+                // Check RIGHT walls
+                if (col.transform.position.x > transform.position.x)
+                {
+                    if (zDiff < rightMinZDiff)
+                    {
+                        rightMinZDiff = zDiff;
+                        rightHit = col;
+                        rightBuilding = building;
+                    }
+                }
+                // Check LEFT walls
+                else if (col.transform.position.x < transform.position.x)
+                {
+                    if (zDiff < leftMinZDiff)
+                    {
+                        leftMinZDiff = zDiff;
+                        leftHit = col;
+                        leftBuilding = building;
+                    }
+                }
+            }
+        }
+        
+        // Log ONLY when first entering detection AND haven't logged yet
+        bool nowDetecting = (rightHit != null || leftHit != null);
+        
+        if (nowDetecting && !hasLoggedDetection)
+        {
+            hasLoggedDetection = true;
+            string buildingsInfo = "";
+            foreach (BuildingDetector bd in nearbyBuildings)
+            {
+                float zDiff = Mathf.Abs(bd.buildingZ - playerZ);
+                buildingsInfo += $"\n  - {bd.buildingName}: Z={bd.buildingZ:F3} ZDiff={zDiff:F3}";
+            }
+            
+            string rightInfo = rightHit != null ? $"RIGHT: {rightHit.name} at X={rightHit.transform.position.x:F1} from {rightBuilding.buildingName} (Z={rightBuilding.buildingZ:F3}, ZDiff={rightMinZDiff:F3})" : "RIGHT: None";
+            string leftInfo = leftHit != null ? $"LEFT: {leftHit.name} at X={leftHit.transform.position.x:F1} from {leftBuilding.buildingName} (Z={leftBuilding.buildingZ:F3}, ZDiff={leftMinZDiff:F3})" : "LEFT: None";
+            
+            GameLogger.Log("WallRunWorkflow", $"[DETECTION] Player XYZ=({transform.position.x:F1},{transform.position.y:F1},{playerZ:F3}) | Buildings={nearbyBuildings.Count}{buildingsInfo}\n  → {rightInfo}\n  → {leftInfo}");
+        }
+        else if (!nowDetecting && hasLoggedDetection)
+        {
+            hasLoggedDetection = false;
+        }
 
         bool previousCanWallRun = states.canWallRun;
         
-        if (rightHit.collider != null && states.moveInput.x > 0.1f)
+        if (rightHit != null && states.moveInput.x > 0.1f)
         {
             states.canWallRun = true;
             states.wallDirection = 1;
             if (!previousCanWallRun) 
             {
                 states.RecordWallContact();
-                string hitInfo = $"{rightHit.collider.name} (Layer: {LayerMask.LayerToName(rightHit.collider.gameObject.layer)}, Tag: {rightHit.collider.tag})";
-                GameLogger.LogPhysics($"RIGHT WALL DETECTED: {hitInfo}, Distance: {rightHit.distance:F3}");
+                GameLogger.Log("WallRunWorkflow", $"[WALLRUN START] RIGHT: {rightHit.name} (Building: {rightBuilding.buildingName})");
             }
             DetectWallHeight(rightHit, 1);
         }
-        else if (leftHit.collider != null && states.moveInput.x < -0.1f)
+        else if (leftHit != null && states.moveInput.x < -0.1f)
         {
             states.canWallRun = true;
             states.wallDirection = -1;
             if (!previousCanWallRun)
             {
                 states.RecordWallContact();
-                string hitInfo = $"{leftHit.collider.name} (Layer: {LayerMask.LayerToName(leftHit.collider.gameObject.layer)}, Tag: {leftHit.collider.tag})";
-                GameLogger.LogPhysics($"LEFT WALL DETECTED: {hitInfo}, Distance: {leftHit.distance:F3}");
+                GameLogger.Log("WallRunWorkflow", $"[WALLRUN START] LEFT: {leftHit.name} (Building: {leftBuilding.buildingName})");
             }
             DetectWallHeight(leftHit, -1);
         }
@@ -202,7 +375,7 @@ public class PlayerPhysics : MonoBehaviour
         {
             if (states.canWallRun)
             {
-                GameLogger.Log("PHYSICS", $"Wall run lost - RightHit: {rightHit.collider != null}, LeftHit: {leftHit.collider != null}, Input.x: {states.moveInput.x:F2}");
+                GameLogger.Log("WallRunWorkflow", $"[WALLRUN END] RightHit: {rightHit != null}, LeftHit: {leftHit != null}, Input.x: {states.moveInput.x:F2}");
             }
             states.canWallRun = false;
         }
@@ -278,7 +451,7 @@ public class PlayerPhysics : MonoBehaviour
         }
     }
     
-    private void DetectWallHeight(RaycastHit2D wallHit, int direction)
+    private void DetectWallHeight(Collider2D wallCollider, int direction)
     {
         if (Time.time - lastWallHeightCheck < config.wallHeightCheckInterval)
         {

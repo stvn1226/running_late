@@ -17,11 +17,15 @@ public class StructureBuilder : MonoBehaviour
     public GameObject[] powerUps;
     public int obstacleRate = 50; // % chance to spawn rooftop obstacle
     public int powerUpRate = 20; // % chance to spawn rooftop power-up
+    
+    private BoxCollider2D buildingCollider;
 
     public void ConstructStructure()
     {
         int floorsCt = 0;
         floorsCt = Random.Range(config.minFloors, config.maxFloors + 1);
+
+        GameLogger.Log("WallRunWorkflow", $"[BUILD START] Constructing building with {floorsCt} floors at {transform.position}");
 
         if (groundPrefab != null)
         {
@@ -71,16 +75,69 @@ public class StructureBuilder : MonoBehaviour
                 GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)], powerUpPosition, Quaternion.identity, transform);
             }
         }
-
+        
+        // Setup building detection collider AFTER all floors are created
+        SetupBuildingCollider(floorsCt);
     }
 
     private void SortTilemap(GameObject toUse, int floorsCt)
     {
-        toUse.GetComponentInChildren<TilemapRenderer>().sortingOrder -= floorsCt;
+        TilemapRenderer renderer = toUse.GetComponentInChildren<TilemapRenderer>();
+        int originalSortingOrder = renderer.sortingOrder;
+        renderer.sortingOrder -= floorsCt;
+        
+        int newSortingOrder = renderer.sortingOrder;
+        Vector3 currentPos = toUse.transform.position;
+        float calculatedZ = newSortingOrder * 0.01f;
+        toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
+        
+        GameLogger.Log("WallRunWorkflow", $"[TILEMAP] {toUse.name}: floorsCt={floorsCt}, originalSort={originalSortingOrder}, newSort={newSortingOrder}, Z={calculatedZ:F3}, Pos=({currentPos.x:F2}, {currentPos.y:F2}, {calculatedZ:F3})");
     }
 
     private void SortSprite(GameObject toUse, int floorsCt)
     {
-        toUse.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
+        SpriteRenderer renderer = toUse.GetComponentInChildren<SpriteRenderer>();
+        int originalSortingOrder = renderer.sortingOrder;
+        renderer.sortingOrder -= floorsCt;
+        
+        int newSortingOrder = renderer.sortingOrder;
+        Vector3 currentPos = toUse.transform.position;
+        float calculatedZ = newSortingOrder * 0.01f;
+        toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
+        
+        GameLogger.Log("WallRunWorkflow", $"[SPRITE] {toUse.name}: floorsCt={floorsCt}, originalSort={originalSortingOrder}, newSort={newSortingOrder}, Z={calculatedZ:F3}, Pos=({currentPos.x:F2}, {currentPos.y:F2}, {calculatedZ:F3})");
+    }
+    
+    private void SetupBuildingCollider(int floorsCt)
+    {
+        buildingCollider = gameObject.GetComponent<BoxCollider2D>();
+        if (buildingCollider == null)
+        {
+            buildingCollider = gameObject.AddComponent<BoxCollider2D>();
+        }
+        
+        buildingCollider.isTrigger = true;
+        gameObject.tag = "Building";
+        
+        float buildingWidth = 20f;
+        float buildingHeight = floorsCt * config.floorHeight;
+        
+        buildingCollider.size = new Vector2(buildingWidth, buildingHeight);
+        buildingCollider.offset = new Vector2(0f, buildingHeight * 0.5f);
+        
+        // Calculate building Z from first floor (ground floor)
+        // Ground floor is instantiated FIRST so it's always child 0
+        Transform firstFloor = transform.childCount > 0 ? transform.GetChild(0) : null;
+        float buildingZ = firstFloor != null ? firstFloor.position.z : transform.position.z;
+        
+        // Add BuildingDetector component to store Z and name
+        BuildingDetector detector = gameObject.GetComponent<BuildingDetector>();
+        if (detector == null)
+        {
+            detector = gameObject.AddComponent<BuildingDetector>();
+        }
+        detector.Initialize(buildingZ, gameObject.name);
+        
+        GameLogger.Log("WallRunWorkflow", $"[BUILDING COLLIDER] {gameObject.name}: Size=({buildingWidth:F1}, {buildingHeight:F1}), Offset=(0, {buildingHeight * 0.5f:F1}), Z={buildingZ:F3}");
     }
 }
