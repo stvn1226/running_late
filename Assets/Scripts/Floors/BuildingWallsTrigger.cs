@@ -76,12 +76,6 @@ public class BuildingWallsTrigger : MonoBehaviour
         {
             gameObject.layer = solid ? hardWallLayer : softWallLayer;
         }
-
-        // Add log for visibility
-        // We can't easily check config.wallRunDebug here without a reference, 
-        // but we can log always during fix or use a static flag.
-        // For now, I'll just log it if it changes.
-        // GameLogger.LogVerbose("BUILDING", $"[FIX_WALLRUN] {gameObject.name} SetSolid({solid})");
     }
 
     private void OnPlayerWallRun(InputAction.CallbackContext context)

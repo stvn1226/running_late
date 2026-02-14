@@ -191,10 +191,13 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (config == null) return;
 
-        if (states.isOnSlope)
+        if (states.isOnSlope && !states.isWallRunning)
         {
-            states.canWallRun = false;
-            return;
+            if (Mathf.Abs(states.moveInput.x) < 0.5f)
+            {
+                states.canWallRun = false;
+                return;
+            }
         }
 
         Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
@@ -210,42 +213,23 @@ public class PlayerPhysics : MonoBehaviour
         Collider2D rightHit = null;
         Collider2D leftHit = null;
 
-        // Helper to check for visual obstruction by foreground buildings
-        bool IsObstructed(RaycastHit2D hit)
+        bool IsObstructed(Vector2 point, Collider2D targetCollider)
         {
-            BuildingDetector targetBuilding = hit.collider.GetComponentInParent<BuildingDetector>();
-            if (targetBuilding == null) 
-            {
-                // GameLogger.Log("PHYSICS", $"[OBSTRUCTION] No BuildingDetector found on {hit.collider.name}");
-                return false;
-            }
+            BuildingDetector targetBuilding = targetCollider.GetComponentInParent<BuildingDetector>();
+            if (targetBuilding == null) return false;
 
-            float playerZ = transform.position.z;
-            float targetDist = Mathf.Abs(targetBuilding.buildingZ - playerZ);
-            
-            // Check all colliders at the hit point to see if any belong to a closer building
-            Collider2D[] overlappers = Physics2D.OverlapPointAll(hit.point);
+            Collider2D[] overlappers = Physics2D.OverlapPointAll(point);
             
             foreach (Collider2D col in overlappers)
             {
-                // Optimization: Skip self and the specific wall collider we hit
-                if (col == hit.collider) continue;
+                if (col == targetCollider) continue;
                 
                 BuildingDetector blocker = col.GetComponentInParent<BuildingDetector>();
                 
                 if (blocker != null && blocker != targetBuilding)
                 {
-                    // ROBUST LANE LOGIC: Use Sorting Order (Integer)
-                    // Higher sorting order = Closer to camera = In Front
-                    bool isCloser = blocker.sortingOrder > targetBuilding.sortingOrder;
-                    
-                    // Debug Log for potential blockers
-                    GameLogger.Log("OBSTRUCTION", $"Target: {targetBuilding.buildingName} (Order:{targetBuilding.sortingOrder}) | Blocker: {blocker.buildingName} (Order:{blocker.sortingOrder}) | IsCloser: {isCloser}");
-
-                    // If blocker is CLOSER to player/camera than target, it's an obstruction
-                    if (isCloser) 
+                    if (blocker.sortingOrder > targetBuilding.sortingOrder) 
                     {
-                        GameLogger.Log("OBSTRUCTION", $"BLOCKED! Wall on {targetBuilding.buildingName} (Order:{targetBuilding.sortingOrder}) blocked by {blocker.buildingName} (Order:{blocker.sortingOrder})");
                         return true;
                     }
                 }
@@ -253,10 +237,9 @@ public class PlayerPhysics : MonoBehaviour
             return false;
         }
 
-        // Helper function for 3-ray check with skin offset to avoid "inside collider" failure
         Collider2D CheckDirection(Vector2 direction)
         {
-            float skinOffset = 0.1f; // Step back 10cm from center
+            float skinOffset = 0.1f; 
             Vector2 offset = -direction * skinOffset;
             
             Vector2 rayCenter = boxCenter + offset;
@@ -265,41 +248,53 @@ public class PlayerPhysics : MonoBehaviour
             float adjustedDistance = detectionDistance + skinOffset;
 
             RaycastHit2D hitCenter = Physics2D.Raycast(rayCenter, direction, adjustedDistance, config.wallLayer);
-            if (hitCenter.collider != null && !IsObstructed(hitCenter)) return hitCenter.collider;
+            if (hitCenter.collider != null && !IsObstructed(hitCenter.point, hitCenter.collider)) return hitCenter.collider;
             
             RaycastHit2D hitTop = Physics2D.Raycast(rayTop, direction, adjustedDistance, config.wallLayer);
-            if (hitTop.collider != null && !IsObstructed(hitTop)) return hitTop.collider;
+            if (hitTop.collider != null && !IsObstructed(hitTop.point, hitTop.collider)) return hitTop.collider;
             
             RaycastHit2D hitBottom = Physics2D.Raycast(rayBottom, direction, adjustedDistance, config.wallLayer);
-            if (hitBottom.collider != null && !IsObstructed(hitBottom)) return hitBottom.collider;
+            if (hitBottom.collider != null && !IsObstructed(hitBottom.point, hitBottom.collider)) return hitBottom.collider;
             
             return null;
         }
 
-        // Helper for ground fallback (Overlap detection)
         Collider2D CheckOverlapFallback(Vector2 direction)
         {
-            // Only use fallback if grounded (where raycasts are most likely to fail due to overlap)
             if (!states.isGrounded) return null;
 
-            float overlapWidth = 0.2f;
+            float overlapWidth = 0.25f;
             Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 0.8f);
             Vector2 checkPos = boxCenter + direction * (playerCollider.size.x * 0.5f);
 
             Collider2D[] cols = Physics2D.OverlapBoxAll(checkPos, checkSize, 0f, config.wallLayer);
+            Collider2D bestCandidate = null;
+            float minDistance = float.MaxValue;
+            int maxSortingOrder = int.MinValue;
+
             foreach (var col in cols)
             {
-                // Simple obstruction check approximation for overlap
-                BuildingDetector targetBuilding = col.GetComponentInParent<BuildingDetector>();
-                if (targetBuilding != null)
+                Vector2 closestPoint = col.ClosestPoint(boxCenter);
+                if (IsObstructed(closestPoint, col)) continue;
+
+                float dist = Vector2.Distance(boxCenter, closestPoint);
+                BuildingDetector bd = col.GetComponentInParent<BuildingDetector>();
+                int sOrder = bd != null ? bd.sortingOrder : 0;
+
+                if (dist < minDistance - 0.01f) 
                 {
-                    // Since OverlapPointAll is already used in IsObstructed, we can reuse similar logic
-                    // For a low-risk hotfix, we return the first one found that isn't a trigger (unless it's SoftWall)
-                    // and let the rest of the flow handle SetSolid.
-                    return col;
+                    minDistance = dist;
+                    maxSortingOrder = sOrder;
+                    bestCandidate = col;
+                }
+                else if (Mathf.Abs(dist - minDistance) < 0.01f && sOrder > maxSortingOrder)
+                {
+                    maxSortingOrder = sOrder;
+                    bestCandidate = col;
                 }
             }
-            return null;
+            
+            return bestCandidate;
         }
 
 
@@ -326,6 +321,13 @@ public class PlayerPhysics : MonoBehaviour
             int side = TryGetWallSide(rightHit);
             if (side != 0) states.wallDirection = side;
             
+            if (Mathf.Sign(directionX) != Mathf.Sign(states.wallDirection))
+            {
+                states.canWallRun = false;
+                ClearCurrentWall();
+                return;
+            }
+
             wallDetected = true;
             
             var wallTrigger = rightHit.GetComponentInParent<BuildingWallsTrigger>();
@@ -354,6 +356,13 @@ public class PlayerPhysics : MonoBehaviour
             // Side detection for flip lock (LWall/RWall tags)
             int side = TryGetWallSide(leftHit);
             if (side != 0) states.wallDirection = side;
+
+            if (Mathf.Sign(directionX) != Mathf.Sign(states.wallDirection))
+            {
+                states.canWallRun = false;
+                ClearCurrentWall();
+                return;
+            }
 
             wallDetected = true;
             
@@ -585,7 +594,6 @@ public class PlayerPhysics : MonoBehaviour
 
         if (currentWallTrigger != null)
         {
-            if (config.wallRunDebug) Debug.Log($"[FIX_WALLRUN] Clearing previous wall: {currentWallTrigger.name}");
             currentWallTrigger.SetSolid(false);
         }
 
@@ -593,7 +601,6 @@ public class PlayerPhysics : MonoBehaviour
         
         if (currentWallTrigger != null)
         {
-            if (config.wallRunDebug) Debug.Log($"[FIX_WALLRUN] Setting current wall: {currentWallTrigger.name}");
             currentWallTrigger.SetSolid(true);
         }
     }
@@ -602,7 +609,6 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (currentWallTrigger != null)
         {
-            if (config.wallRunDebug) Debug.Log($"[FIX_WALLRUN] Clearing wall: {currentWallTrigger.name}");
             currentWallTrigger.SetSolid(false);
             currentWallTrigger = null;
         }
