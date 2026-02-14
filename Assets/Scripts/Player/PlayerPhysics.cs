@@ -256,6 +256,12 @@ public class PlayerPhysics : MonoBehaviour
             return false;
         }
 
+        bool IsVerticalWallSurface(Vector2 normal)
+        {
+            if (!config.wallRunStrictNormals) return true;
+            return Mathf.Abs(normal.x) >= config.wallNormalMinX;
+        }
+
         Collider2D CheckDirection(Vector2 direction)
         {
             float skinOffset = 0.1f; 
@@ -275,6 +281,17 @@ public class PlayerPhysics : MonoBehaviour
                 foreach (var hit in hits)
                 {
                     if (IsObstructed(hit.point, hit.collider)) continue;
+
+                    // HOTFIX: Normal verification to avoid slopes
+                    if (!IsVerticalWallSurface(hit.normal))
+                    {
+                        if (config.wallRunDebug)
+                        {
+                            float angle = Vector2.Angle(Vector2.up, hit.normal);
+                            GameLogger.Log("WALLRUN", $"Reject slope hit: collider={hit.collider.name} normal={hit.normal} angle={angle:F1} method=Raycast");
+                        }
+                        continue;
+                    }
 
                     BuildingDetector bd = hit.collider.GetComponentInParent<BuildingDetector>();
                     int order = bd != null ? bd.sortingOrder : -100;
@@ -312,6 +329,24 @@ public class PlayerPhysics : MonoBehaviour
             {
                 Vector2 closestPoint = col.ClosestPoint(boxCenter);
                 if (IsObstructed(closestPoint, col)) continue;
+
+                // HOTFIX: Overlap doesn't give normals, so we cast a short ray to verify
+                if (config.wallRunStrictNormals)
+                {
+                    Vector2 rayDir = (closestPoint - boxCenter).normalized;
+                    float distToPoint = Vector2.Distance(boxCenter, closestPoint);
+                    RaycastHit2D normalHit = Physics2D.Raycast(boxCenter, rayDir, distToPoint + 0.2f, config.wallLayer);
+                    
+                    if (normalHit.collider != null && !IsVerticalWallSurface(normalHit.normal))
+                    {
+                        if (config.wallRunDebug)
+                        {
+                            float angle = Vector2.Angle(Vector2.up, normalHit.normal);
+                            GameLogger.Log("WALLRUN", $"Reject slope hit: collider={col.name} normal={normalHit.normal} angle={angle:F1} method=OverlapFallback");
+                        }
+                        continue;
+                    }
+                }
 
                 float dist = Vector2.Distance(boxCenter, closestPoint);
                 BuildingDetector bd = col.GetComponentInParent<BuildingDetector>();

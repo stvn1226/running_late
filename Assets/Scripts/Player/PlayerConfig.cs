@@ -185,6 +185,13 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Enable verbose logging for WallRun detection and state transitions.")]
     public bool wallRunDebug = false;
 
+    [Tooltip("If enabled, WallRun will only trigger on vertical surfaces (based on hit normal).")]
+    public bool wallRunStrictNormals = true;
+
+    [Tooltip("Minimum horizontal component of the surface normal to be considered a wall. 1.0 = perfect vertical. Recommended: 0.85")]
+    [Range(0.5f, 1f)]
+    public float wallNormalMinX = 0.85f;
+
     
     [Header("Corner Climb (Auto-Assist)")]
     [Tooltip("Enable automatic corner climbing when approaching wall corners with low velocity")]
