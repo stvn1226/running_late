@@ -166,6 +166,6 @@ public abstract class Animal : MonoBehaviour, IWarningIndicator
     
     public virtual bool ShouldShowWarning()
     {
-        return !isStaggered && !isRunning;
+        return !isStaggered;
     }
 }
