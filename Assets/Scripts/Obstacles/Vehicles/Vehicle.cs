@@ -283,6 +283,6 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
     
     public virtual bool ShouldShowWarning()
     {
-        return !wasStomped && !isRunning;
+        return !wasStomped;
     }
 }
