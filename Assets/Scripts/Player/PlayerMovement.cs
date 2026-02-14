@@ -398,6 +398,12 @@ public class PlayerMovement : MonoBehaviour
             if (isAccelerating || isBelowMaxSpeed)
             {
                 float baseForce = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+                
+                if (states.isKicking)
+                {
+                    baseForce *= config.kickForceReduction;
+                }
+
                 baseForce *= forceMultiplier;
 
                 float appliedForce = Mathf.Clamp(speedDifference * baseForce, -baseForce, baseForce);
@@ -567,6 +573,13 @@ public class PlayerMovement : MonoBehaviour
         if (states.isRolling)
         {
             Vector2 dragForces = -velocity * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime);
+            rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
+            return;
+        }
+
+        if (states.isKicking && states.isGrounded)
+        {
+            Vector2 dragForces = -velocity * (config.kickGroundDrag * Time.fixedDeltaTime);
             rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             return;
         }

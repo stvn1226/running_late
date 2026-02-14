@@ -119,11 +119,33 @@ public class StructureBuilder : MonoBehaviour
         buildingCollider.isTrigger = true;
         gameObject.tag = "Building";
         
-        float buildingWidth = 20f;
+        // Automatic width calculation from instantiated parts
+        Bounds combinedBounds = new Bounds(transform.position, Vector3.zero);
+        bool foundRenderer = false;
+        
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer r in renderers)
+        {
+            // Only include floors, ground, and roof components (ignore obstacles/powerups)
+            if (r.gameObject == gameObject) continue;
+            
+            if (!foundRenderer)
+            {
+                combinedBounds = r.bounds;
+                foundRenderer = true;
+            }
+            else
+            {
+                combinedBounds.Encapsulate(r.bounds);
+            }
+        }
+
+        float buildingWidth = foundRenderer ? combinedBounds.size.x : config.floorWidth;
         float buildingHeight = floorsCt * config.floorHeight;
+        float offsetX = foundRenderer ? combinedBounds.center.x - transform.position.x : 0f;
         
         buildingCollider.size = new Vector2(buildingWidth, buildingHeight);
-        buildingCollider.offset = new Vector2(0f, buildingHeight * 0.5f);
+        buildingCollider.offset = new Vector2(offsetX, buildingHeight * 0.5f);
         
         // Calculate building Z from first floor (ground floor)
         // Ground floor is instantiated FIRST so it's always child 0

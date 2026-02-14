@@ -92,6 +92,7 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Kick States")]
     public float kickTimer;
+    public float kickStartTime;
 
     [Header("Stagger States")]
     public float staggerTimer;
@@ -201,6 +202,19 @@ public class PlayerStates : MonoBehaviour
         if (isWallRunning != prevIsWallRunning)
         {
             GameLogger.LogState($"WALL RUNNING STATE CHANGE: {prevIsWallRunning} -> {isWallRunning}, WallRunHeld: {wallRunHeld}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
+        }
+
+        if (isWallRunning && isKicking)
+        {
+            float timeSinceKick = Time.time - kickStartTime;
+            if (timeSinceKick < config.kickInterruptLock)
+            {
+                if (config.kickDebug) GameLogger.Log("KICK", $"INTERRUPTION PREVENTED: Still in lock gate ({timeSinceKick:F3}s < {config.kickInterruptLock}s)");
+                return;
+            }
+            
+            if (config.kickDebug) GameLogger.Log("KICK", "INTERRUPTED: Wall run started after lock gate.");
+            EndKick();
         }
 
         if (Vector2.Distance(moveInput, prevMoveInput) > 0.5f)
@@ -365,12 +379,6 @@ public class PlayerStates : MonoBehaviour
         if (previousWallRunning != isWallRunning)
         {
             OnWallRunChanged?.Invoke();
-
-            if (isWallRunning && isKicking)
-            {
-                GameLogger.LogWarning("KICK", "CRITICAL FIX: Wall run started during kick! Forcing kick end.");
-                EndKick();
-            }
         }
 
         if (previousStaggered != isStaggered)
@@ -404,18 +412,19 @@ public class PlayerStates : MonoBehaviour
             kickPressed = true;
             isKicking = true;
             kickTimer = kickDuration;
+            kickStartTime = Time.time;
 
-            GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
+            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
         }
     }
 
-    public void EndKick()
+    public void EndKick(string reason = "finished")
     {
         if (isKicking)
         {
             isKicking = false;
             kickTimer = 0f;
-            GameLogger.Log("KICK", "STATE: isKicking SET TO FALSE - Kick ended");
+            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
         }
     }
 
