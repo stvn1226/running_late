@@ -329,6 +329,20 @@ public class PlayerAnimator : MonoBehaviour
         crossFadeDuration = Mathf.Max(0f, duration);
     }
 
+    public bool IsPlayingKick()
+    {
+        return currentStateHash == AnimHash.KickA || 
+               currentStateHash == AnimHash.KickB || 
+               currentStateHash == AnimHash.KickC;
+    }
+
+    public float GetKickNormalizedTime()
+    {
+        if (!IsPlayingKick()) return 0f;
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        return stateInfo.normalizedTime % 1f;
+    }
+
     public string GetCurrentStateName()
     {
         return currentStateName;

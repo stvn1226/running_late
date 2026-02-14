@@ -1,3 +1,5 @@
+#define ENABLE_VERBOSE_LOGGING
+
 using MoreMountains.Feedbacks;
 using System.Collections;
 using UnityEngine;
@@ -70,7 +72,9 @@ public class PlayerMovement : MonoBehaviour
             states.OnLanded += HandleLanding;
         }
         
-        GameLogger.LogMovement($"Started - Initial sprite flip: {previousSpriteFlipX}");
+#if ENABLE_VERBOSE_LOGGING
+        GameLogger.LogMovement("PlayerMovement Started");
+#endif
     }
 
     private void OnDestroy()
@@ -116,7 +120,9 @@ public class PlayerMovement : MonoBehaviour
             if (kickBox.enabled != shouldKickBoxBeEnabled)
             {
                 kickBox.enabled = shouldKickBoxBeEnabled;
-                GameLogger.LogVerbose("KICK", $"KickBox {(shouldKickBoxBeEnabled ? "ENABLED" : "DISABLED")} - isKicking: {states.isKicking}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogVerbose("KICK", shouldKickBoxBeEnabled ? "KickBox ENABLED" : "KickBox DISABLED");
+#endif
             }
         }
     }
@@ -151,7 +157,9 @@ public class PlayerMovement : MonoBehaviour
         if (isNear)
         {
             buildingWallProximityTimer = BUILDING_WALL_PROXIMITY_TIME;
-            GameLogger.LogVerbose("MOVEMENT", $"BUILDING WALL PROXIMITY: {isNear}");
+#if ENABLE_VERBOSE_LOGGING
+            GameLogger.LogVerbose("MOVEMENT", "BUILDING WALL PROXIMITY");
+#endif
         }
     }
 
@@ -159,18 +167,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Time.time - lastFlipAnalysisLog > FLIP_ANALYSIS_LOG_INTERVAL)
         {
+#if ENABLE_VERBOSE_LOGGING
             Vector2 currentVel = rb.linearVelocity;
-            
-            // Log current state for analysis
-            GameLogger.LogVerbose("MOVEMENT", $"FLIP ANALYSIS: " +
-                $"SpriteFlip={playerSprite.flipX}, " +
-                $"Vel=({currentVel.x:F2},{currentVel.y:F2}), " +
-                $"WallRun={states.isWallRunning}, " +
-                $"CanWallRun={states.canWallRun}, " +
-                $"WallDir={states.wallDirection}, " +
-                $"Input.x={states.moveInput.x:F2}, " +
-                $"Grounded={states.isGrounded}");
-                
+            GameLogger.LogVerbose("MOVEMENT", $"FLIP: Sprite={playerSprite.flipX}, WallRun={states.isWallRunning}, Ground={states.isGrounded}");
+#endif
             lastFlipAnalysisLog = Time.time;
         }
     }
@@ -192,6 +192,31 @@ public class PlayerMovement : MonoBehaviour
         if (states.isWallRunning)
         {
             lastWallRunVelocity = currentVelX;
+            
+            if (states.wallDirection == 1) // LWall -> Wall on player's RIGHT
+            {
+                if (playerSprite.flipX) 
+                {
+                    playerSprite.flipX = false;
+                }
+                if (states.moveInput.x < 0f)
+                {
+                    states.moveInput.x = 0f; 
+                }
+            }
+            else if (states.wallDirection == -1) // RWall -> Wall on player's LEFT
+            {
+                if (!playerSprite.flipX)
+                {
+                    playerSprite.flipX = true;
+                }
+                if (states.moveInput.x > 0f)
+                {
+                    states.moveInput.x = 0f; 
+                }
+            }
+            
+            return; // Skip normal flip logic while wallrunning
         }
         
         // Enhanced flip logic with wall run awareness AND building proximity
@@ -215,7 +240,9 @@ public class PlayerMovement : MonoBehaviour
             float velocityChange = Mathf.Abs(currentVelX - previousVelocity.x);
             if (shouldUseElevatedThreshold && velocityChange > 5f)
             {
-                GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Drastic velocity change {velocityChange:F1} near wall/building");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogVerbose("MOVEMENT", "FLIP PREVENTED: Drastic velocity change near wall");
+#endif
                 return;
             }
 
@@ -230,7 +257,9 @@ public class PlayerMovement : MonoBehaviour
 
             if (isFlipContradictory)
             {
-                GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Would contradict recent wall run. LastWallVel={lastWallRunVelocity:F2}, CurrentVel={currentVelX:F2}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogVerbose("MOVEMENT", "FLIP PREVENTED: Would contradict recent wall run");
+#endif
                 return;
             }
             
@@ -239,14 +268,18 @@ public class PlayerMovement : MonoBehaviour
             
             if (shouldFlipLeft && !playerSprite.flipX)
             {
-                GameLogger.LogMovement($"SPRITE FLIP LEFT: VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallRun={states.isWallRunning}, CanWallRun={states.canWallRun}, BuildingNear={isNearBuildingWallRecently}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogMovement($"SPRITE FLIP LEFT: VelX={currentVelX:F2}");
+#endif
                 playerSprite.flipX = true;
                 kickBox.offset = new Vector2(-Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
                 flipCooldownTimer = FLIP_COOLDOWN;
             }
             else if (shouldFlipRight && playerSprite.flipX)
             {
-                GameLogger.LogMovement($"SPRITE FLIP RIGHT: VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallRun={states.isWallRunning}, CanWallRun={states.canWallRun}, BuildingNear={isNearBuildingWallRecently}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogMovement($"SPRITE FLIP RIGHT: VelX={currentVelX:F2}");
+#endif
                 playerSprite.flipX = false;
                 kickBox.offset = new Vector2(Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
                 flipCooldownTimer = FLIP_COOLDOWN;
@@ -259,25 +292,30 @@ public class PlayerMovement : MonoBehaviour
             
             if (shouldFlipLeft && !playerSprite.flipX)
             {
-                GameLogger.LogMovement($"SPRITE FLIP LEFT (Input): Input={states.moveInput.x:F2}, VelX={currentVelX:F2}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogMovement("SPRITE FLIP LEFT (Input)");
+#endif
                 playerSprite.flipX = true;
                 kickBox.offset = new Vector2(-Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
                 flipCooldownTimer = FLIP_COOLDOWN * 0.3f;
             }
             else if (shouldFlipRight && playerSprite.flipX)
             {
-                GameLogger.LogMovement($"SPRITE FLIP RIGHT (Input): Input={states.moveInput.x:F2}, VelX={currentVelX:F2}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogMovement("SPRITE FLIP RIGHT (Input)");
+#endif
                 playerSprite.flipX = false;
                 kickBox.offset = new Vector2(Mathf.Abs(kickBox.offset.x), kickBox.offset.y);
                 flipCooldownTimer = FLIP_COOLDOWN * 0.3f;
             }
         }
         
-        // Debug logging
+#if ENABLE_VERBOSE_LOGGING
         if (shouldUseElevatedThreshold && absVelX > VELOCITY_THRESHOLD && absVelX <= flipThreshold)
         {
-            GameLogger.LogVerbose("MOVEMENT", $"FLIP PREVENTED: Near wall/building, VelX={currentVelX:F2}, Threshold={flipThreshold:F1}, WallTimer={wallThresholdTimer:F2}, BuildingTimer={buildingWallProximityTimer:F2}");
+            GameLogger.LogVerbose("MOVEMENT", "FLIP PREVENTED: Near wall/building");
         }
+#endif
     }
 
     public void StaggerPlayer(Vector2 knockbackDirection)
@@ -360,6 +398,12 @@ public class PlayerMovement : MonoBehaviour
             if (isAccelerating || isBelowMaxSpeed)
             {
                 float baseForce = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
+                
+                if (states.isKicking)
+                {
+                    baseForce *= config.kickForceReduction;
+                }
+
                 baseForce *= forceMultiplier;
 
                 float appliedForce = Mathf.Clamp(speedDifference * baseForce, -baseForce, baseForce);
@@ -377,7 +421,9 @@ public class PlayerMovement : MonoBehaviour
                     
                     rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
                     
-                    GameLogger.LogVerbose("SLOPE", $"SlopeMove: Input={horizontalInput:F2}, CurSpeed={slopeCurrentSpeed:F2}, Target={slopeTargetSpeed:F2}, Force={slopeForceAmount:F0}");
+#if ENABLE_VERBOSE_LOGGING
+                    GameLogger.LogVerbose("SLOPE", "SlopeMove applied");
+#endif
                 }
                 else
                 {
@@ -416,7 +462,9 @@ public class PlayerMovement : MonoBehaviour
             Vector2 correctionForce = -perpendicular * (perpendicularVel * config.slopeStickStrength / Time.fixedDeltaTime);
             rb.AddForce(correctionForce, ForceMode2D.Force);
         
-            GameLogger.LogVerbose("SLOPE", $"STICK: Cancelled perpendicular={perpendicularVel:F2}");
+#if ENABLE_VERBOSE_LOGGING
+            GameLogger.LogVerbose("SLOPE", "STICK applied");
+#endif
         }
     }
 
@@ -445,7 +493,9 @@ public class PlayerMovement : MonoBehaviour
                 
                 rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
                 
-                GameLogger.LogVerbose("SLOPE", $"SLIDE ON SLOPE: MomentumFactor={momentumFactor:F2}, AngleBonus={angleBonus:F2}, Boost={slopeBoost:F0}, VelX={rb.linearVelocity.x:F2}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogVerbose("SLOPE", "SLIDE ON SLOPE applied");
+#endif
             }
         }
     }
@@ -468,7 +518,9 @@ public class PlayerMovement : MonoBehaviour
                 
                 rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
                 
-                GameLogger.LogVerbose("SLOPE", $"ROLL ON SLOPE: MomentumFactor={momentumFactor:F2}, Boost={slopeBoost:F0}, Dir={slopeDir}, VelX={rb.linearVelocity.x:F2}");
+#if ENABLE_VERBOSE_LOGGING
+                GameLogger.LogVerbose("SLOPE", "ROLL ON SLOPE applied");
+#endif
             }
         }
     }
@@ -521,6 +573,13 @@ public class PlayerMovement : MonoBehaviour
         if (states.isRolling)
         {
             Vector2 dragForces = -velocity * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime);
+            rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
+            return;
+        }
+
+        if (states.isKicking && states.isGrounded)
+        {
+            Vector2 dragForces = -velocity * (config.kickGroundDrag * Time.fixedDeltaTime);
             rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             return;
         }

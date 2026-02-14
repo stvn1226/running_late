@@ -182,6 +182,9 @@ public class PlayerConfig : ScriptableObject
     [Range(0.1f, 1f)]
     public float wallHeightCheckInterval = 0.4f;
 
+    [Tooltip("Enable verbose logging for WallRun detection and state transitions.")]
+    public bool wallRunDebug = false;
+
     
     [Header("Corner Climb (Auto-Assist)")]
     [Tooltip("Enable automatic corner climbing when approaching wall corners with low velocity")]
@@ -266,6 +269,25 @@ public class PlayerConfig : ScriptableObject
     [Tooltip("Movement speed reduction during kick. 0.5 = half speed. Recommended: 0.3-0.7")]
     [Range(0f, 1f)]
     public float kickForceReduction = 0.5f;
+
+    [Tooltip("Enable verbose logging for Kick system.")]
+    public bool kickDebug = false;
+
+    [Tooltip("Time window where kick cannot be interrupted by wallrun. Units: seconds. Recommended: 0.08-0.15")]
+    [Range(0.05f, 0.3f)]
+    public float kickInterruptLock = 0.12f;
+
+    [Tooltip("Normalized time in animation where kick hitbox starts. Recommended: 0.1-0.2")]
+    [Range(0f, 0.5f)]
+    public float kickHitboxStartN = 0.15f;
+
+    [Tooltip("Normalized time in animation where kick hitbox ends. Recommended: 0.5-0.7")]
+    [Range(0.3f, 1f)]
+    public float kickHitboxEndN = 0.55f;
+
+    [Tooltip("Friction while kicking on ground. Lower = more slide. Recommended: 10-20")]
+    [Range(1f, 50f)]
+    public float kickGroundDrag = 15f;
 
     [Header("Stagger (Enemy Hit)")]
     [Tooltip("How long the player is staggered after enemy hit. Units: seconds. Recommended: 0.5-1.0")]

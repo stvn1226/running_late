@@ -1,11 +1,13 @@
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerStates : MonoBehaviour
 {
     private PlayerConfig config;
-    private BoxCollider2D playerCollider;
+    [SerializeField] private CapsuleCollider2D playerCollider;
     private new Transform transform;
+    private SpriteRenderer spriteRenderer;
 
     [Header("Input States")]
     public Vector2 moveInput;
@@ -90,6 +92,7 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Kick States")]
     public float kickTimer;
+    public float kickStartTime;
 
     [Header("Stagger States")]
     public float staggerTimer;
@@ -133,7 +136,7 @@ public class PlayerStates : MonoBehaviour
     private void Awake()
     {
         transform = GetComponent<Transform>();
-        playerCollider = GetComponent<BoxCollider2D>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         config = GetComponent<PlayerMovement>()?.config;
     }
 
@@ -157,8 +160,12 @@ public class PlayerStates : MonoBehaviour
     private IEnumerator InvincibilityCoroutine(float duration)
     {
         isInvincible = true;
+        GameLogger.Log($"[PLAYER INVULNERABILITY] ENABLED for {duration:F2}s - Can stomp but cannot take damage");
+        
         yield return new WaitForSeconds(duration);
+        
         isInvincible = false;
+        GameLogger.Log("[PLAYER INVULNERABILITY] DISABLED - Player is vulnerable again");
         activeInvincibility = null;
     }
 
@@ -195,6 +202,19 @@ public class PlayerStates : MonoBehaviour
         if (isWallRunning != prevIsWallRunning)
         {
             GameLogger.LogState($"WALL RUNNING STATE CHANGE: {prevIsWallRunning} -> {isWallRunning}, WallRunHeld: {wallRunHeld}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
+        }
+
+        if (isWallRunning && isKicking)
+        {
+            float timeSinceKick = Time.time - kickStartTime;
+            if (timeSinceKick < config.kickInterruptLock)
+            {
+                if (config.kickDebug) GameLogger.Log("KICK", $"INTERRUPTION PREVENTED: Still in lock gate ({timeSinceKick:F3}s < {config.kickInterruptLock}s)");
+                return;
+            }
+            
+            if (config.kickDebug) GameLogger.Log("KICK", "INTERRUPTED: Wall run started after lock gate.");
+            EndKick();
         }
 
         if (Vector2.Distance(moveInput, prevMoveInput) > 0.5f)
@@ -359,12 +379,6 @@ public class PlayerStates : MonoBehaviour
         if (previousWallRunning != isWallRunning)
         {
             OnWallRunChanged?.Invoke();
-
-            if (isWallRunning && isKicking)
-            {
-                GameLogger.LogWarning("KICK", "CRITICAL FIX: Wall run started during kick! Forcing kick end.");
-                EndKick();
-            }
         }
 
         if (previousStaggered != isStaggered)
@@ -398,18 +412,19 @@ public class PlayerStates : MonoBehaviour
             kickPressed = true;
             isKicking = true;
             kickTimer = kickDuration;
+            kickStartTime = Time.time;
 
-            GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
+            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
         }
     }
 
-    public void EndKick()
+    public void EndKick(string reason = "finished")
     {
         if (isKicking)
         {
             isKicking = false;
             kickTimer = 0f;
-            GameLogger.Log("KICK", "STATE: isKicking SET TO FALSE - Kick ended");
+            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
         }
     }
 
@@ -495,7 +510,40 @@ public class PlayerStates : MonoBehaviour
             GameLogger.LogWarning("KICK", "STAGGER: Force ending active kick to prevent movement lock");
             EndKick();
         }
+
+        float invulnerabilityDuration = duration * 2f;
+        InvokeInvincibility(invulnerabilityDuration);
+        StartCoroutine(BlinkSprite(invulnerabilityDuration));
+        
+        GameLogger.Log($"[PLAYER STAGGER] Started - Stagger: {duration:F2}s, Invulnerability: {invulnerabilityDuration:F2}s");
     }
+
+    public IEnumerator BlinkSprite(float duration)
+    {
+        if (spriteRenderer == null)
+        {
+            GameLogger.LogWarning("PLAYER", "SpriteRenderer is null, cannot blink sprite");
+            yield break;
+        }
+
+        float elapsed = 0f;
+        float blinkInterval = 0.1f;
+        bool isVisible = true;
+        Color originalColor = spriteRenderer.color;
+
+        while (elapsed < duration)
+        {
+            isVisible = !isVisible;
+            float alpha = isVisible ? 1f : 0.1f;
+            spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            
+            yield return new WaitForSeconds(blinkInterval);
+            elapsed += blinkInterval;
+        }
+
+        spriteRenderer.color = originalColor;
+    }
+
 
     public IEnumerator StartSlowdown(float duration)
     {

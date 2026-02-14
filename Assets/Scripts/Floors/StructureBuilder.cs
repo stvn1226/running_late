@@ -17,11 +17,15 @@ public class StructureBuilder : MonoBehaviour
     public GameObject[] powerUps;
     public int obstacleRate = 50; // % chance to spawn rooftop obstacle
     public int powerUpRate = 20; // % chance to spawn rooftop power-up
+    
+    private BoxCollider2D buildingCollider;
 
     public void ConstructStructure()
     {
         int floorsCt = 0;
         floorsCt = Random.Range(config.minFloors, config.maxFloors + 1);
+
+        GameLogger.Log("WallRunWorkflow", $"[BUILD START] Constructing building with {floorsCt} floors at {transform.position}");
 
         if (groundPrefab != null)
         {
@@ -71,16 +75,98 @@ public class StructureBuilder : MonoBehaviour
                 GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)], powerUpPosition, Quaternion.identity, transform);
             }
         }
-
+        
+        // Setup building detection collider AFTER all floors are created
+        SetupBuildingCollider(floorsCt);
     }
 
     private void SortTilemap(GameObject toUse, int floorsCt)
     {
-        toUse.GetComponentInChildren<TilemapRenderer>().sortingOrder -= floorsCt;
+        TilemapRenderer renderer = toUse.GetComponentInChildren<TilemapRenderer>();
+        int originalSortingOrder = renderer.sortingOrder;
+        renderer.sortingOrder -= floorsCt;
+        
+        int newSortingOrder = renderer.sortingOrder;
+        Vector3 currentPos = toUse.transform.position;
+        float calculatedZ = newSortingOrder * 0.01f + (transform.position.x * 0.000001f);
+        toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
     }
 
     private void SortSprite(GameObject toUse, int floorsCt)
     {
-        toUse.GetComponentInChildren<SpriteRenderer>().sortingOrder -= floorsCt;
+        SpriteRenderer renderer = toUse.GetComponentInChildren<SpriteRenderer>();
+        int originalSortingOrder = renderer.sortingOrder;
+        renderer.sortingOrder -= floorsCt;
+        
+        int newSortingOrder = renderer.sortingOrder;
+        Vector3 currentPos = toUse.transform.position;
+        float calculatedZ = newSortingOrder * 0.01f + (transform.position.x * 0.000001f);
+        toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
+    }
+    
+    private void SetupBuildingCollider(int floorsCt)
+    {
+        buildingCollider = gameObject.GetComponent<BoxCollider2D>();
+        if (buildingCollider == null)
+        {
+            buildingCollider = gameObject.AddComponent<BoxCollider2D>();
+        }
+        
+        buildingCollider.isTrigger = true;
+        gameObject.tag = "Building";
+        
+        // Automatic width calculation from instantiated parts
+        Bounds combinedBounds = new Bounds(transform.position, Vector3.zero);
+        bool foundRenderer = false;
+        
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer r in renderers)
+        {
+            // Only include floors, ground, and roof components (ignore obstacles/powerups)
+            if (r.gameObject == gameObject) continue;
+            
+            if (!foundRenderer)
+            {
+                combinedBounds = r.bounds;
+                foundRenderer = true;
+            }
+            else
+            {
+                combinedBounds.Encapsulate(r.bounds);
+            }
+        }
+
+        float buildingWidth = foundRenderer ? combinedBounds.size.x : config.floorWidth;
+        float buildingHeight = floorsCt * config.floorHeight;
+        float offsetX = foundRenderer ? combinedBounds.center.x - transform.position.x : 0f;
+        
+        buildingCollider.size = new Vector2(buildingWidth, buildingHeight);
+        buildingCollider.offset = new Vector2(offsetX, buildingHeight * 0.5f);
+        
+        // Calculate building Z from first floor (ground floor)
+        // Ground floor is instantiated FIRST so it's always child 0
+        Transform firstFloor = transform.childCount > 0 ? transform.GetChild(0) : null;
+        float buildingZ = firstFloor != null ? firstFloor.position.z : transform.position.z;
+        
+        // Get Sorting Order from Sprite/Tilemap for Lane Logic
+        int sortingOrder = 0;
+        if (firstFloor != null)
+        {
+            SpriteRenderer sr = firstFloor.GetComponentInChildren<SpriteRenderer>();
+            if (sr != null) sortingOrder = sr.sortingOrder;
+            else
+            {
+                TilemapRenderer tr = firstFloor.GetComponentInChildren<TilemapRenderer>();
+                if (tr != null) sortingOrder = tr.sortingOrder;
+            }
+        }
+
+        // Add BuildingDetector component to store Z and name
+        BuildingDetector detector = gameObject.GetComponent<BuildingDetector>();
+        if (detector == null)
+        {
+            detector = gameObject.AddComponent<BuildingDetector>();
+        }
+        detector.Initialize(buildingZ, gameObject.name, sortingOrder);
     }
 }

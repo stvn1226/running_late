@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using Utils;
 
-public abstract class Vehicle : MonoBehaviour
+public abstract class Vehicle : MonoBehaviour, IWarningIndicator
 {
     protected Rigidbody2D rb;
     private Camera mainCamera;
@@ -15,6 +15,9 @@ public abstract class Vehicle : MonoBehaviour
     private bool wasStomped;
     private bool wasHit;
     private Coroutine hitboxDisableCoroutine;
+    
+    [Header("Warning Indicator")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
     protected virtual void Start()
     {
@@ -24,6 +27,11 @@ public abstract class Vehicle : MonoBehaviour
         hasRan = false;
         wasStomped = false;
         wasHit = false;
+        
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
     }
 
     protected virtual void Update()
@@ -54,11 +62,11 @@ public abstract class Vehicle : MonoBehaviour
     {
         if (!isRunning) return;
 
-        if (wasHit)
-        {
-            GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Ignoring collision - recently hit (cooldown active)");
-            return;
-        }
+        //if (wasHit)
+        //{
+        //    GameLogger.LogVerbose("VEHICLE", $"[{gameObject.name}] Ignoring collision - recently hit (cooldown active)");
+        //    return;
+        //}
         
         if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
         {
@@ -80,6 +88,14 @@ public abstract class Vehicle : MonoBehaviour
                 }
                 else
                 {
+                    PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
+                    
+                    if (playerStates != null && playerStates.isInvincible && !playerStates.isShielded)
+                    {
+                        GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player is INVULNERABLE - ignoring damage (no stomp)");
+                        return;
+                    }
+                    
                     HandlePlayerDamage(collision, playerRb);
                 }
             }
@@ -127,7 +143,7 @@ public abstract class Vehicle : MonoBehaviour
             AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_STOMP, context);
         }
 
-        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+        //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
     private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
@@ -167,7 +183,7 @@ public abstract class Vehicle : MonoBehaviour
             });
             }
 
-            hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+            //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
             return;
         }
 
@@ -196,7 +212,7 @@ public abstract class Vehicle : MonoBehaviour
         if (cachedPlayerMovement != null)
             cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
 
-        hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
+        //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
 
     private void ResetHitState()
@@ -249,5 +265,24 @@ public abstract class Vehicle : MonoBehaviour
             StopCoroutine(hitboxDisableCoroutine);
         }
         StopAllCoroutines();
+    }
+    
+    public virtual Sprite GetWarningSprite()
+    {
+        if (spriteRenderer != null && spriteRenderer.sprite != null)
+        {
+            return spriteRenderer.sprite;
+        }
+        return null;
+    }
+    
+    public virtual Vector3 GetPosition()
+    {
+        return transform.position;
+    }
+    
+    public virtual bool ShouldShowWarning()
+    {
+        return !wasStomped;
     }
 }

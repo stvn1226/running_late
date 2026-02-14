@@ -1,3 +1,5 @@
+#define ENABLE_VERBOSE_LOGGING
+
 using UnityEngine;
 
 public class PlayerStateManager : MonoBehaviour

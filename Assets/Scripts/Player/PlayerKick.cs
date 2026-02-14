@@ -4,58 +4,102 @@ public class PlayerKick : MonoBehaviour
 {
     private BoxCollider2D kickBox;
     private PlayerStates states;
+    private PlayerAnimator playerAnimator;
+    private PlayerConfig config;
+    private bool hitboxActive = false;
 
     void Start()
     {
         kickBox = GetComponent<BoxCollider2D>();
         states = GetComponentInParent<PlayerStates>();
+        playerAnimator = GetComponentInParent<PlayerAnimator>();
         
-        if (states == null)
+        if (states != null)
         {
-            GameLogger.LogError("KICK", "PlayerStates not found in parent! Kick system will not work properly.");
+            config = states.GetComponent<PlayerMovement>()?.config;
+        }
+
+        if (states == null || playerAnimator == null)
+        {
+            GameLogger.LogError("KICK", "Dependencies not found! Kick system will not work properly.");
         }
         
-        EndKick();
+        DisableHitbox();
+    }
+
+    void Update()
+    {
+        if (states == null || config == null || playerAnimator == null) return;
+
+        if (states.isKicking)
+        {
+            if (playerAnimator.IsPlayingKick())
+            {
+                float nTime = playerAnimator.GetKickNormalizedTime();
+                bool shouldBeActive = nTime >= config.kickHitboxStartN && nTime <= config.kickHitboxEndN;
+
+                if (shouldBeActive && !hitboxActive) EnableHitbox();
+                else if (!shouldBeActive && hitboxActive) DisableHitbox();
+            }
+            else
+            {
+                // Animation changed to something else, end kick state
+                DisableHitbox();
+                states.EndKick("animChanged");
+            }
+        }
+        else if (hitboxActive)
+        {
+            DisableHitbox();
+        }
     }
 
     public void PerformKick(float kickDuration)
     {
-        Invoke("StartKick", 0.1f);
-        Invoke("EndKick", kickDuration + 0.1f);
-        
-        GameLogger.LogVerbose("KICK", $"PerformKick scheduled - StartKick at T+0.1s, EndKick at T+{kickDuration + 0.1f}s");
+        // Now handled via states.isKicking and PlayerAnimator detection
+        if (config.kickDebug) GameLogger.Log("KICK", "PerformKick called (Animation synchronization active)");
     }
 
-    private void StartKick()
+    private void EnableHitbox()
     {
         if (kickBox != null)
         {
             kickBox.enabled = true;
-            GameLogger.LogVerbose("KICK", "KickBox ENABLED (Invoke callback)");
-            
-            if (AnalyticsManager.Instance != null)
-            {
-                Vector3 playerPos = transform.position;
-                Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
-                float velocityX = rb != null ? rb.linearVelocity.x : 0f;
-            
-                var context = AnalyticsEvents.CreatePlayerActionContext(
-                    AnalyticsEvents.PLAYER_KICK, 
-                    playerPos.x, 
-                    velocityX
-                );
-            
-                AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_KICK, context);
-            }
+            hitboxActive = true;
+            if (config.kickDebug) GameLogger.Log("KICK", $"Hitbox ENABLED (NTime: {playerAnimator.GetKickNormalizedTime():F2})");
+            TrackKickAnalytics();
         }
     }
 
-    private void EndKick()
+    private void DisableHitbox()
     {
-        if (kickBox != null)
+        if (hitboxActive)
+        {
+            if (kickBox != null) kickBox.enabled = false;
+            hitboxActive = false;
+            if (config.kickDebug) GameLogger.Log("KICK", $"Hitbox DISABLED (NTime: {playerAnimator.GetKickNormalizedTime():F2})");
+        }
+        else if (kickBox != null && kickBox.enabled)
         {
             kickBox.enabled = false;
-            GameLogger.LogVerbose("KICK", "KickBox DISABLED (Invoke callback)");
+        }
+    }
+
+    private void TrackKickAnalytics()
+    {
+        if (AnalyticsManager.Instance != null)
+        {
+            Vector3 playerPos = transform.position;
+            Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
+            float velocityX = rb != null ? rb.linearVelocity.x : 0f;
+        
+            var context = AnalyticsEvents.CreatePlayerActionContext(
+                AnalyticsEvents.PLAYER_KICK, 
+                playerPos.x, 
+                velocityX
+            );
+        
+            AnalyticsManager.Instance.TrackPlayerAction(AnalyticsEvents.PLAYER_KICK, context);
         }
     }
 }

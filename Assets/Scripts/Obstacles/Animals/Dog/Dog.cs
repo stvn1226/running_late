@@ -188,10 +188,7 @@ public class Dog : Animal
 
     private void HandleStagger()
     {
-        if (rb.linearVelocity.x > -1f)
-        {
-            rb.linearVelocity = new Vector2(-2f, rb.linearVelocity.y);
-        }
+        //rb.linearVelocity = new Vector2(2f, 2);
     }
 
     private void UpdateAnimator()

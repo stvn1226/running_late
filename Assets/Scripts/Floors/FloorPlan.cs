@@ -10,6 +10,7 @@ public class FloorPlan : ScriptableObject
     public int minFloors = 2;
     public int maxFloors = 2;
     public float floorHeight = 3f;
+    public float floorWidth = 20f;
 
     [Header("Building Spacing")]
     public float minDistanceBetweenBuildings = 10f;

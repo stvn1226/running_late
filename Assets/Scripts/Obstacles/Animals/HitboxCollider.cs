@@ -53,6 +53,14 @@ public class HitboxCollider : MonoBehaviour
                 }
                 else
                 {
+                    PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
+                    
+                    if (playerStates != null && playerStates.isInvincible && !playerStates.isShielded)
+                    {
+                        GameLogger.Log($"[{parent.gameObject.name}] Player is INVULNERABLE - ignoring damage (no stomp)");
+                        return;
+                    }
+                    
                     HandlePlayerDamage(collision, playerRb);
                 }
             }
@@ -161,9 +169,5 @@ public class HitboxCollider : MonoBehaviour
 
         if (parent.cachedPlayerMovement != null)
             parent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
-
-        parent.wasHit = true;
-
-        Coroutine disableCoroutine = StartCoroutine(parent.DisableHitboxTemp(2f));
     }
 }
