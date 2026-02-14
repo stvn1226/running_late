@@ -265,6 +265,7 @@ MonoBehaviour:
   - {fileID: 2115612047579161601}
   - {fileID: 2708431669689300783}
   activationDistance: 50
+  spriteRenderer: {fileID: 5205598531992038972}
   solidCollider: {fileID: 8792862714590888694}
   staggerForce: {x: 100, y: 5}
   staggerGravity: 2
@@ -335,7 +336,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.45}
+  m_Offset: {x: 0, y: -0.43498316}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -345,7 +346,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2.2, y: 1.35}
+  m_Size: {x: 2.2, y: 1.3800337}
   m_EdgeRadius: 0
 --- !u!61 &2708431669689300783
 BoxCollider2D:
@@ -354,7 +355,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7045359799342508971}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
