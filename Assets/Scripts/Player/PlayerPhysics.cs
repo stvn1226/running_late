@@ -1,4 +1,3 @@
-#define ENABLE_VERBOSE_LOGGING
 
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -21,13 +20,23 @@ public class PlayerPhysics : MonoBehaviour
     private bool previousCanWallRun;
     private int previousWallDirection;
     private float lastPhysicsLog = 0f;
+    private float lastGroundedTime = 0f;
     private const float PHYSICS_LOG_INTERVAL = 1f;
     private const int WALLRUN_DEPTH_THRESHOLD = -12;
-    private const float WALL_CONTACT_GRACE_PERIOD = 0.05f; // REDUCED: 0.2f -> 0.05f for snappy disconnect
+    private const float WALL_CONTACT_GRACE_PERIOD = 0.12f;
 
     private Collider2D currentWallCollider;
+    private Collider2D previousWallCollider;
     private BuildingWallsTrigger currentWallTrigger;
     private float wallContactLostTime;
+    private bool wasInGrace = false;
+
+    // Cache for Phase 1 logic
+    private bool hadValidWallHitThisFrame;
+    private float lastWallHitTime;
+    private Collider2D lastWallCollider;
+    private int lastWallDirection;
+    private bool previousIsWallRunning;
 
     private float lastWallHeightCheck = 0f;
     private float groundedBufferTimer = 0f;
@@ -126,6 +135,7 @@ public class PlayerPhysics : MonoBehaviour
         previousGrounded = states.isGrounded;
         previousCanWallRun = states.canWallRun;
         previousWallDirection = states.wallDirection;
+        previousIsWallRunning = states.isWallRunning;
         
         states.wasGrounded = states.isGrounded;
     }
@@ -185,6 +195,11 @@ public class PlayerPhysics : MonoBehaviour
             states.isGrounded = false;
             groundedBufferTimer = 0f;
         }
+        
+        if (states.isGrounded)
+        {
+            lastGroundedTime = Time.time;
+        }
     }
 
     private void CheckWallRun()
@@ -193,7 +208,7 @@ public class PlayerPhysics : MonoBehaviour
 
         if (states.isOnSlope && !states.isWallRunning)
         {
-            if (Mathf.Abs(states.moveInput.x) < 0.5f)
+            if (Mathf.Abs(states.moveInput.x) < 0.1f) // Standardized to 0.1f for consistency
             {
                 states.canWallRun = false;
                 return;
@@ -203,6 +218,7 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
         float directionX = states.moveInput.x;
         float detectionDistance = config.wallCheckDistance;
+        hadValidWallHitThisFrame = false; // Reset for this frame
         
         // Multi-Ray Detection (Top, Center, Bottom) to prevent gaps
         Vector2 topOrigin = boxCenter + Vector2.up * (playerCollider.size.y * 0.4f);
@@ -228,9 +244,12 @@ public class PlayerPhysics : MonoBehaviour
                 
                 if (blocker != null && blocker != targetBuilding)
                 {
-                    if (blocker.sortingOrder > targetBuilding.sortingOrder) 
+                    if (blocker.sortingOrder > targetBuilding.sortingOrder) return true;
+                    
+                    if (blocker.sortingOrder == targetBuilding.sortingOrder)
                     {
-                        return true;
+                        // Deterministic depth tie-breaker: Smaller Z is closer to the camera.
+                        if (blocker.buildingZ < targetBuilding.buildingZ) return true;
                     }
                 }
             }
@@ -241,36 +260,53 @@ public class PlayerPhysics : MonoBehaviour
         {
             float skinOffset = 0.1f; 
             Vector2 offset = -direction * skinOffset;
-            
-            Vector2 rayCenter = boxCenter + offset;
-            Vector2 rayTop = topOrigin + offset;
-            Vector2 rayBottom = bottomOrigin + offset;
             float adjustedDistance = detectionDistance + skinOffset;
 
-            RaycastHit2D hitCenter = Physics2D.Raycast(rayCenter, direction, adjustedDistance, config.wallLayer);
-            if (hitCenter.collider != null && !IsObstructed(hitCenter.point, hitCenter.collider)) return hitCenter.collider;
+            Vector2[] rays = { boxCenter + offset, topOrigin + offset, bottomOrigin + offset };
             
-            RaycastHit2D hitTop = Physics2D.Raycast(rayTop, direction, adjustedDistance, config.wallLayer);
-            if (hitTop.collider != null && !IsObstructed(hitTop.point, hitTop.collider)) return hitTop.collider;
-            
-            RaycastHit2D hitBottom = Physics2D.Raycast(rayBottom, direction, adjustedDistance, config.wallLayer);
-            if (hitBottom.collider != null && !IsObstructed(hitBottom.point, hitBottom.collider)) return hitBottom.collider;
-            
-            return null;
+            Collider2D bestFound = null;
+            int maxOrder = int.MinValue;
+            float maxDepth = float.MaxValue;
+
+            foreach (var rayOrigin in rays)
+            {
+                // Multi-ray check to prioritize front-most building
+                RaycastHit2D[] hits = Physics2D.RaycastAll(rayOrigin, direction, adjustedDistance, config.wallLayer);
+                foreach (var hit in hits)
+                {
+                    if (IsObstructed(hit.point, hit.collider)) continue;
+
+                    BuildingDetector bd = hit.collider.GetComponentInParent<BuildingDetector>();
+                    int order = bd != null ? bd.sortingOrder : -100;
+                    float depth = bd != null ? bd.buildingZ : 100f; // Default large for far away
+
+                    if (order > maxOrder || (order == maxOrder && depth < maxDepth))
+                    {
+                        maxOrder = order;
+                        maxDepth = depth;
+                        bestFound = hit.collider;
+                    }
+                }
+            }
+            return bestFound;
         }
 
         Collider2D CheckOverlapFallback(Vector2 direction)
         {
-            if (!states.isGrounded) return null;
+            // Air-catch gate: allow fallback in air if player is trying to move toward the wall
+            if (!states.isGrounded && (!states.wallRunHeld || Mathf.Abs(states.moveInput.x) < 0.5f)) return null; 
 
-            float overlapWidth = 0.25f;
-            Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 0.8f);
-            Vector2 checkPos = boxCenter + direction * (playerCollider.size.x * 0.5f);
+            float overlapWidth = 0.65f; 
+            Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 1.1f);
+            // Dynamic offset: reach further if moving fast
+            float speedFactor = Mathf.Clamp01(Mathf.Abs(rb.linearVelocity.x) / 30f);
+            Vector2 checkPos = boxCenter + direction * (playerCollider.size.x * 0.5f + overlapWidth * (0.4f + speedFactor * 0.2f));
 
             Collider2D[] cols = Physics2D.OverlapBoxAll(checkPos, checkSize, 0f, config.wallLayer);
             Collider2D bestCandidate = null;
             float minDistance = float.MaxValue;
             int maxSortingOrder = int.MinValue;
+            float maxDepth = float.MaxValue;
 
             foreach (var col in cols)
             {
@@ -279,19 +315,34 @@ public class PlayerPhysics : MonoBehaviour
 
                 float dist = Vector2.Distance(boxCenter, closestPoint);
                 BuildingDetector bd = col.GetComponentInParent<BuildingDetector>();
-                int sOrder = bd != null ? bd.sortingOrder : 0;
+                int sOrder = bd != null ? bd.sortingOrder : -100;
+                float depth = bd != null ? bd.buildingZ : 100f;
 
-                if (dist < minDistance - 0.01f) 
+                // Priority: Lane (Sorting Order) -> Depth (Smaller Z is Closer) -> Distance
+                bool isBetter = false;
+                if (sOrder > maxSortingOrder) isBetter = true;
+                else if (sOrder == maxSortingOrder)
+                {
+                    if (depth < maxDepth - 0.0000001f) isBetter = true; 
+                    else if (Mathf.Abs(depth - maxDepth) < 0.0000001f)
+                    {
+                        float flickerEpsilon = (currentWallCollider != null && col == currentWallCollider) ? -0.1f : 0.01f;
+                        if (dist < minDistance + flickerEpsilon) isBetter = true;
+                    }
+                }
+
+                if (isBetter)
                 {
                     minDistance = dist;
                     maxSortingOrder = sOrder;
+                    maxDepth = depth;
                     bestCandidate = col;
                 }
-                else if (Mathf.Abs(dist - minDistance) < 0.01f && sOrder > maxSortingOrder)
-                {
-                    maxSortingOrder = sOrder;
-                    bestCandidate = col;
-                }
+            }
+            
+            if (bestCandidate != null && !states.isGrounded)
+            {
+                // Successful air-to-wall catch
             }
             
             return bestCandidate;
@@ -313,6 +364,7 @@ public class PlayerPhysics : MonoBehaviour
         
         if (wallRight && directionX > 0.1f)
         {
+            hadValidWallHitThisFrame = true;
             currentWallCollider = rightHit;
             states.canWallRun = true;
             states.wallDirection = 1;
@@ -324,11 +376,13 @@ public class PlayerPhysics : MonoBehaviour
             if (Mathf.Sign(directionX) != Mathf.Sign(states.wallDirection))
             {
                 states.canWallRun = false;
+                hadValidWallHitThisFrame = false; // Contradictory input invalidates hit
                 ClearCurrentWall();
                 return;
             }
 
             wallDetected = true;
+            wasInGrace = false;
             
             var wallTrigger = rightHit.GetComponentInParent<BuildingWallsTrigger>();
             if (states.wallRunHeld)
@@ -340,15 +394,20 @@ public class PlayerPhysics : MonoBehaviour
                 ClearCurrentWall();
             }
 
-            if (!previousCanWallRun) 
+            if (!previousCanWallRun || currentWallCollider != previousWallCollider) 
             {
                 states.RecordWallContact();
-                GameLogger.Log("PHYSICS", $"[WALLRUN] Started RIGHT on {rightHit.name}");
+                
+                // Record initial contact state
+                lastWallHitTime = Time.time;
+                lastWallCollider = rightHit;
+                lastWallDirection = states.wallDirection;
             }
             DetectWallHeight(rightHit, 1);
         }
         else if (wallLeft && directionX < -0.1f)
         {
+            hadValidWallHitThisFrame = true;
             currentWallCollider = leftHit;
             states.canWallRun = true;
             states.wallDirection = -1;
@@ -360,11 +419,13 @@ public class PlayerPhysics : MonoBehaviour
             if (Mathf.Sign(directionX) != Mathf.Sign(states.wallDirection))
             {
                 states.canWallRun = false;
+                hadValidWallHitThisFrame = false;
                 ClearCurrentWall();
                 return;
             }
 
             wallDetected = true;
+            wasInGrace = false;
             
             var wallTrigger = leftHit.GetComponentInParent<BuildingWallsTrigger>();
             if (states.wallRunHeld)
@@ -376,51 +437,73 @@ public class PlayerPhysics : MonoBehaviour
                 ClearCurrentWall();
             }
 
-            if (!previousCanWallRun)
+            if (!previousCanWallRun || currentWallCollider != previousWallCollider)
             {
                 states.RecordWallContact();
-                GameLogger.Log("PHYSICS", $"[WALLRUN] Started LEFT on {leftHit.name}");
+                
+                lastWallHitTime = Time.time;
+                lastWallCollider = leftHit;
+                lastWallDirection = states.wallDirection;
             }
             DetectWallHeight(leftHit, -1);
         }
         else
         {
-            ClearCurrentWall();
-            // Grace period: Use previous state
-            if (previousCanWallRun)
+            // Grace Period: Only maintains active run, never initiates new ones
+            states.canWallRun = false;
+
+            if (previousIsWallRunning)
             {
-                // Start timer if not already running
-                 if (wallContactLostTime == 0f) 
-                 {
-                     wallContactLostTime = Time.time;
-                 }
-                 
-                 // If timer exceeded, cancel wall run
-                 if (Time.time - wallContactLostTime > WALL_CONTACT_GRACE_PERIOD)
-                 {
-                     states.canWallRun = false;
-                     currentWallCollider = null;
-                     wallContactLostTime = 0f;
-                 }
-                 else
-                 {
-                     // Keep wall run active during grace period
-                     states.canWallRun = true;
-                 }
+                if (wallContactLostTime == 0f) wallContactLostTime = Time.time;
+
+                bool recentlyGrounded = (Time.time - lastGroundedTime) < 0.1f;
+                float effectiveGrace = recentlyGrounded ? 0.02f : WALL_CONTACT_GRACE_PERIOD;
+
+                if (Time.time - wallContactLostTime <= effectiveGrace)
+                {
+                    // Proximity check: Must remain physically close during grace
+                    Vector2 sideDir = Vector2.right * lastWallDirection;
+                    float checkDist = detectionDistance * 0.8f; 
+                    bool isStillClose = Physics2D.OverlapBox(boxCenter + sideDir * (playerCollider.size.x * 0.5f), new Vector2(checkDist, playerCollider.size.y), 0f, config.wallLayer);
+
+                    if (isStillClose)
+                    {
+                        states.canWallRun = true;
+                        states.wallDirection = lastWallDirection;
+                        wasInGrace = true;
+                    }
+                    else
+                    {
+                        states.canWallRun = false;
+                        currentWallCollider = null;
+                        ClearCurrentWall();
+                        wasInGrace = false;
+                    }
+                }
+                else
+                {
+                    currentWallCollider = null;
+                    ClearCurrentWall();
+                    wasInGrace = false;
+                }
             }
             else
             {
-                states.canWallRun = false;
                 currentWallCollider = null;
-                wallContactLostTime = 0f;
+                ClearCurrentWall();
+                wasInGrace = false;
             }
         }
         
-        // Reset grace timer ONLY IF we actually found a wall this frame
-        if (wallDetected) 
+        if (hadValidWallHitThisFrame)
         {
             wallContactLostTime = 0f;
+            lastWallHitTime = Time.time;
+            lastWallCollider = currentWallCollider;
+            lastWallDirection = states.wallDirection;
         }
+
+        previousWallCollider = currentWallCollider;
     }
 
     private void CheckSlope()
@@ -568,6 +651,29 @@ public class PlayerPhysics : MonoBehaviour
         Gizmos.DrawLine(boxCenter, boxCenter + Vector2.left * distance);
         Gizmos.DrawLine(topOrigin, topOrigin + Vector2.left * distance);
         Gizmos.DrawLine(bottomOrigin, bottomOrigin + Vector2.left * distance);
+
+        // FALLBACK OVERLAP BOX (Visualization)
+        if (config.wallRunDebug)
+        {
+            float overlapWidth = 0.5f;
+            Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 1.0f);
+            
+            Gizmos.color = new Color(1, 0.5f, 0, 0.3f); // Orange Transparent
+            // Right Fallback
+            Vector2 rightPos = boxCenter + Vector2.right * (playerCollider.size.x * 0.5f + overlapWidth * 0.4f);
+            Gizmos.DrawWireCube(rightPos, checkSize);
+            
+            // Left Fallback
+            Vector2 leftPos = boxCenter + Vector2.left * (playerCollider.size.x * 0.5f + overlapWidth * 0.4f);
+            Gizmos.DrawWireCube(leftPos, checkSize);
+
+            if (currentWallCollider != null)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawSphere(currentWallCollider.bounds.center, 0.2f);
+                Gizmos.DrawLine(boxCenter, currentWallCollider.bounds.center);
+            }
+        }
 
         if (config.enableSlopeDetection && states != null)
         {

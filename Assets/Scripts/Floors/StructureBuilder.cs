@@ -88,10 +88,7 @@ public class StructureBuilder : MonoBehaviour
         
         int newSortingOrder = renderer.sortingOrder;
         Vector3 currentPos = toUse.transform.position;
-        float calculatedZ = newSortingOrder * 0.01f;
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
-        
-        GameLogger.Log("WallRunWorkflow", $"[TILEMAP] {toUse.name}: floorsCt={floorsCt}, originalSort={originalSortingOrder}, newSort={newSortingOrder}, Z={calculatedZ:F3}, Pos=({currentPos.x:F2}, {currentPos.y:F2}, {calculatedZ:F3})");
     }
 
     private void SortSprite(GameObject toUse, int floorsCt)
@@ -102,10 +99,7 @@ public class StructureBuilder : MonoBehaviour
         
         int newSortingOrder = renderer.sortingOrder;
         Vector3 currentPos = toUse.transform.position;
-        float calculatedZ = newSortingOrder * 0.01f;
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
-        
-        GameLogger.Log("WallRunWorkflow", $"[SPRITE] {toUse.name}: floorsCt={floorsCt}, originalSort={originalSortingOrder}, newSort={newSortingOrder}, Z={calculatedZ:F3}, Pos=({currentPos.x:F2}, {currentPos.y:F2}, {calculatedZ:F3})");
     }
     
     private void SetupBuildingCollider(int floorsCt)
@@ -172,7 +166,5 @@ public class StructureBuilder : MonoBehaviour
             detector = gameObject.AddComponent<BuildingDetector>();
         }
         detector.Initialize(buildingZ, gameObject.name, sortingOrder);
-        
-        GameLogger.Log("WallRunWorkflow", $"[BUILDING COLLIDER] {gameObject.name}: Size=({buildingWidth:F1}, {buildingHeight:F1}), Offset=(0, {buildingHeight * 0.5f:F1}), Z={buildingZ:F3}, Order={sortingOrder}");
     }
 }
