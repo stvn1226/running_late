@@ -26,6 +26,7 @@ public class PlayerPhysics : MonoBehaviour
     private const float WALL_CONTACT_GRACE_PERIOD = 0.05f; // REDUCED: 0.2f -> 0.05f for snappy disconnect
 
     private Collider2D currentWallCollider;
+    private BuildingWallsTrigger currentWallTrigger;
     private float wallContactLostTime;
 
     private float lastWallHeightCheck = 0f;
@@ -252,28 +253,64 @@ public class PlayerPhysics : MonoBehaviour
             return false;
         }
 
-        // Helper function for 3-ray check
+        // Helper function for 3-ray check with skin offset to avoid "inside collider" failure
         Collider2D CheckDirection(Vector2 direction)
         {
-            RaycastHit2D hitCenter = Physics2D.Raycast(boxCenter, direction, detectionDistance, config.wallLayer);
-            if (hitCenter.collider != null && !hitCenter.collider.isTrigger && !IsObstructed(hitCenter)) return hitCenter.collider;
+            float skinOffset = 0.1f; // Step back 10cm from center
+            Vector2 offset = -direction * skinOffset;
             
-            RaycastHit2D hitTop = Physics2D.Raycast(topOrigin, direction, detectionDistance, config.wallLayer);
-            if (hitTop.collider != null && !hitTop.collider.isTrigger && !IsObstructed(hitTop)) return hitTop.collider;
+            Vector2 rayCenter = boxCenter + offset;
+            Vector2 rayTop = topOrigin + offset;
+            Vector2 rayBottom = bottomOrigin + offset;
+            float adjustedDistance = detectionDistance + skinOffset;
+
+            RaycastHit2D hitCenter = Physics2D.Raycast(rayCenter, direction, adjustedDistance, config.wallLayer);
+            if (hitCenter.collider != null && !IsObstructed(hitCenter)) return hitCenter.collider;
             
-            RaycastHit2D hitBottom = Physics2D.Raycast(bottomOrigin, direction, detectionDistance, config.wallLayer);
-            if (hitBottom.collider != null && !hitBottom.collider.isTrigger && !IsObstructed(hitBottom)) return hitBottom.collider;
+            RaycastHit2D hitTop = Physics2D.Raycast(rayTop, direction, adjustedDistance, config.wallLayer);
+            if (hitTop.collider != null && !IsObstructed(hitTop)) return hitTop.collider;
             
+            RaycastHit2D hitBottom = Physics2D.Raycast(rayBottom, direction, adjustedDistance, config.wallLayer);
+            if (hitBottom.collider != null && !IsObstructed(hitBottom)) return hitBottom.collider;
+            
+            return null;
+        }
+
+        // Helper for ground fallback (Overlap detection)
+        Collider2D CheckOverlapFallback(Vector2 direction)
+        {
+            // Only use fallback if grounded (where raycasts are most likely to fail due to overlap)
+            if (!states.isGrounded) return null;
+
+            float overlapWidth = 0.2f;
+            Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 0.8f);
+            Vector2 checkPos = boxCenter + direction * (playerCollider.size.x * 0.5f);
+
+            Collider2D[] cols = Physics2D.OverlapBoxAll(checkPos, checkSize, 0f, config.wallLayer);
+            foreach (var col in cols)
+            {
+                // Simple obstruction check approximation for overlap
+                BuildingDetector targetBuilding = col.GetComponentInParent<BuildingDetector>();
+                if (targetBuilding != null)
+                {
+                    // Since OverlapPointAll is already used in IsObstructed, we can reuse similar logic
+                    // For a low-risk hotfix, we return the first one found that isn't a trigger (unless it's SoftWall)
+                    // and let the rest of the flow handle SetSolid.
+                    return col;
+                }
+            }
             return null;
         }
 
 
         // RIGHT CHECK
         rightHit = CheckDirection(Vector2.right);
+        if (rightHit == null) rightHit = CheckOverlapFallback(Vector2.right);
         wallRight = rightHit != null;
 
         // LEFT CHECK
         leftHit = CheckDirection(Vector2.left);
+        if (leftHit == null) leftHit = CheckOverlapFallback(Vector2.left);
         wallLeft = leftHit != null;
 
         // Logic: prioritize direction of input
@@ -284,8 +321,23 @@ public class PlayerPhysics : MonoBehaviour
             currentWallCollider = rightHit;
             states.canWallRun = true;
             states.wallDirection = 1;
+
+            // Side detection for flip lock (LWall/RWall tags)
+            int side = TryGetWallSide(rightHit);
+            if (side != 0) states.wallDirection = side;
+            
             wallDetected = true;
             
+            var wallTrigger = rightHit.GetComponentInParent<BuildingWallsTrigger>();
+            if (states.wallRunHeld)
+            {
+                SetCurrentWall(wallTrigger);
+            }
+            else
+            {
+                ClearCurrentWall();
+            }
+
             if (!previousCanWallRun) 
             {
                 states.RecordWallContact();
@@ -298,8 +350,23 @@ public class PlayerPhysics : MonoBehaviour
             currentWallCollider = leftHit;
             states.canWallRun = true;
             states.wallDirection = -1;
+
+            // Side detection for flip lock (LWall/RWall tags)
+            int side = TryGetWallSide(leftHit);
+            if (side != 0) states.wallDirection = side;
+
             wallDetected = true;
             
+            var wallTrigger = leftHit.GetComponentInParent<BuildingWallsTrigger>();
+            if (states.wallRunHeld)
+            {
+                SetCurrentWall(wallTrigger);
+            }
+            else
+            {
+                ClearCurrentWall();
+            }
+
             if (!previousCanWallRun)
             {
                 states.RecordWallContact();
@@ -309,10 +376,11 @@ public class PlayerPhysics : MonoBehaviour
         }
         else
         {
+            ClearCurrentWall();
             // Grace period: Use previous state
             if (previousCanWallRun)
             {
-                 // Start timer if not already running
+                // Start timer if not already running
                  if (wallContactLostTime == 0f) 
                  {
                      wallContactLostTime = Time.time;
@@ -509,5 +577,47 @@ public class PlayerPhysics : MonoBehaviour
                 Gizmos.DrawLine(playerBottom, playerBottom + states.slopeNormal * 2f);
             }
         }
+    }
+
+    private void SetCurrentWall(BuildingWallsTrigger wall)
+    {
+        if (currentWallTrigger == wall) return;
+
+        if (currentWallTrigger != null)
+        {
+            if (config.wallRunDebug) Debug.Log($"[FIX_WALLRUN] Clearing previous wall: {currentWallTrigger.name}");
+            currentWallTrigger.SetSolid(false);
+        }
+
+        currentWallTrigger = wall;
+        
+        if (currentWallTrigger != null)
+        {
+            if (config.wallRunDebug) Debug.Log($"[FIX_WALLRUN] Setting current wall: {currentWallTrigger.name}");
+            currentWallTrigger.SetSolid(true);
+        }
+    }
+
+    private void ClearCurrentWall()
+    {
+        if (currentWallTrigger != null)
+        {
+            if (config.wallRunDebug) Debug.Log($"[FIX_WALLRUN] Clearing wall: {currentWallTrigger.name}");
+            currentWallTrigger.SetSolid(false);
+            currentWallTrigger = null;
+        }
+    }
+
+    private int TryGetWallSide(Collider2D col)
+    {
+        // Check self and parents for tags
+        Transform current = col.transform;
+        while (current != null)
+        {
+            if (current.CompareTag("LWall")) return 1;
+            if (current.CompareTag("RWall")) return -1;
+            current = current.parent;
+        }
+        return 0;
     }
 }

@@ -192,6 +192,40 @@ public class PlayerMovement : MonoBehaviour
         if (states.isWallRunning)
         {
             lastWallRunVelocity = currentVelX;
+            
+            // PHASE 2 HOTFIX: Flip and Input Lock
+            // LWall (wallDirection 1) -> lock flip to RIGHT (false), allow move RIGHT
+            // RWall (wallDirection -1) -> lock flip to LEFT (true), allow move LEFT
+            if (states.wallDirection == 1)
+            {
+                if (playerSprite.flipX) 
+                {
+                    playerSprite.flipX = false;
+                    if (config.wallRunDebug) Debug.Log("[FIX_WALLRUN] Forced flip RIGHT for LWall");
+                }
+                // Restricted input: Don't force 0, just don't allow move LEFT
+                if (states.moveInput.x < -0.1f)
+                {
+                    states.moveInput.x = -0.1f; 
+                    if (config.wallRunDebug) Debug.Log("[FIX_WALLRUN] Restricted left-input for LWall");
+                }
+            }
+            else if (states.wallDirection == -1)
+            {
+                if (!playerSprite.flipX)
+                {
+                    playerSprite.flipX = true;
+                    if (config.wallRunDebug) Debug.Log("[FIX_WALLRUN] Forced flip LEFT for RWall");
+                }
+                // Restricted input: Don't force 0, just don't allow move RIGHT
+                if (states.moveInput.x > 0.1f)
+                {
+                    states.moveInput.x = 0.1f;
+                    if (config.wallRunDebug) Debug.Log("[FIX_WALLRUN] Restricted right-input for RWall");
+                }
+            }
+            
+            return; // Skip normal flip logic while wallrunning
         }
         
         // Enhanced flip logic with wall run awareness AND building proximity

@@ -62,22 +62,50 @@ public class BuildingWallsTrigger : MonoBehaviour
         }
     }
 
+    public void SetSolid(bool solid)
+    {
+        if (boxCollider == null) return;
+        
+        boxCollider.isTrigger = !solid;
+        
+        // Assuming HardWall is layer 14 and SoftWall is 15 based on previous audit
+        int hardWallLayer = LayerMask.NameToLayer("HardWall");
+        int softWallLayer = LayerMask.NameToLayer("SoftWall");
+        
+        if (hardWallLayer != -1 && softWallLayer != -1)
+        {
+            gameObject.layer = solid ? hardWallLayer : softWallLayer;
+        }
+
+        // Add log for visibility
+        // We can't easily check config.wallRunDebug here without a reference, 
+        // but we can log always during fix or use a static flag.
+        // For now, I'll just log it if it changes.
+        // GameLogger.LogVerbose("BUILDING", $"[FIX_WALLRUN] {gameObject.name} SetSolid({solid})");
+    }
+
     private void OnPlayerWallRun(InputAction.CallbackContext context)
     {
+        // Global toggle disabled to prevent "invisible walls"
+        /*
         if (boxCollider != null)
         {
             GameLogger.LogVerbose("BUILDING", $"WALL RUN STARTED: {gameObject.name} collider set to SOLID");
             boxCollider.isTrigger = false;
         }
+        */
     }
 
     private void OnPlayerStopWallRun(InputAction.CallbackContext context)
     {
+        // Global toggle disabled to prevent "invisible walls"
+        /*
         if (boxCollider != null)
         {
             GameLogger.LogVerbose("BUILDING", $"WALL RUN STOPPED: {gameObject.name} collider set to TRIGGER");
             boxCollider.isTrigger = true;
         }
+        */
     }
     
     private void OnTriggerEnter2D(Collider2D other)

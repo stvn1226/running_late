@@ -182,6 +182,9 @@ public class PlayerConfig : ScriptableObject
     [Range(0.1f, 1f)]
     public float wallHeightCheckInterval = 0.4f;
 
+    [Tooltip("Enable verbose logging for WallRun hotfixes with [FIX_WALLRUN] tag.")]
+    public bool wallRunDebug = false;
+
     
     [Header("Corner Climb (Auto-Assist)")]
     [Tooltip("Enable automatic corner climbing when approaching wall corners with low velocity")]
