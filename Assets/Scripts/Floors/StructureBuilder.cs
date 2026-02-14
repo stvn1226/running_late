@@ -88,6 +88,7 @@ public class StructureBuilder : MonoBehaviour
         
         int newSortingOrder = renderer.sortingOrder;
         Vector3 currentPos = toUse.transform.position;
+        float calculatedZ = newSortingOrder * 0.01f + (transform.position.x * 0.000001f);
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
     }
 
@@ -99,6 +100,7 @@ public class StructureBuilder : MonoBehaviour
         
         int newSortingOrder = renderer.sortingOrder;
         Vector3 currentPos = toUse.transform.position;
+        float calculatedZ = newSortingOrder * 0.01f + (transform.position.x * 0.000001f);
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
     }
     
