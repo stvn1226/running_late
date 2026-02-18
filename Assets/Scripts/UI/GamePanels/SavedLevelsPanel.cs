@@ -91,8 +91,26 @@ public class SavedLevelsPanel : BaseMainMenuPanel
 
         }
 
-        defaultSelectedButton = savedLevelEntries[0].startButton;
-        if (isFromDelete) EventSystem.current.SetSelectedGameObject(savedLevelEntries[whereDidRemove].deleteButton.gameObject);
+        if (savedLevelEntries.Count > 0)
+        {
+            int targetIndex = isFromDelete ? whereDidRemove : 0;
+            
+            if (targetIndex >= savedLevelEntries.Count)
+            {
+                targetIndex = savedLevelEntries.Count - 1;
+            }
+
+            defaultSelectedButton = savedLevelEntries[targetIndex].startButton;
+            
+            if (isFromDelete)
+            {
+                EventSystem.current.SetSelectedGameObject(savedLevelEntries[targetIndex].deleteButton.gameObject);
+            }
+        }
+        else
+        {
+            defaultSelectedButton = null;
+        }
 
     }
 }
