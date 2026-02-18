@@ -2,13 +2,16 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Utils;
 
 public class SavedLevelEntry : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI levelNameDisplay;
     [SerializeField] private TextMeshProUGUI levelSeedDisplay;
+    [SerializeField] private TextMeshProUGUI levelBestTimeDisplay;
     [SerializeField] public string levelName;
     [SerializeField] public int levelSeed;
+    [SerializeField] private TimeRecord levelBestTime;
     [SerializeField] public Button startButton;
     [SerializeField] public Button renameButton;
     [SerializeField] public Button saveButton;
@@ -28,6 +31,7 @@ public class SavedLevelEntry : MonoBehaviour
     private void Start()
     {
         LoadLevelNameFromPlayerPrefs();
+        LoadBestTimeFromRecords();
         
         parent = GetComponentInParent<SavedLevelsPanel>();
 
@@ -60,6 +64,8 @@ public class SavedLevelEntry : MonoBehaviour
         {
             levelSeedDisplay.text = $"Seed: {levelSeed}";
         }
+
+        LoadBestTimeFromRecords();
 
         if (saveButton != null)
         {
@@ -108,6 +114,32 @@ public class SavedLevelEntry : MonoBehaviour
                 levelNameDisplay.text = levelName;
             }
             GameLogger.Log("SAVED LEVELS", $"Loaded level name '{levelName}' for seed {levelSeed}");
+        }
+    }
+
+    public void LoadBestTimeFromRecords()
+    {
+        if (LeaderboardManager.Instance == null)
+        {
+            GameLogger.LogWarning("SAVED LEVELS", "LeaderboardManager instance not found");
+            if (levelBestTimeDisplay != null)
+            {
+                levelBestTimeDisplay.text = "Best: -:--.--";
+            }
+            return;
+        }
+
+        levelBestTime = LeaderboardManager.Instance.GetBestTime(levelSeed);
+        if (levelBestTimeDisplay != null)
+        {
+            if (levelBestTime != null)
+            {
+                levelBestTimeDisplay.text = $"Best: {levelBestTime.GetFormattedTime()}";
+            }
+            else
+            {
+                levelBestTimeDisplay.text = "Best: -:--.--";
+            }
         }
     }
 
