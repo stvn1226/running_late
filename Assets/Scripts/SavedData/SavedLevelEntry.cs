@@ -7,6 +7,8 @@ using Utils;
 
 public class SavedLevelEntry : MonoBehaviour
 {
+    public int rowNumber;
+
     [SerializeField] private Image bgImage;
     [SerializeField] private TextMeshProUGUI levelNameDisplay;
     [SerializeField] private TextMeshProUGUI levelSeedDisplay;
@@ -67,11 +69,9 @@ public class SavedLevelEntry : MonoBehaviour
 
     private void OnNavigate(InputAction.CallbackContext context)
     {
-        Vector2 navigationInput = context.ReadValue<Vector2>();
-        
-        if (IsAnyButtonSelected() && navigationInput.sqrMagnitude > 0.1f)
+        if (IsAnyButtonSelected() && parent != null)
         {
-            GameLogger.Log("SAVED LEVELS", $"Navigation on entry {levelName}: {navigationInput}");
+            parent.UpdateScrollPosition(rowNumber);
         }
     }
 
@@ -84,8 +84,9 @@ public class SavedLevelEntry : MonoBehaviour
                selected == deleteButton.gameObject;
     }
 
-    public void SetupEntry(int seed, string name, bool isRecents)
+    public void SetupEntry(int seed, string name, bool isRecents, int rowNum)
     {
+        rowNumber = rowNum;
         levelSeed = seed;
         levelName = name;
         isRecentsEntry = isRecents;
