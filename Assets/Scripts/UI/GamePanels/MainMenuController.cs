@@ -165,6 +165,15 @@ public class MainMenuController : MonoBehaviour
     {
         if (currentPanel == null) return;
         
+        if (textInputPanel != null && textInputPanel.IsVisible)
+        {
+            GameLogger.Log("MENU", "Cancel pressed on TextInputPanel, hiding it");
+            textInputPanel.Hide();
+            textInputPanel.RestorePreviousSelection();
+            GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+            return;
+        }
+        
         if (currentPanel != mainMenuPanel)
         {
             GameLogger.Log("MENU", $"Cancel pressed on {currentPanel.GetType().Name}, returning to Main Menu");
