@@ -597,7 +597,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProgressTracking
   progressBar: {fileID: 1635025753}
   progressArrow: {fileID: 1021737104}
-  fillMask: {fileID: 0}
+  fillMask: {fileID: 707896557}
   retryDelay: 1
   maxRetries: 5
 --- !u!4 &182048276
@@ -1205,7 +1205,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: 1251c75cbe3de41a5a76edd11207951c, type: 3}
     - target: {fileID: 3436649949569971755, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3452279929713115352, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Type
@@ -1237,11 +1237,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3493962069882843279, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3493962069882843279, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3493962069882843279, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1249,11 +1249,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3493962069882843279, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 310.11
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3493962069882843279, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -346.965
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3512231239168539533, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_fontAsset
@@ -1425,11 +1425,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4828993062557787408, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4828993062557787408, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4828993062557787408, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1437,11 +1437,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4828993062557787408, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 310.11
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4828993062557787408, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -564.537
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4894015027572944843, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1685,19 +1685,19 @@ PrefabInstance:
       objectReference: {fileID: 226731309}
     - target: {fileID: 6131219737787306026, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6131219737787306026, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6131219737787306026, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 310.11
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6131219737787306026, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -455.75098
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6157347273325412126, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
@@ -2069,11 +2069,11 @@ PrefabInstance:
       objectReference: {fileID: 1588175683}
     - target: {fileID: 7999946335890709830, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7999946335890709830, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7999946335890709830, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_SizeDelta.y
@@ -2081,11 +2081,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7999946335890709830, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 310.11
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7999946335890709830, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -228.17899
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8044259943788015991, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Type
@@ -3029,7 +3029,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -4.1799927}
+  m_AnchoredPosition: {x: 0, y: -4.18}
   m_SizeDelta: {x: 1720, y: -80}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &707896558
@@ -5411,7 +5411,6 @@ GameObject:
   - component: {fileID: 1506005879}
   - component: {fileID: 1506005878}
   - component: {fileID: 1506005877}
-  - component: {fileID: 1506005880}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -5509,23 +5508,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 100
   m_TargetDisplay: 0
---- !u!114 &1506005880
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1506005875}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5239c077f1d64434e8a9a5d7319c6f36, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProgressTracking
-  progressBar: {fileID: 0}
-  progressArrow: {fileID: 0}
-  fillMask: {fileID: 707896557}
-  retryDelay: 1
-  maxRetries: 5
 --- !u!1 &1579326036
 GameObject:
   m_ObjectHideFlags: 0
@@ -5649,9 +5631,9 @@ RectTransform:
   - {fileID: 191952661}
   m_Father: {fileID: 226731314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 310.11, y: -109.393}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 400, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1588175683
