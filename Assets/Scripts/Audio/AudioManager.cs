@@ -10,6 +10,8 @@ public class AudioManager : MonoBehaviour
         Stagger,
         Bounce,
         Powerup,
+        CD_Numbers,
+        CD_Go,
         Music_Menu,
         Music_Level
     }
