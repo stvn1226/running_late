@@ -34,7 +34,7 @@ public class ProgressTracking : MonoBehaviour
     
     void Start()
     {
-w        StartCoroutine(InitializeWithRetry());
+        StartCoroutine(InitializeWithRetry());
     }
 
     private IEnumerator InitializeWithRetry()
