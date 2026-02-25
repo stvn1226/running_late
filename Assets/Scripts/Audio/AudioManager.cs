@@ -28,10 +28,18 @@ public class AudioManager : MonoBehaviour
         public bool IsMusic = false;
     }
 
+    [System.Serializable]
+    public class SoundCollection
+    {
+        public SoundType Type;
+        public List<Sound> Sounds;
+    }
+
     public static AudioManager Instance;
 
     [Header("Audio Settings")]
-    public Sound[] AllSounds;
+    //public Sound[] AllSounds;
+    public SoundCollection[] AllCollections;
     
     [Header("Audio Mixer Groups")]
     [SerializeField] private AudioMixerGroup sfxMixerGroup;
@@ -51,9 +59,12 @@ public class AudioManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        foreach (var s in AllSounds)
+        foreach (var c in AllCollections)
         {
-            _soundDictionary[s.Type] = s;
+            foreach (var s in c.Sounds)
+            {
+                _soundDictionary[s.Type] = s;
+            }
         }
     }
 

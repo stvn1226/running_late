@@ -44,30 +44,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 520889673492b2e48a106708eb717fe6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
-  AllSounds:
+  AllCollections:
   - Type: 0
-    Clip: {fileID: 8300000, guid: f36b067bfef9f4f44891884938f6dfc8, type: 3}
-    Volume: 1
-    IsMusic: 0
-  - Type: 2
-    Clip: {fileID: 8300000, guid: 9922806e29bce4f689930f896d3110c5, type: 3}
-    Volume: 1
-    IsMusic: 0
+    Sounds:
+    - Type: 0
+      Clip: {fileID: 8300000, guid: f36b067bfef9f4f44891884938f6dfc8, type: 3}
+      Volume: 1
+      IsMusic: 0
   - Type: 1
-    Clip: {fileID: 8300000, guid: 29f94ccd23fa74e7488dbb114fd33681, type: 3}
-    Volume: 1
-    IsMusic: 0
-  - Type: 3
-    Clip: {fileID: 8300000, guid: ffa96af717384704c9c5a003564d4228, type: 3}
-    Volume: 1
-    IsMusic: 0
+    Sounds:
+    - Type: 1
+      Clip: {fileID: 8300000, guid: 29f94ccd23fa74e7488dbb114fd33681, type: 3}
+      Volume: 1
+      IsMusic: 0
+  - Type: 2
+    Sounds:
+    - Type: 2
+      Clip: {fileID: 8300000, guid: 9922806e29bce4f689930f896d3110c5, type: 3}
+      Volume: 1
+      IsMusic: 0
+  - Type: 0
+    Sounds:
+    - Type: 3
+      Clip: {fileID: 8300000, guid: ffa96af717384704c9c5a003564d4228, type: 3}
+      Volume: 1
+      IsMusic: 0
   - Type: 4
-    Clip: {fileID: 8300000, guid: 75b84dc0924413a408b882acec78ff15, type: 3}
-    Volume: 1
-    IsMusic: 0
+    Sounds:
+    - Type: 4
+      Clip: {fileID: 8300000, guid: 75b84dc0924413a408b882acec78ff15, type: 3}
+      Volume: 1
+      IsMusic: 0
   - Type: 5
-    Clip: {fileID: 8300000, guid: 7d595efffc435ef42b42f96813c52a70, type: 3}
-    Volume: 1
-    IsMusic: 0
+    Sounds:
+    - Type: 5
+      Clip: {fileID: 8300000, guid: 7d595efffc435ef42b42f96813c52a70, type: 3}
+      Volume: 1
+      IsMusic: 0
   sfxMixerGroup: {fileID: -3165942800488051908, guid: 7e984f512e89b60468e829489e8883e3, type: 2}
   musicMixerGroup: {fileID: -2273146209696275378, guid: 7e984f512e89b60468e829489e8883e3, type: 2}
