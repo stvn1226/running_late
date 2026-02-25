@@ -10,6 +10,8 @@ public class SavedLevelEntry : MonoBehaviour
     public int rowNumber;
 
     [SerializeField] private Image bgImage;
+    [SerializeField] private Sprite normalBG;
+    [SerializeField] private Sprite highlightedBG;
     [SerializeField] private TextMeshProUGUI levelNameDisplay;
     [SerializeField] private TextMeshProUGUI levelSeedDisplay;
     [SerializeField] private TextMeshProUGUI levelBestTimeDisplay;
@@ -241,11 +243,13 @@ public class SavedLevelEntry : MonoBehaviour
         {
             if (IsAnyButtonSelected())
             {
-                bgImage.color = Color.red;
+                //bgImage.color = Color.red;
+                bgImage.sprite = highlightedBG;
             }
             else
             {
-                bgImage.color = Color.white;
+                //bgImage.color = Color.white;
+                bgImage.sprite = normalBG;
             }
             
             lastSelectedObject = currentSelected;

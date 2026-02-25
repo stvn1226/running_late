@@ -137,6 +137,21 @@ public class MainMenuPanel : BaseMainMenuPanel
             ShowStep1();
         }
     }
+
+    protected override void SetDefaultSelection()
+    {
+        if (isInStep2)
+        {
+            if (playButtonStep2 != null && EventSystem.current != null)
+            {
+                EventSystem.current.SetSelectedGameObject(playButtonStep2.gameObject);
+            }
+        }
+        else
+        {
+            base.SetDefaultSelection();
+        }
+    }
     
     public void ShowStep1()
     {
