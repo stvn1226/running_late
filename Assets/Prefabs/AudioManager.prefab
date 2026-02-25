@@ -44,20 +44,127 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 520889673492b2e48a106708eb717fe6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
-  AllSounds:
+  AllCollections:
   - Type: 0
-    Clip: {fileID: 8300000, guid: 3b45a79cca373de4aa29beaabe4a7333, type: 3}
-    Volume: 1
-    Source: {fileID: 0}
-  - Type: 2
-    Clip: {fileID: 8300000, guid: 4d46e4c8069387146bda1da88896c04a, type: 3}
-    Volume: 1
-    Source: {fileID: 0}
+    Sounds:
+    - Clip: {fileID: 8300000, guid: e076966d8beb0443aaf6197b2d6e2ed5, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 0744fd09a62d044c08cd0bcafb5054c3, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: f36b067bfef9f4f44891884938f6dfc8, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 51903683c6fbf457381f5485ce9fd342, type: 3}
+      Volume: 1
+      IsMusic: 0
   - Type: 1
-    Clip: {fileID: 8300000, guid: 606345ee512222e4b8192cad3a59d2e7, type: 3}
-    Volume: 1
-    Source: {fileID: 0}
+    Sounds:
+    - Clip: {fileID: 8300000, guid: 29f94ccd23fa74e7488dbb114fd33681, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: c709b589f3b8e4a83b40f1c853d12f15, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 53f2078e37abe4552808756af9433fde, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 02e1aac4a31c149bc8e26bb65c85aabc, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 93c66ffc25009450c8823658489d7aa8, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 54b3c3df371a7486bb36153e29fdc20c, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 5c508ccf97ed84bb1a9fd680bb562bbc, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 7b77d06761e964459ae62cf8134a9bdd, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: cabc3d127254449f7a88fc5fe4d12ebf, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 6fda974aa8c5445dc9fcaa657719d6e6, type: 3}
+      Volume: 1
+      IsMusic: 0
+  - Type: 2
+    Sounds:
+    - Clip: {fileID: 8300000, guid: 9922806e29bce4f689930f896d3110c5, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: af04d292484934e618e4eb2778550224, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: e597cc79fd4444773a25d33b7616f41b, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: b2e8b2b5d79694f0b8726d3b1285350f, type: 3}
+      Volume: 1
+      IsMusic: 0
   - Type: 3
-    Clip: {fileID: 8300000, guid: ffa96af717384704c9c5a003564d4228, type: 3}
-    Volume: 1
-    Source: {fileID: 0}
+    Sounds:
+    - Clip: {fileID: 8300000, guid: 9b12ffa3694af44d7bc5b01a1ead3373, type: 3}
+      Volume: 1
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 5dc277646440c4d4cb0edc8e0c4353ab, type: 3}
+      Volume: 1
+      IsMusic: 0
+  - Type: 4
+    Sounds:
+    - Clip: {fileID: 8300000, guid: ffa96af717384704c9c5a003564d4228, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+  - Type: 5
+    Sounds:
+    - Clip: {fileID: 8300000, guid: 75b84dc0924413a408b882acec78ff15, type: 3}
+      Volume: 1
+      IsMusic: 0
+  - Type: 6
+    Sounds:
+    - Clip: {fileID: 8300000, guid: 7d595efffc435ef42b42f96813c52a70, type: 3}
+      Volume: 1
+      IsMusic: 0
+  - Type: 9
+    Sounds:
+    - Clip: {fileID: 8300000, guid: 704016a67b456456db7266d0f980cca6, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 62b8955c1f95344e89eb0b9a795503fe, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: cbaf761cf57b348a59a3a1ac6f75041a, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 07092edcdf9d14de4a9bf54a89c157ce, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 390716be9d38d44b881fcf3352af0b3b, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 33972f7258e41445190aae8ced35d3f5, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 59fac4a39c0cf452f8958ba26ad4ebbe, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 18728c64521bd40938e5377f18f7a848, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 5c2379dcb697b46109555222b620a4d0, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 888d1830684a742f2bbe6cded030480b, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 670fdb03f2656405c9b83bb6a22cb2a1, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+    - Clip: {fileID: 8300000, guid: 989bcafbd907b43a482ed57b9ace51b2, type: 3}
+      Volume: 0.5
+      IsMusic: 0
+  sfxMixerGroup: {fileID: -3165942800488051908, guid: 7e984f512e89b60468e829489e8883e3, type: 2}
+  musicMixerGroup: {fileID: -2273146209696275378, guid: 7e984f512e89b60468e829489e8883e3, type: 2}

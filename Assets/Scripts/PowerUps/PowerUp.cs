@@ -71,6 +71,7 @@ public abstract class PowerUp : MonoBehaviour
     private void PlayPickupSound()
     {
         AudioManager.Instance?.Play(AudioManager.SoundType.Powerup);
+        AudioManager.Instance?.Play(AudioManager.SoundType.PowerupSFX);
     }
 
     private void SpawnPickupEffect()

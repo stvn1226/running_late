@@ -110,6 +110,15 @@ public class MainMenuController : MonoBehaviour
     {
         SwitchToPanel(mainMenuPanel);
     }
+
+    public void ShowMainPanelStep2()
+    {
+        if (mainMenuPanel != null)
+        {
+            mainMenuPanel.SetForceStep2OnNextShow(true);
+        }
+        SwitchToPanel(mainMenuPanel);
+    }
     
     public void ShowCreditsPanel()
     {
@@ -166,6 +175,15 @@ public class MainMenuController : MonoBehaviour
     {
         if (currentPanel == null) return;
         
+        if (textInputPanel != null && textInputPanel.IsVisible)
+        {
+            GameLogger.Log("MENU", "Cancel pressed on TextInputPanel, hiding it");
+            textInputPanel.Hide();
+            textInputPanel.RestorePreviousSelection();
+            GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+            return;
+        }
+
         if (currentPanel == mainMenuPanel)
         {
             if (mainMenuPanel.IsInStep2())
@@ -190,7 +208,16 @@ public class MainMenuController : MonoBehaviour
         if (currentPanel != mainMenuPanel)
         {
             GameLogger.Log("MENU", $"Cancel pressed on {currentPanel.GetType().Name}, returning to Main Menu");
-            ShowMainPanel();
+            
+            if (currentPanel == recentLevelsPanel || currentPanel == savedLevelsPanel)
+            {
+                ShowMainPanelStep2();
+            }
+            else
+            {
+                ShowMainPanel();
+            }
+            
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }

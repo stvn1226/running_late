@@ -2,10 +2,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using Utils;
 
 public class SavedLevelEntry : MonoBehaviour
 {
+    public int rowNumber;
+
+    [SerializeField] private Image bgImage;
     [SerializeField] private TextMeshProUGUI levelNameDisplay;
     [SerializeField] private TextMeshProUGUI levelSeedDisplay;
     [SerializeField] private TextMeshProUGUI levelBestTimeDisplay;
@@ -19,6 +23,8 @@ public class SavedLevelEntry : MonoBehaviour
 
     private SavedLevelsPanel parent;
     private bool isRecentsEntry;
+    private PlayerInputActions inputActions;
+    private GameObject lastSelectedObject;
 
     public SavedLevelEntry(int seed, string name)
     {
@@ -26,7 +32,10 @@ public class SavedLevelEntry : MonoBehaviour
         levelName = name;
     }
 
-    //if startButton is pressed, start the level with the given seed
+    private void Awake()
+    {
+        inputActions = new PlayerInputActions();
+    }
 
     private void Start()
     {
@@ -41,8 +50,43 @@ public class SavedLevelEntry : MonoBehaviour
         deleteButton.onClick.AddListener(DeleteLevel);
     }
 
-    public void SetupEntry(int seed, string name, bool isRecents)
+    private void OnEnable()
     {
+        inputActions.UI.Navigate.performed += OnNavigate;
+        inputActions.UI.Enable();
+    }
+
+    private void OnDisable()
+    {
+        inputActions.UI.Navigate.performed -= OnNavigate;
+        inputActions.UI.Disable();
+    }
+
+    private void Update()
+    {
+        CheckIfHighlighted();
+    }
+
+    private void OnNavigate(InputAction.CallbackContext context)
+    {
+        if (IsAnyButtonSelected() && parent != null)
+        {
+            parent.UpdateScrollPosition(rowNumber);
+        }
+    }
+
+    private bool IsAnyButtonSelected()
+    {
+        GameObject selected = EventSystem.current.currentSelectedGameObject;
+        return selected == startButton.gameObject || 
+               selected == renameButton.gameObject || 
+               selected == saveButton.gameObject || 
+               selected == deleteButton.gameObject;
+    }
+
+    public void SetupEntry(int seed, string name, bool isRecents, int rowNum)
+    {
+        rowNumber = rowNum;
         levelSeed = seed;
         levelName = name;
         isRecentsEntry = isRecents;
@@ -184,5 +228,27 @@ public class SavedLevelEntry : MonoBehaviour
         }
 
         parent.PopulateMenu(true, whereDidRemove);
+    }
+
+    private void CheckIfHighlighted()
+    {
+        if (bgImage == null) return;
+        if (EventSystem.current == null) return;
+
+        GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+        
+        if (currentSelected != lastSelectedObject)
+        {
+            if (IsAnyButtonSelected())
+            {
+                bgImage.color = Color.red;
+            }
+            else
+            {
+                bgImage.color = Color.white;
+            }
+            
+            lastSelectedObject = currentSelected;
+        }
     }
 }

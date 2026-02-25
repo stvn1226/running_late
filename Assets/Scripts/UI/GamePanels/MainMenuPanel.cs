@@ -118,9 +118,24 @@ public class MainMenuPanel : BaseMainMenuPanel
             seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
     }
     
+    private bool forceStep2OnShow = false;
+
+    public void SetForceStep2OnNextShow(bool force)
+    {
+        forceStep2OnShow = force;
+    }
+
     protected override void OnShow()
     {
-        ShowStep1();
+        if (forceStep2OnShow)
+        {
+            ShowStep2();
+            forceStep2OnShow = false;
+        }
+        else
+        {
+            ShowStep1();
+        }
     }
     
     public void ShowStep1()
