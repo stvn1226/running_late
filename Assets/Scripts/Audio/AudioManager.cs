@@ -10,6 +10,7 @@ public class AudioManager : MonoBehaviour
         Stagger,
         Bounce,
         Powerup,
+        PowerupSFX,
         CD_Numbers,
         CD_Go,
         Music_Menu,
@@ -19,7 +20,6 @@ public class AudioManager : MonoBehaviour
     [System.Serializable]
     public class Sound
     {
-        public SoundType Type;
         public AudioClip Clip;
 
         [Range(0f, 1f)]
@@ -45,7 +45,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioMixerGroup sfxMixerGroup;
     [SerializeField] private AudioMixerGroup musicMixerGroup;
 
-    private Dictionary<SoundType, Sound> _soundDictionary = new Dictionary<SoundType, Sound>();
+    private Dictionary<SoundType, SoundCollection> _soundDictionary = new Dictionary<SoundType, SoundCollection>();
     private AudioSource _musicSource;
 
     private void Awake()
@@ -59,22 +59,30 @@ public class AudioManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        foreach (var c in AllCollections)
+        foreach (var collection in AllCollections)
         {
-            foreach (var s in c.Sounds)
+            if (collection.Sounds != null && collection.Sounds.Count > 0)
             {
-                _soundDictionary[s.Type] = s;
+                _soundDictionary[collection.Type] = collection;
             }
         }
     }
 
     public void Play(SoundType type)
     {
-        if (!_soundDictionary.TryGetValue(type, out Sound s))
+        if (!_soundDictionary.TryGetValue(type, out SoundCollection collection))
         {
             GameLogger.LogWarning("Audio", $"Sound type {type} not found!");
             return;
         }
+
+        if (collection.Sounds == null || collection.Sounds.Count == 0)
+        {
+            GameLogger.LogWarning("Audio", $"Sound collection {type} is empty!");
+            return;
+        }
+
+        Sound s = collection.Sounds[Random.Range(0, collection.Sounds.Count)];
 
         var soundObj = new GameObject($"Sound_{type}");
         soundObj.transform.SetParent(transform);
@@ -100,11 +108,19 @@ public class AudioManager : MonoBehaviour
 
     public void ChangeMusic(SoundType type)
     {
-        if (!_soundDictionary.TryGetValue(type, out Sound track))
+        if (!_soundDictionary.TryGetValue(type, out SoundCollection collection))
         {
             GameLogger.LogWarning("Audio", $"Music track {type} not found!");
             return;
         }
+
+        if (collection.Sounds == null || collection.Sounds.Count == 0)
+        {
+            GameLogger.LogWarning("Audio", $"Music collection {type} is empty!");
+            return;
+        }
+
+        Sound track = collection.Sounds[Random.Range(0, collection.Sounds.Count)];
 
         if (_musicSource == null)
         {
