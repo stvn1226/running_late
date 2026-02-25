@@ -14,7 +14,8 @@ public class AudioManager : MonoBehaviour
         CD_Numbers,
         CD_Go,
         Music_Menu,
-        Music_Level
+        Music_Level,
+        Footsteps
     }
 
     [System.Serializable]
