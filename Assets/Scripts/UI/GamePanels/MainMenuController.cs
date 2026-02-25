@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class MainMenuController : MonoBehaviour
 {
@@ -165,6 +166,27 @@ public class MainMenuController : MonoBehaviour
     {
         if (currentPanel == null) return;
         
+        if (currentPanel == mainMenuPanel)
+        {
+            if (mainMenuPanel.IsInStep2())
+            {
+                if (IsInputFieldActive())
+                {
+                    DeactivateInputField();
+                    GameLogger.Log("MENU", "Cancel pressed on InputField - Deactivating input");
+                    return;
+                }
+                
+                GameLogger.Log("MENU", "Cancel pressed on Step 2 - Returning to Step 1");
+                mainMenuPanel.ShowStep1();
+                GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+                return;
+            }
+            
+            GameLogger.Log("MENU", "Cancel pressed on Main Menu Step 1 - ignoring");
+            return;
+        }
+        
         if (currentPanel != mainMenuPanel)
         {
             GameLogger.Log("MENU", $"Cancel pressed on {currentPanel.GetType().Name}, returning to Main Menu");
@@ -172,8 +194,28 @@ public class MainMenuController : MonoBehaviour
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }
+    }
     
-        GameLogger.Log("MENU", "Cancel pressed on Main Menu - ignoring");
+    private bool IsInputFieldActive()
+    {
+        if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
+            return false;
+        
+        TMPro.TMP_InputField inputField = EventSystem.current.currentSelectedGameObject.GetComponent<TMPro.TMP_InputField>();
+        return inputField != null && inputField.isFocused;
+    }
+    
+    private void DeactivateInputField()
+    {
+        if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
+            return;
+        
+        TMPro.TMP_InputField inputField = EventSystem.current.currentSelectedGameObject.GetComponent<TMPro.TMP_InputField>();
+        if (inputField != null)
+        {
+            inputField.DeactivateInputField();
+            EventSystem.current.SetSelectedGameObject(inputField.gameObject);
+        }
     }
     
     public void StartGame()

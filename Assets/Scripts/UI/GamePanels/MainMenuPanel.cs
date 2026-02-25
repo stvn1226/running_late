@@ -1,31 +1,54 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using TMPro;
 
 public class MainMenuPanel : BaseMainMenuPanel
 {
-    [Header("Main Menu Buttons")]
+    [Header("Step Containers")]
+    [SerializeField] private GameObject step1Container;
+    [SerializeField] private GameObject step2Container;
+    
+    [Header("Step 1 - Main Menu Buttons")]
     [SerializeField] private Button playButton;
-    [SerializeField] private Button recentLevels;
-    [SerializeField] private Button savedLevels;
     [SerializeField] private Button creditsButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
     
+    [Header("Step 2 - Play Options")]
+    [SerializeField] private Button playButtonStep2;
+    [SerializeField] private Button recentLevelsButtonStep2;
+    [SerializeField] private Button savedLevelsButtonStep2;
+    
+    [Header("Step 2 - Seed Configuration")]
+    [SerializeField] private Toggle seedToggle;
+    [SerializeField] private TMP_InputField seedInputField;
+    [SerializeField] private RandomSeedController randomSeedController;
+    
+    private bool isInStep2 = false;
+    
     protected override void SetupPanel()
+    {
+        SetupStep1Buttons();
+        SetupStep2Buttons();
+        
+        if (randomSeedController == null)
+        {
+            randomSeedController = FindFirstObjectByType<RandomSeedController>();
+            if (randomSeedController == null)
+            {
+                GameObject seedControllerObj = new GameObject("RandomSeedController");
+                randomSeedController = seedControllerObj.AddComponent<RandomSeedController>();
+                GameLogger.Log("MENU", "RandomSeedController created");
+            }
+        }
+    }
+    
+    private void SetupStep1Buttons()
     {
         if (playButton != null)
         {
             playButton.onClick.AddListener(OnPlayClicked);
-        }
-
-        if (recentLevels != null)
-        {
-            recentLevels.onClick.AddListener(OnRecentsClicked);
-        }
-
-        if (savedLevels != null)
-        {
-            savedLevels.onClick.AddListener(OnSavedClicked);
         }
 
         if (creditsButton != null)
@@ -44,16 +67,34 @@ public class MainMenuPanel : BaseMainMenuPanel
         }
     }
     
+    private void SetupStep2Buttons()
+    {
+        if (playButtonStep2 != null)
+        {
+            playButtonStep2.onClick.AddListener(OnPlayStep2Clicked);
+        }
+        
+        if (recentLevelsButtonStep2 != null)
+        {
+            recentLevelsButtonStep2.onClick.AddListener(OnRecentsClicked);
+        }
+
+        if (savedLevelsButtonStep2 != null)
+        {
+            savedLevelsButtonStep2.onClick.AddListener(OnSavedClicked);
+        }
+        
+        if (seedToggle != null)
+        {
+            seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
+            OnSeedToggleChanged(seedToggle.isOn);
+        }
+    }
+    
     private void OnDestroy()
     {
         if (playButton != null)
             playButton.onClick.RemoveListener(OnPlayClicked);
-
-        if (recentLevels != null)
-            recentLevels.onClick.RemoveListener(OnRecentsClicked);
-
-        if (savedLevels != null)
-            savedLevels.onClick.RemoveListener(OnSavedClicked);
 
         if (creditsButton != null)
             creditsButton.onClick.RemoveListener(OnCreditsClicked);
@@ -63,15 +104,158 @@ public class MainMenuPanel : BaseMainMenuPanel
         
         if (quitButton != null)
             quitButton.onClick.RemoveListener(OnQuitClicked);
+        
+        if (playButtonStep2 != null)
+            playButtonStep2.onClick.RemoveListener(OnPlayStep2Clicked);
+        
+        if (recentLevelsButtonStep2 != null)
+            recentLevelsButtonStep2.onClick.RemoveListener(OnRecentsClicked);
+
+        if (savedLevelsButtonStep2 != null)
+            savedLevelsButtonStep2.onClick.RemoveListener(OnSavedClicked);
+        
+        if (seedToggle != null)
+            seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
+    }
+    
+    protected override void OnShow()
+    {
+        ShowStep1();
+    }
+    
+    public void ShowStep1()
+    {
+        if (step1Container != null)
+        {
+            step1Container.SetActive(true);
+        }
+        
+        if (step2Container != null)
+        {
+            step2Container.SetActive(false);
+        }
+        
+        isInStep2 = false;
+        
+        if (playButton != null && EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(playButton.gameObject);
+        }
+        
+        GameLogger.Log("MENU", "Showing Step 1 - Main Menu");
+    }
+    
+    public void ShowStep2()
+    {
+        if (step1Container != null)
+        {
+            step1Container.SetActive(false);
+        }
+        
+        if (step2Container != null)
+        {
+            step2Container.SetActive(true);
+        }
+        
+        isInStep2 = true;
+        
+        if (playButtonStep2 != null && EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(playButtonStep2.gameObject);
+        }
+        
+        GameLogger.Log("MENU", "Showing Step 2 - Play Options");
+    }
+    
+    public bool IsInStep2()
+    {
+        return isInStep2;
+    }
+    
+    private void OnSeedToggleChanged(bool isOn)
+    {
+        if (seedInputField != null)
+        {
+            seedInputField.interactable = isOn;
+            
+            if (!isOn && EventSystem.current != null && EventSystem.current.currentSelectedGameObject == seedInputField.gameObject)
+            {
+                EventSystem.current.SetSelectedGameObject(seedToggle.gameObject);
+            }
+        }
+        
+        UpdateToggleNavigation(isOn);
+        
+        GameLogger.Log("MENU", $"Seed toggle changed: {isOn}, InputField interactable: {isOn}");
+    }
+    
+    private void UpdateToggleNavigation(bool seedInputActive)
+    {
+        if (seedToggle == null) return;
+        
+        Navigation nav = seedToggle.navigation;
+        nav.mode = Navigation.Mode.Explicit;
+        
+        if (playButtonStep2 != null)
+        {
+            nav.selectOnUp = playButtonStep2;
+        }
+        
+        if (seedInputActive && seedInputField != null)
+        {
+            nav.selectOnDown = seedInputField;
+        }
+        else if (recentLevelsButtonStep2 != null)
+        {
+            nav.selectOnDown = recentLevelsButtonStep2;
+        }
+        
+        seedToggle.navigation = nav;
+        
+        GameLogger.Log("MENU", $"Toggle navigation updated - selectOnDown: {(seedInputActive ? "InputField" : "RecentLevels")}");
     }
     
     private void OnPlayClicked()
     {
-        GameLogger.Log("MENU", "Play clicked");
+        GameLogger.Log("MENU", "Play clicked - Going to Step 2");
+        ShowStep2();
+    }
+    
+    private void OnPlayStep2Clicked()
+    {
+        GameLogger.Log("MENU", "Play Step 2 clicked - Starting game with configuration");
+        
+        ApplySeedConfiguration();
         
         if (menuController != null)
         {
             menuController.StartGame();
+        }
+    }
+    
+    private void ApplySeedConfiguration()
+    {
+        if (randomSeedController == null) return;
+        
+        if (seedToggle != null && seedToggle.isOn)
+        {
+            string customSeed = seedInputField != null ? seedInputField.text : "";
+            
+            if (!string.IsNullOrEmpty(customSeed))
+            {
+                randomSeedController.SetRandomSeed(customSeed);
+                GameLogger.Log("MENU", $"Using custom seed: {customSeed}");
+            }
+            else
+            {
+                randomSeedController.GenerateRandomSeed();
+                GameLogger.Log("MENU", "Custom seed enabled but empty - Generating random seed");
+            }
+        }
+        else
+        {
+            randomSeedController.GenerateRandomSeed();
+            GameLogger.Log("MENU", "Generating random seed");
         }
     }
     
