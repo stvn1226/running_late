@@ -27,6 +27,12 @@ namespace Utils
         
         public void SaveTime(int seed, float time)
         {
+            if (leaderboardData == null)
+            {
+                GameLogger.LogError("LEADERBOARD", "LeaderboardData is null! Cannot save time.");
+                return;
+            }
+
             TimeRecord existingRecord = leaderboardData.records.Find(r => r.seed == seed);
             
             if (existingRecord != null)
@@ -101,8 +107,28 @@ namespace Utils
             if (PlayerPrefs.HasKey(LEADERBOARD_KEY))
             {
                 string json = PlayerPrefs.GetString(LEADERBOARD_KEY);
-                leaderboardData = JsonUtility.FromJson<LeaderboardData>(json);
-                GameLogger.Log("LEADERBOARD", $"Loaded {leaderboardData.records.Count} records");
+                try
+                {
+                    leaderboardData = JsonUtility.FromJson<LeaderboardData>(json);
+                    
+                    if (leaderboardData == null)
+                    {
+                        GameLogger.LogWarning("LEADERBOARD", "Failed to deserialize leaderboard data, creating new");
+                        leaderboardData = new LeaderboardData();
+                    }
+                    else if (leaderboardData.records == null)
+                    {
+                        GameLogger.LogWarning("LEADERBOARD", "Records list is null, initializing");
+                        leaderboardData.records = new List<TimeRecord>();
+                    }
+                    
+                    GameLogger.Log("LEADERBOARD", $"Loaded {leaderboardData.records.Count} records");
+                }
+                catch (System.Exception e)
+                {
+                    GameLogger.LogError("LEADERBOARD", $"Error loading leaderboard: {e.Message}. Creating new.");
+                    leaderboardData = new LeaderboardData();
+                }
             }
             else
             {

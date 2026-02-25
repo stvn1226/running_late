@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfcbaf3939b7c43bb9930642e584f739, type: 3}
+  m_Name: ButtonEffectProfile
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonEffectProfile
+  normalFont: {fileID: 11400000, guid: a469e87ddf87146a28af92e4875fc2c4, type: 2}
+  highlightedFont: {fileID: 11400000, guid: 8f9b01489baee4e10bdf97b757df558f, type: 2}
+  jpNormalFont: {fileID: 11400000, guid: 425950d2cfc0727479480538e1f1bfc0, type: 2}
+  jpHighlightedFont: {fileID: 11400000, guid: f090c366349d046429b03ae340a1ab69, type: 2}
+  changeFontSize: 1
+  fontSizeIncrease: 2
+  changeTextColor: 1
+  normalTextColor: {r: 0, g: 0, b: 0, a: 1}
+  highlightedTextColor: {r: 1, g: 0.85490197, b: 0, a: 1}
+  showMaskOnNormal: 0
+  showMaskOnHighlighted: 1
+  changeBackgroundSprite: 0
+  normalBackgroundSprite: {fileID: 0}
+  highlightedBackgroundSprite: {fileID: 0}

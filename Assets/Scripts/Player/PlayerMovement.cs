@@ -48,7 +48,10 @@ public class PlayerMovement : MonoBehaviour
     private float maxRunSpeed;
     private Coroutine activeSpeedBoostCoroutine;
     private float slopeSnapDisableTimer = 0f;
-    
+
+    private float footstepTimer = 0f;
+    private const float FOOTSTEP_INTERVAL = 0.3f; // Adjust this value - lower = faster footsteps
+
     private void Start()
     {
         rb.linearDamping = 0f;
@@ -435,6 +438,20 @@ public class PlayerMovement : MonoBehaviour
         if (states.crouchHeld && !states.isGrounded)
         {
             rb.AddForce(Vector2.down * (config.runForce * Time.fixedDeltaTime), ForceMode2D.Force);
+        }
+
+        if (states.isGrounded && Mathf.Abs(horizontalInput) > 0.1f)
+        {
+            footstepTimer -= Time.fixedDeltaTime;
+            if (footstepTimer <= 0f)
+            {
+                AudioManager.Instance?.Play(AudioManager.SoundType.Footsteps);
+                footstepTimer = FOOTSTEP_INTERVAL;
+            }
+        }
+        else
+        {
+            footstepTimer = 0f; // Reset when not moving or not grounded
         }
     }
 

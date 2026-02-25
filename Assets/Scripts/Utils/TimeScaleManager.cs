@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class TimeScaleManager : MonoBehaviour
 {
@@ -97,4 +98,32 @@ public class TimeScaleManager : MonoBehaviour
     public float[] GetAllTimeScales() => timeScaleValues;
     
     public void SetTimeScaleByIndex(int index)=>currentScaleIndex = index;
+
+    private Coroutine slowMoCoroutine;
+    
+    /// <summary>
+    /// Requests a temporary slow-mo effect. Centralized to ensure TimeScale is always restored.
+    /// </summary>
+    public void RequestSlowMotion(float duration, float targetScale)
+    {
+        if (slowMoCoroutine != null)
+        {
+            StopCoroutine(slowMoCoroutine);
+        }
+        slowMoCoroutine = StartCoroutine(SlowMoSequence(duration, targetScale));
+    }
+
+    private IEnumerator SlowMoSequence(float duration, float targetScale)
+    {
+        // Record the base scale we should return to (ignoring current if it was already in slowmo)
+        float baseScale = timeScaleValues[currentScaleIndex];
+        
+        ApplyTimeScale(targetScale);
+        
+        // Use RealTime because Time.deltaTime is affected by scale
+        yield return new WaitForSecondsRealtime(duration);
+        
+        ApplyTimeScale(baseScale);
+        slowMoCoroutine = null;
+    }
 }

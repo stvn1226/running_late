@@ -6,6 +6,7 @@ public class ProgressTracking : MonoBehaviour
 {
     [SerializeField] private Image progressBar;
     [SerializeField] private RectTransform progressArrow;
+    [SerializeField] private RectTransform fillMask;
     
     [Header("Retry Settings")]
     [SerializeField] private float retryDelay = 1f;
@@ -94,6 +95,12 @@ public class ProgressTracking : MonoBehaviour
                 progressBar.rectTransform.rect.width * playerProgress, 
                 progressArrow.anchoredPosition.y
             );
+        }
+        
+        if (fillMask != null && progressBar != null)
+        {
+            float maskWidth = progressBar.rectTransform.rect.width * playerProgress;
+            fillMask.sizeDelta = new Vector2(maskWidth, fillMask.sizeDelta.y);
         }
     }
 

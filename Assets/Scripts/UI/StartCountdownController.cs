@@ -93,7 +93,7 @@ public class StartCountdownController : MonoBehaviour
         
             if (playCountdownSounds)
             {
-                AudioManager.Instance?.Play(AudioManager.SoundType.Jump);
+                AudioManager.Instance?.Play(AudioManager.SoundType.CD_Numbers);
             }
         
             if (useScaleAnimation)
@@ -110,7 +110,7 @@ public class StartCountdownController : MonoBehaviour
     
         if (playCountdownSounds)
         {
-            AudioManager.Instance?.Play(AudioManager.SoundType.Powerup);
+            AudioManager.Instance?.Play(AudioManager.SoundType.CD_Go);
         }
     
         Time.timeScale = 1f;

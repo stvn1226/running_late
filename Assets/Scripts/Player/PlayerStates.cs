@@ -545,12 +545,6 @@ public class PlayerStates : MonoBehaviour
     }
 
 
-    public IEnumerator StartSlowdown(float duration)
-    {
-        Time.timeScale = 0.5f;
-        yield return new WaitForSeconds(duration);
-        Time.timeScale = 1f;
-    }
 
     public void StartCoyoteTime(float coyoteTime)
     {

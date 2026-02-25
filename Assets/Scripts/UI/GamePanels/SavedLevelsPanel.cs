@@ -10,6 +10,12 @@ public class SavedLevelsPanel : BaseMainMenuPanel
     [SerializeField] private List<SavedLevelEntry> savedLevelEntries;
     [SerializeField] private SavedLevelEntry exampleEntry;
     [SerializeField] private TextInputPanel renamePanel;
+    [SerializeField] private ScrollRect scrollRect;
+    [SerializeField] private int visibleEntryCount = 5;
+
+    private int currentTopVisibleIndex = 0;
+
+    public List<SavedLevelEntry> SavedLevelEntries => savedLevelEntries;
 
     protected override void SetupPanel()
     {
@@ -17,6 +23,12 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         {
             entriesLayoutGroup = GetComponentInChildren<VerticalLayoutGroup>();
         }
+        
+        if (scrollRect == null)
+        {
+            scrollRect = GetComponentInChildren<ScrollRect>();
+        }
+        
         savedLevelEntries = new List<SavedLevelEntry>();
     }
 
@@ -54,12 +66,13 @@ public class SavedLevelsPanel : BaseMainMenuPanel
     {
         if (menuController != null)
         {
-            menuController.ShowMainPanel();
+            menuController.ShowMainPanelStep2();
         }
     }
 
     public void PopulateMenu(bool isFromDelete = false, int whereDidRemove = 0)
     {
+        int ct = 0;
         savedLevelEntries.Clear();
         SavedLevelEntry[] existingEntries = entriesLayoutGroup.GetComponentsInChildren<SavedLevelEntry>();
         foreach (SavedLevelEntry entry in existingEntries)
@@ -74,8 +87,9 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             {
                 // Create SavedLevelEntry for each recent level and add to savedLevelEntries
                 SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
-                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel);
+                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel, ct);
                 savedLevelEntries.Add(newEntry);
+                ct++;
             }
         }
         else
@@ -85,14 +99,71 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             {
                 // Create SavedLevelEntry for each recent level and add to savedLevelEntries
                 SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
-                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel);
+                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel, ct);
                 savedLevelEntries.Add(newEntry);
+                ct++;
             }
 
         }
 
-        defaultSelectedButton = savedLevelEntries[0].startButton;
-        if (isFromDelete) EventSystem.current.SetSelectedGameObject(savedLevelEntries[whereDidRemove].deleteButton.gameObject);
+        currentTopVisibleIndex = 0;
+        scrollRect.verticalNormalizedPosition = 1.0f;
 
+        if (savedLevelEntries.Count > 0)
+        {
+            int targetIndex = isFromDelete ? whereDidRemove : 0;
+            
+            if (targetIndex >= savedLevelEntries.Count)
+            {
+                targetIndex = savedLevelEntries.Count - 1;
+            }
+
+            defaultSelectedButton = savedLevelEntries[targetIndex].startButton;
+            
+            if (isFromDelete)
+            {
+                EventSystem.current.SetSelectedGameObject(savedLevelEntries[targetIndex].deleteButton.gameObject);
+            }
+        }
+        else
+        {
+            defaultSelectedButton = null;
+        }
+    }
+
+    public void UpdateScrollPosition(int selectedIndex)
+    {
+        if (scrollRect == null || savedLevelEntries.Count == 0)
+            return;
+
+        int totalEntries = savedLevelEntries.Count;
+        
+        if (totalEntries <= visibleEntryCount)
+        {
+            scrollRect.verticalNormalizedPosition = 1.0f;
+            currentTopVisibleIndex = 0;
+            return;
+        }
+
+        int bottomVisibleIndex = currentTopVisibleIndex + visibleEntryCount - 1;
+        
+        if (selectedIndex < currentTopVisibleIndex)
+        {
+            currentTopVisibleIndex = selectedIndex;
+        }
+        else if (selectedIndex > bottomVisibleIndex)
+        {
+            currentTopVisibleIndex = selectedIndex - (visibleEntryCount - 1);
+        }
+
+        int scrollSteps = totalEntries - visibleEntryCount;
+        float scrollValue = 1.0f - ((float)currentTopVisibleIndex / scrollSteps);
+        
+        scrollRect.verticalNormalizedPosition = Mathf.Clamp01(scrollValue);
+    }
+
+    public int GetEntryIndex(SavedLevelEntry entry)
+    {
+        return savedLevelEntries.IndexOf(entry);
     }
 }
