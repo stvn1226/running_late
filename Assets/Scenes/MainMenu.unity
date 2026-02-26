@@ -571,6 +571,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 280322278542458577, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 1852714630}
     - target: {fileID: 606017064689391902, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1291,7 +1295,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -21.804863, y: 141.99998}
+  m_AnchoredPosition: {x: -21.80487, y: 141.99998}
   m_SizeDelta: {x: -44.68976, y: -200.03241}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1708666205
