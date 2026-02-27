@@ -48,6 +48,8 @@ public class PlayerStateManager : MonoBehaviour
 
         HandleWallRun(previousWallRunning);
 
+        HandleWallSlide();
+
         HandleKick();
 
         if (previousCrouching != states.isCrouching || previousSliding != states.isSliding || previousRolling != states.isRolling)
@@ -215,6 +217,29 @@ public class PlayerStateManager : MonoBehaviour
         }
         
         states.isWallRunning = shouldWallRun;
+    }
+
+    private void HandleWallSlide()
+    {
+        if (states.wallRunHeld && !states.canWallSlide)
+        {
+            states.RecordWallClimbInput();
+        }
+
+        bool shouldWallSlide = states.wallRunHeld && states.canWallSlide && !states.isGrounded;
+
+        if (shouldWallSlide == states.isWallSliding) return;
+
+        GameLogger.LogState($"WALL SLIDE CHANGE: {states.isWallSliding} -> {shouldWallSlide}, WallRunHeld={states.wallRunHeld}, CanWallSlide={states.canWallSlide}");
+
+        if (shouldWallSlide)
+        {
+            states.StartWallSlide();
+        }
+        else
+        {
+            states.EndWallSlide();
+        }
     }
 
     private void HandleKick()
