@@ -14,6 +14,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         public static readonly int Idle = Animator.StringToHash("Idle");
         public static readonly int Run = Animator.StringToHash("Run");
+        public static readonly int Sprint = Animator.StringToHash("Sprint");
         public static readonly int JumpRise = Animator.StringToHash("JumpRise");
         public static readonly int JumpMid = Animator.StringToHash("JumpMid");
         public static readonly int JumpFall = Animator.StringToHash("JumpFall");
@@ -40,6 +41,7 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private float crossFadeDuration = 0.1f;
     [SerializeField] private float velocityDeadzone = 0.2f;
     [SerializeField] private float runSpeedThreshold = 0.5f;
+    [SerializeField] private float sprintSpeedThreshold = 10f;
     [SerializeField] private float fallThreshold = -0.5f;
     [SerializeField] private float riseThreshold = 2.0f;
 
@@ -207,7 +209,10 @@ public class PlayerAnimator : MonoBehaviour
             
             float slopeAbsVelX = Mathf.Abs(rb.linearVelocity.x);
             if (slopeAbsVelX > runSpeedThreshold)
+            {
+                if (slopeAbsVelX > sprintSpeedThreshold) return AnimHash.Sprint;
                 return AnimHash.Run;
+            }
             
             return AnimHash.Idle;
         }
@@ -235,7 +240,10 @@ public class PlayerAnimator : MonoBehaviour
 
         float absVelX = Mathf.Abs(rb.linearVelocity.x);
         if (absVelX > runSpeedThreshold)
+        {
+            if (absVelX > sprintSpeedThreshold) return AnimHash.Sprint;
             return AnimHash.Run;
+        }
 
         return AnimHash.Idle;
     }
@@ -276,6 +284,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (hash == AnimHash.Idle) return "Idle";
         if (hash == AnimHash.Run) return "Run";
+        if (hash == AnimHash.Sprint) return "Sprint";
         if (hash == AnimHash.JumpRise) return "JumpRise";
         if (hash == AnimHash.JumpMid) return "JumpMid";
         if (hash == AnimHash.JumpFall) return "JumpFall";
