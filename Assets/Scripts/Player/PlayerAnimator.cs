@@ -241,7 +241,6 @@ public class PlayerAnimator : MonoBehaviour
         float absVelX = Mathf.Abs(rb.linearVelocity.x);
         if (absVelX > runSpeedThreshold)
         {
-            Debug.Log("[XSpeed] Abs Vel X : " + absVelX);
             if (absVelX > sprintSpeedThreshold) return AnimHash.Sprint;
             return AnimHash.Run;
         }
