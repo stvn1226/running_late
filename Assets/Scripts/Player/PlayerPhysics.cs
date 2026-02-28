@@ -101,6 +101,7 @@ public class PlayerPhysics : MonoBehaviour
         CheckSlope();
         CheckGrounded();
         CheckWallRun();
+        CheckWallSlide();
     }
 
     private void Update()
@@ -539,6 +540,58 @@ public class PlayerPhysics : MonoBehaviour
         }
 
         previousWallCollider = currentWallCollider;
+    }
+
+    private void CheckWallSlide()
+    {
+        // Contact count is maintained by collision/trigger callbacks — no polling needed.
+        // Reset the count defensively when grounded so it can't get stuck.
+        if (states.isGrounded) midWallContactCount = 0;
+        states.canWallSlide = midWallContactCount > 0 && !states.isGrounded && !states.isWallRunning;
+    }
+
+    private int midWallContactCount = 0;
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        if (!IsMidWallObject(col.gameObject)) return;
+        midWallContactCount++;
+        UpdateMidWallDirectionFromNormal(col.GetContact(0).normal);
+    }
+
+    private void OnCollisionExit2D(Collision2D col)
+    {
+        if (!IsMidWallObject(col.gameObject)) return;
+        midWallContactCount = Mathf.Max(0, midWallContactCount - 1);
+    }
+
+    private void OnTriggerEnter2D(Collider2D col)
+    {
+        if (!IsMidWallObject(col.gameObject)) return;
+        midWallContactCount++;
+        UpdateMidWallDirectionFromPosition(col.transform.position);
+    }
+
+    private void OnTriggerExit2D(Collider2D col)
+    {
+        if (!IsMidWallObject(col.gameObject)) return;
+        midWallContactCount = Mathf.Max(0, midWallContactCount - 1);
+    }
+
+    private bool IsMidWallObject(GameObject go)
+    {
+        return config != null && ((1 << go.layer) & config.midWallLayer.value) != 0;
+    }
+
+    private void UpdateMidWallDirectionFromNormal(Vector2 normal)
+    {
+        if (Mathf.Abs(normal.x) > 0.5f)
+            states.wallDirection = normal.x > 0f ? -1 : 1;
+    }
+
+    private void UpdateMidWallDirectionFromPosition(Vector3 wallPosition)
+    {
+        states.wallDirection = wallPosition.x > transform.position.x ? 1 : -1;
     }
 
     private void CheckSlope()

@@ -48,6 +48,13 @@ MonoBehaviour:
   wallVaultDuration: 0.15
   maxWallHeightCheck: 20
   wallHeightCheckInterval: 0.1
+  wallRunDebug: 0
+  wallRunStrictNormals: 1
+  wallNormalMinX: 0.85
+  midWallLayer:
+    serializedVersion: 2
+    m_Bits: 262144
+  wallSlideMaxFallSpeed: 5
   enableCornerClimb: 1
   cornerClimbMinVelocity: -1
   cornerClimbMaxVelocity: 1.5
@@ -68,6 +75,11 @@ MonoBehaviour:
     m_Bits: 35840
   kickDuration: 0.25
   kickForceReduction: 0.5
+  kickDebug: 0
+  kickInterruptLock: 0.12
+  kickHitboxStartN: 0.15
+  kickHitboxEndN: 0.55
+  kickGroundDrag: 15
   staggerDuration: 0.6
   staggerKnockbackForce: 20
   staggerMovementReduction: 0
