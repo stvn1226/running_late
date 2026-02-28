@@ -193,6 +193,14 @@ public class PlayerConfig : ScriptableObject
     public float wallNormalMinX = 0.85f;
 
     
+    [Header("Wall Slide (MidWall)")]
+    [Tooltip("Layer mask for MidWall colliders that allow wall sliding.")]
+    public LayerMask midWallLayer;
+
+    [Tooltip("Upward speed at the very start of the wall slide. Decays following a sqrt curve. Units: m/s. Recommended: 10-20")]
+    [Range(5f, 30f)]
+    public float wallSlideSpeed = 15f;
+
     [Header("Corner Climb (Auto-Assist)")]
     [Tooltip("Enable automatic corner climbing when approaching wall corners with low velocity")]
     public bool enableCornerClimb = true;

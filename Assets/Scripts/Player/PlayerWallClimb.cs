@@ -7,6 +7,10 @@ public class PlayerWallClimb : MonoBehaviour
     [SerializeField] private PlayerStates states;
     [SerializeField] private Rigidbody2D rb;
 
+    // Controls how slowly vY decays during the wall slide.
+    // Lower value = rise sustains longer before flattening to lateral movement.
+    private const float WALL_SLIDE_CURVE_RATE = 1.5f;
+
     private float wallDirection = 0f;
     private bool wasOnWall = false;
     private bool wasWallRunning = false;
@@ -31,6 +35,12 @@ public class PlayerWallClimb : MonoBehaviour
 
     private void Update()
     {
+        if (states.isWallSliding && !states.isVaultingWall)
+        {
+            ApplyWallSlideVelocity();
+            return; // Wall slide and wall run are mutually exclusive; return early.
+        }
+
         if (states.isWallRunning && !states.isVaultingWall)
         {
             CheckForPerfectClimb();
@@ -87,6 +97,21 @@ public class PlayerWallClimb : MonoBehaviour
             HandleEarlyWallRelease();
             wasWallRunning = false;
         }
+    }
+
+    /// <summary>
+    /// Drives vertical velocity during a wall slide following a sqrt-shaped decay curve.
+    /// vY starts at wallSlideSpeed and falls off as 1/sqrt(1 + t * CURVE_RATE), producing
+    /// a strong initial rise that gradually smooths out to lateral movement over time.
+    /// Horizontal velocity is left untouched so the player retains lateral momentum.
+    /// </summary>
+    private void ApplyWallSlideVelocity()
+    {
+        // vY = wallSlideSpeed / sqrt(1 + t * RATE).
+        // At t=0 this equals wallSlideSpeed exactly; it decays following a sqrt shape
+        // with no normalization loss, so the full speed is felt from the first frame.
+        float vY = config.wallSlideSpeed / Mathf.Sqrt(1f + states.wallSlideTimer * WALL_SLIDE_CURVE_RATE);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, vY);
     }
 
     private void HandleEarlyWallRelease()

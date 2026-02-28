@@ -23,6 +23,7 @@ public class PlayerStates : MonoBehaviour
     public bool isGrounded;
     public bool wasGrounded;
     public bool isWallRunning;
+    public bool isWallSliding;
     public bool isSliding;
     public bool isKicking;
     public bool isCrouching;
@@ -60,7 +61,11 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Wall Run States")]
     public bool canWallRun;
+    public bool canWallSlide;
     public int wallDirection;
+
+    [Header("Wall Slide States")]
+    public float wallSlideTimer = 0f;
 
     [Header("Wall Climbing Advanced States")]
     public bool isPerfectClimb = false;
@@ -105,6 +110,7 @@ public class PlayerStates : MonoBehaviour
     private int prevWallDirection;
     private bool prevWallRunHeld;
     private bool prevIsWallRunning;
+    private bool prevIsWallSliding;
     private Vector2 prevMoveInput;
     private float lastWallRunLog = 0f;
     private const float WALL_RUN_LOG_INTERVAL = 0.2f;
@@ -116,10 +122,9 @@ public class PlayerStates : MonoBehaviour
 
     private Coroutine activeInvincibility;
 
-    public bool IsWallRunHeld => wallRunHeld;
-
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
+    public System.Action OnWallSlideChanged;
     public System.Action OnJumpStateChanged;
     public System.Action OnStaggerStateChanged;
     public System.Action OnLanded;
@@ -204,6 +209,11 @@ public class PlayerStates : MonoBehaviour
             GameLogger.LogState($"WALL RUNNING STATE CHANGE: {prevIsWallRunning} -> {isWallRunning}, WallRunHeld: {wallRunHeld}, CanWallRun: {canWallRun}, WallDirection: {wallDirection}");
         }
 
+        if (isWallSliding != prevIsWallSliding)
+        {
+            GameLogger.LogState($"WALL SLIDING STATE CHANGE: {prevIsWallSliding} -> {isWallSliding}, WallRunHeld: {wallRunHeld}, CanWallSlide: {canWallSlide}, WallDirection: {wallDirection}");
+        }
+
         if (isWallRunning && isKicking)
         {
             float timeSinceKick = Time.time - kickStartTime;
@@ -227,6 +237,12 @@ public class PlayerStates : MonoBehaviour
             GameLogger.LogVerbose("STATE", $"WALL RUN STATUS: CanWallRun={canWallRun}, IsWallRunning={isWallRunning}, WallDirection={wallDirection}, WallRunHeld={wallRunHeld}, Input.x={moveInput.x:F2}");
             lastWallRunLog = Time.time;
         }
+
+        if (shouldLog && (canWallSlide || isWallSliding))
+        {
+            GameLogger.LogVerbose("STATE", $"WALL SLIDE STATUS: CanWallSlide={canWallSlide}, IsWallSliding={isWallSliding}, WallDirection={wallDirection}, WallRunHeld={wallRunHeld}, Input.x={moveInput.x:F2}");
+            lastWallRunLog = Time.time;
+        }
     }
 
     private void UpdatePreviousValues()
@@ -235,6 +251,7 @@ public class PlayerStates : MonoBehaviour
         prevWallDirection = wallDirection;
         prevWallRunHeld = wallRunHeld;
         prevIsWallRunning = isWallRunning;
+        prevIsWallSliding = isWallSliding;
         prevMoveInput = moveInput;
     }
 
@@ -306,6 +323,12 @@ public class PlayerStates : MonoBehaviour
             }
         }
 
+        // Wall slide timer — ticks while sliding; used only for sqrt curve shape.
+        if (isWallSliding)
+        {
+            wallSlideTimer += Time.deltaTime;
+        }
+
         if (jumpPressed)
             jumpPressed = false;
 
@@ -369,6 +392,7 @@ public class PlayerStates : MonoBehaviour
     {
         bool previousGrounded = wasGrounded;
         bool previousWallRunning = isWallRunning;
+        bool previousWallSliding = isWallSliding;
         bool previousStaggered = isStaggered;
 
         if (previousGrounded != isGrounded)
@@ -379,6 +403,11 @@ public class PlayerStates : MonoBehaviour
         if (previousWallRunning != isWallRunning)
         {
             OnWallRunChanged?.Invoke();
+        }
+
+        if (previousWallSliding != isWallSliding)
+        {
+            OnWallSlideChanged?.Invoke();
         }
 
         if (previousStaggered != isStaggered)
@@ -578,12 +607,35 @@ public class PlayerStates : MonoBehaviour
         crouchBufferTimer = bufferTime;
     }
 
+    /// <summary>
+    /// Begins a wall slide and resets the curve timer.
+    /// </summary>
+    public void StartWallSlide()
+    {
+        isWallSliding = true;
+        wallSlideTimer = 0f;
+        GameLogger.LogState("WALL SLIDE: Started");
+    }
+
+    /// <summary>
+    /// Ends the wall slide and resets all related state.
+    /// </summary>
+    public void EndWallSlide()
+    {
+        if (!isWallSliding) return;
+        isWallSliding = false;
+        wallSlideTimer = 0f;
+        GameLogger.LogState("WALL SLIDE: Ended");
+    }
+
     public void StartVault(float duration)
     {
         isVaultingWall = true;
         vaultTimer = duration;
         isWallRunning = false;
+        isWallSliding = false;
         canWallRun = false;
+        canWallSlide = false;
         isPerfectClimb = false;
     }
 

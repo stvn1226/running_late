@@ -14,6 +14,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         public static readonly int Idle = Animator.StringToHash("Idle");
         public static readonly int Run = Animator.StringToHash("Run");
+        public static readonly int Sprint = Animator.StringToHash("Sprint");
         public static readonly int JumpRise = Animator.StringToHash("JumpRise");
         public static readonly int JumpMid = Animator.StringToHash("JumpMid");
         public static readonly int JumpFall = Animator.StringToHash("JumpFall");
@@ -29,6 +30,7 @@ public class PlayerAnimator : MonoBehaviour
         public static readonly int GroundSlam = Animator.StringToHash("Dive");
         public static readonly int HitDamage = Animator.StringToHash("Knockback");
         public static readonly int WallJump = Animator.StringToHash("WallSprint");
+        public static readonly int WallSideRun = Animator.StringToHash("WallSideRun");
     }
 
     [Header("Dependencies")]
@@ -40,6 +42,7 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private float crossFadeDuration = 0.1f;
     [SerializeField] private float velocityDeadzone = 0.2f;
     [SerializeField] private float runSpeedThreshold = 0.5f;
+    [SerializeField] private float sprintSpeedThreshold = 10f;
     [SerializeField] private float fallThreshold = -0.5f;
     [SerializeField] private float riseThreshold = 2.0f;
 
@@ -62,6 +65,7 @@ public class PlayerAnimator : MonoBehaviour
     private bool wasDiving = false;
     private bool wasGrounded = false;
     private bool wasWallRunning = false;
+    private bool wasWallSliding = false;
     private bool wasStaggered = false;
     private bool wasVaulting = false;
     private bool wasSlidingOnCable = false;
@@ -119,6 +123,7 @@ public class PlayerAnimator : MonoBehaviour
         wasRolling = states.isRolling;
         wasDiving = states.isDiving;
         wasWallRunning = states.isWallRunning;
+        wasWallSliding = states.isWallSliding;
         wasStaggered = states.isStaggered;
         wasVaulting = states.isVaultingWall;
         wasSlidingOnCable = states.isSlidingOnCable;
@@ -132,7 +137,10 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (fromHash == AnimHash.WallSlide || fromHash == AnimHash.WallClimb)
             return true;
-        
+
+        if (fromHash == AnimHash.WallSideRun)
+            return true;
+
         if (toHash == AnimHash.WallJump)
             return true;
         
@@ -195,6 +203,9 @@ public class PlayerAnimator : MonoBehaviour
                 return AnimHash.WallSlide;
         }
 
+        if (states.isWallSliding)
+            return AnimHash.WallSideRun;
+
         // IMPORTANT: Check slope BEFORE air states to prevent jump flicker on slopes
         // Even if isGrounded flickers, isOnSlope remains stable and prioritizes locomotion
         if (states.isOnSlope)
@@ -207,7 +218,10 @@ public class PlayerAnimator : MonoBehaviour
             
             float slopeAbsVelX = Mathf.Abs(rb.linearVelocity.x);
             if (slopeAbsVelX > runSpeedThreshold)
+            {
+                if (slopeAbsVelX > sprintSpeedThreshold) return AnimHash.Sprint;
                 return AnimHash.Run;
+            }
             
             return AnimHash.Idle;
         }
@@ -235,7 +249,10 @@ public class PlayerAnimator : MonoBehaviour
 
         float absVelX = Mathf.Abs(rb.linearVelocity.x);
         if (absVelX > runSpeedThreshold)
+        {
+            if (absVelX > sprintSpeedThreshold) return AnimHash.Sprint;
             return AnimHash.Run;
+        }
 
         return AnimHash.Idle;
     }
@@ -276,6 +293,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (hash == AnimHash.Idle) return "Idle";
         if (hash == AnimHash.Run) return "Run";
+        if (hash == AnimHash.Sprint) return "Sprint";
         if (hash == AnimHash.JumpRise) return "JumpRise";
         if (hash == AnimHash.JumpMid) return "JumpMid";
         if (hash == AnimHash.JumpFall) return "JumpFall";
@@ -291,6 +309,7 @@ public class PlayerAnimator : MonoBehaviour
         if (hash == AnimHash.GroundSlam) return "Dive (GroundSlam)";
         if (hash == AnimHash.HitDamage) return "Knockback (HitDamage)";
         if (hash == AnimHash.WallJump) return "WallSprint (WallJump)";
+        if (hash == AnimHash.WallSideRun) return "WallSideRun";
         return "Unknown";
     }
 

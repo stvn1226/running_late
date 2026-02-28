@@ -730,6 +730,7 @@ MonoBehaviour:
   rb: {fileID: 5328747980780883216}
   playerCollider: {fileID: 3391139825406007247}
   states: {fileID: 6913775742238925164}
+  playerSprite: {fileID: 0}
   originalColliderSize: {x: 0, y: 0}
   originalColliderOffset: {x: 0, y: 0}
   crouchColliderSize: {x: 0, y: 0}
@@ -892,6 +893,7 @@ MonoBehaviour:
   rollTimer: 0
   divePressed: 0
   kickTimer: 0
+  kickStartTime: 0
   staggerTimer: 0
   isCornerClimbing: 0
   cornerClimbTimer: 0
@@ -1030,6 +1032,7 @@ MonoBehaviour:
   crossFadeDuration: 0.1
   velocityDeadzone: 0.2
   runSpeedThreshold: 0.5
+  sprintSpeedThreshold: 32.5
   fallThreshold: -0.5
   riseThreshold: 2
   randomizeKickVariations: 0
