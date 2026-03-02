@@ -23,7 +23,10 @@ public class CustomButtonEffects : MonoBehaviour,
     private Button button;
     private float baseFontSize;
     private float jpBaseFontSize;
-    
+
+    private string originalText;
+    private string jpOriginalText;
+
     private void Awake()
     {
         button = GetComponent<Button>();
@@ -31,11 +34,13 @@ public class CustomButtonEffects : MonoBehaviour,
         if (textComponent != null)
         {
             baseFontSize = textComponent.fontSize;
+            originalText = textComponent.text;
         }
         
         if (jpTextComponent != null)
         {
             jpBaseFontSize = jpTextComponent.fontSize;
+            jpOriginalText = jpTextComponent.text;
         }
     }
     
@@ -86,6 +91,9 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyTextColor(effectProfile.normalTextColor);
         ApplyMaskState(effectProfile.showMaskOnNormal);
         ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
+
+        textComponent.text = originalText;
+        jpTextComponent.text = jpOriginalText;
     }
     
     private void ApplyHighlightedState()
@@ -97,6 +105,9 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyTextColor(effectProfile.highlightedTextColor);
         ApplyMaskState(effectProfile.showMaskOnHighlighted);
         ApplyBackgroundSprite(effectProfile.highlightedBackgroundSprite);
+
+        textComponent.text = $"<bounce>{originalText}</bounce>";
+        jpTextComponent.text = $"<bounce>{jpOriginalText}</bounce>";
     }
     
     private void ApplyFont(TMP_FontAsset font, TMP_FontAsset jpFont)
