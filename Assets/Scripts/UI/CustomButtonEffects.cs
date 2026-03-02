@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using Febucci.TextAnimatorForUnity.TextMeshPro;
+using Febucci.TextAnimatorCore;
 
 public class CustomButtonEffects : MonoBehaviour, 
     IPointerEnterHandler, 
@@ -17,6 +19,8 @@ public class CustomButtonEffects : MonoBehaviour,
     [Header("Referencias")]
     [SerializeField] private TextMeshProUGUI textComponent;
     [SerializeField] private TextMeshProUGUI jpTextComponent;
+    [SerializeField] private TextAnimator_TMP textAnimator;
+    [SerializeField] private TextAnimator_TMP jpTextAnimator;
     [SerializeField] private GameObject effectMask;
     [SerializeField] private Image buttonBackground;
     
@@ -35,12 +39,14 @@ public class CustomButtonEffects : MonoBehaviour,
         {
             baseFontSize = textComponent.fontSize;
             originalText = textComponent.text;
+            //textAnimator = textComponent.GetComponent<TextAnimator_TMP>();
         }
         
         if (jpTextComponent != null)
         {
             jpBaseFontSize = jpTextComponent.fontSize;
             jpOriginalText = jpTextComponent.text;
+            //jpTextAnimator = jpTextComponent.GetComponent<TextAnimator_TMP>();
         }
     }
     
@@ -92,8 +98,8 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnNormal);
         ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
 
-        textComponent.text = originalText;
-        jpTextComponent.text = jpOriginalText;
+        textAnimator.SetText(originalText);
+        jpTextAnimator.SetText(jpOriginalText);
     }
     
     private void ApplyHighlightedState()
@@ -106,8 +112,8 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnHighlighted);
         ApplyBackgroundSprite(effectProfile.highlightedBackgroundSprite);
 
-        textComponent.text = $"<bounce>{originalText}</bounce>";
-        jpTextComponent.text = $"<bounce>{jpOriginalText}</bounce>";
+        textAnimator.SetText($"<bounce>{originalText}</bounce>");
+        jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
     }
     
     private void ApplyFont(TMP_FontAsset font, TMP_FontAsset jpFont)
