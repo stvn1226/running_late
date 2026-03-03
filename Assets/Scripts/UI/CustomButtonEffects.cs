@@ -39,14 +39,12 @@ public class CustomButtonEffects : MonoBehaviour,
         {
             baseFontSize = textComponent.fontSize;
             originalText = textComponent.text;
-            //textAnimator = textComponent.GetComponent<TextAnimator_TMP>();
         }
         
         if (jpTextComponent != null)
         {
             jpBaseFontSize = jpTextComponent.fontSize;
             jpOriginalText = jpTextComponent.text;
-            //jpTextAnimator = jpTextComponent.GetComponent<TextAnimator_TMP>();
         }
     }
     

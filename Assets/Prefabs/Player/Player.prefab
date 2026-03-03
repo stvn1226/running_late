@@ -83,6 +83,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &552495587634977725
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -128,6 +129,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 0ccd2b99e9b547b498330df9c7104170, type: 3}
   m_Color: {r: 0.3820755, g: 0.39146507, b: 1, a: 1}
   m_FlipX: 0
@@ -137,7 +139,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &7398306316366665982
 MonoBehaviour:
@@ -770,6 +771,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 9752836c402dc6b4e965ccbc2af87646, type: 2}
   rb: {fileID: 5328747980780883216}
   states: {fileID: 6913775742238925164}
+  longJumpEnabled: 0
   jumpFeedbacks: {fileID: 2034557323466851438}
   playerMovement: {fileID: 8651723166033491134}
 --- !u!114 &9074128693007361277
@@ -842,6 +844,7 @@ MonoBehaviour:
   isGrounded: 1
   wasGrounded: 0
   isWallRunning: 0
+  isWallSliding: 0
   isSliding: 0
   isKicking: 0
   isCrouching: 0
@@ -871,7 +874,9 @@ MonoBehaviour:
   isLongJumping: 0
   longJumpGraceTimer: 0
   canWallRun: 0
+  canWallSlide: 0
   wallDirection: 0
+  wallSlideTimer: 0
   isPerfectClimb: 0
   isVaultingWall: 0
   wallClimbInputTime: -999
