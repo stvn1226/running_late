@@ -1,8 +1,15 @@
+// =======================================================
+// Text Animator for Unity - Copyright (c) 2018-Today, Febucci SRL, febucci.com
+// - LICENSE: https://www.textanimatorforgames.com/legal/eula
+// - DOCUMENTATION: https://docs.febucci.com/text-animator-unity/
+// - WEBSITE: https://www.textanimatorforgames.com/
+// =======================================================
+
 using System.Text;
 
-namespace Febucci.UI.Core.Parsing
+namespace Febucci.TextAnimatorForUnity.TextMeshPro
 {
-    public class TMPTagParser : Febucci.TextUtils.Parsing.TagParserBase
+    class TMPTagParser : Febucci.Parsing.Core.TagParserBase
     {
         readonly bool richTagsEnabled;
 
@@ -60,8 +67,8 @@ namespace Febucci.UI.Core.Parsing
             }
         }
 
-        public TMPTagParser(bool richTagsEnabled, char openingBracket, char closingBracket, char closingTagSymbol)
-            : base(openingBracket, closingBracket, closingTagSymbol)
+        public TMPTagParser(bool richTagsEnabled, char openingBracket, char closingTagSymbol, char closingBracket)
+            : base(openingBracket, closingTagSymbol, closingBracket)
         {
             this.richTagsEnabled = richTagsEnabled;
         }
@@ -70,7 +77,7 @@ namespace Febucci.UI.Core.Parsing
         {
             if (!richTagsEnabled) return false;
 
-            string fullTag = startSymbol + textInsideBrackets + endSymbol; //TODO improve
+            string fullTag = OpeningBracket + textInsideBrackets + ClosingBracket; //TODO improve
 
             foreach (var lookupTag in lookups)
             {

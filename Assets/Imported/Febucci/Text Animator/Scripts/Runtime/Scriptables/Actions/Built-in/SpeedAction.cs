@@ -1,12 +1,22 @@
-using Febucci.UI.Core;
-using Febucci.UI.Core.Parsing;
+// =======================================================
+// Text Animator for Unity - Copyright (c) 2018-Today, Febucci SRL, febucci.com
+// - LICENSE: https://www.textanimatorforgames.com/legal/eula
+// - DOCUMENTATION: https://docs.febucci.com/text-animator-unity/
+// - WEBSITE: https://www.textanimatorforgames.com/
+// =======================================================
 
-namespace Febucci.UI.Actions
+using Febucci.TextAnimatorCore.Typing;
+using Febucci.TextAnimatorCore.Typing.BuiltIn;
+using Febucci.TextAnimatorForUnity.Actions.Core;
+
+using UnityEngine;
+
+namespace Febucci.TextAnimatorForUnity.Actions
 {
     [System.Serializable]
-    [UnityEngine.CreateAssetMenu(fileName = "Speed Action", menuName = "Text Animator/Actions/Speed", order = 1)]
+    [CreateAssetMenu(menuName = ScriptablePaths.ACTIONS_PATH+"Speed", fileName = "Speed Action")]
     [TagInfo("speed")]
-    public sealed class SpeedAction : ActionScriptableBase
+    sealed class SpeedAction : CoreLibraryActionScriptableWrapper<SpeedActionState>
     {
         /// <summary>
         /// Speed used in case the action does not have the first parameter
@@ -14,16 +24,20 @@ namespace Febucci.UI.Actions
         [UnityEngine.Tooltip("Speed used in case the action does not have the first parameter")]
         public float defaultSpeed = 2;
 
-        public override System.Collections.IEnumerator DoAction(ActionMarker action, TypewriterCore typewriter, TypingInfo typingInfo)
+        protected override SpeedActionState CreateState(ActionMarker marker, object typewriter)
         {
-            float speed = defaultSpeed;
-            if(action.parameters.Length > 0)
+            // Parse speed multiplier from first parameter (default: 1.0)
+            float speedMultiplier = 1f;
+            if (marker.parameters != null && marker.parameters.Length > 0)
             {
-                FormatUtils.TryGetFloat(action.parameters[0], defaultSpeed, out speed);
+                if (!float.TryParse(marker.parameters[0], System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out speedMultiplier))
+                {
+                    speedMultiplier =defaultSpeed;
+                }
             }
 
-            typingInfo.speed = speed;
-            yield break;
+            return new SpeedActionState(speedMultiplier);
         }
     }
 }

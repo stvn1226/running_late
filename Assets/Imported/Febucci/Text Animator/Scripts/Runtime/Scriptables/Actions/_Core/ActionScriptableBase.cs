@@ -1,18 +1,19 @@
-using Febucci.UI.Core;
-using Febucci.UI.Core.Parsing;
+// =======================================================
+// Text Animator for Unity - Copyright (c) 2018-Today, Febucci SRL, febucci.com
+// - LICENSE: https://www.textanimatorforgames.com/legal/eula
+// - DOCUMENTATION: https://docs.febucci.com/text-animator-unity/
+// - WEBSITE: https://www.textanimatorforgames.com/
+// =======================================================
 
-namespace Febucci.UI.Actions
+using Febucci.TextAnimatorCore.Typing;
+
+namespace Febucci.TextAnimatorForUnity.Actions.Core
 {
     [System.Serializable]
-    public abstract class ActionScriptableBase : UnityEngine.ScriptableObject, ITagProvider
+    public abstract class ActionScriptableBase : UnityEngine.ScriptableObject, ITypewriterAction
     {
-        [UnityEngine.SerializeField] string tagID;
-        public string TagID
-        {
-            get => tagID;
-            set => tagID = value;
-        }
+        public abstract IActionState CreateActionFrom(ActionMarker marker, object typewriter);
 
-        public abstract System.Collections.IEnumerator DoAction(ActionMarker action, TypewriterCore typewriter, TypingInfo typingInfo);
+        public abstract string TagID { get;  set; }
     }
 }
