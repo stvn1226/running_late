@@ -119,6 +119,72 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &34786695 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3017530128455921983, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &34786699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34786695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &177951800 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7932747109670255419, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &177951804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177951800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1001 &374792399
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -228,6 +294,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &553274173 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6031092342724401833, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &553274177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 553274173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1 &761049360
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,6 +371,171 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &771612897 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6219080516645958427, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &771612901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 771612897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &784073343 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8054164020752989772, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &784073347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 784073343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &942899845 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3425173772787085805, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &942899849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942899845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &1032233205 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7238336366095063967, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1032233209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1032233205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &1128800853 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 887326413676199379, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1128800857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1128800853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1 &1180138039
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,6 +813,14 @@ PrefabInstance:
       propertyPath: m_PixelsPerUnitMultiplier
       value: 11.56
       objectReference: {fileID: 0}
+    - target: {fileID: 2339660168836303511, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 553274177}
+    - target: {fileID: 2339660168836303511, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 1531548534}
     - target: {fileID: 2347157502349625616, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -729,6 +1001,22 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4887471645689843016, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 1032233209}
+    - target: {fileID: 4887471645689843016, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 771612901}
+    - target: {fileID: 4945218574805036678, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 1128800857}
+    - target: {fileID: 4945218574805036678, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 1973492799}
     - target: {fileID: 5249211856724917080, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -849,6 +1137,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -35.699997
       objectReference: {fileID: 0}
+    - target: {fileID: 7057466449580321640, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 784073347}
+    - target: {fileID: 7057466449580321640, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 2095063321}
     - target: {fileID: 7092431147607764824, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -865,6 +1161,30 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7100492707442518209, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 177951804}
+    - target: {fileID: 7100492707442518209, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 34786699}
+    - target: {fileID: 7573047855420686315, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 1213928985}
+    - target: {fileID: 7573047855420686315, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 1250156446}
+    - target: {fileID: 7656965248288040520, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: textAnimator
+      value: 
+      objectReference: {fileID: 1892770609}
+    - target: {fileID: 7656965248288040520, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: jpTextAnimator
+      value: 
+      objectReference: {fileID: 942899849}
     - target: {fileID: 7666412142315492747, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1064,8 +1384,116 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7932747109670255419, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 177951804}
+    - targetCorrespondingSourceObject: {fileID: 3017530128455921983, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 34786699}
+    - targetCorrespondingSourceObject: {fileID: 7238336366095063967, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1032233209}
+    - targetCorrespondingSourceObject: {fileID: 6219080516645958427, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 771612901}
+    - targetCorrespondingSourceObject: {fileID: 5359649820086804808, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1213928985}
+    - targetCorrespondingSourceObject: {fileID: 3497561109524208393, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1250156446}
+    - targetCorrespondingSourceObject: {fileID: 887326413676199379, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1128800857}
+    - targetCorrespondingSourceObject: {fileID: 5155606172431064080, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1973492799}
+    - targetCorrespondingSourceObject: {fileID: 8054164020752989772, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 784073347}
+    - targetCorrespondingSourceObject: {fileID: 3775837433162361347, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2095063321}
+    - targetCorrespondingSourceObject: {fileID: 6031092342724401833, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 553274177}
+    - targetCorrespondingSourceObject: {fileID: 3397036300662749119, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1531548534}
+    - targetCorrespondingSourceObject: {fileID: 3241557510266782619, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1892770609}
+    - targetCorrespondingSourceObject: {fileID: 3425173772787085805, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 942899849}
   m_SourcePrefab: {fileID: 100100000, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+--- !u!1 &1213928981 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5359649820086804808, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1213928985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213928981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &1250156442 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3497561109524208393, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1250156446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1250156442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1 &1263599385
 GameObject:
   m_ObjectHideFlags: 0
@@ -1181,6 +1609,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1531548530 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3397036300662749119, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1531548534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1531548530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1 &1718316690
 GameObject:
   m_ObjectHideFlags: 0
@@ -1463,6 +1924,72 @@ Transform:
   - {fileID: 4096399022968211746}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1892770605 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3241557510266782619, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1892770609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1892770605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
+--- !u!1 &1973492795 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5155606172431064080, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1973492799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973492795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1 &2032654900
 GameObject:
   m_ObjectHideFlags: 0
@@ -1508,6 +2035,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2095063317 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3775837433162361347, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2095063321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2095063317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ace8ced0e81c847968cdca0aeda757, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Febucci.TextAnimatorForUnity.TMP.Runtime::Febucci.TextAnimatorForUnity.TextMeshPro.TextAnimator_TMP
+  localSettings:
+    isResettingTimeOnNewText: 1
+    defaultEffectsMode: 0
+    timeScale: 0
+    defaultBehaviorTags: []
+    defaultAppearanceTags: []
+    defaultDisappearanceTags: []
+    isAnimatingBehaviors: 1
+    isAnimatingAppearances: 0
+    isAnimatingDisappearances: 0
+    useDynamicScaling: 1
+    referenceFontSize: 10
+  sharedSettings: {fileID: 11400000, guid: 503730955ff7ed9468949780cdcb9806, type: 2}
+  animationLoop: 0
+  databaseEffects: {fileID: 0}
+  styleSheet: {fileID: 0}
 --- !u!1001 &121654382704160665
 PrefabInstance:
   m_ObjectHideFlags: 0

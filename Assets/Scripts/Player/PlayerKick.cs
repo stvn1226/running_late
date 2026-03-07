@@ -43,9 +43,13 @@ public class PlayerKick : MonoBehaviour
             }
             else
             {
-                // Animation changed to something else, end kick state
-                DisableHitbox();
-                states.EndKick("animChanged");
+                // Animation changed to something else
+                float nTime = playerAnimator.GetKickNormalizedTime();
+                if (nTime >= 0.95f || nTime == 0f)
+                {
+                    DisableHitbox();
+                    states.EndKick("animChanged");
+                }
             }
         }
         else if (hitboxActive)

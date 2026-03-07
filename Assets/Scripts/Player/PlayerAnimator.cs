@@ -359,7 +359,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (!IsPlayingKick()) return 0f;
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        return stateInfo.normalizedTime % 1f;
+        return Mathf.Clamp01(stateInfo.normalizedTime);
     }
 
     public string GetCurrentStateName()

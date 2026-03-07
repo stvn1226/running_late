@@ -96,8 +96,8 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnNormal);
         ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
 
-        textAnimator.SetText(originalText);
-        jpTextAnimator.SetText(jpOriginalText);
+        if (textAnimator != null) textAnimator.SetText(originalText);
+        if (jpTextAnimator != null) jpTextAnimator.SetText(jpOriginalText);
     }
     
     private void ApplyHighlightedState()
@@ -110,8 +110,8 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnHighlighted);
         ApplyBackgroundSprite(effectProfile.highlightedBackgroundSprite);
 
-        textAnimator.SetText($"<bounce>{originalText}</bounce>");
-        jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
+        if (textAnimator != null) textAnimator.SetText($"<bounce>{originalText}</bounce>");
+        if (jpTextAnimator != null) jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
     }
     
     private void ApplyFont(TMP_FontAsset font, TMP_FontAsset jpFont)

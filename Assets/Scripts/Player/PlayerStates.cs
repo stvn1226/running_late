@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI;
 
@@ -6,6 +7,7 @@ public class PlayerStates : MonoBehaviour
 {
     private PlayerConfig config;
     [SerializeField] private CapsuleCollider2D playerCollider;
+    private Rigidbody2D rb;
     private new Transform transform;
     private SpriteRenderer spriteRenderer;
 
@@ -120,6 +122,8 @@ public class PlayerStates : MonoBehaviour
     public EdgeCollider2D currentCable;
     public float cableSlideSpeed = 0f;
 
+    private List<Collider2D> ignoredCableColliders = new List<Collider2D>();
+
     private Coroutine activeInvincibility;
 
     public System.Action OnGroundedChanged;
@@ -142,6 +146,7 @@ public class PlayerStates : MonoBehaviour
     {
         transform = GetComponent<Transform>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
     }
 
@@ -350,7 +355,10 @@ public class PlayerStates : MonoBehaviour
         if (isRolling)
         {
             rollTimer -= Time.deltaTime;
-            if (rollTimer <= 0f)
+
+            // Early exit: player is rolling but stopped by a wall
+            bool blockedByWall = wallDirection != 0 && Mathf.Abs(rb.linearVelocity.x) < 1f;
+            if (blockedByWall || rollTimer <= 0f)
             {
                 EndRoll();
             }
@@ -653,10 +661,49 @@ public class PlayerStates : MonoBehaviour
         isSlidingOnCable = true;
         currentCable = cableCollider;
         isSliding = true;
+
+        if (cableCollider == null || playerCollider == null || config == null) return;
+
+        Vector2 startPos = cableCollider.transform.TransformPoint(cableCollider.points[0]);
+        Vector2 endPos = cableCollider.transform.TransformPoint(cableCollider.points[cableCollider.points.Length - 1]);
+
+        BuildingWallsTrigger startTrigger = FindBuildingTriggerAtPoint(startPos);
+        BuildingWallsTrigger endTrigger = FindBuildingTriggerAtPoint(endPos);
+
+        Bounds bounds = cableCollider.bounds;
+        Collider2D[] potentialBlockers = Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, config.wallLayer);
+
+        foreach (var col in potentialBlockers)
+        {
+            BuildingWallsTrigger trigger = col.GetComponentInParent<BuildingWallsTrigger>();
+            if (trigger != null && trigger != startTrigger && trigger != endTrigger)
+            {
+                Physics2D.IgnoreCollision(playerCollider, col, true);
+                ignoredCableColliders.Add(col);
+            }
+        }
+    }
+
+    private BuildingWallsTrigger FindBuildingTriggerAtPoint(Vector2 point)
+    {
+        Collider2D[] cols = Physics2D.OverlapPointAll(point, config.wallLayer);
+        foreach (var col in cols)
+        {
+            BuildingWallsTrigger trigger = col.GetComponentInParent<BuildingWallsTrigger>();
+            if (trigger != null) return trigger;
+        }
+        return null;
     }
 
     public void EndCableSlide()
     {
+        foreach (var col in ignoredCableColliders)
+        {
+            if (col != null && playerCollider != null)
+                Physics2D.IgnoreCollision(playerCollider, col, false);
+        }
+        ignoredCableColliders.Clear();
+
         isSlidingOnCable = false;
         currentCable = null;
         isSliding = false;

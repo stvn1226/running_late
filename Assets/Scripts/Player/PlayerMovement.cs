@@ -424,6 +424,15 @@ public class PlayerMovement : MonoBehaviour
                     
                     rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
                     
+                    // NEW: compensate gravity component when ascending (slopeDir.y > 0 means uphill)
+                    bool isGoingUphill = moveDirection.y > 0f;
+                    if (isGoingUphill)
+                    {
+                        float slopeAngleRad = states.slopeAngle * Mathf.Deg2Rad;
+                        float gravityCompensation = Mathf.Abs(Physics2D.gravity.y) * Mathf.Sin(slopeAngleRad);
+                        rb.AddForce(moveDirection.normalized * (gravityCompensation * Time.fixedDeltaTime), ForceMode2D.Force);
+                    }
+
 #if ENABLE_VERBOSE_LOGGING
                     GameLogger.LogVerbose("SLOPE", "SlopeMove applied");
 #endif
@@ -482,6 +491,21 @@ public class PlayerMovement : MonoBehaviour
 #if ENABLE_VERBOSE_LOGGING
             GameLogger.LogVerbose("SLOPE", "STICK applied");
 #endif
+        }
+
+        // NEW: apply tangential gravity when descending and having input
+        float slopeAngleRad = states.slopeAngle * Mathf.Deg2Rad;
+        float tangentialGravity = Mathf.Abs(Physics2D.gravity.y) 
+                                  * Mathf.Sin(slopeAngleRad) 
+                                  * config.slopeGravityInfluence;
+        
+        float horizontalInput = states.moveInput.x;
+        Vector2 downhillDirAlongSlope = states.slopeTangent * Mathf.Sign(rb.linearVelocity.x);
+        
+        // Only boost if actively moving downhill with input, not when standing still
+        if (downhillDirAlongSlope.y < 0f && rb.linearVelocity.y < 0f && Mathf.Abs(horizontalInput) > 0.1f)
+        {
+            rb.AddForce(downhillDirAlongSlope * (tangentialGravity * Time.fixedDeltaTime), ForceMode2D.Force);
         }
     }
 
