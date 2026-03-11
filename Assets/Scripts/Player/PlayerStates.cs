@@ -540,7 +540,7 @@ public class PlayerStates : MonoBehaviour
             EndKick();
         }
 
-        float invulnerabilityDuration = duration * 2f;
+        float invulnerabilityDuration = duration * 3f;
         InvokeInvincibility(invulnerabilityDuration);
         StartCoroutine(BlinkSprite(invulnerabilityDuration));
         
