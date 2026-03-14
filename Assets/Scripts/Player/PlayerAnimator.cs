@@ -180,7 +180,19 @@ public class PlayerAnimator : MonoBehaviour
             return GetRandomKickVariation();
 
         if (states.isKicking)
-            return currentStateHash;
+        {
+            // Check if the kick animation has actually finished
+            float nTime = GetKickNormalizedTime();
+            if (nTime >= 0.95f)
+            {
+                // Animation done — end the state and fall through to normal locomotion
+                states.EndKick("animDone-animator");
+            }
+            else
+            {
+                return currentStateHash; // Still playing — hold the kick animation
+            }
+        }
 
         if (states.isDiving)
             return AnimHash.GroundSlam;

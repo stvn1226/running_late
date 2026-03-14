@@ -19,6 +19,7 @@ public class PlayerAnimatorController : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PlayerStates states;
+    [SerializeField] private PlayerConfig config;
 
     private void Awake()
     {
@@ -35,6 +36,11 @@ public class PlayerAnimatorController : MonoBehaviour
         if (states == null)
         {
             states = GetComponent<PlayerStates>();
+        }
+
+        if (config == null)
+        {
+            config = GetComponent<PlayerMovement>()?.config;
         }
     }
 
@@ -97,7 +103,8 @@ public class PlayerAnimatorController : MonoBehaviour
             animator.SetBool(IsKicking, true);
             GameLogger.Log("KICK", $"Animator Bool SET TRUE - isGrounded={states?.isGrounded}, yVel={rb?.linearVelocity.y:F2}");
             
-            Invoke(nameof(ResetKickBool), 0.2f);
+            float duration = config != null ? config.kickDuration : 0.2f;
+            Invoke(nameof(ResetKickBool), duration);
         }
     }
     

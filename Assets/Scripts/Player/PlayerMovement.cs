@@ -432,6 +432,12 @@ public class PlayerMovement : MonoBehaviour
                         float gravityCompensation = Mathf.Abs(Physics2D.gravity.y) * Mathf.Sin(slopeAngleRad);
                         rb.AddForce(moveDirection.normalized * (gravityCompensation * Time.fixedDeltaTime), ForceMode2D.Force);
                     }
+                    else // Downhill
+                    {
+                        // NEW: Downhill walking boost - significantly clarified for walking feel
+                        float downhillBoost = config.runForce * 1.2f * forceMultiplier;
+                        rb.AddForce(moveDirection.normalized * (downhillBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+                    }
 
 #if ENABLE_VERBOSE_LOGGING
                     GameLogger.LogVerbose("SLOPE", "SlopeMove applied");
@@ -505,7 +511,8 @@ public class PlayerMovement : MonoBehaviour
         // Only boost if actively moving downhill with input, not when standing still
         if (downhillDirAlongSlope.y < 0f && rb.linearVelocity.y < 0f && Mathf.Abs(horizontalInput) > 0.1f)
         {
-            rb.AddForce(downhillDirAlongSlope * (tangentialGravity * Time.fixedDeltaTime), ForceMode2D.Force);
+            // Boosted tangential gravity to overcome drag system
+            rb.AddForce(downhillDirAlongSlope * (tangentialGravity * 50f * Time.fixedDeltaTime), ForceMode2D.Force);
         }
     }
 
@@ -529,8 +536,8 @@ public class PlayerMovement : MonoBehaviour
                 float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
                 float momentumFactor = Mathf.Clamp01(currentSpeed / (maxRunSpeed * 0.8f));
                 float slopeAngleFactor = Mathf.Clamp01(states.slopeAngle / config.maxWalkableSlope);
-                float angleBonus = 1f + (slopeAngleFactor * 0.5f);
-                float slopeBoost = 250f * momentumFactor * angleBonus;
+                float angleBonus = 1f + (slopeAngleFactor * 1.5f); // Increased bonus
+                float slopeBoost = config.runForce * 2.5f * momentumFactor * angleBonus; // Using config.runForce as base for scaling
                 
                 rb.AddForce(slopeDir * (slopeBoost * Time.fixedDeltaTime), ForceMode2D.Force);
                 
@@ -787,5 +794,25 @@ public class PlayerMovement : MonoBehaviour
 
         }
         return closestPoint;
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        // Zero out horizontal velocity when pressing against a wall that is not being wall-run
+        if (!states.isGrounded && !states.isWallRunning && !states.isWallSliding)
+        {
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (Mathf.Abs(contact.normal.x) > 0.9f) // Vertical wall
+                {
+                    // If moving into the wall, kill horizontal velocity to prevent "sliding through" or bouncing weirdly
+                    float relativeVelX = rb.linearVelocity.x;
+                    if (Mathf.Sign(relativeVelX) != Mathf.Sign(contact.normal.x))
+                    {
+                        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+                    }
+                }
+            }
+        }
     }
 }

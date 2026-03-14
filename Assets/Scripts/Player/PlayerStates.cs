@@ -121,6 +121,8 @@ public class PlayerStates : MonoBehaviour
     public bool isSlidingOnCable = false;
     public EdgeCollider2D currentCable;
     public float cableSlideSpeed = 0f;
+    private float cableSlideGraceTimer = 0f;
+    private const float CABLE_SLIDE_GRACE_TIME = 0.15f;
 
     private List<Collider2D> ignoredCableColliders = new List<Collider2D>();
 
@@ -367,9 +369,12 @@ public class PlayerStates : MonoBehaviour
         if (isKicking)
         {
             kickTimer -= Time.deltaTime;
-            if (kickTimer <= 0f)
+            // Primary exit: animation-driven (PlayerKick.Update checks nTime >= 0.95f)
+            // Safety backstop: if animation detection fails, force-exit after 3x the configured duration
+            if (kickTimer <= -(config.kickDuration * 2f))
             {
-                EndKick();
+                GameLogger.LogWarning("KICK", "SAFETY EXIT: kick state exceeded max duration, force clearing");
+                EndKick("safetyTimeout");
             }
         }
 
@@ -391,6 +396,15 @@ public class PlayerStates : MonoBehaviour
             else if (vaultTimer <= 0f)
             {
                 EndVault();
+            }
+        }
+
+        if (cableSlideGraceTimer > 0f)
+        {
+            cableSlideGraceTimer -= Time.deltaTime;
+            if (cableSlideGraceTimer <= 0f)
+            {
+                PerformActualCableSlideExit();
             }
         }
 
@@ -661,6 +675,7 @@ public class PlayerStates : MonoBehaviour
         isSlidingOnCable = true;
         currentCable = cableCollider;
         isSliding = true;
+        cableSlideGraceTimer = 0f;
 
         if (cableCollider == null || playerCollider == null || config == null) return;
 
@@ -697,6 +712,11 @@ public class PlayerStates : MonoBehaviour
 
     public void EndCableSlide()
     {
+        cableSlideGraceTimer = CABLE_SLIDE_GRACE_TIME;
+    }
+
+    private void PerformActualCableSlideExit()
+    {
         foreach (var col in ignoredCableColliders)
         {
             if (col != null && playerCollider != null)
@@ -707,6 +727,7 @@ public class PlayerStates : MonoBehaviour
         isSlidingOnCable = false;
         currentCable = null;
         isSliding = false;
+        GameLogger.LogState("CABLE SLIDE: Ended after grace period");
     }
 
     public void RecordWallClimbInput()

@@ -17,9 +17,29 @@ public class UIPowerUpHandler : MonoBehaviour
 
     }
 
-    public void RegisterPowerUp(PowerUpContract powerUpContract)
+    public bool RegisterPowerUp(PowerUpContract powerUpContract)
     {
-        if (!IsValidPowerUp(powerUpContract.powerUpName)) return;
+        if (!IsValidPowerUp(powerUpContract.powerUpName)) return false;
+
+        // Custom priority logic: ExtraSpeed (Headphones) vs Shield (Gum)
+        if (powerUpContract.powerUpName == "ExtraSpeed")
+        {
+            if (_UIPowerUps.Any(x => x.powerUpName == "Shield"))
+            {
+                UnregisterPowerUp("Shield");
+                // Remove the actual shield effect from the player
+                FindObjectOfType<PlayerStates>()?.RemoveShield();
+                GameLogger.Log("POWERUP", "Priority conflict: Removed Gum because Headphones were picked up");
+            }
+        }
+        else if (powerUpContract.powerUpName == "Shield")
+        {
+            if (_UIPowerUps.Any(x => x.powerUpName == "ExtraSpeed"))
+            {
+                GameLogger.Log("POWERUP", "Priority conflict: Gum ignored because Headphones are active");
+                return false;
+            }
+        }
 
         //if power up is new...
         if (!_UIPowerUps.Any(x => x.powerUpName == powerUpContract.powerUpName))
@@ -36,6 +56,8 @@ public class UIPowerUpHandler : MonoBehaviour
             UIPowerUp powerUp = _UIPowerUps.First(x => x.powerUpName == powerUpContract.powerUpName);
             powerUp.Initialize(powerUpContract);
         }
+
+        return true;
     }
 
     public void UnregisterPowerUp(string powerUpName)

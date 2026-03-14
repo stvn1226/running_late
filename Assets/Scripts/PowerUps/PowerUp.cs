@@ -43,16 +43,28 @@ public abstract class PowerUp : MonoBehaviour
             GameLogger.Log("POWERUP", $"Power-up {GetType().Name} picked up by {player.name}");
         }
 
-        ApplyEffect(player);
-        PlayPickupSound();
-        SpawnPickupEffect();
-        UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
+        bool registered = UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
             powerUpName = powerUpName, 
             image = icon, 
             color = theme, 
             duration = activeTime,
             description = desc
         });
+
+        if (registered)
+        {
+            ApplyEffect(player);
+        }
+        else
+        {
+            if (showDebugInfo)
+            {
+                GameLogger.Log("POWERUP", $"Power-up {GetType().Name} NOT applied due to priority conflict.");
+            }
+        }
+
+        PlayPickupSound();
+        SpawnPickupEffect();
 
         hasBeenPickedUp = true;
 

@@ -175,7 +175,8 @@ public class PlayerStateManager : MonoBehaviour
             states.RecordWallClimbInput();
         }
 
-        bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f;
+        // bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f;
+        bool shouldWallRun = states.wallRunHeld && states.canWallRun && Mathf.Abs(states.moveInput.x) > 0.1f && !states.isRolling;
         
         if (shouldWallRun && !previousWallRunning && rb.linearVelocity.y < -1f)
         {
@@ -208,6 +209,12 @@ public class PlayerStateManager : MonoBehaviour
             
             if (shouldWallRun && !states.isWallRunning)
             {
+                if (states.isDiving)
+                {
+                    GameLogger.LogState("DIVE INTERRUPTED: Wall run started while diving");
+                    states.EndDive();
+                }
+
                 PlayerAirDodge airDodge = GetComponent<PlayerAirDodge>();
                 if (airDodge != null)
                 {

@@ -230,6 +230,7 @@ MonoBehaviour:
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -383,6 +384,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -470,7 +472,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleWarningManager
   warningIndicatorPrefab: {fileID: 1236893895679265103, guid: 514b38d2c4f37b042921cb867b68b3b9, type: 3}
   gameCanvas: {fileID: 1506005879}
-  mainCamera: {fileID: 0}
+  mainCamera: {fileID: 1852714630}
   detectionRange: 60
   obstacleLayer:
     serializedVersion: 2
@@ -1347,6 +1349,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1852714630}
+    - target: {fileID: 9174801325631633968, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_RenderMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9176381201060447059, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_SizeDelta.x
       value: -15.4
@@ -1727,6 +1733,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2054,6 +2061,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2878,7 +2886,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defeat
   timeLimit: 120
   timerCountdown: {fileID: 1682208650}
-  showDebugInfo: 1
+  showDebugInfo: 0
 --- !u!4 &1006669943
 Transform:
   m_ObjectHideFlags: 0
@@ -3288,6 +3296,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
