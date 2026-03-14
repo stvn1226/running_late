@@ -7,6 +7,7 @@ public class PlayerStates : MonoBehaviour
 {
     private PlayerConfig config;
     [SerializeField] private CapsuleCollider2D playerCollider;
+    private List<Collider2D> allPlayerColliders = new List<Collider2D>();
     private Rigidbody2D rb;
     private new Transform transform;
     private SpriteRenderer spriteRenderer;
@@ -150,6 +151,12 @@ public class PlayerStates : MonoBehaviour
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
+
+        if (playerCollider == null)
+            playerCollider = GetComponentInChildren<CapsuleCollider2D>();
+
+        allPlayerColliders.Clear();
+        allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());
     }
 
     private void Update()
@@ -408,7 +415,13 @@ public class PlayerStates : MonoBehaviour
             }
         }
 
+        if (isSlidingOnCable)
+        {
+            isSliding = crouchHeld; // Allow manual sliding on cables
+            isCrouching = false;
+        }
     }
+
 
     private void CheckStateChanges()
     {
@@ -670,44 +683,55 @@ public class PlayerStates : MonoBehaviour
         }
     }
 
+    // We check start and end point and look for all BuildingDetector in the middle to turn off their boxCollider (Cap) to stop any collision when sliding
     public void StartCableSlide(EdgeCollider2D cableCollider)
     {
         isSlidingOnCable = true;
         currentCable = cableCollider;
-        isSliding = true;
         cableSlideGraceTimer = 0f;
 
-        if (cableCollider == null || playerCollider == null || config == null) return;
+        if (cableCollider == null || config == null) return;
 
-        Vector2 startPos = cableCollider.transform.TransformPoint(cableCollider.points[0]);
-        Vector2 endPos = cableCollider.transform.TransformPoint(cableCollider.points[cableCollider.points.Length - 1]);
+        // Ensure we have colliders
+        if (allPlayerColliders.Count == 0) allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());
 
-        BuildingWallsTrigger startTrigger = FindBuildingTriggerAtPoint(startPos);
-        BuildingWallsTrigger endTrigger = FindBuildingTriggerAtPoint(endPos);
+        // Simplified: use the Rope component to find start/end buildings directly
+        var rope = cableCollider.GetComponent<GogoGaga.OptimizedRopesAndCables.Rope>();
+        BuildingDetector startBuilding = null;
+        BuildingDetector endBuilding = null;
 
-        Bounds bounds = cableCollider.bounds;
-        Collider2D[] potentialBlockers = Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, config.wallLayer);
-
-        foreach (var col in potentialBlockers)
+        if (rope != null)
         {
-            BuildingWallsTrigger trigger = col.GetComponentInParent<BuildingWallsTrigger>();
-            if (trigger != null && trigger != startTrigger && trigger != endTrigger)
+            if (rope.StartPoint != null) startBuilding = rope.StartPoint.GetComponentInParent<BuildingDetector>();
+            if (rope.EndPoint != null) endBuilding = rope.EndPoint.GetComponentInParent<BuildingDetector>();
+        }
+
+        // BUILDING SUPPRESSION: Find and disable ALL buildings between start and end
+        if (startBuilding != null && endBuilding != null)
+        {
+            float minX = Mathf.Min(startBuilding.transform.position.x, endBuilding.transform.position.x) - 2f;
+            float maxX = Mathf.Max(startBuilding.transform.position.x, endBuilding.transform.position.x) + 2f;
+
+            BuildingDetector[] allBuildings = Object.FindObjectsByType<BuildingDetector>(FindObjectsSortMode.None);
+            foreach (var b in allBuildings)
             {
-                Physics2D.IgnoreCollision(playerCollider, col, true);
-                ignoredCableColliders.Add(col);
+                // If it's between our anchors and NOT an anchor itself
+                if (b != startBuilding && b != endBuilding && 
+                    b.transform.position.x >= minX && b.transform.position.x <= maxX)
+                {
+                    Collider2D[] buildingColliders = b.GetComponentsInChildren<Collider2D>();
+                    foreach (var bCol in buildingColliders)
+                    {
+                        if (bCol.enabled)
+                        {
+                            bCol.enabled = false;
+                            if (!ignoredCableColliders.Contains(bCol)) ignoredCableColliders.Add(bCol);
+                        }
+                    }
+                    GameLogger.Log("CABLE", $"SUPPRESSED intermediate building: {b.gameObject.name}");
+                }
             }
         }
-    }
-
-    private BuildingWallsTrigger FindBuildingTriggerAtPoint(Vector2 point)
-    {
-        Collider2D[] cols = Physics2D.OverlapPointAll(point, config.wallLayer);
-        foreach (var col in cols)
-        {
-            BuildingWallsTrigger trigger = col.GetComponentInParent<BuildingWallsTrigger>();
-            if (trigger != null) return trigger;
-        }
-        return null;
     }
 
     public void EndCableSlide()
@@ -719,8 +743,10 @@ public class PlayerStates : MonoBehaviour
     {
         foreach (var col in ignoredCableColliders)
         {
-            if (col != null && playerCollider != null)
-                Physics2D.IgnoreCollision(playerCollider, col, false);
+            if (col != null)
+            {
+                col.enabled = true;
+            }
         }
         ignoredCableColliders.Clear();
 

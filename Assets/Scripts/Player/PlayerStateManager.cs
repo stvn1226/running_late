@@ -23,7 +23,8 @@ public class PlayerStateManager : MonoBehaviour
     {
         HandleStates();
 
-        CableManager.instance.isFastFalling = states.crouchHeld;
+        // CableManager.instance.isFastFalling = states.crouchHeld;
+        CableManager.instance.isFastFalling = states.crouchHeld && !states.isGrounded;
         
         // Periodic state logging
         if (Time.time - lastStateLog > STATE_LOG_INTERVAL)

@@ -203,7 +203,8 @@ public class PlayerAnimator : MonoBehaviour
         if (states.isVaultingWall)
             return AnimHash.WallJump;
 
-        if (states.isSlidingOnCable)
+        // if (states.isSlidingOnCable)
+        if (states.isSlidingOnCable && states.isSliding)
             return AnimHash.Slide;
 
         if (states.isWallRunning)

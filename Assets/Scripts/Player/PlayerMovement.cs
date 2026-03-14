@@ -789,7 +789,8 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector2 worldPoint = cableCollider.transform.TransformPoint(point);
             if (worldPoint.x < playerPosition.x) continue;
-            closestPoint = new Vector2 (worldPoint.x, worldPoint.y + .5f);
+            // closestPoint = new Vector2 (worldPoint.x, worldPoint.y + .5f);
+            closestPoint = new Vector2 (worldPoint.x, worldPoint.y + 0.15f); // Reduced offset for stability
             break;
 
         }
