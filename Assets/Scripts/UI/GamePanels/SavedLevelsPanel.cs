@@ -82,10 +82,8 @@ public class SavedLevelsPanel : BaseMainMenuPanel
 
         if (isRecentsPanel)
         {
-            // Load recent levels and populate savedLevelEntries
             foreach (LevelSavingParams l in RecentLevelsList.instance.GetRecentLevels())
             {
-                // Create SavedLevelEntry for each recent level and add to savedLevelEntries
                 SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
                 newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel, ct);
                 savedLevelEntries.Add(newEntry);
@@ -94,16 +92,13 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         }
         else
         {
-            // Load all saved levels and populate savedLevelEntries
             foreach (LevelSavingParams l in SavedLevelsList.instance.GetSavedLevels())
             {
-                // Create SavedLevelEntry for each recent level and add to savedLevelEntries
                 SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
                 newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel, ct);
                 savedLevelEntries.Add(newEntry);
                 ct++;
             }
-
         }
 
         currentTopVisibleIndex = 0;

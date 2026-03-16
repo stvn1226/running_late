@@ -10,6 +10,7 @@ public class PlayerJump : MonoBehaviour
 
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PlayerStates states;
+    [SerializeField] private bool longJumpEnabled = true;
     private float originalGravityScale;
     public MMF_Player jumpFeedbacks;
 
@@ -206,6 +207,8 @@ public class PlayerJump : MonoBehaviour
 
     private bool ShouldPerformLongJump()
     {
+        if (!longJumpEnabled) return false;
+
         bool crouchIsHeld = states.crouchHeld;
         bool crouchWasRecentlyPressed = states.crouchInputBuffered;
         bool isMoving = Mathf.Abs(states.moveInput.x) > 0.1f;

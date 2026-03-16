@@ -1,6 +1,13 @@
+// =======================================================
+// Text Animator for Unity - Copyright (c) 2018-Today, Febucci SRL, febucci.com
+// - LICENSE: https://www.textanimatorforgames.com/legal/eula
+// - DOCUMENTATION: https://docs.febucci.com/text-animator-unity/
+// - WEBSITE: https://www.textanimatorforgames.com/
+// =======================================================
+
 using System;
 
-namespace Febucci.UI.Core
+namespace Febucci.TextAnimatorForUnity
 {
     [Flags]
     public enum EffectCategory
@@ -20,12 +27,12 @@ namespace Febucci.UI.Core
             this.tagID = tagID;
         }
     }
-    
+
     [AttributeUsage(AttributeTargets.Class)]
     public class EffectInfoAttribute : TagInfoAttribute
     {
         public readonly EffectCategory category;
-        
+
         public EffectInfoAttribute(string tagID, EffectCategory category) : base(tagID)
         {
             this.category = category;

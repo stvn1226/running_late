@@ -1,16 +1,22 @@
-using Febucci.UI.Actions;
-using Febucci.UI.Effects;
-using Febucci.UI.Styles;
+// =======================================================
+// Text Animator for Unity - Copyright (c) 2018-Today, Febucci SRL, febucci.com
+// - LICENSE: https://www.textanimatorforgames.com/legal/eula
+// - DOCUMENTATION: https://docs.febucci.com/text-animator-unity/
+// - WEBSITE: https://www.textanimatorforgames.com/
+// =======================================================
+
+using Febucci.TextAnimatorCore.Settings;
 using UnityEngine;
 
-namespace Febucci.UI
+namespace Febucci.TextAnimatorForUnity
 {
+
     /// <summary>
     /// Contains global settings for Text Animator, like effects enabled status and default databases.
     /// </summary>
     [System.Serializable]
-    [CreateAssetMenu(fileName = "Text Animator Settings", menuName = "Text Animator/Settings", order = 100)]
-    public sealed class TextAnimatorSettings : ScriptableObject
+    [CreateAssetMenu(menuName = ScriptablePaths.SETTINGS_PATH+"Global Settings", fileName = "Global Settings for Text Animator")]
+    public sealed class TextAnimatorSettings : ScriptableObject, ISettingsProvider<GlobalSettingsBase>
     {
         public const string expectedName = "TextAnimatorSettings";
         static TextAnimatorSettings instance;
@@ -23,6 +29,8 @@ namespace Febucci.UI
         {
             get
             {
+                // PSA this *can* return null
+
                 if (instance) return instance;
 
                 LoadSettings();
@@ -51,69 +59,18 @@ namespace Febucci.UI
         }
 
         /// <summary>
-        /// Sets all the effects (both appearances/disappearances and behaviors) status.
-        /// </summary>
-        /// <param name="enabled"></param>
-        public static void SetAllEffectsActive(bool enabled)
-        {
-            SetAppearancesActive(enabled);
-            SetBehaviorsActive(enabled);
-        }
-
-        /// <summary>
-        /// Sets all appearances effects status.
-        /// </summary>
-        /// <param name="enabled"></param>
-        public static void SetAppearancesActive(bool enabled)
-        {
-            if (Instance) Instance.appearances.enabled = enabled;
-        }
-
-        /// <summary>
         /// Sets all behaviors effects status.
         /// </summary>
         /// <param name="enabled"></param>
-        public static void SetBehaviorsActive(bool enabled)
+        public static void SetEffectsActive(bool enabled)
         {
-            if (Instance) Instance.behaviors.enabled = enabled;
-        }
-
-        [System.Serializable]
-        public struct Category<T> where T : ScriptableObject
-        {
-            public T defaultDatabase;
-
-            public bool enabled;
-            public char openingSymbol;
-            public char closingSymbol;
-
-            public Category(char openingSymbol, char closingSymbol)
+            if (Instance)
             {
-                defaultDatabase = null;
-                enabled = true;
-                this.openingSymbol = openingSymbol;
-                this.closingSymbol = closingSymbol;
+                Instance.settings.isAnimatingBehaviors = enabled;
             }
         }
 
-        public Category<AnimationsDatabase> behaviors = new Category<AnimationsDatabase>('<', '>');
-        public Category<AnimationsDatabase> appearances = new Category<AnimationsDatabase>('{', '}');
-        public Category<ActionDatabase> actions = new Category<ActionDatabase>('<', '>');
-        public char disappearancesMiddleSymbol = '#';
-
-        public StyleSheetScriptable defaultStyleSheet;
-
-        [System.Serializable]
-        public struct ControlTags
-        {
-            public string disableTypewriter;
-
-            public ControlTags(string disableTypewriter)
-            {
-                this.disableTypewriter = disableTypewriter;
-            }
-        }
-
-        public ControlTags controlTags = new ControlTags("notype");
+        [SerializeField] UnityGlobalSettings settings;
+        public GlobalSettingsBase Settings => settings;
     }
 }

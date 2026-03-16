@@ -29,6 +29,12 @@ public class PlayerDive : MonoBehaviour
     {
         if (states.isStaggered || states.isKicking) return;
 
+        if (states.isDiving && states.canWallRun)
+        {
+            states.EndDive();
+            GameLogger.LogMovement("DIVE ENDED: Wall contact detected");
+        }
+
         HandleDiveInput();
         HandleDiveToRollTransition();
         HandleRollExit();

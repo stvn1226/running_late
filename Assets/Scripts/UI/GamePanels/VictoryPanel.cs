@@ -94,12 +94,12 @@ public class VictoryPanel : BaseMenuPanel
                 
                 if (isNewRecord)
                 {
-                    bestTimeText.text = $"Best: <wave>{bestRecord.GetFormattedTime()} (NEW!)";
+                    bestTimeText.text = $"<wave>{bestRecord.GetFormattedTime()} (NEW!)";
                     bestTimeText.color = Color.yellow;
                 }
                 else
                 {
-                    bestTimeText.text = $"Best: {bestRecord.GetFormattedTime()}";
+                    bestTimeText.text = $"{bestRecord.GetFormattedTime()}";
                     bestTimeText.color = Color.black;
                 }
             }

@@ -67,15 +67,17 @@ public class CableManager : MonoBehaviour
         {
             foreach (Rope c in _cablesList)
             {
-                if (_cableDisableState.Item1 && c.GetComponent<EdgeCollider2D>() != _cableDisableState.Item2)
+                EdgeCollider2D cableCol = c.GetComponent<EdgeCollider2D>();
+                if (_cableDisableState.Item1 && cableCol != _cableDisableState.Item2)
                 {
-                    c.GetComponent<EdgeCollider2D>().isTrigger = true;
+                    cableCol.isTrigger = true;
                 }
                 else
                 {
-                    c.GetComponent<EdgeCollider2D>().isTrigger = false;
+                    // Only make it solid if we are actually intending to use it (isFastFalling)
+                    // AND it's the one we are not disabling.
+                    cableCol.isTrigger = false;
                 }
-                //c.GetComponent<EdgeCollider2D>().isTrigger = false;
             }
         }
         else

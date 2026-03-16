@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI;
 
@@ -6,6 +7,8 @@ public class PlayerStates : MonoBehaviour
 {
     private PlayerConfig config;
     [SerializeField] private CapsuleCollider2D playerCollider;
+    private List<Collider2D> allPlayerColliders = new List<Collider2D>();
+    private Rigidbody2D rb;
     private new Transform transform;
     private SpriteRenderer spriteRenderer;
 
@@ -119,6 +122,10 @@ public class PlayerStates : MonoBehaviour
     public bool isSlidingOnCable = false;
     public EdgeCollider2D currentCable;
     public float cableSlideSpeed = 0f;
+    private float cableSlideGraceTimer = 0f;
+    private const float CABLE_SLIDE_GRACE_TIME = 0.15f;
+
+    private List<Collider2D> ignoredCableColliders = new List<Collider2D>();
 
     private Coroutine activeInvincibility;
 
@@ -142,7 +149,14 @@ public class PlayerStates : MonoBehaviour
     {
         transform = GetComponent<Transform>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
+
+        if (playerCollider == null)
+            playerCollider = GetComponentInChildren<CapsuleCollider2D>();
+
+        allPlayerColliders.Clear();
+        allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());
     }
 
     private void Update()
@@ -350,7 +364,10 @@ public class PlayerStates : MonoBehaviour
         if (isRolling)
         {
             rollTimer -= Time.deltaTime;
-            if (rollTimer <= 0f)
+
+            // Early exit: player is rolling but stopped by a wall
+            bool blockedByWall = wallDirection != 0 && Mathf.Abs(rb.linearVelocity.x) < 1f;
+            if (blockedByWall || rollTimer <= 0f)
             {
                 EndRoll();
             }
@@ -359,9 +376,12 @@ public class PlayerStates : MonoBehaviour
         if (isKicking)
         {
             kickTimer -= Time.deltaTime;
-            if (kickTimer <= 0f)
+            // Primary exit: animation-driven (PlayerKick.Update checks nTime >= 0.95f)
+            // Safety backstop: if animation detection fails, force-exit after 3x the configured duration
+            if (kickTimer <= -(config.kickDuration * 2f))
             {
-                EndKick();
+                GameLogger.LogWarning("KICK", "SAFETY EXIT: kick state exceeded max duration, force clearing");
+                EndKick("safetyTimeout");
             }
         }
 
@@ -386,7 +406,22 @@ public class PlayerStates : MonoBehaviour
             }
         }
 
+        if (cableSlideGraceTimer > 0f)
+        {
+            cableSlideGraceTimer -= Time.deltaTime;
+            if (cableSlideGraceTimer <= 0f)
+            {
+                PerformActualCableSlideExit();
+            }
+        }
+
+        if (isSlidingOnCable)
+        {
+            isSliding = crouchHeld; // Allow manual sliding on cables
+            isCrouching = false;
+        }
     }
+
 
     private void CheckStateChanges()
     {
@@ -540,7 +575,7 @@ public class PlayerStates : MonoBehaviour
             EndKick();
         }
 
-        float invulnerabilityDuration = duration * 2f;
+        float invulnerabilityDuration = duration * 3f;
         InvokeInvincibility(invulnerabilityDuration);
         StartCoroutine(BlinkSprite(invulnerabilityDuration));
         
@@ -648,18 +683,77 @@ public class PlayerStates : MonoBehaviour
         }
     }
 
+    // We check start and end point and look for all BuildingDetector in the middle to turn off their boxCollider (Cap) to stop any collision when sliding
     public void StartCableSlide(EdgeCollider2D cableCollider)
     {
         isSlidingOnCable = true;
         currentCable = cableCollider;
-        isSliding = true;
+        cableSlideGraceTimer = 0f;
+
+        if (cableCollider == null || config == null) return;
+
+        // Ensure we have colliders
+        if (allPlayerColliders.Count == 0) allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());
+
+        // Simplified: use the Rope component to find start/end buildings directly
+        var rope = cableCollider.GetComponent<GogoGaga.OptimizedRopesAndCables.Rope>();
+        BuildingDetector startBuilding = null;
+        BuildingDetector endBuilding = null;
+
+        if (rope != null)
+        {
+            if (rope.StartPoint != null) startBuilding = rope.StartPoint.GetComponentInParent<BuildingDetector>();
+            if (rope.EndPoint != null) endBuilding = rope.EndPoint.GetComponentInParent<BuildingDetector>();
+        }
+
+        // BUILDING SUPPRESSION: Find and disable ALL buildings between start and end
+        if (startBuilding != null && endBuilding != null)
+        {
+            float minX = Mathf.Min(startBuilding.transform.position.x, endBuilding.transform.position.x) - 2f;
+            float maxX = Mathf.Max(startBuilding.transform.position.x, endBuilding.transform.position.x) + 2f;
+
+            BuildingDetector[] allBuildings = Object.FindObjectsByType<BuildingDetector>(FindObjectsSortMode.None);
+            foreach (var b in allBuildings)
+            {
+                // If it's between our anchors and NOT an anchor itself
+                if (b != startBuilding && b != endBuilding && 
+                    b.transform.position.x >= minX && b.transform.position.x <= maxX)
+                {
+                    Collider2D[] buildingColliders = b.GetComponentsInChildren<Collider2D>();
+                    foreach (var bCol in buildingColliders)
+                    {
+                        if (bCol.enabled)
+                        {
+                            bCol.enabled = false;
+                            if (!ignoredCableColliders.Contains(bCol)) ignoredCableColliders.Add(bCol);
+                        }
+                    }
+                    GameLogger.Log("CABLE", $"SUPPRESSED intermediate building: {b.gameObject.name}");
+                }
+            }
+        }
     }
 
     public void EndCableSlide()
     {
+        cableSlideGraceTimer = CABLE_SLIDE_GRACE_TIME;
+    }
+
+    private void PerformActualCableSlideExit()
+    {
+        foreach (var col in ignoredCableColliders)
+        {
+            if (col != null)
+            {
+                col.enabled = true;
+            }
+        }
+        ignoredCableColliders.Clear();
+
         isSlidingOnCable = false;
         currentCable = null;
         isSliding = false;
+        GameLogger.LogState("CABLE SLIDE: Ended after grace period");
     }
 
     public void RecordWallClimbInput()

@@ -430,6 +430,10 @@ public class PlayerConfig : ScriptableObject
     public float slopeSnapDisableTime = 0.12f;
 
 
+    [Tooltip("How much gravity affects the player on slopes. 0.6 = 60% of gravity converted to tangential force. Recommended: 0.4-0.8")]
+    [Range(0f, 1f)]
+    public float slopeGravityInfluence = 0.6f;
+
     // ====================================
     // VALIDATION (Editor Only)
     // ====================================

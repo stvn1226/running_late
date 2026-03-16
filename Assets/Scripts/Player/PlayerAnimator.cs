@@ -180,7 +180,19 @@ public class PlayerAnimator : MonoBehaviour
             return GetRandomKickVariation();
 
         if (states.isKicking)
-            return currentStateHash;
+        {
+            // Check if the kick animation has actually finished
+            float nTime = GetKickNormalizedTime();
+            if (nTime >= 0.95f)
+            {
+                // Animation done — end the state and fall through to normal locomotion
+                states.EndKick("animDone-animator");
+            }
+            else
+            {
+                return currentStateHash; // Still playing — hold the kick animation
+            }
+        }
 
         if (states.isDiving)
             return AnimHash.GroundSlam;
@@ -191,7 +203,8 @@ public class PlayerAnimator : MonoBehaviour
         if (states.isVaultingWall)
             return AnimHash.WallJump;
 
-        if (states.isSlidingOnCable)
+        // if (states.isSlidingOnCable)
+        if (states.isSlidingOnCable && states.isSliding)
             return AnimHash.Slide;
 
         if (states.isWallRunning)
@@ -359,7 +372,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (!IsPlayingKick()) return 0f;
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        return stateInfo.normalizedTime % 1f;
+        return Mathf.Clamp01(stateInfo.normalizedTime);
     }
 
     public string GetCurrentStateName()

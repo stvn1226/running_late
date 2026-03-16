@@ -40,10 +40,17 @@ public class PlayerKick : MonoBehaviour
 
                 if (shouldBeActive && !hitboxActive) EnableHitbox();
                 else if (!shouldBeActive && hitboxActive) DisableHitbox();
+
+                // Animation finished (reached >= 95% without looping)
+                if (nTime >= 0.95f)
+                {
+                    DisableHitbox();
+                    states.EndKick("animFinished");
+                }
             }
             else
             {
-                // Animation changed to something else, end kick state
+                // Animator switched to a different clip (e.g., interrupted by landing or wallrun)
                 DisableHitbox();
                 states.EndKick("animChanged");
             }
