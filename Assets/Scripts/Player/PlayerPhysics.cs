@@ -141,12 +141,18 @@ public class PlayerPhysics : MonoBehaviour
         states.wasGrounded = states.isGrounded;
     }
 
+    /// Returns the collider's offset scaled to world space, accounting for the Transform's lossyScale.
+    private Vector2 WorldColliderOffset => Vector2.Scale(playerCollider.offset, transform.lossyScale);
+
+    /// Returns the collider's size scaled to world space, accounting for the Transform's lossyScale.
+    private Vector2 WorldColliderSize => Vector2.Scale(playerCollider.size, transform.lossyScale);
+
     private void CheckGrounded()
     {
         if (config == null) return;
 
-        Vector2 boxCenter = (Vector2)playerCollider.transform.position + playerCollider.offset;
-        Vector2 boxSize = playerCollider.size;
+        Vector2 boxCenter = (Vector2)playerCollider.transform.position + WorldColliderOffset;
+        Vector2 boxSize = WorldColliderSize;
 
         float extraDistance = states.isOnSlope ? config.slopeGroundCheckExtra : 0f;
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance + extraDistance, config.groundLayer);
@@ -216,14 +222,14 @@ public class PlayerPhysics : MonoBehaviour
             }
         }
 
-        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
+        Vector2 boxCenter = (Vector2)transform.position + WorldColliderOffset;
         float directionX = states.moveInput.x;
         float detectionDistance = config.wallCheckDistance;
         hadValidWallHitThisFrame = false; // Reset for this frame
         
         // Multi-Ray Detection (Top, Center, Bottom) to prevent gaps
-        Vector2 topOrigin = boxCenter + Vector2.up * (playerCollider.size.y * 0.4f);
-        Vector2 bottomOrigin = boxCenter + Vector2.down * (playerCollider.size.y * 0.4f);
+        Vector2 topOrigin = boxCenter + Vector2.up * (WorldColliderSize.y * 0.4f);
+        Vector2 bottomOrigin = boxCenter + Vector2.down * (WorldColliderSize.y * 0.4f);
         
         bool wallRight = false;
         bool wallLeft = false;
@@ -315,10 +321,10 @@ public class PlayerPhysics : MonoBehaviour
             if (!states.isGrounded && (!states.wallRunHeld || Mathf.Abs(states.moveInput.x) < 0.5f)) return null; 
 
             float overlapWidth = 0.65f; 
-            Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 1.1f);
+            Vector2 checkSize = new Vector2(overlapWidth, WorldColliderSize.y * 1.1f);
             // Dynamic offset: reach further if moving fast
             float speedFactor = Mathf.Clamp01(Mathf.Abs(rb.linearVelocity.x) / 30f);
-            Vector2 checkPos = boxCenter + direction * (playerCollider.size.x * 0.5f + overlapWidth * (0.4f + speedFactor * 0.2f));
+            Vector2 checkPos = boxCenter + direction * (WorldColliderSize.x * 0.5f + overlapWidth * (0.4f + speedFactor * 0.2f));
 
             Collider2D[] cols = Physics2D.OverlapBoxAll(checkPos, checkSize, 0f, config.wallLayer);
             Collider2D bestCandidate = null;
@@ -500,7 +506,7 @@ public class PlayerPhysics : MonoBehaviour
                     // Proximity check: Must remain physically close during grace
                     Vector2 sideDir = Vector2.right * lastWallDirection;
                     float checkDist = detectionDistance * 0.8f; 
-                    bool isStillClose = Physics2D.OverlapBox(boxCenter + sideDir * (playerCollider.size.x * 0.5f), new Vector2(checkDist, playerCollider.size.y), 0f, config.wallLayer);
+                    bool isStillClose = Physics2D.OverlapBox(boxCenter + sideDir * (WorldColliderSize.x * 0.5f), new Vector2(checkDist, WorldColliderSize.y), 0f, config.wallLayer);
 
                     if (isStillClose)
                     {
@@ -607,8 +613,8 @@ public class PlayerPhysics : MonoBehaviour
         }
 
         Vector2 playerBottom = (Vector2)playerCollider.transform.position + 
-                               playerCollider.offset - 
-                               Vector2.up * (playerCollider.size.y * 0.5f);
+                               WorldColliderOffset - 
+                               Vector2.up * (WorldColliderSize.y * 0.5f);
 
         float checkDistance = config.slopeCheckDistance + 0.15f;
 
@@ -673,7 +679,7 @@ public class PlayerPhysics : MonoBehaviour
 
         lastWallHeightCheck = Time.time;
 
-        Vector2 rayStart = (Vector2)transform.position + playerCollider.offset;
+        Vector2 rayStart = (Vector2)transform.position + WorldColliderOffset;
         
         states.distanceToWallTop = config.maxWallHeightCheck;
         states.isNearWallTop = false;
@@ -717,8 +723,8 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (playerCollider == null || config == null) return;
 
-        Vector2 boxCenter = (Vector2)transform.position + playerCollider.offset;
-        Vector2 boxSize = playerCollider.size;
+        Vector2 boxCenter = (Vector2)transform.position + WorldColliderOffset;
+        Vector2 boxSize = WorldColliderSize;
 
         Gizmos.color = states != null && states.isGrounded ? Color.green : Color.red;
         Gizmos.DrawWireCube(boxCenter + Vector2.down * config.groundCheckDistance, boxSize);
@@ -727,8 +733,8 @@ public class PlayerPhysics : MonoBehaviour
         
         // Match the logic in CheckWallRun (Center, Top, Bottom)
         float distance = config.wallCheckDistance;
-        Vector2 topOrigin = boxCenter + Vector2.up * (playerCollider.size.y * 0.4f);
-        Vector2 bottomOrigin = boxCenter + Vector2.down * (playerCollider.size.y * 0.4f);
+        Vector2 topOrigin = boxCenter + Vector2.up * (WorldColliderSize.y * 0.4f);
+        Vector2 bottomOrigin = boxCenter + Vector2.down * (WorldColliderSize.y * 0.4f);
         
         // Right Checks
         Gizmos.DrawLine(boxCenter, boxCenter + Vector2.right * distance);
@@ -744,15 +750,15 @@ public class PlayerPhysics : MonoBehaviour
         if (config.wallRunDebug)
         {
             float overlapWidth = 0.5f;
-            Vector2 checkSize = new Vector2(overlapWidth, playerCollider.size.y * 1.0f);
+            Vector2 checkSize = new Vector2(overlapWidth, WorldColliderSize.y * 1.0f);
             
             Gizmos.color = new Color(1, 0.5f, 0, 0.3f); // Orange Transparent
             // Right Fallback
-            Vector2 rightPos = boxCenter + Vector2.right * (playerCollider.size.x * 0.5f + overlapWidth * 0.4f);
+            Vector2 rightPos = boxCenter + Vector2.right * (WorldColliderSize.x * 0.5f + overlapWidth * 0.4f);
             Gizmos.DrawWireCube(rightPos, checkSize);
             
             // Left Fallback
-            Vector2 leftPos = boxCenter + Vector2.left * (playerCollider.size.x * 0.5f + overlapWidth * 0.4f);
+            Vector2 leftPos = boxCenter + Vector2.left * (WorldColliderSize.x * 0.5f + overlapWidth * 0.4f);
             Gizmos.DrawWireCube(leftPos, checkSize);
 
             if (currentWallCollider != null)
@@ -766,8 +772,8 @@ public class PlayerPhysics : MonoBehaviour
         if (config.enableSlopeDetection && states != null)
         {
             Vector2 playerBottom = (Vector2)transform.position + 
-                                   playerCollider.offset - 
-                                   Vector2.up * (playerCollider.size.y * 0.5f);
+                                   WorldColliderOffset - 
+                                   Vector2.up * (WorldColliderSize.y * 0.5f);
     
             float checkDistance = config.slopeCheckDistance + 0.15f;
     
