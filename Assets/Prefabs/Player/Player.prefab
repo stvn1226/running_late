@@ -75,9 +75,9 @@ Transform:
   m_GameObject: {fileID: 3284795178058735958}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalPosition: {x: 0, y: -0.05, z: 0}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 3490699511422268418}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -107,7 +107,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 658f6685d2a175c4dbb5aa39757968c6, type: 2}
+  - {fileID: 2100000, guid: 2e618d9e677760748814e21a444f5dce, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -130,8 +130,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 0ccd2b99e9b547b498330df9c7104170, type: 3}
-  m_Color: {r: 0.3820755, g: 0.39146507, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 57b7265ea6740b541b9d040958dacb55, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -521,7 +521,7 @@ MonoBehaviour:
           EnumConditions: 0000000000000000000000000000000000000000000000000000000000000000
         UniformScaling: 0
         AllowAdditivePlays: 0
-        DetermineScaleOnPlay: 0
+        DetermineScaleOnPlay: 1
         DestinationScale: {x: 0.5, y: 0.5, z: 0.5}
         AnimateScaleX:
           serializedVersion: 2
@@ -677,7 +677,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
+  m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4400897620013463343}
@@ -731,7 +731,7 @@ MonoBehaviour:
   rb: {fileID: 5328747980780883216}
   playerCollider: {fileID: 3391139825406007247}
   states: {fileID: 6913775742238925164}
-  playerSprite: {fileID: 0}
+  playerSprite: {fileID: 552495587634977725}
   originalColliderSize: {x: 0, y: 0}
   originalColliderOffset: {x: 0, y: 0}
   crouchColliderSize: {x: 0, y: 0}
@@ -1446,7 +1446,7 @@ MonoBehaviour:
           EnumConditions: 0000000000000000000000000000000000000000000000000000000000000000
         UniformScaling: 0
         AllowAdditivePlays: 0
-        DetermineScaleOnPlay: 0
+        DetermineScaleOnPlay: 1
         DestinationScale: {x: 0.5, y: 0.5, z: 0.5}
         AnimateScaleX:
           serializedVersion: 2
