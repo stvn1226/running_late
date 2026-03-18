@@ -177,6 +177,13 @@ public class MainMenuController : MonoBehaviour
         
         if (textInputPanel != null && textInputPanel.IsVisible)
         {
+            if (IsInputFieldActive())
+            {
+                DeactivateInputField();
+                GameLogger.Log("MENU", "Cancel pressed on TextInputPanel InputField - Deactivating input");
+                return;
+            }
+
             GameLogger.Log("MENU", "Cancel pressed on TextInputPanel, hiding it");
             textInputPanel.Hide();
             textInputPanel.RestorePreviousSelection();
@@ -191,7 +198,7 @@ public class MainMenuController : MonoBehaviour
                 if (IsInputFieldActive())
                 {
                     DeactivateInputField();
-                    GameLogger.Log("MENU", "Cancel pressed on InputField - Deactivating input");
+                    GameLogger.Log("MENU", "Cancel pressed on Step 2 InputField - Deactivating input");
                     return;
                 }
                 
@@ -241,7 +248,11 @@ public class MainMenuController : MonoBehaviour
         if (inputField != null)
         {
             inputField.DeactivateInputField();
+            // Ensure the object remains selected but NOT focused
             EventSystem.current.SetSelectedGameObject(inputField.gameObject);
+            
+            // Trigger feedback for deactivation
+            GamepadVibrationManager.Instance?.TriggerLightVibration(0.05f);
         }
     }
     

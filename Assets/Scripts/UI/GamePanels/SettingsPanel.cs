@@ -292,6 +292,8 @@ public class SettingsPanel : BaseMainMenuPanel
                 "Borderless"
             });
             fullscreenModeDropdown.onValueChanged.AddListener(OnFullscreenModeChanged);
+            SetDropdownHeight(fullscreenModeDropdown, 400); // Set height to 400
+            AddDropdownFocusFix(fullscreenModeDropdown);
         }
         
         if (resolutionDropdown != null)
@@ -312,6 +314,123 @@ public class SettingsPanel : BaseMainMenuPanel
             }
             
             resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
+            SetDropdownHeight(resolutionDropdown, 600); // Set resolution list taller (600)
+            AddDropdownFocusFix(resolutionDropdown);
+        }
+    }
+    
+    private void SetDropdownHeight(TMP_Dropdown dropdown, float height)
+    {
+        if (dropdown == null || dropdown.template == null) return;
+        
+        // The expanded size is controlled by the Template's height
+        Vector2 size = dropdown.template.sizeDelta;
+        size.y = height;
+        dropdown.template.sizeDelta = size;
+        
+        GameLogger.Log("UI", $"Set {dropdown.name} template height to {height}");
+    }
+    
+    private void AddDropdownFocusFix(TMP_Dropdown dropdown)
+    {
+        if (dropdown == null) return;
+
+        EventTrigger trigger = dropdown.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = dropdown.gameObject.AddComponent<EventTrigger>();
+        }
+
+        // Handle opening via PointerClick
+        EventTrigger.Entry pointerClick = new EventTrigger.Entry();
+        pointerClick.eventID = EventTriggerType.PointerClick;
+        pointerClick.callback.AddListener((data) => { StartCoroutine(FixDropdownList(dropdown)); });
+        trigger.triggers.Add(pointerClick);
+
+        // Handle opening via Submit (Controller/Keyboard)
+        EventTrigger.Entry submit = new EventTrigger.Entry();
+        submit.eventID = EventTriggerType.Submit;
+        submit.callback.AddListener((data) => { StartCoroutine(FixDropdownList(dropdown)); });
+        trigger.triggers.Add(submit);
+    }
+
+    private IEnumerator FixDropdownList(TMP_Dropdown dropdown)
+    {
+        // Give it a moment to instantiate the list
+        yield return new WaitForSecondsRealtime(0.05f);
+        
+        Transform listTransform = dropdown.transform.Find("Dropdown List");
+        if (listTransform == null)
+        {
+            GameObject listObj = GameObject.Find("Dropdown List");
+            if (listObj != null) listTransform = listObj.transform;
+        }
+
+        if (listTransform != null)
+        {
+            ScrollRect scrollRect = listTransform.GetComponentInChildren<ScrollRect>();
+            RectTransform content = scrollRect != null ? scrollRect.content : null;
+            RectTransform viewport = scrollRect != null ? scrollRect.viewport : null;
+
+            if (content != null && viewport != null)
+            {
+                // 1. Force initial selection to current value
+                int targetChildIndex = dropdown.value + 1;
+                if (targetChildIndex < content.childCount)
+                {
+                    GameObject initialTarget = content.GetChild(targetChildIndex).gameObject;
+                    if (EventSystem.current != null)
+                    {
+                        EventSystem.current.SetSelectedGameObject(initialTarget);
+                    }
+                }
+
+                // 2. Loop while the dropdown is open to handle scrolling
+                GameObject lastSelected = null;
+                while (listTransform != null && listTransform.gameObject.activeInHierarchy)
+                {
+                    GameObject currentSelected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+                    
+                    if (currentSelected != null && currentSelected != lastSelected && currentSelected.transform.IsChildOf(content))
+                    {
+                        lastSelected = currentSelected;
+                        
+                        // Manual Scroll Logic
+                        Canvas.ForceUpdateCanvases();
+                        RectTransform selectedRect = currentSelected.GetComponent<RectTransform>();
+                        
+                        float viewportHeight = viewport.rect.height;
+                        float contentHeight = content.rect.height;
+
+                        if (contentHeight > viewportHeight)
+                        {
+                            // Position relative to content top
+                            float elementTop = Mathf.Abs(selectedRect.anchoredPosition.y) - (selectedRect.rect.height * selectedRect.pivot.y);
+                            float elementBottom = elementTop + selectedRect.rect.height;
+                            
+                            // Current visible range
+                            float scrollProgress = content.anchoredPosition.y; // 0 at top, increases as we scroll down
+                            float visibleTop = scrollProgress;
+                            float visibleBottom = scrollProgress + viewportHeight;
+
+                            float targetScroll = scrollProgress;
+
+                            if (elementTop < visibleTop)
+                            {
+                                targetScroll = elementTop;
+                            }
+                            else if (elementBottom > visibleBottom)
+                            {
+                                targetScroll = elementBottom - viewportHeight;
+                            }
+
+                            targetScroll = Mathf.Clamp(targetScroll, 0f, contentHeight - viewportHeight);
+                            content.anchoredPosition = new Vector2(content.anchoredPosition.x, targetScroll);
+                        }
+                    }
+                    yield return null;
+                }
+            }
         }
     }
     
