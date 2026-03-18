@@ -145,21 +145,21 @@ public class CreditsPanel : BaseMainMenuPanel
     private string GetFallbackCredits()
     {
         return @"<align=center><size=70><b>UNBREAKABLE INTERACTIVE</b></size>
-<size=50>presents</size>
+        <size=50>presents</size>
 
-<size=60><b>RUNNING LATE</b></size>
-
-
-<size=40><b>CREDITS</b></size>
-
-Please assign a CreditsConfiguration asset
-to display proper credits.
+        <size=60><b>RUNNING LATE</b></size>
 
 
-<size=50><b>THANK YOU FOR PLAYING!</b></size>
+        <size=40><b>CREDITS</b></size>
 
-© 2024 Unbreakable Interactive
-All Rights Reserved
-</align>";
+        Please assign a CreditsConfiguration asset
+        to display proper credits.
+
+
+        <size=50><b>THANK YOU FOR PLAYING!</b></size>
+
+        © 2026 Unbreakable Interactive
+        All Rights Reserved
+        </align>";
     }
 }

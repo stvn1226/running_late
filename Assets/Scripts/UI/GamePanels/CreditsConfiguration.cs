@@ -71,7 +71,7 @@ public class CreditsConfiguration : ScriptableObject
         credits += $"\n\n<size={gameNameSize}><b>THANK YOU FOR PLAYING!</b></size>\n\n";
         credits += $"<size={nameSize}>© {copyrightYear} {studioName}</size>\n";
         credits += $"<size={roleSize}>All Rights Reserved</size>\n\n";
-        credits += $"<size={socialSize}>Made with ❤️ and dedication</size>\n";
+        credits += $"<size={socialSize}>Made with love and dedication</size>\n";
         credits += "</align>";
         
         return credits;
