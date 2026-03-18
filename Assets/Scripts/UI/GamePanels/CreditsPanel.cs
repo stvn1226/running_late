@@ -158,7 +158,7 @@ public class CreditsPanel : BaseMainMenuPanel
 
         <size=50><b>THANK YOU FOR PLAYING!</b></size>
 
-        © 2024 Unbreakable Interactive
+        © 2026 Unbreakable Interactive
         All Rights Reserved
         </align>";
     }
