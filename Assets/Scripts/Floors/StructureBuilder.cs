@@ -7,9 +7,9 @@ public class StructureBuilder : MonoBehaviour
     public FloorPlan config;
 
     [Header("Component References")]
-    public GameObject groundPrefab;
+    public GameObject[] groundPrefabs;
     public GameObject[] floorPrefabs;
-    public GameObject roofPrefab;
+    public GameObject[] roofPrefabs;
 
     [Header("Rooftop Obstacles")]
     //public Transform roofObstacleSpawnPoint;
@@ -27,9 +27,10 @@ public class StructureBuilder : MonoBehaviour
 
         GameLogger.Log("WallRunWorkflow", $"[BUILD START] Constructing building with {floorsCt} floors at {transform.position}");
 
-        if (groundPrefab != null)
+        if (groundPrefabs.Length > 0)
         {
-            GameObject ground = Instantiate(groundPrefab, transform.position, Quaternion.identity, transform);
+            GameObject pickedGroundPrefab = groundPrefabs[Random.Range(0, groundPrefabs.Length - 1)];
+            GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
             if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
             else SortTilemap(ground, floorsCt);
         }
@@ -47,9 +48,10 @@ public class StructureBuilder : MonoBehaviour
             }
         }
 
-        if (roofPrefab != null)
+        if (roofPrefabs.Length > 0)
         {
-            GameObject roof = Instantiate(roofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
+            GameObject pickedRoofPrefab = roofPrefabs[Random.Range(0, roofPrefabs.Length - 1)];
+            GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
             if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
             else SortTilemap(roof, floorsCt);
         }
