@@ -31,6 +31,7 @@ public class StructureBuilder : MonoBehaviour
         {
             GameObject pickedGroundPrefab = groundPrefabs[Random.Range(0, groundPrefabs.Length - 1)];
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
+            ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
             if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
             else SortTilemap(ground, floorsCt);
         }
