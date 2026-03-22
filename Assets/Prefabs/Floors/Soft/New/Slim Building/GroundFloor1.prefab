@@ -1026,7 +1026,7 @@ Transform:
   m_GameObject: {fileID: 5297040658292792336}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.05, y: 2.8, z: 0}
+  m_LocalPosition: {x: 0, y: 2.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1091,7 +1091,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 21.6, y: 21.6}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1105,6 +1105,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2395751420150021784}
+  - component: {fileID: 914761804854564284}
   m_Layer: 0
   m_Name: GroundFloor1
   m_TagString: Untagged
@@ -1132,6 +1133,28 @@ Transform:
   - {fileID: 2117214485195063865}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &914761804854564284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6604129969402491093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af3d8c08b1af526478fad1358bca3dfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloorAssetPicker
+  _base: {fileID: 5769929470713862406}
+  _baseSprites:
+  - {fileID: 21300000, guid: 6c6bae2893d33374da89899e6ee271a7, type: 3}
+  - {fileID: 21300000, guid: 2b6300221c826bd4fb9e07729ab8ac2c, type: 3}
+  - {fileID: 21300000, guid: 1ed34a91283a656489f05132a0676e43, type: 3}
+  - {fileID: 21300000, guid: 61ad9916fdb63274092e6b3a5f888aef, type: 3}
+  - {fileID: 21300000, guid: b8c71340ab7368342be407fbbf3295d2, type: 3}
+  - {fileID: 21300000, guid: 0644c699540a95b44bedb7d65c75152d, type: 3}
+  - {fileID: 21300000, guid: 6e6c7a6745fa2854c86587a5b316c64d, type: 3}
+  - {fileID: 21300000, guid: d2e0889165d17014b884833152e529a7, type: 3}
 --- !u!1 &6881060351086449676
 GameObject:
   m_ObjectHideFlags: 0

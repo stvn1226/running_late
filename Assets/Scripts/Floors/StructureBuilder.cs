@@ -29,7 +29,7 @@ public class StructureBuilder : MonoBehaviour
 
         if (groundPrefabs.Length > 0)
         {
-            GameObject pickedGroundPrefab = groundPrefabs[Random.Range(0, groundPrefabs.Length - 1)];
+            GameObject pickedGroundPrefab = groundPrefabs[Random.Range(0, groundPrefabs.Length)];
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
             ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
             if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
@@ -51,7 +51,7 @@ public class StructureBuilder : MonoBehaviour
 
         if (roofPrefabs.Length > 0)
         {
-            GameObject pickedRoofPrefab = roofPrefabs[Random.Range(0, roofPrefabs.Length - 1)];
+            GameObject pickedRoofPrefab = roofPrefabs[Random.Range(0, roofPrefabs.Length)];
             GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
             if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
             else SortTilemap(roof, floorsCt);

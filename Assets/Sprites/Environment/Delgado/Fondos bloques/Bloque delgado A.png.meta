@@ -5,9 +5,6 @@ TextureImporter:
   - first:
       213: -4142261871338164240
     second: Bloque delgado A_0
-  - first:
-      213: 5849600367273712063
-    second: Bloque delgado A_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,10 +49,10 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 0
-  alignment: 9
-  spritePivot: {x: 0.485, y: 0.575}
-  spritePixelsToUnits: 100
-  spriteBorder: {x: 1365, y: 946, z: 1494, w: 627}
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 150
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -158,12 +155,12 @@ TextureImporter:
       name: Bloque delgado A_0
       rect:
         serializedVersion: 2
-        x: 1368
-        y: 948
-        width: 1108
-        height: 644
+        x: 348
+        y: 643
+        width: 1465
+        height: 875
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -176,34 +173,12 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: Bloque delgado A_1
-      rect:
-        serializedVersion: 2
-        x: 2494
-        y: 1365
-        width: 8
-        height: 15
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: fb91851aa84fd2150800000000000000
-      internalID: 5849600367273712063
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -213,7 +188,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       Bloque delgado A_0: -4142261871338164240
-      Bloque delgado A_1: 5849600367273712063
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

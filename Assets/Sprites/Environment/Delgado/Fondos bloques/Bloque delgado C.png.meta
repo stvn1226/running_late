@@ -5,9 +5,6 @@ TextureImporter:
   - first:
       213: -5358531998374387496
     second: Bloque delgado C_0
-  - first:
-      213: 7077614458926158483
-    second: Bloque delgado C_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -54,7 +51,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 150
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -158,10 +155,10 @@ TextureImporter:
       name: Bloque delgado C_0
       rect:
         serializedVersion: 2
-        x: 1552
-        y: 1543
-        width: 8
-        height: 9
+        x: 351
+        y: 638
+        width: 1459
+        height: 883
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -172,28 +169,6 @@ TextureImporter:
       bones: []
       spriteID: 8d0a457c98ba2a5b0800000000000000
       internalID: -5358531998374387496
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Bloque delgado C_1
-      rect:
-        serializedVersion: 2
-        x: 1312
-        y: 943
-        width: 1031
-        height: 589
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 39256710adcb83260800000000000000
-      internalID: 7077614458926158483
       vertices: []
       indices: 
       edges: []
@@ -213,7 +188,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       Bloque delgado C_0: -5358531998374387496
-      Bloque delgado C_1: 7077614458926158483
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
