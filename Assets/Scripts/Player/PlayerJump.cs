@@ -198,8 +198,26 @@ public class PlayerJump : MonoBehaviour
             playerMovement.DisableSlopeSnapForJump();
         }
     
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-        rb.AddForce(Vector2.up * minJumpForce, ForceMode2D.Impulse);
+        // Preserve upward momentum if already moving up (especially on slopes)
+        // This prevents the jump from feeling "weak" or "flatter" when running uphill
+        if (rb.linearVelocity.y < 0.1f)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+        }
+        
+        // JUMP PROJECTION: Use the slope normal if available to ensure a clean lift-off
+        Vector2 jumpDirection = Vector2.up;
+        if (states.isOnSlope && states.slopeNormal.y > 0.5f)
+        {
+            jumpDirection = states.slopeNormal;
+            GameLogger.LogMovement($"Slope jump projected along normal: {jumpDirection}");
+        }
+
+        rb.AddForce(jumpDirection * minJumpForce, ForceMode2D.Impulse);
+        
+        // Force grounded state to false immediately to clear movement logic
+        states.isGrounded = false;
+        states.canCoyoteJump = false;
 
         GameLogger.LogMovement($"NORMAL JUMP! Vertical: {minJumpForce:F2}, Horizontal preserved: {rb.linearVelocity.x:F2}\")");
     }
@@ -224,10 +242,21 @@ public class PlayerJump : MonoBehaviour
         float horizontalDirection = Mathf.Sign(states.moveInput.x);
         float horizontalForce = config.longJumpHorizontalBoost * horizontalDirection;
 
-        rb.linearVelocity = new Vector2(currentHorizontalVelocity, 0);
-        rb.AddForce(Vector2.up * verticalForce, ForceMode2D.Impulse);
+        // JUMP PROJECTION: Use the slope normal if available to ensure a clean lift-off
+        Vector2 verticalDirection = Vector2.up;
+        if (states.isOnSlope && states.slopeNormal.y > 0.5f)
+        {
+            verticalDirection = states.slopeNormal;
+            GameLogger.LogMovement($"Long jump projected along normal: {verticalDirection}");
+        }
+
+        rb.AddForce(verticalDirection * verticalForce, ForceMode2D.Impulse);
         rb.AddForce(Vector2.right * horizontalForce, ForceMode2D.Impulse);
 
+        // Force grounded state to false immediately
+        states.isGrounded = false;
+        states.canCoyoteJump = false;
+        
         states.isLongJumping = true;
         states.crouchInputBuffered = false;
         states.longJumpGraceTimer = config.longJumpGracePeriod;
@@ -282,6 +311,7 @@ public class PlayerJump : MonoBehaviour
         }
 
         // Reset jumping state when landing
+        // Relying on the robust, persistent isGrounded signal from PlayerPhysics
         if (states.isGrounded && states.isJumping)
         {
             states.ResetJumpState();
