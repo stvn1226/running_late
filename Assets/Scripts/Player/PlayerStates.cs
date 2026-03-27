@@ -42,6 +42,7 @@ public class PlayerStates : MonoBehaviour
     public bool isSlopeTooSteep = false;
     public Vector2 slopeTangent = Vector2.right;
     public float slopeBuffer = 0f;
+    public float slopeContextTimer = 0f; // NEW: Persistence timer for slope context
 
     [Header("Power-Up States")]
     public bool isInvincible = false;
@@ -335,6 +336,18 @@ public class PlayerStates : MonoBehaviour
             {
                 isCornerClimbing = false;
             }
+        }
+
+        // SLOPE PERSISTENCE TIMER
+        if (slopeContextTimer > 0f)
+        {
+            slopeContextTimer -= Time.deltaTime;
+        }
+
+        // OLD SLOPE BUFFER (Backwards compatibility/Transition)
+        if (slopeBuffer > 0f)
+        {
+            slopeBuffer -= Time.deltaTime;
         }
 
         // Wall slide timer — ticks while sliding; used only for sqrt curve shape.

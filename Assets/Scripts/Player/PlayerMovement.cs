@@ -398,7 +398,11 @@ public class PlayerMovement : MonoBehaviour
             bool isAccelerating = Mathf.Approximately(Mathf.Sign(speedDifference), Mathf.Sign(horizontalInput));
             bool isBelowMaxSpeed = Mathf.Abs(rb.linearVelocity.x) < maxRunSpeed;
         
-            if (isAccelerating || isBelowMaxSpeed)
+            // Skip run forces in the very first frames of a jump while still grounded to avoid slope interference
+            bool isJumpingWhileGrounded = states.isJumping && states.isGrounded;
+            bool canApplyRunForce = (isAccelerating || isBelowMaxSpeed) && !isJumpingWhileGrounded;
+            
+            if (canApplyRunForce)
             {
                 float baseForce = states.isGrounded ? config.runForce : config.runForce * config.airControlMultiplier;
                 
@@ -411,37 +415,45 @@ public class PlayerMovement : MonoBehaviour
 
                 float appliedForce = Mathf.Clamp(speedDifference * baseForce, -baseForce, baseForce);
                 
-                if (states.isOnSlope && !states.isSlopeTooSteep && states.isGrounded)
+                // MVR: Simplified branching. We use slope-tangent movement if we ARE on a slope 
+                // (including the persistence buffer) AND we aren't performing the initial jump frames.
+                bool useSlopeMovement = states.isOnSlope && !states.isSlopeTooSteep && !isJumpingWhileGrounded;
+
+                if (useSlopeMovement)
                 {
                     Vector2 moveDirection = states.slopeTangent * horizontalInput;
                     
-                    float slopeCurrentSpeed = Vector2.Dot(rb.linearVelocity, moveDirection.normalized);
-                    float slopeTargetSpeed = moveDirection.magnitude * maxRunSpeed;
-                    
-                    float slopeSpeedDiff = slopeTargetSpeed - slopeCurrentSpeed;
-                    float slopeAccel = config.slopeMoveAccel * forceMultiplier;
-                    float slopeForceAmount = Mathf.Clamp(slopeSpeedDiff * slopeAccel, -slopeAccel, slopeAccel);
-                    
-                    rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
-                    
-                    // NEW: compensate gravity component when ascending (slopeDir.y > 0 means uphill)
-                    bool isGoingUphill = moveDirection.y > 0f;
-                    if (isGoingUphill)
+                    // Standard ground movement on slope
+                    if (states.isGrounded && !states.isJumping)
                     {
-                        float slopeAngleRad = states.slopeAngle * Mathf.Deg2Rad;
-                        float gravityCompensation = Mathf.Abs(Physics2D.gravity.y) * Mathf.Sin(slopeAngleRad);
-                        rb.AddForce(moveDirection.normalized * (gravityCompensation * Time.fixedDeltaTime), ForceMode2D.Force);
+                        float slopeCurrentSpeed = Vector2.Dot(rb.linearVelocity, moveDirection.normalized);
+                        float slopeTargetSpeed = moveDirection.magnitude * maxRunSpeed;
+                        
+                        float slopeSpeedDiff = slopeTargetSpeed - slopeCurrentSpeed;
+                        float slopeAccel = config.slopeMoveAccel * forceMultiplier;
+                        float slopeForceAmount = Mathf.Clamp(slopeSpeedDiff * slopeAccel, -slopeAccel, slopeAccel);
+                        
+                        rb.AddForce(moveDirection.normalized * (slopeForceAmount * Time.fixedDeltaTime), ForceMode2D.Force);
+                        
+                        // Gravity compensation for uphill/downhill
+                        bool isGoingUphill = moveDirection.y > 0f;
+                        if (isGoingUphill)
+                        {
+                            float slopeAngleRad = states.slopeAngle * Mathf.Deg2Rad;
+                            float gravityCompensation = Mathf.Abs(Physics2D.gravity.y) * Mathf.Sin(slopeAngleRad);
+                            rb.AddForce(moveDirection.normalized * (gravityCompensation * Time.fixedDeltaTime), ForceMode2D.Force);
+                        }
+                        else 
+                        {
+                            float downhillBoost = config.runForce * 1.2f * forceMultiplier;
+                            rb.AddForce(moveDirection.normalized * (downhillBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+                        }
                     }
-                    else // Downhill
+                    else // Persistent Tangent Projection for air control near slopes or during jumps
                     {
-                        // NEW: Downhill walking boost - significantly clarified for walking feel
-                        float downhillBoost = config.runForce * 1.2f * forceMultiplier;
-                        rb.AddForce(moveDirection.normalized * (downhillBoost * Time.fixedDeltaTime), ForceMode2D.Force);
+                        Vector2 slopeForce = states.slopeTangent * (appliedForce * Time.fixedDeltaTime);
+                        rb.AddForce(slopeForce, ForceMode2D.Force);
                     }
-
-#if ENABLE_VERBOSE_LOGGING
-                    GameLogger.LogVerbose("SLOPE", "SlopeMove applied");
-#endif
                 }
                 else
                 {
@@ -483,8 +495,9 @@ public class PlayerMovement : MonoBehaviour
         if (slopeSnapDisableTimer > 0f)
             return;
 
-        if (rb.linearVelocity.y > 0.2f)
-            return;
+        // Removed the hard-limit on upward velocity to prevent high-speed lift-off
+        // Stickiness is now purely determined by perpendicular velocity relative to slope
+        // bool isMovingUphillFast = rb.linearVelocity.y > 0.2f; // Removed
 
         Vector2 perpendicular = states.slopeNormal;
         float perpendicularVel = Vector2.Dot(rb.linearVelocity, perpendicular);
@@ -600,6 +613,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyDrag()
     {
+        // Don't apply drag while jumping to preserve the impulse
+        if (states.isJumping) return;
+
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
         
@@ -620,7 +636,15 @@ public class PlayerMovement : MonoBehaviour
         
         if (states.isRolling)
         {
-            Vector2 dragForces = -velocity * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime);
+            float currentDragMultiplier = slideDragMultiplier;
+            if (states.isOnSlope)
+            {
+                // Reduce roll friction when going downhill
+                Vector2 slopeDirection = new Vector2(states.slopeNormal.y, -states.slopeNormal.x) * Mathf.Sign(rb.linearVelocity.x);
+                if (slopeDirection.y < 0f) currentDragMultiplier *= 0.5f;
+            }
+
+            Vector2 dragForces = -velocity * (config.slideDrag * currentDragMultiplier * Time.fixedDeltaTime);
             rb.AddForce(new Vector2(dragForces.x, 0), ForceMode2D.Force);
             return;
         }
@@ -638,7 +662,17 @@ public class PlayerMovement : MonoBehaviour
             {
                 Vector2 slopeDirection = new Vector2(states.slopeNormal.y, -states.slopeNormal.x);
                 float velocityAlongSlope = Vector2.Dot(velocity, slopeDirection);
-                Vector2 dragForces = -slopeDirection * (velocityAlongSlope * (config.slideDrag * slideDragMultiplier * Time.fixedDeltaTime));
+                
+                // Reduce slide friction when going downhill to maintain or gain momentum
+                float currentDragMultiplier = slideDragMultiplier;
+                bool isMovingDownhill = (slopeDirection.y * Mathf.Sign(velocityAlongSlope)) < 0f;
+                
+                if (isMovingDownhill)
+                {
+                    currentDragMultiplier *= 0.3f; // 70% reduction in drag
+                }
+
+                Vector2 dragForces = -slopeDirection * (velocityAlongSlope * (config.slideDrag * currentDragMultiplier * Time.fixedDeltaTime));
                 rb.AddForce(dragForces, ForceMode2D.Force);
             }
             else
@@ -806,6 +840,9 @@ public class PlayerMovement : MonoBehaviour
             {
                 if (Mathf.Abs(contact.normal.x) > 0.9f) // Vertical wall
                 {
+                    // If near the top of the wall/building, allow gliding over it instead of stopping
+                    if (states.isNearWallTop) continue;
+
                     // If moving into the wall, kill horizontal velocity to prevent "sliding through" or bouncing weirdly
                     float relativeVelX = rb.linearVelocity.x;
                     if (Mathf.Sign(relativeVelX) != Mathf.Sign(contact.normal.x))

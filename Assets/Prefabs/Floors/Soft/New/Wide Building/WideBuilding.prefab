@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2167119595300899907
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2491908089223181735}
+  - component: {fileID: 3927706109960210463}
+  m_Layer: 0
+  m_Name: WideBuilding
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2491908089223181735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2167119595300899907}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3927706109960210463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2167119595300899907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfaf6a6ea9bec1e4ea9db638c89c5da1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StructureBuilder
+  config: {fileID: 11400000, guid: c81c2ae74f6be5449a617e17820632bb, type: 2}
+  groundPrefabs:
+  - {fileID: 6604129969402491093, guid: 9a9bdd608f78e624790f66880cb5eb8b, type: 3}
+  floorPrefabs:
+  - {fileID: 6604129969402491093, guid: 6e8f9813b83310b4d8236c05b9537a27, type: 3}
+  roofPrefabs:
+  - {fileID: 6604129969402491093, guid: d815194b2b265f246bacea02a6d0f641, type: 3}
+  roofObstaclePrefabs:
+  - {fileID: 6039526676700403722, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+  - {fileID: 6039526676700403722, guid: e2f0c521994ca91438efd3692b353b70, type: 3}
+  powerUps:
+  - {fileID: 8943735487304261459, guid: 9c3b3ebafd783a9469ab37899efbae27, type: 3}
+  - {fileID: 2853134598769386666, guid: 59e2c078fa7168b4c83565c482cae160, type: 3}
+  - {fileID: 1716252876083588926, guid: 45cf707b9a3e8c740abfe62eb84da25b, type: 3}
+  - {fileID: 6489068543304015604, guid: 1294db306f54dea48a1e5e78ee288153, type: 3}
+  - {fileID: 8922830654579607508, guid: 1a3f7096cb7ca8d42ab2c3af488c8010, type: 3}
+  - {fileID: 6260974862635884504, guid: 6a7072c34bb9d8d44937a01317651505, type: 3}
+  - {fileID: 2585599738997182456, guid: fa6dbfb12be22b344ae610b0f020334e, type: 3}
+  obstacleRate: 20
+  powerUpRate: 20

@@ -96,8 +96,8 @@ public class CreditsConfiguration : ScriptableObject
             {
                 var membersInDept = coreTeam
                     .Where(m => m.HasDepartment(dept) && !processedMembers.Contains(m))
-                    .OrderBy(m => m.displayOrder)
-                    .ThenBy(m => m.GetHighestSeniorityInDepartment(dept))
+                    .OrderBy(m => m.GetHighestSeniorityInDepartment(dept))
+                    .ThenBy(m => m.displayOrder)
                     .ToList();
                 
                 if (membersInDept.Count > 0)
@@ -146,7 +146,6 @@ public class CreditsConfiguration : ScriptableObject
                 var membersInDept = freelancers
                     .Where(m => m.HasDepartment(dept) && !processedMembers.Contains(m))
                     .OrderBy(m => m.displayOrder)
-                    .ThenBy(m => m.GetHighestSeniorityInDepartment(dept))
                     .ToList();
                 
                 if (membersInDept.Count > 0)

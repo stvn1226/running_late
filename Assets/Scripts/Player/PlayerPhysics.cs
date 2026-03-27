@@ -154,17 +154,39 @@ public class PlayerPhysics : MonoBehaviour
         Vector2 boxCenter = (Vector2)playerCollider.transform.position + WorldColliderOffset;
         Vector2 boxSize = WorldColliderSize;
 
-        float extraDistance = states.isOnSlope ? config.slopeGroundCheckExtra : 0f;
-        RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance + extraDistance, config.groundLayer);
+        bool hitGround = false;
+        RaycastHit2D hit = default;
+
+        // DECOUPLED GROUNDING DEPTH: We use deep detection if we are currently on a slope 
+        // OR if we were on one very recently (slopeContextTimer > 0).
+        // This prevents the "Context Flicker" where a 1-frame sensor failure would 
+        // cause the grounding range to drop from 1.25m to 0.3m.
+        bool useDeepDetection = states.isOnSlope || (states.slopeContextTimer > 0f);
         
-        bool hitGround = hit.collider != null;
+        if (useDeepDetection)
+        {
+            float slopeCheckDist = 1.25f; 
+            hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, slopeCheckDist, config.groundLayer);
+            hitGround = hit.collider != null;
+        }
+        else
+        {
+            hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, config.groundCheckDistance, config.groundLayer);
+            hitGround = hit.collider != null;
+        }
         
         if (hitGround)
         {
             if (states.isOnSlope)
             {
-                bool shouldBeGrounded = rb.linearVelocity.y <= config.slopeGroundedYVelocityThreshold;
-                if (shouldBeGrounded)
+                // Hyper-forgiving grounded check for high-speed slopes
+                float perpendicularVelocity = Vector2.Dot(rb.linearVelocity, states.slopeNormal);
+                
+                // MVR: Unified lift-off threshold for consistent transition to airborne
+                bool isGroundNormal = Mathf.Abs(states.slopeNormal.y) > 0.5f;
+                bool isClearlyFlyingAway = isGroundNormal && (perpendicularVelocity > 5.0f); 
+
+                if (!isClearlyFlyingAway)
                 {
                     states.isGrounded = true;
                     groundedBufferTimer = GROUNDED_BUFFER_TIME;
@@ -337,12 +359,13 @@ public class PlayerPhysics : MonoBehaviour
                 Vector2 closestPoint = col.ClosestPoint(boxCenter);
                 if (IsObstructed(closestPoint, col)) continue;
 
+                float dist = Vector2.Distance(boxCenter, closestPoint);
+
                 // HOTFIX: Overlap doesn't give normals, so we cast a short ray to verify
                 if (config.wallRunStrictNormals)
                 {
                     Vector2 rayDir = (closestPoint - boxCenter).normalized;
-                    float distToPoint = Vector2.Distance(boxCenter, closestPoint);
-                    RaycastHit2D normalHit = Physics2D.Raycast(boxCenter, rayDir, distToPoint + 0.2f, config.wallLayer);
+                    RaycastHit2D normalHit = Physics2D.Raycast(boxCenter, rayDir, dist + 0.2f, config.wallLayer);
                     
                     if (normalHit.collider != null && !IsVerticalWallSurface(normalHit.normal))
                     {
@@ -354,8 +377,6 @@ public class PlayerPhysics : MonoBehaviour
                         continue;
                     }
                 }
-
-                float dist = Vector2.Distance(boxCenter, closestPoint);
                 BuildingDetector bd = col.GetComponentInParent<BuildingDetector>();
                 int sOrder = bd != null ? bd.sortingOrder : -100;
                 float depth = bd != null ? bd.buildingZ : 100f;
@@ -616,38 +637,45 @@ public class PlayerPhysics : MonoBehaviour
                                WorldColliderOffset - 
                                Vector2.up * (WorldColliderSize.y * 0.5f);
 
-        float checkDistance = config.slopeCheckDistance + 0.15f;
-
-        RaycastHit2D centerHit = Physics2D.Raycast(playerBottom, Vector2.down, checkDistance, config.groundLayer);
-        RaycastHit2D leftHit = Physics2D.Raycast(playerBottom + Vector2.left * 0.25f, Vector2.down, checkDistance, config.groundLayer);
-        RaycastHit2D rightHit = Physics2D.Raycast(playerBottom + Vector2.right * 0.25f, Vector2.down, checkDistance, config.groundLayer);
-
-        RaycastHit2D hit = default;
-        float closestDist = float.MaxValue;
-        
-        if (centerHit.collider != null && centerHit.distance < closestDist) { hit = centerHit; closestDist = centerHit.distance; }
-        if (leftHit.collider != null && leftHit.distance < closestDist) { hit = leftHit; closestDist = leftHit.distance; }
-        if (rightHit.collider != null && rightHit.distance < closestDist) { hit = rightHit; closestDist = rightHit.distance; }
+        // NEW: Use a BoxCast for slope detection to be more robust against seams/gaps
+        float checkDistance = (states.isOnSlope ? 1.5f : config.slopeCheckDistance + 0.15f);
+        RaycastHit2D hit = Physics2D.BoxCast(playerBottom, new Vector2(WorldColliderSize.x * 0.8f, 0.1f), 0f, Vector2.down, checkDistance, config.groundLayer);
 
         bool wasOnSlope = states.isOnSlope;
 
         if (hit.collider != null)
         {
-            states.slopeNormal = hit.normal;
-            states.slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+            float hitAngle = Vector2.Angle(hit.normal, Vector2.up);
             
-            Vector2 slopeRight = new Vector2(states.slopeNormal.y, -states.slopeNormal.x).normalized;
-            states.slopeTangent = slopeRight;
+            // IGNORE WALL SEAMS: If the normal is too horizontal, ignore it for slope context.
+            // This prevents "flicker" where the slope angle suddenly jumps to 90 degrees at a seam.
+            bool hitIsActuallyGround = Mathf.Abs(hit.normal.y) > 0.5f;
             
-            bool isSlopeAngleValid = states.slopeAngle > config.minSlopeAngle && states.slopeAngle <= config.maxWalkableSlope;
-            bool shouldBeOnSlope = isSlopeAngleValid;
+            if (!hitIsActuallyGround) return; // Keep previous state if we hit a wall edge
             
-            if (shouldBeOnSlope)
+            bool isSlopeAngleValid = hitAngle > config.minSlopeAngle && hitAngle <= config.maxWalkableSlope;
+            
+            // NORMAL PERSISTENCE: If we are on a slope and hit a "flat" spot (like a seam), 
+            // keep the previous normal for a few frames to bridge the gap.
+            if (wasOnSlope && hitAngle < config.minSlopeAngle && states.slopeBuffer > 0f)
+            {
+                // Maintain current slope normal
+            }
+            else
+            {
+                states.slopeNormal = hit.normal;
+                states.slopeAngle = hitAngle;
+                states.slopeTangent = new Vector2(states.slopeNormal.y, -states.slopeNormal.x).normalized;
+            }
+
+            if (isSlopeAngleValid)
             {
                 states.slopeBuffer = 0.15f;
+                states.slopeContextTimer = 0.2f; // NEW: Reset persistence timer
             }
             
-            states.isOnSlope = shouldBeOnSlope || states.slopeBuffer > 0f;
+            // Context is persistent as long as the timer is active
+            states.isOnSlope = isSlopeAngleValid || states.slopeContextTimer > 0f;
             states.isSlopeTooSteep = states.slopeAngle > config.maxWalkableSlope;
 
             if (states.isOnSlope && !wasOnSlope)

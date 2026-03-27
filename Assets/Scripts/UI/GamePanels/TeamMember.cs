@@ -52,10 +52,10 @@ public class TeamMember : ScriptableObject
             {
                 minRolePriority = Mathf.Min(minRolePriority, role.GetSortPriority());
             }
-            return typeOrder + (displayOrder * 10000) + minRolePriority;
+            return typeOrder + minRolePriority + displayOrder;
         }
         
-        return typeOrder + (displayOrder * 10000);
+        return typeOrder + displayOrder;
     }
     
     public bool HasDepartment(Department dept)

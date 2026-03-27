@@ -166,7 +166,7 @@ public class ModuleBuilder : MonoBehaviour
             Vector3 spawnPosition = new Vector3(
                 spawnPoint.position.x,
                 placementTracker.position.y,
-                spawnPoint.position.z
+                spawnPoint.position.z + 1f
             );
 
             StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
@@ -195,7 +195,7 @@ public class ModuleBuilder : MonoBehaviour
         if (flyingObstacleRoll < flyingObstacleRate)
         {
             GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
-            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * 3) + 50, transform.position.z);
+            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * 3) + 50, transform.position.z - .5f);
             GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
             newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
             GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {flyingPosition}");
