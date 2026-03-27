@@ -40,6 +40,7 @@ public class LevelStarter : MonoBehaviour
     [Header("Module Count Settings")]
     public int minModules = 5;
     public int maxModules = 10;
+    public int targetSchoolHeight = 0; // The goal height for the END of the level
 
     [Header("Modular Level Settings")]
     public ModuleBuilder[] modules;
@@ -384,20 +385,60 @@ public class LevelStarter : MonoBehaviour
         moduleSpawnerX += homeWidth / 2f;
 
         // Spawning
-        for (int i = 0; i < modulesToSpawn.Count; i++)
+        int modulesSpawningCount = modulesToSpawn.Count;
+        for (int i = 0; i < modulesSpawningCount; i++)
         {
             ModuleBuilder module = modulesToSpawn[i];
             
-            // Skip Home y School
+            // Skip Home (already spawned)
             if (module == homeModule)
                 continue;
             
+            // Skip School (spawned after loop)
             if (module == schoolModule)
+                continue;
+
+            // --- BIASED HEIGHT COMPENSATION LOGIC ---
+            int remainingModules = (modulesSpawningCount - 1) - i; // Modules left until school
+            int heightDiff = targetSchoolHeight - previousHeight;
+            
+            int heightChange = 0;
+
+            // EMERGENCY MODE: If we MUST change height now to make it in time
+            if (Mathf.Abs(heightDiff) >= remainingModules && remainingModules > 0)
             {
-                break;
+                heightChange = (int)Mathf.Sign(heightDiff);
+                GameLogger.Log("LEVEL", $"FORCE HEIGHT CHANGE: Diff={heightDiff}, Remaining={remainingModules}, Forcing Change={heightChange}");
+            }
+            else
+            {
+                // BIASED RANDOM WALK:
+                // We want to favor the direction of the target, but keep it random.
+                float randomVal = Random.value;
+                
+                if (heightDiff > 0) // Target is higher
+                {
+                    // Probabilities: Up (45%), Flat (45%), Down (10%)
+                    if (randomVal < 0.45f) heightChange = 1;
+                    else if (randomVal < 0.90f) heightChange = 0;
+                    else heightChange = -1;
+                }
+                else if (heightDiff < 0) // Target is lower
+                {
+                    // Probabilities: Down (45%), Flat (45%), Up (10%)
+                    if (randomVal < 0.45f) heightChange = -1;
+                    else if (randomVal < 0.90f) heightChange = 0;
+                    else heightChange = 1;
+                }
+                else // Already at target height
+                {
+                    // Standard probabilities: Flat (60%), Up (20%), Down (20%)
+                    if (randomVal < 0.20f) heightChange = 1;
+                    else if (randomVal < 0.40f) heightChange = -1;
+                    else heightChange = 0;
+                }
             }
 
-            int heightChange = Random.Range(-1, 2);
             int nextHeight = previousHeight + heightChange;
             nextHeight = Mathf.Clamp(nextHeight, module.moduleConfig.minTerrainHeight, module.moduleConfig.maxTerrainHeight);
 
@@ -406,9 +447,8 @@ public class LevelStarter : MonoBehaviour
             
             if (heightDifference != 0)
             {
-                GameLogger.Log("LEVEL", $"Height change detected: {previousHeight} -> {nextHeight} (diff: {heightDifference})");
+                GameLogger.Log("LEVEL", $"Height change: {previousHeight} -> {nextHeight} (diff: {heightDifference})");
                 
-                // INSERT SLOPES LEVEL BY LEVEL
                 int slopesToSpawn = Mathf.Abs(heightDifference);
                 bool isAscending = heightDifference > 0;
                 ModuleBuilder slopeToUse = isAscending ? slopeLeftModule : slopeRightModule;
@@ -417,7 +457,6 @@ public class LevelStarter : MonoBehaviour
                 {
                     moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
                     Vector2 slopePos = new Vector2(moduleSpawnerX, 0f);
-                    
                     int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
                     
                     ModuleBuilder spawnedSlope = Instantiate(slopeToUse, slopePos, Quaternion.identity, levelParent);
@@ -425,9 +464,6 @@ public class LevelStarter : MonoBehaviour
                     modulesInScene.Add(spawnedSlope);
                     
                     newWidth += slopeToUse.moduleConfig.currentTerrainWidth;
-                    
-                    GameLogger.Log("LEVEL", $"  Slope {s+1}/{slopesToSpawn} at X={moduleSpawnerX:F2}: Height={slopeHeight} ({(isAscending ? "UP" : "DOWN")})");
-                    
                     moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
                 }
             }
@@ -440,18 +476,17 @@ public class LevelStarter : MonoBehaviour
             newModule.GenerateModule(nextHeight);
             modulesInScene.Add(newModule);
 
-            GameLogger.Log("LEVEL", $"Module at X={moduleSpawnerX:F2}: Height={nextHeight} (previous={previousHeight}, change={heightChange:+0;-0;0})");
-
             previousHeight = nextHeight;
             moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
         }
 
-        // *** TRANSITION TO SCHOOL WITH SLOPES ***
-        int schoolHeightDiff = schoolHeight - previousHeight;
+        // *** TRANSITION TO SCHOOL (Should be only 0 or 1 level change now) ***
+        int finalSchoolHeight = targetSchoolHeight;
+        int schoolHeightDiff = finalSchoolHeight - previousHeight;
         
         if (schoolHeightDiff != 0)
         {
-            GameLogger.Log("LEVEL", $"School transition: {previousHeight} -> {schoolHeight} (diff: {schoolHeightDiff})");
+            GameLogger.Log("LEVEL", $"Final transition to School: {previousHeight} -> {finalSchoolHeight}");
             
             int slopesToSchool = Mathf.Abs(schoolHeightDiff);
             bool isAscending = schoolHeightDiff > 0;
@@ -460,18 +495,11 @@ public class LevelStarter : MonoBehaviour
             for (int s = 0; s < slopesToSchool; s++)
             {
                 moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
-                Vector2 slopePos = new Vector2(moduleSpawnerX, 0f);
-                
                 int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
-                
-                ModuleBuilder spawnedSlope = Instantiate(slopeToUse, slopePos, Quaternion.identity, levelParent);
+                ModuleBuilder spawnedSlope = Instantiate(slopeToUse, new Vector2(moduleSpawnerX, 0f), Quaternion.identity, levelParent);
                 spawnedSlope.GenerateModule(slopeHeight);
                 modulesInScene.Add(spawnedSlope);
-                
                 newWidth += slopeToUse.moduleConfig.currentTerrainWidth;
-                
-                GameLogger.Log("LEVEL", $"  School Slope {s+1}/{slopesToSchool} at X={moduleSpawnerX:F2}: Height={slopeHeight}");
-                
                 moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
             }
         }
@@ -481,12 +509,12 @@ public class LevelStarter : MonoBehaviour
         Vector2 schoolPos = new Vector2(moduleSpawnerX, 0f);
 
         ModuleBuilder spawnedSchool = Instantiate(schoolModule, schoolPos, Quaternion.identity, levelParent);
-        spawnedSchool.GenerateModule(schoolHeight);
+        spawnedSchool.GenerateModule(finalSchoolHeight);
         modulesInScene.Add(spawnedSchool);
 
         levelEndX = moduleSpawnerX + (schoolModule.moduleConfig.currentTerrainWidth / 2f);
 
-        GameLogger.Log("LEVEL", $"School at X={moduleSpawnerX:F2}, Height={schoolHeight}");
+        GameLogger.Log("LEVEL", $"School at X={moduleSpawnerX:F2}, Height={finalSchoolHeight}");
         GameLogger.Log("LEVEL", $"=== GENERATION COMPLETE: StartX={levelStartX:F2}, EndX={levelEndX:F2} ===");
 
         ResizeCamBounds(0f);
