@@ -129,6 +129,8 @@ public class PlayerStates : MonoBehaviour
     private List<Collider2D> ignoredCableColliders = new List<Collider2D>();
 
     private Coroutine activeInvincibility;
+    private Coroutine activeBlinkCoroutine;
+    private Color originalSpriteColor;
 
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
@@ -144,6 +146,16 @@ public class PlayerStates : MonoBehaviour
             StopCoroutine(activeInvincibility);
             activeInvincibility = null;
         }
+
+        if (activeBlinkCoroutine != null)
+        {
+            StopCoroutine(activeBlinkCoroutine);
+            activeBlinkCoroutine = null;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = originalSpriteColor;
+            }
+        }
     }
 
     private void Awake()
@@ -152,6 +164,11 @@ public class PlayerStates : MonoBehaviour
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
+
+        if (spriteRenderer != null)
+        {
+            originalSpriteColor = spriteRenderer.color;
+        }
 
         if (playerCollider == null)
             playerCollider = GetComponentInChildren<CapsuleCollider2D>();
@@ -590,7 +607,14 @@ public class PlayerStates : MonoBehaviour
 
         float invulnerabilityDuration = duration * 3f;
         InvokeInvincibility(invulnerabilityDuration);
-        StartCoroutine(BlinkSprite(invulnerabilityDuration));
+        
+        // Properly manage blinking coroutine to prevent "stuck" hit visual
+        if (activeBlinkCoroutine != null)
+        {
+            StopCoroutine(activeBlinkCoroutine);
+            if (spriteRenderer != null) spriteRenderer.color = originalSpriteColor;
+        }
+        activeBlinkCoroutine = StartCoroutine(BlinkSprite(invulnerabilityDuration));
         
         GameLogger.Log($"[PLAYER STAGGER] Started - Stagger: {duration:F2}s, Invulnerability: {invulnerabilityDuration:F2}s");
     }
@@ -606,19 +630,19 @@ public class PlayerStates : MonoBehaviour
         float elapsed = 0f;
         float blinkInterval = 0.1f;
         bool isVisible = true;
-        Color originalColor = spriteRenderer.color;
 
         while (elapsed < duration)
         {
             isVisible = !isVisible;
             float alpha = isVisible ? 1f : 0.1f;
-            spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            spriteRenderer.color = new Color(originalSpriteColor.r, originalSpriteColor.g, originalSpriteColor.b, alpha);
             
             yield return new WaitForSeconds(blinkInterval);
             elapsed += blinkInterval;
         }
 
-        spriteRenderer.color = originalColor;
+        spriteRenderer.color = originalSpriteColor;
+        activeBlinkCoroutine = null;
     }
 
 

@@ -210,7 +210,10 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
         }
 
         if (cachedPlayerMovement != null)
-            cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+        {
+            float knockbackX = playerRb != null ? Mathf.Sign(playerRb.transform.position.x - transform.position.x) : -1f;
+            cachedPlayerMovement.StaggerPlayer(new Vector2(knockbackX, 1f));
+        }
 
         //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
