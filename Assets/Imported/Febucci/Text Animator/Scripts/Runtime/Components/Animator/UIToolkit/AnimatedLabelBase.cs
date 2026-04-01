@@ -327,7 +327,8 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
         public void SwapText(string text) => animator.SwapText(text);
 
         /// <inheritdoc cref="ITextAnimatorProvider.AppendText"/>
-        public void AppendText(string appendedText, bool hideText = false) => animator.AppendText(appendedText, hideText);
+        public void AppendText(string appendedText, bool hideText = false, bool skipOldText = true)
+            => animator.AppendText(appendedText, hideText:hideText, skipOldText:skipOldText);
 
         public TextRegion<IEffectPlayer>[] Disappearances { get; }
         /// <inheritdoc cref="ITextAnimatorProvider.SetVisibilityChar"/>
@@ -419,7 +420,7 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
         public abstract bool HasChangedMeshRenderingSettings();
 
         public int GetFirstCharacterIndexInsidePage() => 0;
-        public int GetRenderedCharactersCountInsidePage(int charactersCount) => int.MaxValue;
+        public int GetRenderedCharactersCountInsidePage(int charactersCount) => charactersCount;
     }
 
 }
