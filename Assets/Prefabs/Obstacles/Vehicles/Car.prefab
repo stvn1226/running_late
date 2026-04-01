@@ -474,6 +474,7 @@ GameObject:
   - component: {fileID: 7292972239382755289}
   - component: {fileID: 5603105371790367036}
   - component: {fileID: 2729847077589266593}
+  - component: {fileID: 3684155746876956727}
   m_Layer: 13
   m_Name: Car
   m_TagString: Untagged
@@ -553,3 +554,25 @@ MonoBehaviour:
   tire2: {fileID: 7980585599618902339}
   tireSpinSpeed: 90
   ticksPerSecond: 12
+--- !u!95 &3684155746876956727
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9041243942261583109}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2b3c5d6b66d2a06458c21f64213b8a9a, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
