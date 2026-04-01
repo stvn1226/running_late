@@ -260,6 +260,12 @@ MonoBehaviour:
   cachedPlayerMovement: {fileID: 0}
   isStaggered: 0
   wasHit: 0
+  dogSpriteRenderer: {fileID: 6034160048787496781}
+  materials:
+  - {fileID: 2100000, guid: be3399e9e394ce24184d97981b387d1f, type: 2}
+  - {fileID: 2100000, guid: 65ed2d898b8e2a846b0e804bedfb9ca8, type: 2}
+  - {fileID: 2100000, guid: dcc638db7a76a6044bd6b577842201c2, type: 2}
+  - {fileID: 2100000, guid: 60d6bffaee4a62747aef6cf366edd017, type: 2}
   runSpeed: 10
   leapRange: 9
   leapForce: {x: -2, y: 8}
@@ -327,7 +333,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 658f6685d2a175c4dbb5aa39757968c6, type: 2}
+  - {fileID: 2100000, guid: be3399e9e394ce24184d97981b387d1f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
