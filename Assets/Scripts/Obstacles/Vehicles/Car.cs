@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class Car : Vehicle
 {
+    [Header("Appearance")]
+    [SerializeField] private SpriteRenderer carSpriteRenderer;
+    [SerializeField] private Material[] materials;
+
     [Header("Tire Spin")]
     [SerializeField] private Transform tire1;
     [SerializeField] private Transform tire2;
@@ -14,6 +18,7 @@ public class Car : Vehicle
     {
         base.Start();
         tickTimer = 0f;
+        ApplyRandomMaterial();
     }
 
     protected override void Update()
@@ -25,6 +30,18 @@ public class Car : Vehicle
     protected override void OnTriggerEnter2D(Collider2D collision)
     {
         base.OnTriggerEnter2D(collision);
+    }
+
+    /// <summary>
+    /// Picks a random material from the materials list and applies it to the car's SpriteRenderer.
+    /// </summary>
+    private void ApplyRandomMaterial()
+    {
+        if (carSpriteRenderer == null || materials == null || materials.Length == 0) return;
+
+        Material picked = materials[Random.Range(0, materials.Length)];
+        if (picked != null)
+            carSpriteRenderer.material = picked;
     }
 
     /// <summary>

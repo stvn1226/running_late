@@ -231,7 +231,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 658f6685d2a175c4dbb5aa39757968c6, type: 2}
+  - {fileID: 2100000, guid: c843c93cc2480e04281c92b4a782b61c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -544,6 +544,11 @@ MonoBehaviour:
   - {fileID: 0}
   activationDistance: 50
   spriteRenderer: {fileID: 3031911724637036703}
+  carSpriteRenderer: {fileID: 3031911724637036703}
+  materials:
+  - {fileID: 2100000, guid: c843c93cc2480e04281c92b4a782b61c, type: 2}
+  - {fileID: 2100000, guid: 7033bde1df0633640a4fde8c293b3ad4, type: 2}
+  - {fileID: 2100000, guid: f444b80c514f3d64f86123ad661bd797, type: 2}
   tire1: {fileID: 5852505346229555959}
   tire2: {fileID: 7980585599618902339}
   tireSpinSpeed: 90
