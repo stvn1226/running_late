@@ -12,6 +12,10 @@ public class Dog : Animal
         Finished
     }
 
+    [Header("Appearance")]
+    [SerializeField] private SpriteRenderer dogSpriteRenderer;
+    [SerializeField] private Material[] materials;
+
     [Header("Running")]
     [SerializeField] private float runSpeed = 5f;
 
@@ -44,6 +48,20 @@ public class Dog : Animal
         {
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
+
+        ApplyRandomMaterial();
+    }
+
+    /// <summary>
+    /// Picks a random material from the materials list and applies it to the dog's SpriteRenderer.
+    /// </summary>
+    private void ApplyRandomMaterial()
+    {
+        if (dogSpriteRenderer == null || materials == null || materials.Length == 0) return;
+
+        Material picked = materials[Random.Range(0, materials.Length)];
+        if (picked != null)
+            dogSpriteRenderer.material = picked;
     }
 
     private void OnEnable()

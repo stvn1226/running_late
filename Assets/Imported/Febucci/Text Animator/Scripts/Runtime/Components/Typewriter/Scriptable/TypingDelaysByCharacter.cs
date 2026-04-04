@@ -40,7 +40,7 @@ namespace Febucci.TextAnimatorForUnity
             char character = characterData.info.character;
 
             //avoids waiting for the last character
-            if (!waitForLastCharacter && animator.AllLettersShown)
+            if (!waitForLastCharacter && charIndex == animator.CharactersCount - 1)
                 return 0;
 
             //avoids waiting for multiple times if there are puntuactions near each other

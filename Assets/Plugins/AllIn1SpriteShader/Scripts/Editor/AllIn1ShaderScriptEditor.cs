@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,8 +24,13 @@ namespace AllIn1SpriteShader
 
         private void OnEnable()
         {
-            m_NormalStrength = serializedObject.FindProperty("normalStrength");
-            m_NormalSmoothing = serializedObject.FindProperty("normalSmoothing");
+            if (target == null || targets == null || targets.Length == 0 || targets[0] == null) return;
+            try
+            {
+                m_NormalStrength = serializedObject.FindProperty("normalStrength");
+                m_NormalSmoothing = serializedObject.FindProperty("normalSmoothing");
+            }
+            catch (System.Exception) { }
         }
 
         public override void OnInspectorGUI()

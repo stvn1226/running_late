@@ -381,7 +381,6 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
             }
 
             onSyncedContext = true;
-            Animate();
 
             bool hasAdvancedTextGeneration = resolvedStyle.unityTextGenerator == TextGeneratorType.Advanced;
             if (shouldBeCopied)
@@ -389,6 +388,8 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
                 CopyGlyphs(glyphs, hasAdvancedTextGeneration);
                 shouldBeCopied = false;
             }
+
+            Animate();
 
             PasteGlyphs(glyphs, hasAdvancedTextGeneration);
             onSyncedContext = false;
