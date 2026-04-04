@@ -362,12 +362,15 @@ public class LevelStarter : MonoBehaviour
             newWidth += module.moduleConfig.currentTerrainWidth;
         }
 
-        // SCHOOL
-        int schoolHeight = Random.Range(schoolModule.moduleConfig.minTerrainHeight, schoolModule.moduleConfig.maxTerrainHeight + 1);
+        // SCHOOL - Consolidate height calculation
+        int schoolMinHeight = Mathf.Max(1, targetSchoolHeight, schoolModule.moduleConfig.minTerrainHeight);
+        int schoolMaxHeight = Mathf.Max(schoolMinHeight, schoolModule.moduleConfig.maxTerrainHeight);
+        int finalSchoolHeight = Random.Range(schoolMinHeight, schoolMaxHeight + 1);
+        
         modulesToSpawn.Add(schoolModule);
         newWidth += schoolModule.moduleConfig.currentTerrainWidth;
 
-        GameLogger.Log("LEVEL", $"Total modules: {modulesToSpawn.Count}, Width: {newWidth}, School Height: {schoolHeight}");
+        GameLogger.Log("LEVEL", $"Total modules: {modulesToSpawn.Count}, Width: {newWidth}, Target School Height: {finalSchoolHeight}");
 
         // ========== SPAWNING CON SLOPES ==========
         
@@ -394,13 +397,13 @@ public class LevelStarter : MonoBehaviour
             if (module == homeModule)
                 continue;
             
-            // Skip School (spawned after loop)
+            // Skip School (spawned after loop, but we need its target height now)
             if (module == schoolModule)
                 continue;
 
             // --- BIASED HEIGHT COMPENSATION LOGIC ---
-            int remainingModules = (modulesSpawningCount - 1) - i; // Modules left until school
-            int heightDiff = targetSchoolHeight - previousHeight;
+            int remainingModules = (modulesSpawningCount - i); // Updated calculation for better foresight
+            int heightDiff = finalSchoolHeight - previousHeight;
             
             int heightChange = 0;
 
@@ -437,7 +440,8 @@ public class LevelStarter : MonoBehaviour
 
             int nextHeight = previousHeight + heightChange;
             
-            int minPossibleHeight = Mathf.Max(1, targetSchoolHeight, module.moduleConfig.minTerrainHeight);
+            // CLAMP SAFETY: Never go below 1 or below school target if school is higher
+            int minPossibleHeight = Mathf.Max(1, module.moduleConfig.minTerrainHeight);
             nextHeight = Mathf.Clamp(nextHeight, minPossibleHeight, module.moduleConfig.maxTerrainHeight);
 
             // *** INSERT SLOPES WHEN HEIGHT CHANGES ***
@@ -457,6 +461,7 @@ public class LevelStarter : MonoBehaviour
                     Vector2 slopePos = new Vector2(moduleSpawnerX, 0f);
                     int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
                     
+                    // SAFETY: Slope height must at least be 1 to have a foundation
                     slopeHeight = Mathf.Max(1, slopeHeight);
                     
                     ModuleBuilder spawnedSlope = Instantiate(slopeToUse, slopePos, Quaternion.identity, levelParent);
@@ -480,8 +485,7 @@ public class LevelStarter : MonoBehaviour
             moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
         }
 
-        // *** TRANSITION TO SCHOOL (Strictly respecting school module min-height) ***
-        int finalSchoolHeight = Mathf.Max(targetSchoolHeight, schoolModule.moduleConfig.minTerrainHeight, 1);
+        // *** FINAL TRANSITION TO SCHOOL ***
         int schoolHeightDiff = finalSchoolHeight - previousHeight;
         
         if (schoolHeightDiff != 0)
@@ -497,7 +501,7 @@ public class LevelStarter : MonoBehaviour
                 moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
                 int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
                 
-                // Ensure slope starts at valid height
+                // SAFETY: Slope height must at least be 1 to avoid 'ground 0' voids
                 slopeHeight = Mathf.Max(1, slopeHeight);
                 
                 ModuleBuilder spawnedSlope = Instantiate(slopeToUse, new Vector2(moduleSpawnerX, 0f), Quaternion.identity, levelParent);

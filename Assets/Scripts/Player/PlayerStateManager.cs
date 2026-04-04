@@ -10,6 +10,7 @@ public class PlayerStateManager : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private PlayerStates states;
     [SerializeField] private PlayerPhysics playerPhysics;
+    private PlayerAirDodge playerAirDodge;
 
     // Logging variables
     private bool previousCrouching;
@@ -18,6 +19,11 @@ public class PlayerStateManager : MonoBehaviour
     private bool previousRolling;
     private float lastStateLog = 0f;
     private const float STATE_LOG_INTERVAL = 1f;
+    
+    private void Awake()
+    {
+        playerAirDodge = GetComponent<PlayerAirDodge>();
+    }
 
     private void Update()
     {
@@ -216,10 +222,9 @@ public class PlayerStateManager : MonoBehaviour
                     states.EndDive();
                 }
 
-                PlayerAirDodge airDodge = GetComponent<PlayerAirDodge>();
-                if (airDodge != null)
+                if (playerAirDodge != null)
                 {
-                    airDodge.OnWallRunStart();
+                    playerAirDodge.OnWallRunStart();
                 }
             }
         }

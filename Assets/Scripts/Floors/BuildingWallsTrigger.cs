@@ -62,6 +62,21 @@ public class BuildingWallsTrigger : MonoBehaviour
         }
     }
 
+    public void UpdateColliderDimensions(Vector2 size, Vector2 offset)
+    {
+        if (boxCollider == null)
+        {
+            boxCollider = GetComponent<BoxCollider2D>();
+        }
+
+        if (boxCollider != null)
+        {
+            boxCollider.size = size;
+            boxCollider.offset = offset;
+            GameLogger.LogVerbose("BUILDING", $"Updated {gameObject.name} collider to Size: {size}, Offset: {offset}");
+        }
+    }
+
     public void SetSolid(bool solid)
     {
         if (boxCollider == null) return;

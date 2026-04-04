@@ -102,6 +102,7 @@ public class PlayerStates : MonoBehaviour
     [Header("Kick States")]
     public float kickTimer;
     public float kickStartTime;
+    public int kickStartFrame;
 
     [Header("Stagger States")]
     public float staggerTimer;
@@ -507,8 +508,9 @@ public class PlayerStates : MonoBehaviour
             isKicking = true;
             kickTimer = kickDuration;
             kickStartTime = Time.time;
+            kickStartFrame = Time.frameCount;
 
-            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, isGrounded={isGrounded}");
+            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
         }
     }
 

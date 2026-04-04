@@ -311,6 +311,13 @@ public class PlayerPhysics : MonoBehaviour
                 {
                     if (IsObstructed(hit.point, hit.collider)) continue;
 
+                    // CABLE BUG FIX: If we are sliding on a cable, ignore other ropes/cables for wall detection.
+                    // This prevents crossing cables from being treated as "walls" that stop movement.
+                    if (states.isSlidingOnCable && hit.collider.GetComponentInParent<GogoGaga.OptimizedRopesAndCables.Rope>() != null)
+                    {
+                        continue;
+                    }
+
                     // HOTFIX: Normal verification to avoid slopes
                     if (!IsVerticalWallSurface(hit.normal))
                     {
@@ -358,6 +365,12 @@ public class PlayerPhysics : MonoBehaviour
             {
                 Vector2 closestPoint = col.ClosestPoint(boxCenter);
                 if (IsObstructed(closestPoint, col)) continue;
+
+                // CABLE BUG FIX: Same logic for overlap fallback
+                if (states.isSlidingOnCable && col.GetComponentInParent<GogoGaga.OptimizedRopesAndCables.Rope>() != null)
+                {
+                    continue;
+                }
 
                 float dist = Vector2.Distance(boxCenter, closestPoint);
 

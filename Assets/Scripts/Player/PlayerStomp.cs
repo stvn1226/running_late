@@ -9,6 +9,9 @@ public class PlayerStomp : MonoBehaviour
 
     [Header("Stomp Settings")]
     [SerializeField] private float stompBounceForce = 15f;
+    
+    private PlayerAirDodge playerAirDodge;
+    private PlayerDive playerDive;
 
     private void Awake()
     {
@@ -20,6 +23,9 @@ public class PlayerStomp : MonoBehaviour
         {
             states = GetComponent<PlayerStates>();
         }
+        
+        playerAirDodge = GetComponentInParent<PlayerAirDodge>();
+        playerDive = GetComponentInParent<PlayerDive>();
     }
 
     public void ExecuteStompBounce()
@@ -34,16 +40,14 @@ public class PlayerStomp : MonoBehaviour
         ApplyBounce();
         AudioManager.Instance?.Play(AudioManager.SoundType.Bounce);
         
-        PlayerAirDodge airDodge = GetComponentInParent<PlayerAirDodge>();
-        if (airDodge != null)
+        if (playerAirDodge != null)
         {
-            airDodge.OnStompBounce();
+            playerAirDodge.OnStompBounce();
         }
 
-        PlayerDive dive = GetComponentInParent<PlayerDive>();
-        if (dive != null)
+        if (playerDive != null)
         {
-            dive.OnObstacleBounce();
+            playerDive.OnObstacleBounce();
         }
     }
 

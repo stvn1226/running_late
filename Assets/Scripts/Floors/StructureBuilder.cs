@@ -118,33 +118,71 @@ public class StructureBuilder : MonoBehaviour
         buildingCollider.isTrigger = true;
         gameObject.tag = "Building";
         
-        // Automatic width calculation from instantiated parts
-        Bounds combinedBounds = new Bounds(transform.position, Vector3.zero);
-        bool foundRenderer = false;
-        
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        foreach (Renderer r in renderers)
+        // Width calculation: Find the WIDEST internal child collider (e.g., MWall)
+        float maxChildWidth = 0f;
+        float bestOffsetX = 0f;
+        bool foundStructureBase = false;
+        GameObject widestChildObj = null;
+
+        BoxCollider2D[] allChildColliders = GetComponentsInChildren<BoxCollider2D>();
+        foreach (var col in allChildColliders)
         {
-            // Only include floors, ground, and roof components (ignore obstacles/powerups)
-            if (r.gameObject == gameObject) continue;
+            // Skip the parent's own buildingCollider
+            if (col.gameObject == gameObject) continue;
             
-            if (!foundRenderer)
+            // MATH FIX: Factor in the scale of the child and parent
+            float worldWidth = col.size.x * col.transform.lossyScale.x;
+            float parentLocalWidth = transform.lossyScale.x != 0 ? worldWidth / transform.lossyScale.x : worldWidth;
+
+            if (parentLocalWidth > maxChildWidth)
             {
-                combinedBounds = r.bounds;
-                foundRenderer = true;
-            }
-            else
-            {
-                combinedBounds.Encapsulate(r.bounds);
+                maxChildWidth = parentLocalWidth;
+                
+                // Calculate horizontal center relative to this StructureBuilder parent
+                Vector3 worldCenter = col.transform.TransformPoint(col.offset);
+                Vector3 localCenter = transform.InverseTransformPoint(worldCenter);
+                bestOffsetX = localCenter.x;
+                
+                foundStructureBase = true;
+                widestChildObj = col.gameObject;
             }
         }
 
-        float buildingWidth = foundRenderer ? combinedBounds.size.x : config.floorWidth;
+        float buildingWidth;
+        float offsetX;
+
+        if (foundStructureBase)
+        {
+            buildingWidth = maxChildWidth;
+            offsetX = bestOffsetX;
+        }
+        else
+        {
+            buildingWidth = config.floorWidth;
+            offsetX = 0f;
+        }
+        
         float buildingHeight = floorsCt * config.floorHeight;
-        float offsetX = foundRenderer ? combinedBounds.center.x - transform.position.x : 0f;
         
         buildingCollider.size = new Vector2(buildingWidth, buildingHeight);
         buildingCollider.offset = new Vector2(offsetX, buildingHeight * 0.5f);
+        
+        // SYNC: Push dimensions ONLY to the main wall trigger (the one we built the width from)
+        // or to the parent itself if it has one. This avoids touching LWall/RWall.
+        if (foundStructureBase && widestChildObj != null)
+        {
+            BuildingWallsTrigger childTrigger = widestChildObj.GetComponent<BuildingWallsTrigger>();
+            if (childTrigger != null)
+            {
+                childTrigger.UpdateColliderDimensions(buildingCollider.size, buildingCollider.offset);
+            }
+        }
+
+        BuildingWallsTrigger parentTrigger = GetComponent<BuildingWallsTrigger>();
+        if (parentTrigger != null)
+        {
+            parentTrigger.UpdateColliderDimensions(buildingCollider.size, buildingCollider.offset);
+        }
         
         // Calculate building Z from first floor (ground floor)
         // Ground floor is instantiated FIRST so it's always child 0

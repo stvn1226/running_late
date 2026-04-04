@@ -27,6 +27,8 @@ public class PlayerJump : MonoBehaviour
     private Coroutine activeFloatCoroutine;
     
     [SerializeField] private PlayerMovement playerMovement;
+    private PlayerDive playerDive;
+    private PlayerPhysics playerPhysics;
 
 
     private void Awake()
@@ -35,6 +37,9 @@ public class PlayerJump : MonoBehaviour
         minJumpForce = config.minJumpForce;
         maxJumpForce = config.maxJumpForce;
         canSlowFall = false;
+        
+        playerDive = GetComponent<PlayerDive>();
+        playerPhysics = GetComponent<PlayerPhysics>();
     }
 
     private void Update()
@@ -128,10 +133,9 @@ public class PlayerJump : MonoBehaviour
             if (isDoubleJump)
             {
                 GameLogger.Log("JUMP", $"Double jump executed - isKicking={states.isKicking}");
-                PlayerDive dive = GetComponent<PlayerDive>();
-                if (dive != null)
+                if (playerDive != null)
                 {
-                    dive.OnDoubleJump();
+                    playerDive.OnDoubleJump();
                 }
             }
             else
@@ -301,7 +305,6 @@ public class PlayerJump : MonoBehaviour
         }
 
         // Also notify the physics component to reset collider size
-        PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
         if (playerPhysics != null)
         {
             playerPhysics.UpdateColliderSize();
