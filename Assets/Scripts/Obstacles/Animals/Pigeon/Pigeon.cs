@@ -1,5 +1,4 @@
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 using System.Collections;
 using Utils;
 
@@ -14,6 +13,12 @@ public class Pigeon : Animal
         Staggered,
         Finished
     }
+
+    [Header("Stagger Spin")]
+    [SerializeField] private float staggerSpinSpeed = 360f;
+    [SerializeField] private float staggerSpinTicksPerSecond = 6f;
+
+    private float staggerSpinTickTimer;
 
     [Header("Take Off")]
     [Tooltip("Time in seconds for the pigeon to finish its take off movement.")]
@@ -73,6 +78,7 @@ public class Pigeon : Animal
             BeginTakeOff();
         }
         UpdateAnimator();
+        SpinWhenStaggered();
     }
 
     private void FixedUpdate()
@@ -112,6 +118,23 @@ public class Pigeon : Animal
 
     private void HandleStagger()
     {
+    }
+
+    /// <summary>
+    /// Spins the pigeon around its own Z axis at a fixed tick rate while staggered.
+    /// </summary>
+    private void SpinWhenStaggered()
+    {
+        if (!isStaggered) return;
+
+        staggerSpinTickTimer += Time.deltaTime;
+
+        float tickInterval = 1f / staggerSpinTicksPerSecond;
+        if (staggerSpinTickTimer < tickInterval) return;
+
+        staggerSpinTickTimer = 0f;
+
+        transform.Rotate(0f, 0f, -staggerSpinSpeed * tickInterval, Space.Self);
     }
 
     private void BeginTakeOff()

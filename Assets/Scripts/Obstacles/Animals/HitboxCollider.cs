@@ -168,6 +168,9 @@ public class HitboxCollider : MonoBehaviour
         }
 
         if (parent.cachedPlayerMovement != null)
-            parent.cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+        {
+            float knockbackX = playerRb != null ? Mathf.Sign(playerRb.transform.position.x - parent.transform.position.x) : -1f;
+            parent.cachedPlayerMovement.StaggerPlayer(new Vector2(knockbackX, 1f));
+        }
     }
 }

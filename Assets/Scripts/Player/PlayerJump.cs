@@ -27,6 +27,8 @@ public class PlayerJump : MonoBehaviour
     private Coroutine activeFloatCoroutine;
     
     [SerializeField] private PlayerMovement playerMovement;
+    private PlayerDive playerDive;
+    private PlayerPhysics playerPhysics;
 
 
     private void Awake()
@@ -35,6 +37,9 @@ public class PlayerJump : MonoBehaviour
         minJumpForce = config.minJumpForce;
         maxJumpForce = config.maxJumpForce;
         canSlowFall = false;
+        
+        playerDive = GetComponent<PlayerDive>();
+        playerPhysics = GetComponent<PlayerPhysics>();
     }
 
     private void Update()
@@ -128,10 +133,9 @@ public class PlayerJump : MonoBehaviour
             if (isDoubleJump)
             {
                 GameLogger.Log("JUMP", $"Double jump executed - isKicking={states.isKicking}");
-                PlayerDive dive = GetComponent<PlayerDive>();
-                if (dive != null)
+                if (playerDive != null)
                 {
-                    dive.OnDoubleJump();
+                    playerDive.OnDoubleJump();
                 }
             }
             else
@@ -207,13 +211,26 @@ public class PlayerJump : MonoBehaviour
         
         // JUMP PROJECTION: Use the slope normal if available to ensure a clean lift-off
         Vector2 jumpDirection = Vector2.up;
+        float appliedJumpForce = minJumpForce;
+        
         if (states.isOnSlope && states.slopeNormal.y > 0.5f)
         {
-            jumpDirection = states.slopeNormal;
-            GameLogger.LogMovement($"Slope jump projected along normal: {jumpDirection}");
+            // Blend normal with up to ensure vertical lift while pushing away from slope
+            jumpDirection = (Vector2.up + states.slopeNormal * 0.4f).normalized;
+            
+            // MATH FIX: Ensure the vertical component of the force is at least minJumpForce
+            // If the slope is steep, the normal's Y component is small. We scale the force up 
+            // so vertical clearance feels consistent with flat jumps.
+            float verticalFactor = jumpDirection.y;
+            if (verticalFactor > 0.1f)
+            {
+                appliedJumpForce = minJumpForce / verticalFactor;
+            }
+            
+            GameLogger.LogMovement($"Slope jump: Direction={jumpDirection}, OriginalForce={minJumpForce}, AdjustedForce={appliedJumpForce}");
         }
-
-        rb.AddForce(jumpDirection * minJumpForce, ForceMode2D.Impulse);
+        
+        rb.AddForce(jumpDirection * appliedJumpForce, ForceMode2D.Impulse);
         
         // Force grounded state to false immediately to clear movement logic
         states.isGrounded = false;
@@ -244,13 +261,20 @@ public class PlayerJump : MonoBehaviour
 
         // JUMP PROJECTION: Use the slope normal if available to ensure a clean lift-off
         Vector2 verticalDirection = Vector2.up;
+        float appliedLongJumpVertical = verticalForce;
+
         if (states.isOnSlope && states.slopeNormal.y > 0.5f)
         {
-            verticalDirection = states.slopeNormal;
-            GameLogger.LogMovement($"Long jump projected along normal: {verticalDirection}");
+            // Same scaling fix for long jumps
+            verticalDirection = (Vector2.up + states.slopeNormal * 0.4f).normalized;
+            float verticalFactor = verticalDirection.y;
+            if (verticalFactor > 0.1f)
+            {
+                appliedLongJumpVertical = verticalForce / verticalFactor;
+            }
         }
 
-        rb.AddForce(verticalDirection * verticalForce, ForceMode2D.Impulse);
+        rb.AddForce(verticalDirection * appliedLongJumpVertical, ForceMode2D.Impulse);
         rb.AddForce(Vector2.right * horizontalForce, ForceMode2D.Impulse);
 
         // Force grounded state to false immediately
@@ -281,7 +305,6 @@ public class PlayerJump : MonoBehaviour
         }
 
         // Also notify the physics component to reset collider size
-        PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
         if (playerPhysics != null)
         {
             playerPhysics.UpdateColliderSize();

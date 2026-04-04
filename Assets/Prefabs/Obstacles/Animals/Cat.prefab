@@ -179,7 +179,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3064667908020725273}
@@ -260,6 +260,11 @@ MonoBehaviour:
   cachedPlayerMovement: {fileID: 0}
   isStaggered: 0
   wasHit: 0
+  dogSpriteRenderer: {fileID: 6034160048787496781}
+  materials:
+  - {fileID: 2100000, guid: 6b4aa61d75c02424e8e2bc83f314753c, type: 2}
+  - {fileID: 2100000, guid: 059209034c68050428415094b6d612d0, type: 2}
+  - {fileID: 2100000, guid: 1c5d6aa438322fb40be367781bf676ea, type: 2}
   runSpeed: 10
   leapRange: 8
   leapForce: {x: -2, y: 8}
@@ -295,14 +300,15 @@ Transform:
   m_GameObject: {fileID: 6083325443485467078}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1008962276186670117}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6034160048787496781
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -326,7 +332,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 658f6685d2a175c4dbb5aa39757968c6, type: 2}
+  - {fileID: 2100000, guid: 6b4aa61d75c02424e8e2bc83f314753c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -348,16 +354,16 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 90
-  m_Sprite: {fileID: 21300000, guid: ce288dee74dff714bb09e13d14dc04b2, type: 3}
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 21300000, guid: d9e57a09ce6a356448b458321d500e0c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 1
+  m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 12.44, y: 11.15}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &359343192584962672
 MonoBehaviour:

@@ -85,12 +85,21 @@ public class ModuleBuilder : MonoBehaviour
         int groundBlocksCount;
         if (explicitHeight.HasValue)
         {
-            groundBlocksCount = Mathf.Clamp(explicitHeight.Value, moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight);
+            // SAFETY: System requires at least 1 block to provide a walkable floor
+            if (explicitHeight.Value < 1)
+            {
+                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 1). Clamping to 1 to prevent 'void' errors.");
+            }
+
+            int minHeight = Mathf.Max(1, moduleConfig.minTerrainHeight);
+            groundBlocksCount = Mathf.Clamp(explicitHeight.Value, minHeight, moduleConfig.maxTerrainHeight);
+            
             GameLogger.Log("MODULE", $"  - Using explicit height: {explicitHeight.Value} -> clamped to {groundBlocksCount}");
         }
         else
         {
-            groundBlocksCount = Random.Range(moduleConfig.minTerrainHeight, moduleConfig.maxTerrainHeight + 1);
+            int minHeight = Mathf.Max(1, moduleConfig.minTerrainHeight);
+            groundBlocksCount = Random.Range(minHeight, moduleConfig.maxTerrainHeight + 1);
             GameLogger.Log("MODULE", $"  - Using random height: {groundBlocksCount}");
         }
 
@@ -98,6 +107,7 @@ public class ModuleBuilder : MonoBehaviour
 
         Vector3 startPos = placementTracker.position;
 
+        // Ground blocks except the top one (foundation)
         for (int i = 0; i < groundBlocksCount - 1; i++)
         {
             if (padding != null)
@@ -109,6 +119,7 @@ public class ModuleBuilder : MonoBehaviour
             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
         }
 
+        // The top-most block that the player walks on
         if (foundation != null)
         {
             GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);

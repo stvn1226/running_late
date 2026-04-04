@@ -33,6 +33,24 @@ namespace Febucci.TextAnimatorForUnity
         internal ITextAnimatorProvider textAnimatorProvider;
 
         [SerializeField] TypingsTimingsScriptableBase timingsScriptableBase;
+
+        /// <summary>
+        /// The timing configuration for the typewriter (e.g., TypingDelaysByCharacter or TypingDelaysByWord).
+        /// Can be changed at runtime to switch between delay modes.
+        /// </summary>
+        public TypingsTimingsScriptableBase TimingSettings
+        {
+            get => timingsScriptableBase;
+            set
+            {
+                timingsScriptableBase = value;
+                if (_wrapper != null)
+                {
+                    _wrapper.timingsProvider = value;
+                }
+            }
+        }
+
         TypewriterCore _wrapper;
         TypewriterCore Wrapper
         {
@@ -452,6 +470,16 @@ namespace Febucci.TextAnimatorForUnity
             _wrapper?.Dispose();
             initialized = false;
         }
+
+#if UNITY_EDITOR
+        void OnValidate()
+        {
+            if (Application.isPlaying && _wrapper != null)
+            {
+                _wrapper.timingsProvider = timingsScriptableBase;
+            }
+        }
+#endif
 
         #region BACKWARDS COMPATIBILITY
 

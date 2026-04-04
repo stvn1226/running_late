@@ -339,9 +339,13 @@ public class PlayerMovement : MonoBehaviour
         GamepadVibrationManager.Instance?.TriggerHitVibration();
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
-        rb.linearVelocity = new Vector2(knockbackForce.x, Mathf.Max(knockbackForce.y, rb.linearVelocity.y));
+        
+        // Authoritatively override velocity to stop forward momentum immediately
+        // We use a minimum vertical impulse to ensure the player "bounces" off the obstacle
+        float finalKnockbackY = Mathf.Max(knockbackForce.y, 10f);
+        rb.linearVelocity = new Vector2(knockbackForce.x, finalKnockbackY);
     
-        GameLogger.Log($"[STAGGER] Velocity set to: {rb.linearVelocity}");
+        GameLogger.Log($"[STAGGER] Velocity authoritatively set to: {rb.linearVelocity} (Force: {config.staggerKnockbackForce}, Dir: {knockbackDirection})");
     }
 
 
@@ -714,7 +718,7 @@ public class PlayerMovement : MonoBehaviour
         
         if (Mathf.Abs(horizontalInput) < 0.1f)
         {
-            targetDrag = config.groundDrag;
+            targetDrag = config.groundDrag * 2.1f; 
         }
         else
         {

@@ -135,6 +135,14 @@ public class PlayerAnimator : MonoBehaviour
     /// </summary>
     private bool IsCriticalTransition(int fromHash, int toHash)
     {
+        // 1. ALL STARTS OF COMBAT ACTIONS (Kicks, Dives, Rolls) ARE CRITICAL
+        if (toHash == AnimHash.KickA || toHash == AnimHash.KickB || toHash == AnimHash.KickC)
+            return true;
+        
+        if (toHash == AnimHash.Roll || toHash == AnimHash.GroundSlam)
+            return true;
+
+        // 2. ESCAPING WALL CONTACT (Wall exit, Vault, Wall Jump)
         if (fromHash == AnimHash.WallSlide || fromHash == AnimHash.WallClimb)
             return true;
 
@@ -144,12 +152,14 @@ public class PlayerAnimator : MonoBehaviour
         if (toHash == AnimHash.WallJump)
             return true;
         
+        // 3. PHYSICAL IMPACTS (Landing, Taking Damage)
         if (toHash == AnimHash.Land)
             return true;
         
         if (toHash == AnimHash.HitDamage)
             return true;
         
+        // 4. RESETTING TO FALLING FROM COMBAT
         if ((fromHash == AnimHash.KickA || fromHash == AnimHash.KickB || fromHash == AnimHash.KickC) 
             && toHash == AnimHash.JumpFall)
             return true;
@@ -177,7 +187,11 @@ public class PlayerAnimator : MonoBehaviour
             return AnimHash.HitDamage;
 
         if (states.isKicking && !wasKicking)
-            return GetRandomKickVariation();
+        {
+            int kickVar = GetRandomKickVariation();
+            GameLogger.Log("ANIM", $"KICK ANIMATION START: variation={GetStateNameFromHash(kickVar)}, stateFrame={states.kickStartFrame}, animFrame={Time.frameCount}");
+            return kickVar;
+        }
 
         if (states.isKicking)
         {

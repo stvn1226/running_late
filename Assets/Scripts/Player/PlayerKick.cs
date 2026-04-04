@@ -50,9 +50,14 @@ public class PlayerKick : MonoBehaviour
             }
             else
             {
-                // Animator switched to a different clip (e.g., interrupted by landing or wallrun)
-                DisableHitbox();
-                states.EndKick("animChanged");
+                // SAFETY: We only interrupt if it's NOT the same frame the kick started
+                // This allows the animator (in LateUpdate) to catch up with the state change (in Update)
+                if (Time.frameCount > states.kickStartFrame)
+                {
+                    GameLogger.LogWarning("KICK", $"INTERRUPTED: Animator mismatch after startup frame. State isKicking=true but Animator is {playerAnimator.GetCurrentStateName()} (Frame: {Time.frameCount} > {states.kickStartFrame})");
+                    DisableHitbox();
+                    states.EndKick("animMismatch");
+                }
             }
         }
         else if (hitboxActive)

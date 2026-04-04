@@ -15,6 +15,7 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
     private bool wasStomped;
     private bool wasHit;
     private Coroutine hitboxDisableCoroutine;
+    protected bool movementOverridden;
     
     [Header("Warning Indicator")]
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -54,6 +55,7 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
         }
 
         if (!isRunning) return;
+        if (movementOverridden) return;
 
         rb.linearVelocityX = -speed;
     }
@@ -210,10 +212,20 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
         }
 
         if (cachedPlayerMovement != null)
-            cachedPlayerMovement.StaggerPlayer(new Vector2(-1, 1));
+        {
+            float knockbackX = playerRb != null ? Mathf.Sign(playerRb.transform.position.x - transform.position.x) : -1f;
+            cachedPlayerMovement.StaggerPlayer(new Vector2(knockbackX, 1f));
+        }
+
+        OnPlayerDamageDealt();
 
         //hitboxDisableCoroutine = StartCoroutine(DisableHitboxTemp(2f));
     }
+
+    /// <summary>
+    /// Called after the vehicle successfully deals damage to the player. Override to add vehicle-specific reactions.
+    /// </summary>
+    protected virtual void OnPlayerDamageDealt() { }
 
     private void ResetHitState()
     {
