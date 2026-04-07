@@ -4535,7 +4535,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.4901961, g: 0.8431373, b: 0.97647065, a: 0}
+  m_BackGroundColor: {r: 0.5686275, g: 0.8431373, b: 0.97647065, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -4849,6 +4849,7 @@ MonoBehaviour:
   cloudParent: {fileID: 0}
   minModules: 50
   maxModules: 60
+  targetSchoolHeight: 0
   modules:
   - {fileID: 3603241969965492453, guid: c122e73c74451e44b90e75ac7e2486a7, type: 3}
   - {fileID: 6877803549350271885, guid: df0b11f13b376024abdf79f132bd626a, type: 3}
