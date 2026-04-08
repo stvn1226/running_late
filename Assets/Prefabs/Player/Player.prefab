@@ -311,6 +311,9 @@ MonoBehaviour:
   RestoreInitialValuesOnDisable: 0
   StopFeedbacksOnDisable: 0
   PlayCount: 0
+  MMF_ChannelMode: 0
+  MMF_Channel: 0
+  MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
     RefIds:
@@ -900,6 +903,7 @@ MonoBehaviour:
   divePressed: 0
   kickTimer: 0
   kickStartTime: 0
+  kickStartFrame: 0
   staggerTimer: 0
   isCornerClimbing: 0
   cornerClimbTimer: 0
@@ -1228,6 +1232,9 @@ MonoBehaviour:
   RestoreInitialValuesOnDisable: 0
   StopFeedbacksOnDisable: 0
   PlayCount: 0
+  MMF_ChannelMode: 0
+  MMF_Channel: 0
+  MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
     RefIds:
