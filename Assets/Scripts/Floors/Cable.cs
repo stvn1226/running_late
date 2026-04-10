@@ -17,11 +17,11 @@ public class Cable : MonoBehaviour
         CableManager.instance.DisableOtherCables(true, edgeCollider);
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        collision.gameObject.GetComponentInParent<PlayerStates>()?.StartCableSlide(edgeCollider);
-        CableManager.instance.DisableOtherCables(true, edgeCollider);
-    }
+    //private void OnTriggerEnter2D(Collider2D collision)
+    //{
+    //    collision.gameObject.GetComponentInParent<PlayerStates>()?.StartCableSlide(edgeCollider);
+    //    CableManager.instance.DisableOtherCables(true, edgeCollider);
+    //}
 
     //private void OnCollisionStay2D(Collision2D collision)
     //{
