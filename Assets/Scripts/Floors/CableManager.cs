@@ -116,6 +116,31 @@ public class CableManager : MonoBehaviour
                     endPoint.transform.position.y > (startPoint.transform.position.y - startPoint.maxDistance))
                 {
                     Rope newCable = BuildCable(startPoint, endPoint);
+                    //bool crosses = false;
+                    //for (int i = 0; i < newCable.linePoints; i++)
+                    //{
+                    //    Vector3 point = newCable.GetComponent<LineRenderer>().GetPosition(i);
+                    //    crosses = false;
+                    //    foreach (Rope c in _cablesList)
+                    //    {
+                    //        for (int j = 0; j < c.linePoints; j++)
+                    //        {
+                    //            Vector3 otherPoint = c.GetComponent<LineRenderer>().GetPosition(j);
+                    //            if (Vector3.Distance(point, otherPoint) < 1f)
+                    //            {
+                    //                crosses = true;
+                    //                break;
+                    //            }
+                    //        }
+                    //        if (crosses) break;
+                    //    }
+                    //    if (crosses) break;
+                    //}
+                    //if (crosses)
+                    //{
+                    //    Destroy(newCable.gameObject); //destroy the new cable after checking if it crosses any existing cables
+                    //    continue;
+                    //}//if the new cable crosses any existing cables, skip it and try the next endpoint
                     _cablesList.Add(newCable);
                     endPoint.hasBeenUsed = true;
                     break;
