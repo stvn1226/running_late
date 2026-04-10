@@ -25,6 +25,7 @@ public class PlayerPhysics : MonoBehaviour
     private const int WALLRUN_DEPTH_THRESHOLD = -12;
     private const float WALL_CONTACT_GRACE_PERIOD = 0.12f;
 
+    public Collider2D CurrentWallCollider => currentWallCollider;
     private Collider2D currentWallCollider;
     private Collider2D previousWallCollider;
     private BuildingWallsTrigger currentWallTrigger;

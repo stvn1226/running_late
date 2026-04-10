@@ -6,6 +6,12 @@ public class FloorAssetPicker : MonoBehaviour
 
     [SerializeField] private Sprite[] _baseSprites;
 
+    /// <summary>
+    /// The authoritative background SpriteRenderer for this floor/roof/ground piece.
+    /// StructureBuilder uses this to get the correct sorting order for Z-depth calculation.
+    /// </summary>
+    public SpriteRenderer Base => _base;
+
     private void Start()
     {
         RandomizeBaseSprite();

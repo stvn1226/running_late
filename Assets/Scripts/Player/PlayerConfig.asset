@@ -43,11 +43,18 @@ MonoBehaviour:
   perfectClimbWindow: 0.15
   perfectClimbBoostMultiplier: 1.5
   wallVaultTriggerDistance: 1.5
-  wallVaultHorizontalBoost: 25
-  wallVaultVerticalDamping: 0.3
+  wallVaultHorizontalBoost: 15
+  wallVaultVerticalDamping: 0.15
   wallVaultDuration: 0.15
   maxWallHeightCheck: 20
   wallHeightCheckInterval: 0.4
+  wallRunDebug: 0
+  wallRunStrictNormals: 1
+  wallNormalMinX: 0.85
+  midWallLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  wallSlideSpeed: 15
   enableCornerClimb: 1
   cornerClimbMinVelocity: -1
   cornerClimbMaxVelocity: 1.5
@@ -68,6 +75,11 @@ MonoBehaviour:
     m_Bits: 3073
   kickDuration: 0.25
   kickForceReduction: 0.5
+  kickDebug: 0
+  kickInterruptLock: 0.12
+  kickHitboxStartN: 0.15
+  kickHitboxEndN: 0.55
+  kickGroundDrag: 15
   staggerDuration: 0.8
   staggerKnockbackForce: 20
   staggerMovementReduction: 0.2
@@ -96,3 +108,4 @@ MonoBehaviour:
   slopeStickStrength: 1
   slopeSnapDistance: 0.4
   slopeSnapDisableTime: 0.12
+  slopeGravityInfluence: 0.6

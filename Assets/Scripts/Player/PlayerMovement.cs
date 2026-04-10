@@ -838,7 +838,8 @@ public class PlayerMovement : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision)
     {
         // Zero out horizontal velocity when pressing against a wall that is not being wall-run
-        if (!states.isGrounded && !states.isWallRunning && !states.isWallSliding)
+        // EXCLUSION: Do not kill velocity if we are sliding on a cable, as we want to glide through crossing obstacles.
+        if (!states.isGrounded && !states.isWallRunning && !states.isWallSliding && !states.isSlidingOnCable)
         {
             foreach (ContactPoint2D contact in collision.contacts)
             {

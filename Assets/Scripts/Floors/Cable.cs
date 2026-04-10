@@ -3,7 +3,7 @@ using UnityEngine;
 public class Cable : MonoBehaviour
 {
     private EdgeCollider2D edgeCollider;
-    //public bool isBeingUsed = false;
+    private bool ignoringPlayerCollision = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -13,13 +13,40 @@ public class Cable : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        collision.gameObject.GetComponentInParent<PlayerStates>()?.StartCableSlide(edgeCollider);
+        var states = collision.gameObject.GetComponentInParent<PlayerStates>();
+        if (states == null) return;
+
+        // Don't hijack wallrun
+        if (states.isWallRunning) return;
+
+        // Player is already sliding on a DIFFERENT cable — pass through this one physically
+        if (states.isSlidingOnCable && states.currentCable != edgeCollider)
+        {
+            Physics2D.IgnoreCollision(collision.collider, edgeCollider, true);
+            ignoringPlayerCollision = true;
+            return;
+        }
+
+        states.StartCableSlide(edgeCollider);
         CableManager.instance.DisableOtherCables(true, edgeCollider);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        collision.gameObject.GetComponentInParent<PlayerStates>()?.StartCableSlide(edgeCollider);
+        var states = collision.gameObject.GetComponentInParent<PlayerStates>();
+        if (states == null) return;
+
+        if (states.isWallRunning) return;
+
+        // Already sliding on a different cable — pass through
+        if (states.isSlidingOnCable && states.currentCable != edgeCollider)
+        {
+            Physics2D.IgnoreCollision(collision, edgeCollider, true);
+            ignoringPlayerCollision = true;
+            return;
+        }
+
+        states.StartCableSlide(edgeCollider);
         CableManager.instance.DisableOtherCables(true, edgeCollider);
     }
 
@@ -30,15 +57,31 @@ public class Cable : MonoBehaviour
 
     private void OnCollisionExit2D(Collision2D collision)
     {
+        // If we were ignoring this collision, restore it and do nothing else
+        if (ignoringPlayerCollision)
+        {
+            Physics2D.IgnoreCollision(collision.collider, edgeCollider, false);
+            ignoringPlayerCollision = false;
+            return;
+        }
+
         collision.gameObject.GetComponentInParent<PlayerStates>()?.EndCableSlide();
         CableManager.instance.DisableOtherCables(false, edgeCollider);
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
+        if (ignoringPlayerCollision)
+        {
+            Physics2D.IgnoreCollision(collision, edgeCollider, false);
+            ignoringPlayerCollision = false;
+            return;
+        }
+
         collision.gameObject.GetComponentInParent<PlayerStates>()?.EndCableSlide();
         CableManager.instance.DisableOtherCables(false, edgeCollider);
     }
 }
+
 
 
