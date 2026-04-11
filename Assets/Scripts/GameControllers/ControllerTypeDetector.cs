@@ -10,7 +10,8 @@ public enum ControllerType
     Xbox,
     Playstation,
     Switch,
-    Generic
+    Generic,
+    Mobile
 }
 
 public class ControllerTypeDetector : MonoBehaviour
@@ -189,7 +190,11 @@ public class ControllerTypeDetector : MonoBehaviour
 
     private ControllerType GetControllerTypeFromDevice(InputDevice device)
     {
-        if (device is Keyboard || device is Mouse)
+        if (device is Touchscreen)
+        {
+            return ControllerType.Mobile;
+        }
+        else if (device is Keyboard || device is Mouse)
         {
             return ControllerType.Keyboard;
         }
@@ -207,6 +212,14 @@ public class ControllerTypeDetector : MonoBehaviour
         }
         
         return ControllerType.Keyboard;
+    }
+
+    /// <summary>
+    /// Forces the controller type to Mobile. Used by MobileInputHandler on mobile builds.
+    /// </summary>
+    public void SetMobileMode()
+    {
+        SetControllerType(ControllerType.Mobile);
     }
 
     public string GetButtonPrompt(string action)

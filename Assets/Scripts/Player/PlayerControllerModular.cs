@@ -15,10 +15,18 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerStateManager stateManager;
     [SerializeField] private PlayerAirDodge airDodge;
     [SerializeField] private PlayerDive dive;
+
+    [Header("Mobile")]
+    [Tooltip("Assign the MobileInputHandler component when building for mobile. " +
+             "When set, the legacy InputActions are disabled and gesture-based input takes over.")]
+    [SerializeField] private MobileInputHandler mobileInputHandler;
     
     public Transform camTarget;
     
     private bool inputEnabled = true;
+
+    /// <summary>Returns true when mobile gesture input is driving the player.</summary>
+    public bool IsMobileMode => mobileInputHandler != null && mobileInputHandler.enabled;
 
 
     private void Awake()
@@ -29,6 +37,12 @@ public class PlayerControllerModular : MonoBehaviour
         {
             AssignConfigToComponents();
         }
+
+        // Auto-detect MobileInputHandler on the same GameObject if not assigned
+        if (mobileInputHandler == null)
+        {
+            mobileInputHandler = GetComponent<MobileInputHandler>();
+        }
     }
 
     private void Start()
@@ -37,10 +51,20 @@ public class PlayerControllerModular : MonoBehaviour
         {
             states.jumpBufferTimer = config.jumpBufferTime;
         }
+
+        if (IsMobileMode)
+        {
+            // Disable legacy input and notify the detector
+            inputActions.Gameplay.Disable();
+            ControllerTypeDetector.Instance?.SetMobileMode();
+            GameLogger.LogInput("PlayerControllerModular: Mobile mode active — legacy InputActions disabled.");
+        }
     }
 
     private void OnEnable()
     {
+        if (IsMobileMode) return; // Mobile handler drives input directly
+
         inputActions.Gameplay.Run.performed += OnMove;
         inputActions.Gameplay.Run.canceled += OnMove;
         inputActions.Gameplay.Jump.performed += OnJumpStart;
@@ -62,6 +86,8 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnDisable()
     {
+        if (IsMobileMode) return;
+
         inputActions.Gameplay.Run.performed -= OnMove;
         inputActions.Gameplay.Run.canceled -= OnMove;
         inputActions.Gameplay.Jump.performed -= OnJumpStart;
@@ -85,13 +111,15 @@ public class PlayerControllerModular : MonoBehaviour
     {
         if (!inputEnabled)
         {
-            if (inputActions.Gameplay.enabled)
+            if (!IsMobileMode && inputActions.Gameplay.enabled)
             {
                 inputActions.Gameplay.Disable();
             }
             return;
         }
         
+        if (IsMobileMode) return; // Mobile handler manages its own pause state via OnDisable
+
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
         {
             if (inputActions.Gameplay.enabled)
@@ -249,9 +277,14 @@ public class PlayerControllerModular : MonoBehaviour
         
         if (!enabled)
         {
-            if (inputActions.Gameplay.enabled)
+            if (!IsMobileMode && inputActions.Gameplay.enabled)
             {
                 inputActions.Gameplay.Disable();
+            }
+
+            if (IsMobileMode && mobileInputHandler != null)
+            {
+                mobileInputHandler.enabled = false;
             }
             
             if (states != null)
@@ -265,10 +298,16 @@ public class PlayerControllerModular : MonoBehaviour
         }
         else
         {
-            if (!inputActions.Gameplay.enabled)
+            if (!IsMobileMode && !inputActions.Gameplay.enabled)
             {
                 inputActions.Gameplay.Enable();
             }
+
+            if (mobileInputHandler != null && !mobileInputHandler.enabled)
+            {
+                mobileInputHandler.enabled = true;
+            }
+
             GameLogger.Log("INPUT", "Player input enabled");
         }
     }
