@@ -18,10 +18,29 @@ public class SceneLoader : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
-    
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == MAIN_MENU_SCENE)
+            AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicMenu);
+        else if (scene.name == GAMEPLAY_SCENE)
+            AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicLevel);
+    }
+
     public void LoadMainMenu()
     {
         GameLogger.Log("SCENE", "Loading Main Menu");
+        AudioManager.Instance?.StopAll();
         Time.timeScale = 1f;
         SceneManager.LoadScene(MAIN_MENU_SCENE);
     }

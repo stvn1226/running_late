@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Audio;
+using System.Collections;
 using System.Collections.Generic;
 
 public class AudioManager : MonoBehaviour
@@ -11,15 +12,17 @@ public class AudioManager : MonoBehaviour
         Bounce,
         Powerup,
         PowerupSFX,
-        CD_Numbers,
-        CD_Go,
-        Music_Menu,
-        Music_Level,
+        CDNumbers,
+        CDGo,
+        MusicMenu,
+        MusicLevel,
         Footsteps,
         OptionSelect,
         OptionChange,
         OptionReturn,
-        PauseOpen
+        PauseOpen,
+        Victory,
+        Defeat
     }
 
     [System.Serializable]
@@ -108,7 +111,13 @@ public class AudioManager : MonoBehaviour
 
         audioSrc.Play();
 
-        Destroy(soundObj, s.Clip.length + 0.1f);
+        StartCoroutine(DestroyAfterPlay(soundObj, s.Clip.length + 0.1f));
+    }
+
+    private IEnumerator DestroyAfterPlay(GameObject soundObj, float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        Destroy(soundObj);
     }
 
     public void ChangeMusic(SoundType type)
@@ -160,6 +169,24 @@ public class AudioManager : MonoBehaviour
             _musicSource.Stop();
             GameLogger.Log("Audio", "Music stopped");
         }
+    }
+    
+    /// <summary>
+    /// Stops all audio immediately, including music and any playing one-shot SFX sources.
+    /// </summary>
+    public void StopAll()
+    {
+        StopMusic();
+        
+        foreach (AudioSource source in GetComponentsInChildren<AudioSource>())
+        {
+            if (source != _musicSource && source.isPlaying)
+            {
+                source.Stop();
+            }
+        }
+        
+        GameLogger.Log("Audio", "All audio stopped");
     }
     
     public void SetMusicVolume(float volume)

@@ -42,10 +42,12 @@ public class HitboxCollider : MonoBehaviour
             if (playerRb != null)
             {
                 float velocityY = playerRb.linearVelocity.y;
+                PlayerStates playerStatesCheck = collision.GetComponentInParent<PlayerStates>();
+                bool isGrounded = playerStatesCheck != null && playerStatesCheck.isGrounded;
                 
-                bool isStomp = velocityY < 0f;
+                bool isStomp = velocityY < 0f && !isGrounded;
 
-                GameLogger.Log($"[{parent.gameObject.name}] VelY={velocityY:F2}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
+                GameLogger.Log($"[{parent.gameObject.name}] VelY={velocityY:F2}, Grounded={isGrounded}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
 
                 if (isStomp)
                 {
@@ -53,21 +55,19 @@ public class HitboxCollider : MonoBehaviour
                 }
                 else
                 {
-                    PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
-                    
-                    if (playerStates != null && playerStates.isInvincible && !playerStates.isShielded)
+                    if (playerStatesCheck != null && playerStatesCheck.isInvincible && !playerStatesCheck.isShielded)
                     {
                         GameLogger.Log($"[{parent.gameObject.name}] Player is INVULNERABLE - ignoring damage (no stomp)");
                         return;
                     }
                     
-                    HandlePlayerDamage(collision, playerRb);
+                    HandlePlayerDamage(collision, playerRb, playerStatesCheck);
                 }
             }
             else
             {
                 GameLogger.LogError("HITBOX", $"[{parent.gameObject.name}] No Rigidbody2D found on player!");
-                HandlePlayerDamage(collision, null);
+                HandlePlayerDamage(collision, null, null);
             }
         }
     }
@@ -107,13 +107,12 @@ public class HitboxCollider : MonoBehaviour
         }
     }
 
-    private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb)
+    private void HandlePlayerDamage(Collider2D collision, Rigidbody2D playerRb, PlayerStates playerStates)
     {
         float velocityY = playerRb != null ? playerRb.linearVelocity.y : 0f;
         if (parent.cachedPlayerMovement == null)
             parent.cachedPlayerMovement = GameReferences.Instance.PlayerMovement;
 
-        PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
         bool isInvincible = playerStates != null && playerStates.isInvincible;
         bool isShielded = playerStates != null && playerStates.isShielded;
 
