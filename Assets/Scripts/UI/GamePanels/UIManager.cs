@@ -161,19 +161,16 @@ public class UIManager : MonoBehaviour
     {
         bool wasPaused = isPaused && !isEndGameActive;
         
+        // Hide all registered panels
         foreach (var panel in menuPanels.Values)
         {
-            panel.Hide();
+            if (panel != null) panel.Hide();
         }
         
-        if (victoryPanel != null)
-            victoryPanel.Hide();
-        
-        if (defeatPanel != null)
-            defeatPanel.Hide();
-        
-        if (settingsPanel != null)
-            settingsPanel.Hide();
+        // Hide explicitly referenced panels
+        if (victoryPanel != null) victoryPanel.Hide();
+        if (defeatPanel != null) defeatPanel.Hide();
+        if (settingsPanel != null) settingsPanel.Hide();
         
         currentActivePanel = null;
         isPaused = false;

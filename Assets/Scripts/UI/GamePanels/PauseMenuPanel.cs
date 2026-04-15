@@ -18,6 +18,9 @@ public class PauseMenuPanel : BaseMenuPanel
     [SerializeField] private Toggle fps60Toggle;
     [SerializeField] private Toggle fps120Toggle;
     
+    [Header("Titles")]
+    [SerializeField] private TextMeshProUGUI headerText;
+    
     [Header("References")]
     [SerializeField] private LevelStarter levelStarter;
     [SerializeField] private LevelManager levelManager;
@@ -52,6 +55,10 @@ public class PauseMenuPanel : BaseMenuPanel
     
     protected override void OnShow()
     {
+        if (headerText != null)
+        {
+            headerText.text = "<bounce>PAUSE</bounce>";
+        }
         LoadSettings();
     }
     

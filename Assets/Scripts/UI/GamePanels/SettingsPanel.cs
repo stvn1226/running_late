@@ -41,6 +41,7 @@ public class SettingsPanel : BaseMainMenuPanel
     
     private Selectable firstSelectable;
     [SerializeField] private PauseMenuPanel pauseMenuReference;
+    [SerializeField] private TextMeshProUGUI headerText;
     private bool isInitialized = false;
     
     [Header("Input Prompts")]
@@ -457,6 +458,11 @@ public class SettingsPanel : BaseMainMenuPanel
     
     protected override void OnShow()
     {
+        if (headerText != null)
+        {
+            // Use the localized title or standard "SETTINGS"
+            headerText.text = "SETTINGS"; 
+        }
         LoadCurrentSettings();
         ResetScrollToTop();
         UpdateControllerTypeDisplay();
