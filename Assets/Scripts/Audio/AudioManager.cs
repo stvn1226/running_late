@@ -18,7 +18,8 @@ public class AudioManager : MonoBehaviour
         Footsteps,
         OptionSelect,
         OptionChange,
-        OptionReturn
+        OptionReturn,
+        PauseOpen
     }
 
     [System.Serializable]

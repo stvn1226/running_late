@@ -126,6 +126,11 @@ public class UIManager : MonoBehaviour
             
             Time.timeScale = 0f;
             
+            if (panel is PauseMenuPanel)
+            {
+                AudioManager.Instance?.Play(AudioManager.SoundType.PauseOpen);
+            }
+            
             if (panel is PauseMenuPanel && AnalyticsManager.Instance != null)
             {
                 AnalyticsManager.Instance.TrackEvent(AnalyticsEvents.UI_PAUSE, new Dictionary<string, object>
