@@ -78,12 +78,14 @@ public class UIManager : MonoBehaviour
                 currentActivePanel = pauseMenuPanel;
             }
         
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }
     
         if (currentActivePanel == pauseMenuPanel)
         {
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             HideAllPanels();
         }
     }
