@@ -68,39 +68,51 @@ public class UIManager : MonoBehaviour
     
     private void OnCancelPressed(InputAction.CallbackContext context)
     {
+        // Use a unified logic to avoid double-processing when ESC is bound to both Pause and Cancel
+        HandleBackOrEscape();
+    }
+    
+    public void OnPausePressed(InputAction.CallbackContext context)
+    {
+        HandleBackOrEscape();
+    }
+
+    /// <summary>
+    /// Unified handler for Back/Escape/Pause actions
+    /// </summary>
+    public void HandleBackOrEscape()
+    {
+        if (isEndGameActive) return;
+
+        // 1. If Settings is open, go back to Pause menu
         if (settingsPanel != null && settingsPanel.IsVisible)
         {
             settingsPanel.Hide();
-        
             if (pauseMenuPanel != null)
             {
-                pauseMenuPanel.Show();
-                currentActivePanel = pauseMenuPanel;
+                ShowPanel<PauseMenuPanel>();
             }
-        
             AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }
     
+        // 2. If Pause menu is open, close all and resume
         if (currentActivePanel == pauseMenuPanel)
         {
-            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             HideAllPanels();
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
+        }
+        // 3. If nothing is open, open Pause menu
+        else if (currentActivePanel == null)
+        {
+            TogglePause();
         }
     }
-    
-    private void OnPausePressed(InputAction.CallbackContext context)
+
+    public void TogglePause()
     {
-        if (isEndGameActive)
-        {
-            return;
-        }
-        
-        if (settingsPanel != null && settingsPanel.IsVisible)
-        {
-            return;
-        }
+        if (isEndGameActive) return;
         
         if (currentActivePanel == pauseMenuPanel)
         {

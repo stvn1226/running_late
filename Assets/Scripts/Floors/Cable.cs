@@ -5,7 +5,7 @@ public class Cable : MonoBehaviour
 {
     private EdgeCollider2D edgeCollider;
     private bool ignoringPlayerCollision = false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
         edgeCollider = GetComponent<EdgeCollider2D>();

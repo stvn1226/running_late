@@ -100,9 +100,14 @@ public class MobileInputHandler : MonoBehaviour
 
     private void Update()
     {
-        // Inject auto-run every frame
+        // Inject auto-run every frame, unless the player is staggered so knockback physics work smoothly
         if (states != null)
-            states.moveInput = Vector2.right;
+        {
+            if (states.isStaggered)
+                states.moveInput = Vector2.zero;
+            else
+                states.moveInput = Vector2.right;
+        }
 
         // Promote Tracking → WallRun once the hold window expires with no swipe
         if (phase == GesturePhase.Tracking && committedAction == GestureAction.None)
