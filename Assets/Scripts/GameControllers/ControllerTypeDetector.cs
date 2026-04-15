@@ -58,6 +58,9 @@ public class ControllerTypeDetector : MonoBehaviour
 
     private void Start()
     {
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+        SetControllerType(ControllerType.Mobile);
+#endif
         DetectCurrentDevice();
     }
 

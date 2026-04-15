@@ -20,13 +20,28 @@ public class PlayerControllerModular : MonoBehaviour
     [Tooltip("Assign the MobileInputHandler component when building for mobile. " +
              "When set, the legacy InputActions are disabled and gesture-based input takes over.")]
     [SerializeField] private MobileInputHandler mobileInputHandler;
+    [SerializeField] private bool forceMobileModeEditor = false;
+    
+    public bool ForceMobileModeEditor => forceMobileModeEditor;
     
     public Transform camTarget;
     
     private bool inputEnabled = true;
 
     /// <summary>Returns true when mobile gesture input is driving the player.</summary>
-    public bool IsMobileMode => mobileInputHandler != null && mobileInputHandler.enabled;
+    public bool IsMobileMode 
+    {
+        get 
+        {
+#if UNITY_EDITOR
+            return forceMobileModeEditor || (mobileInputHandler != null && mobileInputHandler.enabled);
+#elif UNITY_ANDROID || UNITY_IOS
+            return true;
+#else
+            return mobileInputHandler != null && mobileInputHandler.enabled;
+#endif
+        }
+    }
 
 
     private void Awake()
@@ -43,6 +58,14 @@ public class PlayerControllerModular : MonoBehaviour
         {
             mobileInputHandler = GetComponent<MobileInputHandler>();
         }
+
+        // Auto-enable for mobile builds
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+        if (mobileInputHandler != null)
+        {
+            mobileInputHandler.enabled = true;
+        }
+#endif
     }
 
     private void Start()
