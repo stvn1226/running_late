@@ -5,19 +5,10 @@ public class Cable : MonoBehaviour
 {
     private EdgeCollider2D edgeCollider;
     private bool ignoringPlayerCollision = false;
-    //public bool isBeingUsed = false;
-    private LineRenderer lineRenderer;
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         edgeCollider = GetComponent<EdgeCollider2D>();
-        lineRenderer = GetComponent<LineRenderer>();
-
-        //for (int i = 0; i < lineRenderer.positionCount; i++) 
-        //{
-        //    lineRenderer.SetPosition(i, new Vector3(lineRenderer.GetPosition(i).x, lineRenderer.GetPosition(i).y, -1f));
-        //}
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
