@@ -78,12 +78,14 @@ public class UIManager : MonoBehaviour
                 currentActivePanel = pauseMenuPanel;
             }
         
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }
     
         if (currentActivePanel == pauseMenuPanel)
         {
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             HideAllPanels();
         }
     }
@@ -123,6 +125,11 @@ public class UIManager : MonoBehaviour
             SetInputContext(true);
             
             Time.timeScale = 0f;
+            
+            if (panel is PauseMenuPanel)
+            {
+                AudioManager.Instance?.Play(AudioManager.SoundType.PauseOpen);
+            }
             
             if (panel is PauseMenuPanel && AnalyticsManager.Instance != null)
             {
@@ -196,6 +203,9 @@ public class UIManager : MonoBehaviour
             SetInputContext(true);
             Time.timeScale = 0f;
             
+            AudioManager.Instance?.StopMusic();
+            AudioManager.Instance?.Play(AudioManager.SoundType.Victory);
+            
             GameLogger.Log("UI", "Victory panel shown");
         }
         else
@@ -216,6 +226,9 @@ public class UIManager : MonoBehaviour
             isEndGameActive = true;
             SetInputContext(true);
             Time.timeScale = 0f;
+            
+            AudioManager.Instance?.StopMusic();
+            AudioManager.Instance?.Play(AudioManager.SoundType.Defeat);
             
             GameLogger.Log("UI", "Defeat panel shown");
         }

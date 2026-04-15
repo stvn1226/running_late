@@ -725,11 +725,11 @@ public class PlayerStates : MonoBehaviour
     // We check start and end point and look for all BuildingDetector in the middle to turn off their boxCollider (Cap) to stop any collision when sliding
     public void StartCableSlide(EdgeCollider2D cableCollider)
     {
+        if (cableCollider == null || config == null) return;
+
         isSlidingOnCable = true;
         currentCable = cableCollider;
         cableSlideGraceTimer = 0f;
-
-        if (cableCollider == null || config == null) return;
 
         // Ensure we have colliders
         if (allPlayerColliders.Count == 0) allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());

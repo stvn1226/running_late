@@ -122,14 +122,14 @@ public class PlayerJump : MonoBehaviour
             states.StartCoyoteTime(config.coyoteTime);
         }
 
-        if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump || (allowDoubleJump && jumpCt < 1)))
+        if (states.jumpInputBuffered && (states.isGrounded || states.canCoyoteJump || (allowDoubleJump && jumpCt < 2)))
         {
             if (states.isCrouching || states.isSliding || states.isDiving || states.isRolling)
             {
                 CancelCrouchSlideStates();
             }
 
-            bool isDoubleJump = !states.isGrounded && !states.canCoyoteJump && allowDoubleJump && jumpCt < 1;
+            bool isDoubleJump = !states.isGrounded && !states.canCoyoteJump && allowDoubleJump && jumpCt < 2;
             if (isDoubleJump)
             {
                 GameLogger.Log("JUMP", $"Double jump executed - isKicking={states.isKicking}");

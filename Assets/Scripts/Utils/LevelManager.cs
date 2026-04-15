@@ -38,6 +38,7 @@ public class LevelManager : MonoBehaviour
         isReplaying = true;
         Time.timeScale = 1f;
 
+        AudioManager.Instance?.StopAll();
         OnLevelReplayStarted?.Invoke();
         
         GameLogger.Log("LEVEL", "Reloading scene");
