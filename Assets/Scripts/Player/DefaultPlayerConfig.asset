@@ -65,7 +65,7 @@ MonoBehaviour:
   airDrag: 50
   slideDrag: 20
   maxFallSpeed: 80
-  maxHorizontalSpeed: 60
+  maxHorizontalSpeed: 75
   groundCheckDistance: 0.3
   groundLayer:
     serializedVersion: 2
@@ -81,8 +81,8 @@ MonoBehaviour:
   kickHitboxStartN: 0.15
   kickHitboxEndN: 0.55
   kickGroundDrag: 15
-  staggerDuration: 0.6
-  staggerKnockbackForce: 20
+  staggerDuration: 1
+  staggerKnockbackForce: 40
   staggerMovementReduction: 0
   landingGracePeriod: 0.5
   slamLandingThreshold: -5
