@@ -252,10 +252,14 @@ public class PlayerConfig : ScriptableObject
     [Range(10f, 100f)]
     public float maxFallSpeed = 20f;
 
+    [Tooltip("Absolute hard cap on horizontal speed. The player can gain momentum above maxRunSpeed but never past this limit. Units: m/s. Recommended: 40-60")]
+    [Range(10f, 100f)]
+    public float maxHorizontalSpeed = 50f;
+
     // ====================================
     // PHYSICS DETECTION
     // ====================================
-    
+
     [Header("Ground Detection")]
     [Tooltip("Distance to cast ground check ray. Should be slightly larger than collider skin. Recommended: 0.1-0.2")]
     [Range(0.05f, 0.5f)]

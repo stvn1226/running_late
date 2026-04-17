@@ -54,7 +54,7 @@ MonoBehaviour:
   midWallLayer:
     serializedVersion: 2
     m_Bits: 262144
-  wallSlideMaxFallSpeed: 5
+  wallSlideSpeed: 15
   enableCornerClimb: 1
   cornerClimbMinVelocity: -1
   cornerClimbMaxVelocity: 1.5
@@ -65,6 +65,7 @@ MonoBehaviour:
   airDrag: 50
   slideDrag: 20
   maxFallSpeed: 80
+  maxHorizontalSpeed: 60
   groundCheckDistance: 0.3
   groundLayer:
     serializedVersion: 2
@@ -108,3 +109,4 @@ MonoBehaviour:
   slopeStickStrength: 1
   slopeSnapDistance: 0.4
   slopeSnapDisableTime: 0.12
+  slopeGravityInfluence: 0.6
