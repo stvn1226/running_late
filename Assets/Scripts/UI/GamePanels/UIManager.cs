@@ -213,7 +213,7 @@ public class UIManager : MonoBehaviour
             Time.timeScale = 0f;
             
             AudioManager.Instance?.StopMusic();
-            AudioManager.Instance?.Play(AudioManager.SoundType.Victory);
+            AudioManager.Instance?.Play(AudioManager.SoundType.MusicVictory);
             
             GameLogger.Log("UI", "Victory panel shown");
         }
@@ -237,7 +237,7 @@ public class UIManager : MonoBehaviour
             Time.timeScale = 0f;
             
             AudioManager.Instance?.StopMusic();
-            AudioManager.Instance?.Play(AudioManager.SoundType.Defeat);
+            AudioManager.Instance?.Play(AudioManager.SoundType.MusicDefeat);
             
             GameLogger.Log("UI", "Defeat panel shown");
         }

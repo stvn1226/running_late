@@ -21,8 +21,8 @@ public class AudioManager : MonoBehaviour
         OptionChange,
         OptionReturn,
         PauseOpen,
-        Victory,
-        Defeat
+        MusicVictory,
+        MusicDefeat
     }
 
     [System.Serializable]

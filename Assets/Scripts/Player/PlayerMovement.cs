@@ -140,6 +140,7 @@ public class PlayerMovement : MonoBehaviour
         
         ApplyDrag();
         ClampFallSpeed();
+        ClampHorizontalSpeed();
 
         if (states.isStaggered) return;
       
@@ -806,6 +807,25 @@ public class PlayerMovement : MonoBehaviour
         if (rb.linearVelocity.y < -config.maxFallSpeed)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, -config.maxFallSpeed);
+        }
+    }
+
+    /// <summary>
+    /// Enforces the absolute hard cap on horizontal speed. Applied every physics frame after all
+    /// movement forces. The player can exceed maxRunSpeed via momentum but never surpass maxHorizontalSpeed.
+    /// </summary>
+    private void ClampHorizontalSpeed()
+    {
+        if (config == null) return;
+
+        float absVelX = Mathf.Abs(rb.linearVelocity.x);
+        if (absVelX > config.maxHorizontalSpeed)
+        {
+            rb.linearVelocity = new Vector2(Mathf.Sign(rb.linearVelocity.x) * config.maxHorizontalSpeed, rb.linearVelocity.y);
+
+#if ENABLE_VERBOSE_LOGGING
+            GameLogger.LogVerbose("MOVEMENT", $"Hard speed cap applied: {absVelX:F2} -> {config.maxHorizontalSpeed}");
+#endif
         }
     }
 
