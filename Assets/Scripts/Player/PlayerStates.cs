@@ -62,6 +62,7 @@ public class PlayerStates : MonoBehaviour
     public float crouchBufferTimer = 0f;
     public bool isLongJumping = false;
     public float longJumpGraceTimer = 0f;
+    public float jumpGraceTimer = 0f; // NEW: Prevents re-grounding during lift-off
 
     [Header("Wall Run States")]
     public bool canWallRun;
@@ -316,6 +317,12 @@ public class PlayerStates : MonoBehaviour
         if (longJumpGraceTimer > 0f)
         {
             longJumpGraceTimer -= Time.deltaTime;
+        }
+
+        // Jump lift-off grace timer
+        if (jumpGraceTimer > 0f)
+        {
+            jumpGraceTimer -= Time.deltaTime;
         }
 
         // Landing grace timer
@@ -673,6 +680,7 @@ public class PlayerStates : MonoBehaviour
         jumpHoldTimer = 0f;
         jumpInputBuffered = false;
         canCoyoteJump = false;
+        jumpGraceTimer = 0.15f; // NEW: Prevent instant re-grounding
     }
 
     public void BufferCrouchInput(float bufferTime)

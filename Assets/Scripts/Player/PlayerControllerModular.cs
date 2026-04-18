@@ -34,11 +34,13 @@ public class PlayerControllerModular : MonoBehaviour
         get 
         {
 #if UNITY_EDITOR
-            return forceMobileModeEditor || (mobileInputHandler != null && mobileInputHandler.enabled);
+            // In Editor: ONLY the explicit toggle controls mobile mode.
+            // The MobileInputHandler.enabled state is NOT checked here to avoid circularity.
+            return forceMobileModeEditor;
 #elif UNITY_ANDROID || UNITY_IOS
             return true;
 #else
-            return mobileInputHandler != null && mobileInputHandler.enabled;
+            return false; // Mac, PC, WebGL always use keyboard/gamepad
 #endif
         }
     }
@@ -59,12 +61,24 @@ public class PlayerControllerModular : MonoBehaviour
             mobileInputHandler = GetComponent<MobileInputHandler>();
         }
 
-        // Auto-enable for mobile builds
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+        // Platform-aware enable/disable of MobileInputHandler
+#if UNITY_EDITOR
+        // Editor: respect forceMobileModeEditor. If false, disable it so keyboard works.
         if (mobileInputHandler != null)
-        {
+            mobileInputHandler.enabled = forceMobileModeEditor;
+
+        if (!forceMobileModeEditor && states != null)
+            states.moveInput = Vector2.zero; // Clean up prefab auto-run state
+#elif UNITY_ANDROID || UNITY_IOS
+        if (mobileInputHandler != null)
             mobileInputHandler.enabled = true;
-        }
+#else
+        // Mac, PC, WebGL: always disable MobileInputHandler
+        if (mobileInputHandler != null)
+            mobileInputHandler.enabled = false;
+
+        if (states != null)
+            states.moveInput = Vector2.zero; // Clean up prefab auto-run state
 #endif
     }
 
@@ -73,6 +87,12 @@ public class PlayerControllerModular : MonoBehaviour
         if (config != null)
         {
             states.jumpBufferTimer = config.jumpBufferTime;
+        }
+
+        // Final safety check to stop ghost movement on non-mobile platforms
+        if (!IsMobileMode && states != null)
+        {
+            states.moveInput = Vector2.zero;
         }
 
         if (IsMobileMode)
@@ -101,6 +121,7 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
         inputActions.Gameplay.AirDodge.performed += OnAirDodge;
         inputActions.Gameplay.Dive.performed += OnDive;
+        inputActions.Gameplay.Pause.performed += OnPause; // Centralized Pause handle
 
         inputActions.Gameplay.Reset.performed += OnReset;
         
@@ -124,6 +145,7 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
         inputActions.Gameplay.AirDodge.performed -= OnAirDodge;
         inputActions.Gameplay.Dive.performed -= OnDive;
+        inputActions.Gameplay.Pause.performed -= OnPause;
 
         inputActions.Gameplay.Reset.performed -= OnReset;
         
@@ -280,6 +302,14 @@ public class PlayerControllerModular : MonoBehaviour
         if (states != null)
         {
             states.SetDivePressed();
+        }
+    }
+
+    private void OnPause(InputAction.CallbackContext context)
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.TogglePause();
         }
     }
     #endregion

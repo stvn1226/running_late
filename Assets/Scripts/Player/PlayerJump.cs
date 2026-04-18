@@ -202,9 +202,9 @@ public class PlayerJump : MonoBehaviour
             playerMovement.DisableSlopeSnapForJump();
         }
     
-        // Preserve upward momentum if already moving up (especially on slopes)
-        // This prevents the jump from feeling "weak" or "flatter" when running uphill
-        if (rb.linearVelocity.y < 0.1f)
+        // MOMENTUM RESET: Ensure a clean, consistent "pop" regardless of current uphill/downhill speed.
+        // On slopes, we always zero out the Y velocity to prevent "flat" or "super" jumps.
+        if (states.isOnSlope || rb.linearVelocity.y < 0.1f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         }
@@ -215,19 +215,25 @@ public class PlayerJump : MonoBehaviour
         
         if (states.isOnSlope && states.slopeNormal.y > 0.5f)
         {
-            // Blend normal with up to ensure vertical lift while pushing away from slope
-            jumpDirection = (Vector2.up + states.slopeNormal * 0.4f).normalized;
+            // SLOPE CLEARANCE BOOST: To make the jump visually distinct from running,
+            // we increase the force based on the slope angle.
+            float slopeAngleFactor = Mathf.Clamp01(states.slopeAngle / 45f);
+            float jumpBoost = 1f + (slopeAngleFactor * 0.45f); // Up to 45% extra "kick" from slopes
             
-            // MATH FIX: Ensure the vertical component of the force is at least minJumpForce
-            // If the slope is steep, the normal's Y component is small. We scale the force up 
-            // so vertical clearance feels consistent with flat jumps.
+            // PROJECTION: We use a much steeper angle for the jump to ensure separation
+            float normalWeight = 0.25f; // Reduced from 0.35 to favor UP even more
+            jumpDirection = (Vector2.up + states.slopeNormal * normalWeight).normalized;
+            
+            // MATH FIX: Scale force so the vertical component is (minJumpForce * jumpBoost)
+            float targetVerticalForce = minJumpForce * jumpBoost;
             float verticalFactor = jumpDirection.y;
+            
             if (verticalFactor > 0.1f)
             {
-                appliedJumpForce = minJumpForce / verticalFactor;
+                appliedJumpForce = targetVerticalForce / verticalFactor;
             }
             
-            GameLogger.LogMovement($"Slope jump: Direction={jumpDirection}, OriginalForce={minJumpForce}, AdjustedForce={appliedJumpForce}");
+            GameLogger.LogMovement($"BOOSTED Slope Jump: Angle={states.slopeAngle:F1}, Boost={jumpBoost:F2}, FinalForce={appliedJumpForce:F2}");
         }
         
         rb.AddForce(jumpDirection * appliedJumpForce, ForceMode2D.Impulse);
@@ -259,18 +265,29 @@ public class PlayerJump : MonoBehaviour
         float horizontalDirection = Mathf.Sign(states.moveInput.x);
         float horizontalForce = config.longJumpHorizontalBoost * horizontalDirection;
 
+        // MOMENTUM RESET: Same consistency fix for Long Jumps
+        if (states.isOnSlope || rb.linearVelocity.y < 0.1f)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+        }
+
         // JUMP PROJECTION: Use the slope normal if available to ensure a clean lift-off
         Vector2 verticalDirection = Vector2.up;
         float appliedLongJumpVertical = verticalForce;
 
         if (states.isOnSlope && states.slopeNormal.y > 0.5f)
         {
-            // Same scaling fix for long jumps
-            verticalDirection = (Vector2.up + states.slopeNormal * 0.4f).normalized;
+            // Same scaling and visual boost for long jumps
+            float slopeAngleFactor = Mathf.Clamp01(states.slopeAngle / 45f);
+            float jumpBoost = 1f + (slopeAngleFactor * 0.3f); // Long jumps get a slightly smaller boost to preserve distance
+            
+            verticalDirection = (Vector2.up + states.slopeNormal * 0.25f).normalized;
+            float targetVertical = verticalForce * jumpBoost;
             float verticalFactor = verticalDirection.y;
+            
             if (verticalFactor > 0.1f)
             {
-                appliedLongJumpVertical = verticalForce / verticalFactor;
+                appliedLongJumpVertical = targetVertical / verticalFactor;
             }
         }
 

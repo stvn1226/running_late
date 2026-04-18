@@ -70,12 +70,14 @@ public class MobileInputHandler : MonoBehaviour
     // Track the Finger object reference — finger.index is unreliable across
     // devices and the Device Simulator, so we compare by reference instead.
     private Finger trackedFinger = null;
+    private PlayerControllerModular playerController;
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
 
     private void Awake()
     {
         if (states == null) states = GetComponent<PlayerStates>();
+        playerController = GetComponent<PlayerControllerModular>();
         ResolveSwipeThreshold();
     }
 
@@ -100,6 +102,19 @@ public class MobileInputHandler : MonoBehaviour
 
     private void Update()
     {
+        // Guard: Only auto-run if we are actually in a mobile-controlled state.
+        // This prevents "ghost" movement in the Editor when the script is enabled but the platform isn't mobile.
+        bool shouldAutoRun = true;
+        if (playerController != null)
+        {
+            shouldAutoRun = playerController.IsMobileMode;
+        }
+
+        if (!shouldAutoRun)
+        {
+            return;
+        }
+
         // Inject auto-run every frame, unless the player is staggered so knockback physics work smoothly
         if (states != null)
         {
