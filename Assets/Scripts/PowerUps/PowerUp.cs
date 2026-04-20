@@ -12,6 +12,9 @@ public abstract class PowerUp : MonoBehaviour
     [SerializeField] private bool showDebugInfo = true;
     [SerializeField] protected float activeTime = 10f;
 
+    [Tooltip("Instant effects (e.g. ExtraTime) skip UI registration and always apply.")]
+    [SerializeField] private bool isInstantEffect = false;
+
     [Header("Visual Effects")]
     [SerializeField] private GameObject pickupEffect;
     [SerializeField] private float effectDuration = 1f;
@@ -43,23 +46,30 @@ public abstract class PowerUp : MonoBehaviour
             GameLogger.Log("POWERUP", $"Power-up {GetType().Name} picked up by {player.name}");
         }
 
-        bool registered = UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
-            powerUpName = powerUpName, 
-            image = icon, 
-            color = theme, 
-            duration = activeTime,
-            description = desc
-        });
-
-        if (registered)
+        if (isInstantEffect)
         {
             ApplyEffect(player);
         }
         else
         {
-            if (showDebugInfo)
+            bool registered = UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
+                powerUpName = powerUpName, 
+                image = icon, 
+                color = theme, 
+                duration = activeTime,
+                description = desc
+            });
+
+            if (registered)
             {
-                GameLogger.Log("POWERUP", $"Power-up {GetType().Name} NOT applied due to priority conflict.");
+                ApplyEffect(player);
+            }
+            else
+            {
+                if (showDebugInfo)
+                {
+                    GameLogger.Log("POWERUP", $"Power-up {GetType().Name} NOT applied due to priority conflict.");
+                }
             }
         }
 

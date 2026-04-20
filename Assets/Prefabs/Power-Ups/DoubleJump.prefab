@@ -27,7 +27,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6902848940561052379}
@@ -47,12 +47,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DoubleJump
   powerUpName: DoubleJump
-  icon: {fileID: 21300000, guid: 077f0d93730efee4ea7479c5cebacaef, type: 3}
+  icon: {fileID: 21300000, guid: c60f81a6ecac85d4190b387a3f2ed7ad, type: 3}
   theme: {r: 0, g: 1, b: 0.39215687, a: 1}
   desc: Double-jump
   destroyOnPickup: 1
   showDebugInfo: 1
   activeTime: 10
+  isInstantEffect: 0
   pickupEffect: {fileID: 0}
   effectDuration: 1
 --- !u!1 &7402425572127745375
@@ -136,7 +137,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 077f0d93730efee4ea7479c5cebacaef, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c60f81a6ecac85d4190b387a3f2ed7ad, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -155,8 +156,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2392106818699973619}
-  - component: {fileID: 7903550745581825907}
   - component: {fileID: 1873979934425573990}
+  - component: {fileID: 2736869088158794719}
   m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
@@ -179,8 +180,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8575447588641885790}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!70 &7903550745581825907
-CapsuleCollider2D:
+--- !u!114 &1873979934425573990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9185917580483001627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b8a9175cc7245b439ef54529a787f14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerUpTrigger
+  powerUp: {fileID: 6315502566023494538}
+--- !u!58 &2736869088158794719
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -214,18 +228,4 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 3.5, y: 7.5}
-  m_Direction: 0
---- !u!114 &1873979934425573990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9185917580483001627}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b8a9175cc7245b439ef54529a787f14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PowerUpTrigger
-  powerUp: {fileID: 6315502566023494538}
+  m_Radius: 1
