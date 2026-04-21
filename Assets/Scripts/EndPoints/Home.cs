@@ -6,6 +6,9 @@ public class Home : MonoBehaviour
 {
     [SerializeField] private float delay = 0.1f;
     [SerializeField] private SpriteRenderer cover;
+    [SerializeField] private SpriteRenderer closedDoor;
+    [SerializeField] private GameObject doorToLaunch;
+    [SerializeField] private Transform doorLaunchPoint;
     [SerializeField] private TilemapRenderer coverTilemap;
     
     [Header("Countdown Integration")]
@@ -44,6 +47,9 @@ public class Home : MonoBehaviour
 
     private IEnumerator DisableCover()
     {
+        closedDoor.enabled = false;
+        LaunchDoor();
+
         yield return new WaitForSeconds(delay);
         
         if (cover != null)
@@ -64,6 +70,16 @@ public class Home : MonoBehaviour
         }
     }
     
+    private void LaunchDoor() 
+    { 
+       if (doorToLaunch != null && doorLaunchPoint != null)
+       {
+            GameObject launchedDoor = Instantiate(doorToLaunch, doorLaunchPoint.position, doorLaunchPoint.rotation);
+            launchedDoor.GetComponent<Rigidbody2D>()?.AddForce(doorLaunchPoint.right * 50f, ForceMode2D.Impulse);
+            launchedDoor.GetComponent<Rigidbody2D>()?.AddTorque(-20f, ForceMode2D.Impulse);
+            Debug.Log("Door launched at position: " + doorLaunchPoint.position);
+       }
+    }
     private void OnDestroy()
     {
         if (StartCountdownController.Instance != null)
