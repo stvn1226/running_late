@@ -74,7 +74,7 @@ public class StructureBuilder : MonoBehaviour
         {
             if (powerUps.Length > 0)
             {
-                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight) + 1f);
+                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight) + 2f);
                 GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)], powerUpPosition, Quaternion.identity, transform);
             }
         }
@@ -86,24 +86,35 @@ public class StructureBuilder : MonoBehaviour
     private void SortTilemap(GameObject toUse, int floorsCt)
     {
         TilemapRenderer renderer = toUse.GetComponentInChildren<TilemapRenderer>();
-        int originalSortingOrder = renderer.sortingOrder;
-        renderer.sortingOrder -= floorsCt;
-        
-        int newSortingOrder = renderer.sortingOrder;
+        if (renderer == null) return;
+
+        // sortingOrders in prefabs are negative (-2, -50, etc.).
+        // Multiplying by 0.01f keeps Z negative = in front of camera. Correct as-is.
+        // Do NOT subtract floorsCt — that was shifting -2 to -9 on 7-floor buildings.
+        int baseSortingOrder = renderer.sortingOrder;
         Vector3 currentPos = toUse.transform.position;
-        float calculatedZ = newSortingOrder * 0.01f + (transform.position.x * 0.000001f);
+        float calculatedZ = (baseSortingOrder * 0.01f) + (transform.position.x * 0.000001f);
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
     }
 
     private void SortSprite(GameObject toUse, int floorsCt)
     {
-        SpriteRenderer renderer = toUse.GetComponentInChildren<SpriteRenderer>();
-        int originalSortingOrder = renderer.sortingOrder;
-        renderer.sortingOrder -= floorsCt;
-        
-        int newSortingOrder = renderer.sortingOrder;
+        // Use FloorAssetPicker.Base as the authoritative renderer — avoids picking a
+        // decoration renderer that happens to be first in the hierarchy.
+        FloorAssetPicker picker = toUse.GetComponentInChildren<FloorAssetPicker>();
+        SpriteRenderer renderer = (picker != null && picker.Base != null)
+            ? picker.Base
+            : toUse.GetComponentInChildren<SpriteRenderer>();
+
+        if (renderer == null) return;
+
+        // sortingOrders in prefabs are negative (-2, -50, etc.).
+        // Multiplying by 0.01f keeps Z negative = correct depth in front of camera.
+        // Do NOT subtract floorsCt — that was shifting -2 to -9 on a 7-floor building,
+        // conflicting with cable sorting order -10 and causing z-fighting artifacts.
+        int baseSortingOrder = renderer.sortingOrder;
         Vector3 currentPos = toUse.transform.position;
-        float calculatedZ = newSortingOrder * 0.01f + (transform.position.x * 0.000001f);
+        float calculatedZ = (baseSortingOrder * 0.01f) + (transform.position.x * 0.000001f);
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
     }
     

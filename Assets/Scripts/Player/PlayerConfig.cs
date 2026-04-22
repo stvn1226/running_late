@@ -160,19 +160,19 @@ public class PlayerConfig : ScriptableObject
     
     [Tooltip("Distance from wall top to trigger vault. Units: Unity units. Recommended: 1.0-2.0")]
     [Range(0.5f, 5f)]
-    public float wallVaultTriggerDistance = 1.5f;
+    public float wallVaultTriggerDistance = 1.5f; // DEFAULT: 1.5
     
-    [Tooltip("Horizontal boost force when vaulting over wall. Units: m/s. Recommended: 20-35")]
+    [Tooltip("Horizontal boost force when vaulting over wall. Units: m/s. Recommended: 20-35 | Thin buildings: 15-18")]
     [Range(10f, 50f)]
-    public float wallVaultHorizontalBoost = 25f;
+    public float wallVaultHorizontalBoost = 25f; // DEFAULT: 25  |  Thin buildings: try 15-18
     
-    [Tooltip("Vertical velocity reduction during vault. 0.3 = keep 30% of upward speed. Recommended: 0.2-0.5")]
+    [Tooltip("Vertical velocity reduction during vault. 0.3 = keep 30% of upward speed. Recommended: 0.2-0.5 | Thin buildings: 0.15-0.2")]
     [Range(0f, 1f)]
-    public float wallVaultVerticalDamping = 0.3f;
+    public float wallVaultVerticalDamping = 0.3f; // DEFAULT: 0.3  |  Thin buildings: try 0.15-0.2
     
     [Tooltip("How long the vault state lasts. Units: seconds. Recommended: 0.2-0.4")]
     [Range(0.1f, 0.6f)]
-    public float wallVaultDuration = 0.25f;
+    public float wallVaultDuration = 0.25f; // DEFAULT: 0.25
     
     [Tooltip("Maximum height to check for wall top. Units: Unity units. Recommended: 15-25")]
     [Range(5f, 50f)]
@@ -252,10 +252,14 @@ public class PlayerConfig : ScriptableObject
     [Range(10f, 100f)]
     public float maxFallSpeed = 20f;
 
+    [Tooltip("Absolute hard cap on horizontal speed. The player can gain momentum above maxRunSpeed but never past this limit. Units: m/s. Recommended: 40-60")]
+    [Range(10f, 100f)]
+    public float maxHorizontalSpeed = 50f;
+
     // ====================================
     // PHYSICS DETECTION
     // ====================================
-    
+
     [Header("Ground Detection")]
     [Tooltip("Distance to cast ground check ray. Should be slightly larger than collider skin. Recommended: 0.1-0.2")]
     [Range(0.05f, 0.5f)]

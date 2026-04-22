@@ -62,6 +62,7 @@ public class PlayerStates : MonoBehaviour
     public float crouchBufferTimer = 0f;
     public bool isLongJumping = false;
     public float longJumpGraceTimer = 0f;
+    public float jumpGraceTimer = 0f; // NEW: Prevents re-grounding during lift-off
 
     [Header("Wall Run States")]
     public bool canWallRun;
@@ -316,6 +317,12 @@ public class PlayerStates : MonoBehaviour
         if (longJumpGraceTimer > 0f)
         {
             longJumpGraceTimer -= Time.deltaTime;
+        }
+
+        // Jump lift-off grace timer
+        if (jumpGraceTimer > 0f)
+        {
+            jumpGraceTimer -= Time.deltaTime;
         }
 
         // Landing grace timer
@@ -673,6 +680,7 @@ public class PlayerStates : MonoBehaviour
         jumpHoldTimer = 0f;
         jumpInputBuffered = false;
         canCoyoteJump = false;
+        jumpGraceTimer = 0.15f; // NEW: Prevent instant re-grounding
     }
 
     public void BufferCrouchInput(float bufferTime)
@@ -751,6 +759,10 @@ public class PlayerStates : MonoBehaviour
             float minX = Mathf.Min(startBuilding.transform.position.x, endBuilding.transform.position.x) - 2f;
             float maxX = Mathf.Max(startBuilding.transform.position.x, endBuilding.transform.position.x) + 2f;
 
+            // Get the collider the player is currently wallrunning on, so we NEVER disable it.
+            PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
+            Collider2D activeWallCollider = playerPhysics != null ? playerPhysics.CurrentWallCollider : null;
+
             BuildingDetector[] allBuildings = Object.FindObjectsByType<BuildingDetector>(FindObjectsSortMode.None);
             foreach (var b in allBuildings)
             {
@@ -761,6 +773,9 @@ public class PlayerStates : MonoBehaviour
                     Collider2D[] buildingColliders = b.GetComponentsInChildren<Collider2D>();
                     foreach (var bCol in buildingColliders)
                     {
+                        // SAFETY: Never disable the collider the player is actively wallrunning on.
+                        if (bCol == activeWallCollider) continue;
+
                         if (bCol.enabled)
                         {
                             bCol.enabled = false;

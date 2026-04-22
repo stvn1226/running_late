@@ -81,7 +81,7 @@ public class CreditsConfiguration : ScriptableObject
     {
         var coreTeam = allMembers
             .Where(m => m != null && m.contributorType == ContributorType.CoreTeam)
-            .OrderBy(m => m.GetPrimarySortOrder())
+            .OrderBy(m => m.displayOrder)
             .ToList();
         
         if (coreTeam.Count == 0) return "";
@@ -96,8 +96,7 @@ public class CreditsConfiguration : ScriptableObject
             {
                 var membersInDept = coreTeam
                     .Where(m => m.HasDepartment(dept) && !processedMembers.Contains(m))
-                    .OrderBy(m => m.GetHighestSeniorityInDepartment(dept))
-                    .ThenBy(m => m.displayOrder)
+                    .OrderBy(m => m.displayOrder)
                     .ToList();
                 
                 if (membersInDept.Count > 0)
@@ -130,7 +129,7 @@ public class CreditsConfiguration : ScriptableObject
     {
         var freelancers = allMembers
             .Where(m => m != null && m.contributorType == ContributorType.Freelancer)
-            .OrderBy(m => m.GetPrimarySortOrder())
+            .OrderBy(m => m.displayOrder)
             .ToList();
         
         if (freelancers.Count == 0) return "";
@@ -179,7 +178,6 @@ public class CreditsConfiguration : ScriptableObject
         var backers = allMembers
             .Where(m => m != null && m.contributorType == ContributorType.Backer)
             .OrderBy(m => m.displayOrder)
-            .ThenBy(m => m.displayName)
             .ToList();
         
         if (backers.Count == 0) return "";
@@ -271,7 +269,7 @@ public class CreditsConfiguration : ScriptableObject
     {
         string section = "";
         
-        foreach (var member in allMembers.Where(m => m != null).OrderBy(m => m.GetPrimarySortOrder()))
+        foreach (var member in allMembers.Where(m => m != null).OrderBy(m => m.displayOrder))
         {
             section += FormatMember(member);
         }

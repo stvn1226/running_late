@@ -15,10 +15,35 @@ public class PlayerControllerModular : MonoBehaviour
     [SerializeField] private PlayerStateManager stateManager;
     [SerializeField] private PlayerAirDodge airDodge;
     [SerializeField] private PlayerDive dive;
+
+    [Header("Mobile")]
+    [Tooltip("Assign the MobileInputHandler component when building for mobile. " +
+             "When set, the legacy InputActions are disabled and gesture-based input takes over.")]
+    [SerializeField] private MobileInputHandler mobileInputHandler;
+    [SerializeField] private bool forceMobileModeEditor = false;
+    
+    public bool ForceMobileModeEditor => forceMobileModeEditor;
     
     public Transform camTarget;
     
     private bool inputEnabled = true;
+
+    /// <summary>Returns true when mobile gesture input is driving the player.</summary>
+    public bool IsMobileMode 
+    {
+        get 
+        {
+#if UNITY_EDITOR
+            // In Editor: ONLY the explicit toggle controls mobile mode.
+            // The MobileInputHandler.enabled state is NOT checked here to avoid circularity.
+            return forceMobileModeEditor;
+#elif UNITY_ANDROID || UNITY_IOS
+            return true;
+#else
+            return false; // Mac, PC, WebGL always use keyboard/gamepad
+#endif
+        }
+    }
 
 
     private void Awake()
@@ -29,6 +54,32 @@ public class PlayerControllerModular : MonoBehaviour
         {
             AssignConfigToComponents();
         }
+
+        // Auto-detect MobileInputHandler on the same GameObject if not assigned
+        if (mobileInputHandler == null)
+        {
+            mobileInputHandler = GetComponent<MobileInputHandler>();
+        }
+
+        // Platform-aware enable/disable of MobileInputHandler
+#if UNITY_EDITOR
+        // Editor: respect forceMobileModeEditor. If false, disable it so keyboard works.
+        if (mobileInputHandler != null)
+            mobileInputHandler.enabled = forceMobileModeEditor;
+
+        if (!forceMobileModeEditor && states != null)
+            states.moveInput = Vector2.zero; // Clean up prefab auto-run state
+#elif UNITY_ANDROID || UNITY_IOS
+        if (mobileInputHandler != null)
+            mobileInputHandler.enabled = true;
+#else
+        // Mac, PC, WebGL: always disable MobileInputHandler
+        if (mobileInputHandler != null)
+            mobileInputHandler.enabled = false;
+
+        if (states != null)
+            states.moveInput = Vector2.zero; // Clean up prefab auto-run state
+#endif
     }
 
     private void Start()
@@ -37,10 +88,26 @@ public class PlayerControllerModular : MonoBehaviour
         {
             states.jumpBufferTimer = config.jumpBufferTime;
         }
+
+        // Final safety check to stop ghost movement on non-mobile platforms
+        if (!IsMobileMode && states != null)
+        {
+            states.moveInput = Vector2.zero;
+        }
+
+        if (IsMobileMode)
+        {
+            // Disable legacy input and notify the detector
+            inputActions.Gameplay.Disable();
+            ControllerTypeDetector.Instance?.SetMobileMode();
+            GameLogger.LogInput("PlayerControllerModular: Mobile mode active — legacy InputActions disabled.");
+        }
     }
 
     private void OnEnable()
     {
+        if (IsMobileMode) return; // Mobile handler drives input directly
+
         inputActions.Gameplay.Run.performed += OnMove;
         inputActions.Gameplay.Run.canceled += OnMove;
         inputActions.Gameplay.Jump.performed += OnJumpStart;
@@ -54,6 +121,7 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.canceled += OnDropDownEnd;
         inputActions.Gameplay.AirDodge.performed += OnAirDodge;
         inputActions.Gameplay.Dive.performed += OnDive;
+        inputActions.Gameplay.Pause.performed += OnPause; // Centralized Pause handle
 
         inputActions.Gameplay.Reset.performed += OnReset;
         
@@ -62,6 +130,8 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void OnDisable()
     {
+        if (IsMobileMode) return;
+
         inputActions.Gameplay.Run.performed -= OnMove;
         inputActions.Gameplay.Run.canceled -= OnMove;
         inputActions.Gameplay.Jump.performed -= OnJumpStart;
@@ -75,6 +145,7 @@ public class PlayerControllerModular : MonoBehaviour
         inputActions.Gameplay.DropDown.canceled -= OnDropDownEnd;
         inputActions.Gameplay.AirDodge.performed -= OnAirDodge;
         inputActions.Gameplay.Dive.performed -= OnDive;
+        inputActions.Gameplay.Pause.performed -= OnPause;
 
         inputActions.Gameplay.Reset.performed -= OnReset;
         
@@ -85,13 +156,15 @@ public class PlayerControllerModular : MonoBehaviour
     {
         if (!inputEnabled)
         {
-            if (inputActions.Gameplay.enabled)
+            if (!IsMobileMode && inputActions.Gameplay.enabled)
             {
                 inputActions.Gameplay.Disable();
             }
             return;
         }
         
+        if (IsMobileMode) return; // Mobile handler manages its own pause state via OnDisable
+
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
         {
             if (inputActions.Gameplay.enabled)
@@ -231,6 +304,14 @@ public class PlayerControllerModular : MonoBehaviour
             states.SetDivePressed();
         }
     }
+
+    private void OnPause(InputAction.CallbackContext context)
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.TogglePause();
+        }
+    }
     #endregion
 
     #region Component Management
@@ -249,9 +330,14 @@ public class PlayerControllerModular : MonoBehaviour
         
         if (!enabled)
         {
-            if (inputActions.Gameplay.enabled)
+            if (!IsMobileMode && inputActions.Gameplay.enabled)
             {
                 inputActions.Gameplay.Disable();
+            }
+
+            if (IsMobileMode && mobileInputHandler != null)
+            {
+                mobileInputHandler.enabled = false;
             }
             
             if (states != null)
@@ -265,10 +351,16 @@ public class PlayerControllerModular : MonoBehaviour
         }
         else
         {
-            if (!inputActions.Gameplay.enabled)
+            if (!IsMobileMode && !inputActions.Gameplay.enabled)
             {
                 inputActions.Gameplay.Enable();
             }
+
+            if (mobileInputHandler != null && !mobileInputHandler.enabled)
+            {
+                mobileInputHandler.enabled = true;
+            }
+
             GameLogger.Log("INPUT", "Player input enabled");
         }
     }

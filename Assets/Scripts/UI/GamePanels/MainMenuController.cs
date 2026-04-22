@@ -41,7 +41,7 @@ public class MainMenuController : MonoBehaviour
             gameplayCanvas.gameObject.SetActive(false);
         }
         
-        Time.timeScale = 0f;
+        Time.timeScale = 1f;
         
         GameLogger.Log("MENU", "Main Menu ready - UI controls active");
     }
@@ -187,6 +187,7 @@ public class MainMenuController : MonoBehaviour
             GameLogger.Log("MENU", "Cancel pressed on TextInputPanel, hiding it");
             textInputPanel.Hide();
             textInputPanel.RestorePreviousSelection();
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }
@@ -204,6 +205,7 @@ public class MainMenuController : MonoBehaviour
                 
                 GameLogger.Log("MENU", "Cancel pressed on Step 2 - Returning to Step 1");
                 mainMenuPanel.ShowStep1();
+                AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
                 GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
                 return;
             }
@@ -225,6 +227,7 @@ public class MainMenuController : MonoBehaviour
                 ShowMainPanel();
             }
             
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }

@@ -30,6 +30,9 @@ public class UIManager : MonoBehaviour
         Instance = this;
         
         inputActions = new PlayerInputActions();
+        // Ensure UI instance of inputActions never tries to handle Gameplay (centralized in PlayerController)
+        inputActions.Gameplay.Disable(); 
+        
         InitializePanels();
     }
     
@@ -47,8 +50,7 @@ public class UIManager : MonoBehaviour
     {
         if (inputActions != null)
         {
-            inputActions.Gameplay.Pause.performed += OnPausePressed;
-            inputActions.UI.Pause.performed += OnPausePressed;
+            // Note: Pause listener removed. It is now handled by PlayerControllerModular.
             inputActions.UI.Cancel.performed += OnCancelPressed;
         }
     }
@@ -57,48 +59,61 @@ public class UIManager : MonoBehaviour
     {
         if (inputActions != null)
         {
-            inputActions.Gameplay.Pause.performed -= OnPausePressed;
-            inputActions.UI.Pause.performed -= OnPausePressed;
             inputActions.UI.Cancel.performed -= OnCancelPressed;
-            
-            inputActions.Gameplay.Disable();
             inputActions.UI.Disable();
+            // Note: Gameplay map should be managed by the player controller.
         }
     }
     
     private void OnCancelPressed(InputAction.CallbackContext context)
     {
+        HandleBackOrEscape();
+    }
+    
+    // Removed OnPausePressed callback as it is now centralized in PlayerControllerModular.
+
+    /// <summary>
+    /// Unified handler for Back/Escape/Pause actions
+    /// </summary>
+    public void HandleBackOrEscape()
+    {
+        if (isEndGameActive) return;
+
+        // 1. If Settings is open, go back to Pause menu
         if (settingsPanel != null && settingsPanel.IsVisible)
         {
             settingsPanel.Hide();
-        
             if (pauseMenuPanel != null)
             {
-                pauseMenuPanel.Show();
-                currentActivePanel = pauseMenuPanel;
+                ShowPanel<PauseMenuPanel>();
             }
-        
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
             GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
             return;
         }
     
+        // 2. If Pause menu is open, close all and resume
         if (currentActivePanel == pauseMenuPanel)
         {
             HideAllPanels();
+            AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
+        }
+        // 3. If nothing is open, open Pause menu
+        else if (currentActivePanel == null)
+        {
+            TogglePause();
         }
     }
-    
-    private void OnPausePressed(InputAction.CallbackContext context)
+
+    public void TogglePause()
     {
-        if (isEndGameActive)
+        if (Instance != null && Instance != this)
         {
+            Instance.TogglePause();
             return;
         }
-        
-        if (settingsPanel != null && settingsPanel.IsVisible)
-        {
-            return;
-        }
+
+        if (isEndGameActive) return;
         
         if (currentActivePanel == pauseMenuPanel)
         {
@@ -112,6 +127,14 @@ public class UIManager : MonoBehaviour
     
     public void ShowPanel<T>() where T : BaseMenuPanel
     {
+        if (Instance != null && Instance != this)
+        {
+            Instance.ShowPanel<T>();
+            return;
+        }
+
+        if (menuPanels == null) InitializePanels();
+
         if (menuPanels.TryGetValue(typeof(T), out BaseMenuPanel panel))
         {
             HideAllPanels();
@@ -120,9 +143,20 @@ public class UIManager : MonoBehaviour
             
             isPaused = true;
             isEndGameActive = false;
-            SetInputContext(true);
+            
+            // Centralized input management: UIManager should only toggle its own local UI actions if it has them.
+            if (inputActions != null)
+            {
+                inputActions.Gameplay.Disable();
+                inputActions.UI.Enable();
+            }
             
             Time.timeScale = 0f;
+            
+            if (panel is PauseMenuPanel)
+            {
+                AudioManager.Instance?.Play(AudioManager.SoundType.PauseOpen);
+            }
             
             if (panel is PauseMenuPanel && AnalyticsManager.Instance != null)
             {
@@ -140,26 +174,36 @@ public class UIManager : MonoBehaviour
     
     public void HideAllPanels()
     {
+        if (Instance != null && Instance != this)
+        {
+            Instance.HideAllPanels();
+            return;
+        }
+
+        if (menuPanels == null) return;
+
         bool wasPaused = isPaused && !isEndGameActive;
         
+        // Hide all registered panels
         foreach (var panel in menuPanels.Values)
         {
-            panel.Hide();
+            if (panel != null) panel.Hide();
         }
         
-        if (victoryPanel != null)
-            victoryPanel.Hide();
-        
-        if (defeatPanel != null)
-            defeatPanel.Hide();
-        
-        if (settingsPanel != null)
-            settingsPanel.Hide();
+        // Hide explicitly referenced panels
+        if (victoryPanel != null) victoryPanel.Hide();
+        if (defeatPanel != null) defeatPanel.Hide();
+        if (settingsPanel != null) settingsPanel.Hide();
         
         currentActivePanel = null;
         isPaused = false;
         isEndGameActive = false;
-        SetInputContext(false);
+        
+        if (inputActions != null)
+        {
+            inputActions.UI.Disable();
+            // We don't enable Gameplay here; PlayerController.Update handles its own Gameplay map status.
+        }
         
         Time.timeScale = 1f;
         
@@ -185,6 +229,12 @@ public class UIManager : MonoBehaviour
     
     public void ShowVictoryPanel()
     {
+        if (Instance != null && Instance != this)
+        {
+            Instance.ShowVictoryPanel();
+            return;
+        }
+
         if (victoryPanel != null)
         {
             HideAllPanels();
@@ -196,6 +246,9 @@ public class UIManager : MonoBehaviour
             SetInputContext(true);
             Time.timeScale = 0f;
             
+            AudioManager.Instance?.StopMusic();
+            AudioManager.Instance?.Play(AudioManager.SoundType.MusicVictory);
+            
             GameLogger.Log("UI", "Victory panel shown");
         }
         else
@@ -206,6 +259,12 @@ public class UIManager : MonoBehaviour
     
     public void ShowLosePanel()
     {
+        if (Instance != null && Instance != this)
+        {
+            Instance.ShowLosePanel();
+            return;
+        }
+
         if (defeatPanel != null)
         {
             HideAllPanels();
@@ -216,6 +275,9 @@ public class UIManager : MonoBehaviour
             isEndGameActive = true;
             SetInputContext(true);
             Time.timeScale = 0f;
+            
+            AudioManager.Instance?.StopMusic();
+            AudioManager.Instance?.Play(AudioManager.SoundType.MusicDefeat);
             
             GameLogger.Log("UI", "Defeat panel shown");
         }

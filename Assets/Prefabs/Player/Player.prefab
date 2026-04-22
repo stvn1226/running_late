@@ -107,7 +107,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 658f6685d2a175c4dbb5aa39757968c6, type: 2}
+  - {fileID: 2100000, guid: 97bd63c8557cabb499c57a9b7db0559b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -663,6 +663,7 @@ GameObject:
   - component: {fileID: 4148421020609545807}
   - component: {fileID: 8265364356619269271}
   - component: {fileID: 4559617286583674113}
+  - component: {fileID: 379714379640921349}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -946,6 +947,7 @@ MonoBehaviour:
   stateManager: {fileID: 936994605630686359}
   airDodge: {fileID: 9074128693007361277}
   dive: {fileID: 5182206428601251989}
+  mobileInputHandler: {fileID: 379714379640921349}
   camTarget: {fileID: 6246371687470053857}
 --- !u!114 &2374712412831154929
 MonoBehaviour:
@@ -1091,6 +1093,23 @@ MonoBehaviour:
   isAnimatorEnabled: 0
   logStateChanges: 0
   logEveryFrame: 0
+--- !u!114 &379714379640921349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558522345653489904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc7526829b1044a68aeb524addeb8852, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileInputHandler
+  swipeThreshold: 60
+  axialBias: 1.5
+  holdActivationDelay: 0.05
+  states: {fileID: 6913775742238925164}
+  config: {fileID: 11400000, guid: dd693181f541c4bea9edfaacfc118fca, type: 2}
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0

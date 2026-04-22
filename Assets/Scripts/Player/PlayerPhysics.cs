@@ -25,6 +25,7 @@ public class PlayerPhysics : MonoBehaviour
     private const int WALLRUN_DEPTH_THRESHOLD = -12;
     private const float WALL_CONTACT_GRACE_PERIOD = 0.12f;
 
+    public Collider2D CurrentWallCollider => currentWallCollider;
     private Collider2D currentWallCollider;
     private Collider2D previousWallCollider;
     private BuildingWallsTrigger currentWallTrigger;
@@ -151,6 +152,16 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (config == null) return;
 
+        // NEW: JUMP GRACE PERIOD
+        // If we just jumped, force isGrounded to false for a short window.
+        // This prevents the slope sensors from re-grounding us and killing the jump momentum.
+        if (states.jumpGraceTimer > 0f)
+        {
+            states.isGrounded = false;
+            groundedBufferTimer = 0f;
+            return;
+        }
+
         Vector2 boxCenter = (Vector2)playerCollider.transform.position + WorldColliderOffset;
         Vector2 boxSize = WorldColliderSize;
 
@@ -159,9 +170,9 @@ public class PlayerPhysics : MonoBehaviour
 
         // DECOUPLED GROUNDING DEPTH: We use deep detection if we are currently on a slope 
         // OR if we were on one very recently (slopeContextTimer > 0).
-        // This prevents the "Context Flicker" where a 1-frame sensor failure would 
-        // cause the grounding range to drop from 1.25m to 0.3m.
-        bool useDeepDetection = states.isOnSlope || (states.slopeContextTimer > 0f);
+        // CRITICAL FIX: Disable deep detection while jumping to prevent being "sucked"
+        // back to the slope by the 1.25m sensor range.
+        bool useDeepDetection = (states.isOnSlope || states.slopeContextTimer > 0f) && !states.isJumping;
         
         if (useDeepDetection)
         {
@@ -184,7 +195,9 @@ public class PlayerPhysics : MonoBehaviour
                 
                 // MVR: Unified lift-off threshold for consistent transition to airborne
                 bool isGroundNormal = Mathf.Abs(states.slopeNormal.y) > 0.5f;
-                bool isClearlyFlyingAway = isGroundNormal && (perpendicularVelocity > 5.0f); 
+                // If jumping, we allow a much lower threshold to ensure we leave the ground immediately.
+                float liftoffThreshold = states.isJumping ? 0.5f : 5.0f;
+                bool isClearlyFlyingAway = isGroundNormal && (perpendicularVelocity > liftoffThreshold); 
 
                 if (!isClearlyFlyingAway)
                 {

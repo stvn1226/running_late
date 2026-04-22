@@ -140,6 +140,7 @@ public class PlayerMovement : MonoBehaviour
         
         ApplyDrag();
         ClampFallSpeed();
+        ClampHorizontalSpeed();
 
         if (states.isStaggered) return;
       
@@ -340,10 +341,17 @@ public class PlayerMovement : MonoBehaviour
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         
+        float finalKnockbackX = knockbackForce.x;
+        // Cap forward knockback so the player doesn't fly forward when hit
+        if (finalKnockbackX > 0f)
+        {
+            finalKnockbackX = Mathf.Min(finalKnockbackX, 5f);
+        }
+
         // Authoritatively override velocity to stop forward momentum immediately
         // We use a minimum vertical impulse to ensure the player "bounces" off the obstacle
         float finalKnockbackY = Mathf.Max(knockbackForce.y, 10f);
-        rb.linearVelocity = new Vector2(knockbackForce.x, finalKnockbackY);
+        rb.linearVelocity = new Vector2(finalKnockbackX, finalKnockbackY);
     
         GameLogger.Log($"[STAGGER] Velocity authoritatively set to: {rb.linearVelocity} (Force: {config.staggerKnockbackForce}, Dir: {knockbackDirection})");
     }
@@ -617,8 +625,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyDrag()
     {
-        // Don't apply drag while jumping to preserve the impulse
-        if (states.isJumping) return;
+        // Don't apply drag while jumping or staggered to preserve the impulse/knockback
+        if (states.isJumping || states.isStaggered) return;
 
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
@@ -809,6 +817,25 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Enforces the absolute hard cap on horizontal speed. Applied every physics frame after all
+    /// movement forces. The player can exceed maxRunSpeed via momentum but never surpass maxHorizontalSpeed.
+    /// </summary>
+    private void ClampHorizontalSpeed()
+    {
+        if (config == null) return;
+
+        float absVelX = Mathf.Abs(rb.linearVelocity.x);
+        if (absVelX > config.maxHorizontalSpeed)
+        {
+            rb.linearVelocity = new Vector2(Mathf.Sign(rb.linearVelocity.x) * config.maxHorizontalSpeed, rb.linearVelocity.y);
+
+#if ENABLE_VERBOSE_LOGGING
+            GameLogger.LogVerbose("MOVEMENT", $"Hard speed cap applied: {absVelX:F2} -> {config.maxHorizontalSpeed}");
+#endif
+        }
+    }
+
     private void HandleCableSlideMovement()
     {
         Vector2 closestPoint = FindClosestPointOnCable(states.currentCable);
@@ -838,7 +865,8 @@ public class PlayerMovement : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision)
     {
         // Zero out horizontal velocity when pressing against a wall that is not being wall-run
-        if (!states.isGrounded && !states.isWallRunning && !states.isWallSliding)
+        // EXCLUSION: Do not kill velocity if we are sliding on a cable, as we want to glide through crossing obstacles.
+        if (!states.isGrounded && !states.isWallRunning && !states.isWallSliding && !states.isSlidingOnCable)
         {
             foreach (ContactPoint2D contact in collision.contacts)
             {
