@@ -109,8 +109,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8267360549415917477}
   - {fileID: 5048708408662198835}
@@ -129,12 +129,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shield
   powerUpName: Shield
-  icon: {fileID: 1871321703816175638, guid: d947e3e99d6ea73408a250d513af8a00, type: 3}
+  icon: {fileID: 21300000, guid: a882ca5d981f5af4ab31eaa56f43914e, type: 3}
   theme: {r: 1, g: 0.4117647, b: 0.7058824, a: 0}
   desc: Invincibility on next hit
   destroyOnPickup: 1
   showDebugInfo: 1
   activeTime: 900
+  isInstantEffect: 0
   pickupEffect: {fileID: 0}
   effectDuration: 1
 --- !u!1 &5338585319619848776
@@ -164,7 +165,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1044990317608133166}
@@ -218,7 +219,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1871321703816175638, guid: d947e3e99d6ea73408a250d513af8a00, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a882ca5d981f5af4ab31eaa56f43914e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

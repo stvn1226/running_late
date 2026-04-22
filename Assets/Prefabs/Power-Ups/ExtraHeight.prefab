@@ -27,8 +27,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.19999999, y: 0.19999999, z: 0.19999999}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5191604140621663351}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 28fe59ceb45d4524082ddb111bba0a92, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 12104da34fd75304b9573a502238587e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -200,8 +200,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 397973750840763017}
   - {fileID: 7865735161003633939}
@@ -220,12 +220,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExtraHeight
   powerUpName: ExtraHeight
-  icon: {fileID: 21300000, guid: 28fe59ceb45d4524082ddb111bba0a92, type: 3}
-  theme: {r: 0.5450981, g: 0, b: 0, a: 1}
+  icon: {fileID: 21300000, guid: 12104da34fd75304b9573a502238587e, type: 3}
+  theme: {r: 0.9433962, g: 0.7314153, b: 0.36044857, a: 1}
   desc: Greater jump height
   destroyOnPickup: 1
   showDebugInfo: 1
   activeTime: 10
+  isInstantEffect: 0
   pickupEffect: {fileID: 0}
   effectDuration: 1
   extraHeight: 8
