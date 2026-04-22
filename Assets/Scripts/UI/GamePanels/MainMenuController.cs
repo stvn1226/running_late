@@ -41,7 +41,7 @@ public class MainMenuController : MonoBehaviour
             gameplayCanvas.gameObject.SetActive(false);
         }
         
-        Time.timeScale = 0f;
+        Time.timeScale = 1f;
         
         GameLogger.Log("MENU", "Main Menu ready - UI controls active");
     }

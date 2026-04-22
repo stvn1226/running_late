@@ -374,7 +374,7 @@ public class PlayerJump : MonoBehaviour
         states.isFalling = isActuallyFalling;
         states.isGraceFalling = velocityY < 1f && !isOnValidSlope && !states.isGrounded;
 
-        bool isDoingAction = states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking;
+        bool isDoingAction = states.isJumping || states.isSliding || states.isRolling || states.isDiving || states.isKicking || states.isStaggered;
         bool shouldDisableGravity = states.isOnSlope && !states.isSlopeTooSteep && velocityY <= 0.01f && !isDoingAction;
         
         if (shouldDisableGravity)
@@ -386,7 +386,7 @@ public class PlayerJump : MonoBehaviour
         {
             rb.gravityScale = config.wallRunGravityScale;
         }
-        else if (states.isFalling || states.isJumpCut)
+        else if ((states.isFalling || states.isJumpCut) && !states.isStaggered) // Protect stagger from high gravity
         {
             bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
@@ -396,6 +396,10 @@ public class PlayerJump : MonoBehaviour
         else if (velocityY >= 0f && velocityY < config.apexThreshold && !states.isGrounded)
         {
             rb.gravityScale = config.apexGravityScale;
+        }
+        else if (states.isStaggered)
+        {
+            rb.gravityScale = originalGravityScale * 1.8f; // Snappier impact (1.5-2.0 range)
         }
         else
         {

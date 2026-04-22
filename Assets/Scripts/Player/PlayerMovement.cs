@@ -341,10 +341,17 @@ public class PlayerMovement : MonoBehaviour
 
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         
+        float finalKnockbackX = knockbackForce.x;
+        // Cap forward knockback so the player doesn't fly forward when hit
+        if (finalKnockbackX > 0f)
+        {
+            finalKnockbackX = Mathf.Min(finalKnockbackX, 5f);
+        }
+
         // Authoritatively override velocity to stop forward momentum immediately
         // We use a minimum vertical impulse to ensure the player "bounces" off the obstacle
         float finalKnockbackY = Mathf.Max(knockbackForce.y, 10f);
-        rb.linearVelocity = new Vector2(knockbackForce.x, finalKnockbackY);
+        rb.linearVelocity = new Vector2(finalKnockbackX, finalKnockbackY);
     
         GameLogger.Log($"[STAGGER] Velocity authoritatively set to: {rb.linearVelocity} (Force: {config.staggerKnockbackForce}, Dir: {knockbackDirection})");
     }
@@ -618,8 +625,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyDrag()
     {
-        // Don't apply drag while jumping to preserve the impulse
-        if (states.isJumping) return;
+        // Don't apply drag while jumping or staggered to preserve the impulse/knockback
+        if (states.isJumping || states.isStaggered) return;
 
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
