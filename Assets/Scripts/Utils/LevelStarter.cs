@@ -741,8 +741,8 @@ public class LevelStarter : MonoBehaviour
             return;
         }
 
-        SpriteRenderer tileSprite = backgroundTile.GetComponent<SpriteRenderer>();
-        float tileWidth = tileSprite != null ? tileSprite.bounds.size.x : 10f;
+        SpriteRenderer tileSprite = backgroundTile.GetComponentInChildren<SpriteRenderer>();
+        float tileWidth = tileSprite != null ? tileSprite.bounds.size.x : 40f;
 
         float rangeWidth = endX - startX;
         int tileCount = Mathf.CeilToInt(rangeWidth / tileWidth);
