@@ -343,8 +343,10 @@ public class PlayerPhysics : MonoBehaviour
                     }
 
                     BuildingDetector bd = hit.collider.GetComponentInParent<BuildingDetector>();
-                    int order = bd != null ? bd.sortingOrder : -100;
-                    float depth = bd != null ? bd.buildingZ : 100f; // Default large for far away
+                    if (bd == null) continue; // EXHAUSTIVE FIX: Only buildings allow wallrunning
+
+                    int order = bd.sortingOrder;
+                    float depth = bd.buildingZ; 
 
                     if (order > maxOrder || (order == maxOrder && depth < maxDepth))
                     {
@@ -404,8 +406,10 @@ public class PlayerPhysics : MonoBehaviour
                     }
                 }
                 BuildingDetector bd = col.GetComponentInParent<BuildingDetector>();
-                int sOrder = bd != null ? bd.sortingOrder : -100;
-                float depth = bd != null ? bd.buildingZ : 100f;
+                if (bd == null) continue; // EXHAUSTIVE FIX: Air-catch also requires building context
+
+                int sOrder = bd.sortingOrder;
+                float depth = bd.buildingZ;
 
                 // Priority: Lane (Sorting Order) -> Depth (Smaller Z is Closer) -> Distance
                 bool isBetter = false;

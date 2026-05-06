@@ -121,7 +121,13 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private Collider2D[] GetPlatformsInBounds(Bounds bounds)
     {
-        return Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, platformLayerMask);
+        // Always include OneWayPlatform layer in the search, even if not in platformLayerMask
+        // This ensures sidewalk modules (which use that layer) are always detectable
+        LayerMask searchMask = platformLayerMask;
+        int oneWayLayer = LayerMask.NameToLayer("OneWayPlatform");
+        if (oneWayLayer != -1) searchMask |= (1 << oneWayLayer);
+
+        return Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, searchMask);
     }
 
     private bool ShouldIgnorePlatform(Collider2D platform)

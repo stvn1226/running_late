@@ -26,6 +26,14 @@ public class ModuleBuilder : MonoBehaviour
     [Range(0, 100)]
     public int buildingSpawnChance = 90;
 
+    [Header("Dual Level Config")]
+    public bool isElevatedSidewalk = true;
+    public bool omitFoundationAtBaseLevel = true;
+    public bool pushPaddingToBackground = true;
+    public bool disablePaddingColliders = true;
+    public float paddingZOffset = 5f;
+    public int baseLevelHeight = 1;
+
     private bool hasGenerated = false;
     private int actualTerrainHeight = -1;
 
@@ -86,15 +94,20 @@ public class ModuleBuilder : MonoBehaviour
         if (explicitHeight.HasValue)
         {
             // SAFETY: System requires at least 1 block to provide a walkable floor
-            if (explicitHeight.Value < 1)
+            if (explicitHeight.Value < 0)
             {
-                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 1). Clamping to 1 to prevent 'void' errors.");
+                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 0). Clamping to 0.");
             }
 
-            int minHeight = Mathf.Max(1, moduleConfig.minTerrainHeight);
+            int minHeight = Mathf.Max(0, moduleConfig.minTerrainHeight);
             groundBlocksCount = Mathf.Clamp(explicitHeight.Value, minHeight, moduleConfig.maxTerrainHeight);
             
-            GameLogger.Log("MODULE", $"  - Using explicit height: {explicitHeight.Value} -> clamped to {groundBlocksCount}");
+            if (groundBlocksCount == 0)
+            {
+                actualTerrainHeight = 0;
+                GameLogger.Log("MODULE", "  - Height is 0, skipping terrain generation (Road Level).");
+                return;
+            }
         }
         else
         {
@@ -114,6 +127,26 @@ public class ModuleBuilder : MonoBehaviour
             {
                 GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
                 paddingBlock.name = $"Padding_{i}";
+                
+                if (isElevatedSidewalk)
+                {
+                    if (pushPaddingToBackground)
+                    {
+                        paddingBlock.transform.position += new Vector3(0, 0, paddingZOffset);
+                        
+                        // Force SpriteRenderer sorting layer if needed
+                        SpriteRenderer[] renderers = paddingBlock.GetComponentsInChildren<SpriteRenderer>();
+                        foreach(var sr in renderers)
+                        {
+                            sr.sortingOrder = -50; // Push far back
+                        }
+                    }
+                    if (disablePaddingColliders)
+                    {
+                        Collider2D[] cols = paddingBlock.GetComponentsInChildren<Collider2D>();
+                        foreach(var c in cols) c.enabled = false;
+                    }
+                }
             }
 
             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
@@ -122,8 +155,24 @@ public class ModuleBuilder : MonoBehaviour
         // The top-most block that the player walks on
         if (foundation != null)
         {
-            GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
-            groundBlock.name = "Foundation";
+            bool shouldOmit = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
+            if (!shouldOmit)
+            {
+                GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
+                groundBlock.name = "Foundation";
+
+                if (isElevatedSidewalk)
+                {
+                    Collider2D col = groundBlock.GetComponent<Collider2D>();
+                    if (col == null) col = groundBlock.GetComponentInChildren<Collider2D>();
+                    if (col != null)
+                    {
+                        col.usedByEffector = true;
+                        int platformLayer = LayerMask.NameToLayer("OneWayPlatform");
+                        if (platformLayer != -1) groundBlock.layer = platformLayer;
+                    }
+                }
+            }
             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
         }
 
@@ -205,8 +254,12 @@ public class ModuleBuilder : MonoBehaviour
 
         if (flyingObstacleRoll < flyingObstacleRate)
         {
+            // Usar groundBlockHeight del config en vez de hardcodear *3,
+            // así si el diseñador ajusta la escala de bloques el obstáculo sigue al terreno.
+            float blockHeight = moduleConfig != null ? moduleConfig.groundBlockHeight : 3f;
+
             GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
-            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * 3) + 50, transform.position.z - .5f);
+            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * blockHeight) + 50, transform.position.z - .5f);
             GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
             newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
             GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {flyingPosition}");

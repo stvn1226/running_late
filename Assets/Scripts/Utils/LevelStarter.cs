@@ -4,6 +4,15 @@ using UnityEngine;
 using System;
 using Random = UnityEngine.Random;
 
+[System.Serializable]
+public class BiomeData
+{
+    public string biomeName;
+    public ModuleBuilder[] modules;
+    public GameObject[] continuousRoadPrefabs;
+    public SpriteRenderer[] backgroundTiles;
+}
+
 public class LevelStarter : MonoBehaviour
 {
     [Header("Level Generation Settings")]
@@ -56,6 +65,63 @@ public class LevelStarter : MonoBehaviour
     [Range(0.5f, 2.0f)]
     public float buildingDensityMultiplier = 1.0f;
     
+    [Header("Continuous Road Settings (Lower Level)")]
+    public GameObject[] continuousRoadPrefabs;
+    public Transform continuousRoadReference;
+    public float continuousRoadModuleWidth = 10f;
+    private List<GameObject> continuousRoadBlocks = new List<GameObject>();
+
+    [Header("Biome System (Architecture Ready)")]
+    [Tooltip("List of biomes to cycle through during the level.")]
+    public List<BiomeData> biomesList = new List<BiomeData>();
+
+    // -------------------------------------------------------------------------
+    // DESIGNER SCALE SETTINGS
+    // -------------------------------------------------------------------------
+    // The designer works with "levels" starting at 0 (road level).
+    // Internally the system uses "blocks" starting at 1.
+    // -------------------------------------------------------------------------
+    [Header("Designer Scale Settings")]
+    [Tooltip("Base sidewalk height in blocks. Defines how high the second path is above the road.\n" +
+             "2 = standard (recommended). 3 = high. 1 = very low.\n" +
+             "DEFAULT = 2.")]
+    public int sidewalkMinBlocks = 2;
+
+    [Tooltip("Maximum height in blocks the sidewalk can reach.\n" +
+             "The random walk will stay within sidewalkMinBlocks and this value.\n" +
+             "DEFAULT = 5.")]
+    public int sidewalkMaxBlocks = 5;
+
+    [Tooltip("Vertical offset for the sidewalk path relative to the road.\n" +
+             "DEFAULT = 0.0f (Locked to Baseline)")]
+    public float sidewalkHeightOffset = 0.0f;
+
+    [Tooltip("Z-axis separation for the entire sidewalk path.\n" +
+             "0.5 = Background Path (Back).\n" +
+             "DEFAULT = 0.5f")]
+    public float sidewalkZOffset = 0.5f;
+
+    [Tooltip("How many internal blocks the sidewalk rises for every 1 designer unit.\n" +
+             "Value 1 = 1:1 ratio (recommended).")]
+    public int blocksPerDesignerUnit = 1;
+
+    [Header("Inter-Layer Slopes")]
+    [Tooltip("Definitions for slope prefabs and the designer height units they cover.\n" +
+             "The system combines these to match the current sidewalk height.")]
+    public InterLayerSlopeEntry[] interLayerSlopePrefabs;
+    
+    [Range(0, 100)] 
+    [Tooltip("Chance (0-100) to spawn a slope connection in a module.")]
+    public int interLayerSlopeSpawnChance = 10;
+
+    [Tooltip("Fine vertical adjustment for the slope's base connection to the road.")]
+    public float interLayerSlopeYOffset = 0f;
+
+    [Tooltip("Z-axis separation for the slope. Must be BETWEEN road and sidewalk.\n" +
+             "Example: Road(0) < Slope(0.25) < Sidewalk(0.5).\n" +
+             "DEFAULT = 0.25f")]
+    public float interLayerSlopeZOffset = 0.25f;
+
     [Header("Slope Modules")]
     public ModuleBuilder slopeLeftModule;
     public ModuleBuilder slopeRightModule;
@@ -228,6 +294,52 @@ public class LevelStarter : MonoBehaviour
         RegenerateLevel();
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // DESIGNER SCALE CONVERSION HELPERS
+    //
+    //   DesignerToCodeHeight(0)  →  baseSidewalkHeight        (suelo vereda)
+    //   DesignerToCodeHeight(1)  →  baseSidewalkHeight + 1    (1 nivel arriba)
+    //   DesignerToCodeHeight(2)  →  baseSidewalkHeight + 2    ...etc
+    //
+    //   CodeToDesignerHeight(3)  →  0   (si baseSidewalkHeight == 3)
+    //   CodeToDesignerHeight(5)  →  2
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Convierte un nivel del diseñador (0 = suelo de la vereda) a la altura
+    /// interna en bloques que usa el generador.
+    /// </summary>
+    public int DesignerToCodeHeight(int designerLevel)
+    {
+        return sidewalkMinBlocks + (designerLevel * blocksPerDesignerUnit);
+    }
+
+    /// <summary>
+    /// Returns the active biome for a given position. 
+    /// Architecture ready for 4-biome segmentation.
+    /// </summary>
+    private BiomeData GetCurrentBiome(float xPos)
+    {
+        if (biomesList == null || biomesList.Count == 0) return null;
+        
+        // Simple division by 4 for biome segmentation
+        float progress = Mathf.Clamp01((xPos - levelStartX) / (levelEndX - levelStartX));
+        int index = Mathf.FloorToInt(progress * biomesList.Count);
+        index = Mathf.Clamp(index, 0, biomesList.Count - 1);
+        
+        return biomesList[index];
+    }
+
+    /// <summary>
+    /// Convierte una altura interna en bloques al nivel del diseñador
+    /// (inversa de DesignerToCodeHeight). Útil para logs y debug.
+    /// </summary>
+    public int CodeToDesignerHeight(int codeHeight)
+    {
+        if (blocksPerDesignerUnit <= 0) return 0;
+        return (codeHeight - sidewalkMinBlocks) / blocksPerDesignerUnit;
+    }
+
     private void OnLevelRestart()
     {
         hasGenerated = false;
@@ -348,9 +460,9 @@ public class LevelStarter : MonoBehaviour
         float homeWidth = homeModule.moduleConfig.currentTerrainWidth;
         levelStartX = -homeWidth / 2f;
 
-        // Home keeps it's height
-        int homeHeight = homeModule.moduleConfig.minTerrainHeight;
-        GameLogger.Log("LEVEL", $"Will spawn Home, Width={homeWidth:F2}, Height={homeHeight} (FIXED)");
+        // RESTORED: Home starts at Level 1 to have its foundation and avoid gaps
+        int homeHeight = 1; 
+        GameLogger.Log("LEVEL", $"Spawning Home at Road Level: Width={homeWidth:F2}, HeightBlocks={homeHeight}");
 
         newWidth += (int)homeWidth;
 
@@ -362,10 +474,9 @@ public class LevelStarter : MonoBehaviour
             newWidth += module.moduleConfig.currentTerrainWidth;
         }
 
-        // SCHOOL - Consolidate height calculation
-        int schoolMinHeight = Mathf.Max(1, targetSchoolHeight, schoolModule.moduleConfig.minTerrainHeight);
-        int schoolMaxHeight = Mathf.Max(schoolMinHeight, schoolModule.moduleConfig.maxTerrainHeight);
-        int finalSchoolHeight = Random.Range(schoolMinHeight, schoolMaxHeight + 1);
+        // SCHOOL - Calculate target height within global sidewalk range
+        int finalSchoolHeight = Random.Range(sidewalkMinBlocks, sidewalkMaxBlocks + 1);
+        GameLogger.Log("LEVEL", $"School target height: {finalSchoolHeight} (Range: {sidewalkMinBlocks}-{sidewalkMaxBlocks})");
         
         modulesToSpawn.Add(schoolModule);
         newWidth += schoolModule.moduleConfig.currentTerrainWidth;
@@ -373,19 +484,30 @@ public class LevelStarter : MonoBehaviour
         GameLogger.Log("LEVEL", $"Total modules: {modulesToSpawn.Count}, Width: {newWidth}, Target School Height: {finalSchoolHeight}");
 
         // ========== SPAWNING CON SLOPES ==========
-        
-        float moduleSpawnerX = levelStartX + (homeWidth / 2f);
-        Vector2 homePos = new Vector2(moduleSpawnerX, 0f);
 
-        // Spawn HOME 
+        // ROAD REFERENCE: The House dictates the height of the entire level.
+        // We assume the Home module is already placed correctly or its Y is the standard.
+        float roadBaseY = continuousRoadReference != null ? continuousRoadReference.position.y : 0f;
+        float blockH = homeModule.moduleConfig.groundBlockHeight;
+        
+        // Force sidewalk to start exactly at road level to prevent floating objects
+        float sidewalkSpawnY = roadBaseY;
+        
+        GameLogger.Log("LEVEL", $"Base Y: {roadBaseY:F2}, Sidewalk Z: {sidewalkZOffset:F2}");
+
+        float moduleSpawnerX = levelStartX + (homeWidth / 2f);
+        Vector3 homePos = new Vector3(moduleSpawnerX, sidewalkSpawnY, sidewalkZOffset);
+
+        // Spawn HOME - FIXED POSITION (No initial gap)
         ModuleBuilder spawnedHome = Instantiate(homeModule, homePos, Quaternion.identity, levelParent);
+        spawnedHome.omitFoundationAtBaseLevel = false; // REFILL HOME
         spawnedHome.GenerateModule(homeHeight);
         modulesInScene.Add(spawnedHome);
-
+        
+        // Rule 5: Starting Spacing Buffer (Applied AFTER the house)
+        moduleSpawnerX += (homeWidth / 2f) + 20f; 
+        
         int previousHeight = homeHeight;
-        GameLogger.Log("LEVEL", $"Home spawned at X={moduleSpawnerX:F2}, Height={previousHeight}");
-
-        moduleSpawnerX += homeWidth / 2f;
 
         // Spawning
         int modulesSpawningCount = modulesToSpawn.Count;
@@ -440,9 +562,9 @@ public class LevelStarter : MonoBehaviour
 
             int nextHeight = previousHeight + heightChange;
             
-            // CLAMP SAFETY: Never go below 1 or below school target if school is higher
-            int minPossibleHeight = Mathf.Max(1, module.moduleConfig.minTerrainHeight);
-            nextHeight = Mathf.Clamp(nextHeight, minPossibleHeight, module.moduleConfig.maxTerrainHeight);
+            // CLAMP usando los límites globales del sidewalk, no el moduleConfig,
+            // porque el ScriptableObject puede tener maxTerrainHeight=1 y bloquear la variación.
+            nextHeight = Mathf.Clamp(nextHeight, sidewalkMinBlocks, sidewalkMaxBlocks);
 
             // *** INSERT SLOPES WHEN HEIGHT CHANGES ***
             int heightDifference = nextHeight - previousHeight;
@@ -458,13 +580,13 @@ public class LevelStarter : MonoBehaviour
                 for (int s = 0; s < slopesToSpawn; s++)
                 {
                     moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
-                    Vector2 slopePos = new Vector2(moduleSpawnerX, 0f);
+                    Vector3 slopePos = new Vector3(moduleSpawnerX, sidewalkSpawnY, sidewalkZOffset);
+                    
+                    // Rule 3: Perfect Slope Logic (Restored from history)
                     int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
                     
-                    // SAFETY: Slope height must at least be 1 to have a foundation
-                    slopeHeight = Mathf.Max(1, slopeHeight);
-                    
                     ModuleBuilder spawnedSlope = Instantiate(slopeToUse, slopePos, Quaternion.identity, levelParent);
+                    spawnedSlope.omitFoundationAtBaseLevel = false; // REFILL SLOPES
                     spawnedSlope.GenerateModule(slopeHeight);
                     modulesInScene.Add(spawnedSlope);
                     
@@ -473,9 +595,12 @@ public class LevelStarter : MonoBehaviour
                 }
             }
 
+            // INTER-LAYER SLOPES REMOVED (As requested, using standard slopes only)
+            bool isFlatSection = nextHeight == previousHeight;
+
             // Spawn normal module
             moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
-            Vector2 spawnPos = new Vector2(moduleSpawnerX, 0f);
+            Vector3 spawnPos = new Vector3(moduleSpawnerX, sidewalkSpawnY, sidewalkZOffset);
 
             ModuleBuilder newModule = Instantiate(module, spawnPos, Quaternion.identity, levelParent);
             newModule.GenerateModule(nextHeight);
@@ -490,8 +615,6 @@ public class LevelStarter : MonoBehaviour
         
         if (schoolHeightDiff != 0)
         {
-            GameLogger.Log("LEVEL", $"Final transition to School: {previousHeight} -> {finalSchoolHeight}");
-            
             int slopesToSchool = Mathf.Abs(schoolHeightDiff);
             bool isAscending = schoolHeightDiff > 0;
             ModuleBuilder slopeToUse = isAscending ? slopeLeftModule : slopeRightModule;
@@ -499,12 +622,12 @@ public class LevelStarter : MonoBehaviour
             for (int s = 0; s < slopesToSchool; s++)
             {
                 moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
+                // Rule 3: Perfect Slope Logic for school transition
                 int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
                 
-                // SAFETY: Slope height must at least be 1 to avoid 'ground 0' voids
-                slopeHeight = Mathf.Max(1, slopeHeight);
-                
-                ModuleBuilder spawnedSlope = Instantiate(slopeToUse, new Vector2(moduleSpawnerX, 0f), Quaternion.identity, levelParent);
+                Vector3 slopePos = new Vector3(moduleSpawnerX, sidewalkSpawnY, sidewalkZOffset);
+                ModuleBuilder spawnedSlope = Instantiate(slopeToUse, slopePos, Quaternion.identity, levelParent);
+                spawnedSlope.omitFoundationAtBaseLevel = false; // REFILL SLOPES
                 spawnedSlope.GenerateModule(slopeHeight);
                 modulesInScene.Add(spawnedSlope);
                 newWidth += slopeToUse.moduleConfig.currentTerrainWidth;
@@ -514,7 +637,7 @@ public class LevelStarter : MonoBehaviour
 
         // Spawn SCHOOL
         moduleSpawnerX += schoolModule.moduleConfig.currentTerrainWidth / 2f;
-        Vector2 schoolPos = new Vector2(moduleSpawnerX, 0f);
+        Vector3 schoolPos = new Vector3(moduleSpawnerX, sidewalkSpawnY, sidewalkZOffset);
 
         ModuleBuilder spawnedSchool = Instantiate(schoolModule, schoolPos, Quaternion.identity, levelParent);
         spawnedSchool.GenerateModule(finalSchoolHeight);
@@ -526,10 +649,62 @@ public class LevelStarter : MonoBehaviour
         GameLogger.Log("LEVEL", $"=== GENERATION COMPLETE: StartX={levelStartX:F2}, EndX={levelEndX:F2} ===");
 
         ResizeCamBounds(0f);
+
+        // Road starts AFTER the house to avoid overlapping with the house's foundation
+        float roadStart = levelStartX + homeWidth; 
+        GenerateContinuousRoad(roadStart, levelEndX, roadBaseY);
+
         GenerateModularCloudsInRange(levelStartX, levelEndX);
         LayOutBackgroundInRange(levelStartX, levelEndX);
 
         OnCameraBoundsUpdated?.Invoke();
+    }
+
+    private void GenerateContinuousRoad(float startX, float endX, float targetY)
+    {
+        if (continuousRoadReference == null || continuousRoadPrefabs == null || continuousRoadPrefabs.Length == 0) return;
+
+        GameLogger.Log("LEVEL", $"Generating Continuous Road from {startX} to {endX} at Y={targetY}");
+        
+        // CLEANUP PREVIOUS ROAD BLOCKS TO PREVENT DUPLICATION
+        foreach (GameObject road in continuousRoadBlocks)
+        {
+            if (road != null)
+            {
+                if (Application.isPlaying) Destroy(road);
+                else DestroyImmediate(road);
+            }
+        }
+        continuousRoadBlocks.Clear();
+
+        float currentX = startX;
+        float finalX = endX + 50f; // Padding to ensure it covers the whole visible area
+        int safetyCounter = 0;
+
+        while (currentX < finalX && safetyCounter < 1000)
+        {
+            GameObject roadPrefab = continuousRoadPrefabs[Random.Range(0, continuousRoadPrefabs.Length)];
+            // Road is at the front layer (Z=0)
+            Vector3 spawnPos = new Vector3(currentX, targetY, 0.0f); 
+            GameObject roadInstance = Instantiate(roadPrefab, spawnPos, Quaternion.identity, levelParent);
+            roadInstance.name = "ContinuousRoad_Generated";
+            
+            continuousRoadBlocks.Add(roadInstance);
+            
+            // STABLE WIDTH: Strictly use the designer-set width, no dynamic bounds logic
+            float width = continuousRoadModuleWidth;
+            
+            // Safety: Never use a width near zero
+            if (width <= 0.1f) width = 20f; // Fallback hardcoded width
+            
+            currentX += width;
+            safetyCounter++;
+        }
+
+        if (safetyCounter >= 1000)
+        {
+            GameLogger.LogWarning("LEVEL", "Continuous Road generation hit safety limit (1000 blocks). Possible width calculation error.");
+        }
     }
 
     private void GenerateModularCloudsInRange(float startX, float endX)
@@ -705,6 +880,28 @@ public class LevelStarter : MonoBehaviour
 
         modulesInScene.Clear();
 
+        // Clear Continuous Road
+        foreach (GameObject road in continuousRoadBlocks)
+        {
+            if (road != null)
+            {
+                if (Application.isPlaying) Destroy(road);
+                else DestroyImmediate(road);
+            }
+        }
+        continuousRoadBlocks.Clear();
+        
+        // Clear Inter-Layer Slopes
+        Transform[] allChildren = levelParent.GetComponentsInChildren<Transform>();
+        foreach (Transform child in allChildren)
+        {
+            if (child != null && child.name == "InterLayerSlope_Generated")
+            {
+                if (Application.isPlaying) Destroy(child.gameObject);
+                else DestroyImmediate(child.gameObject);
+            }
+        }
+
         if (structureGenerator != null)
         {
             structureGenerator.ClearStructuresInEditor();
@@ -818,4 +1015,59 @@ public class LevelStarter : MonoBehaviour
     public bool IsUsingModularGeneration() => useModularGeneration;
     public float GetLevelStartX() => levelStartX;
     public float GetLevelEndX() => levelEndX;
+
+    // -------------------------------------------------------------------------
+    // INTER-LAYER SLOPE: SPAWN LOGIC
+    // -------------------------------------------------------------------------
+    // Dada la posición X y la altura actual de la vereda (en bloques internos),
+    // elige y coloca la combinación correcta de slopes para ir desde el road
+    // hasta la vereda, usando los prefabs disponibles de mayor a menor tamaño
+    // (estrategia greedy).
+    //
+    // IMPORTANTE: El slope se posiciona en Y = continuousRoadReference.position.y
+    // para que arranque desde el piso del road, no desde el origen del mundo.
+    // -------------------------------------------------------------------------
+    /// <summary>
+    /// Spawns inter-layer slopes connecting the road and the sidewalk.
+    /// If the prefab has a ModuleBuilder, it will generate its own foundation/padding.
+    /// </summary>
+    private void TrySpawnInterLayerSlopes(float xPos, int blocksToCover)
+    {
+        if (interLayerSlopePrefabs == null || interLayerSlopePrefabs.Length == 0) return;
+
+        // Slopes MUST start exactly at the road surface level
+        float roadBaseY = continuousRoadReference != null ? continuousRoadReference.position.y : 0f;
+        float currentY = roadBaseY + interLayerSlopeYOffset;
+        float blockH = homeModule.moduleConfig.groundBlockHeight;
+
+        int remaining = blocksToCover;
+        int slopeIndex = 0;
+
+        // Sort descending
+        var sorted = new System.Collections.Generic.List<InterLayerSlopeEntry>(interLayerSlopePrefabs);
+        sorted.Sort((a, b) => b.designerHeightUnits.CompareTo(a.designerHeightUnits));
+
+        while (remaining > 0)
+        {
+            var chosen = sorted.Find(s => s.designerHeightUnits <= remaining);
+            if (chosen == null) chosen = sorted[sorted.Count - 1];
+
+            // Spawn at road level or stacked above the previous slope part
+            Vector3 spawnPos = new Vector3(xPos, currentY, interLayerSlopeZOffset);
+            GameObject instance = Instantiate(chosen.prefab, spawnPos, Quaternion.identity, levelParent);
+            instance.name = $"InterLayerSlope_H{chosen.designerHeightUnits}_X{xPos:F0}";
+            
+            ModuleBuilder mb = instance.GetComponent<ModuleBuilder>();
+            if (mb != null) 
+            {
+                mb.omitFoundationAtBaseLevel = false; // REFILL SLOPES
+                mb.GenerateModule(chosen.designerHeightUnits);
+            }
+
+            // Stack vertically to reach the sidewalk
+            currentY += chosen.designerHeightUnits * blockH;
+            remaining -= chosen.designerHeightUnits;
+            slopeIndex++;
+        }
+    }
 }
