@@ -32,6 +32,8 @@ public class ModuleBuilder : MonoBehaviour
     public bool pushPaddingToBackground = true;
     public bool disablePaddingColliders = true;
     public float paddingZOffset = 5f;
+    [Tooltip("Z offset for obstacles relative to the module root. Use negative values to move them closer to camera.")]
+    public float obstacleZOffset = -1.5f;
     public int baseLevelHeight = 1;
 
     private bool hasGenerated = false;
@@ -189,8 +191,13 @@ public class ModuleBuilder : MonoBehaviour
             {
                 GameObject obstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
                 GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
+                
+                // FINAL FIX: Explicitly set local Z to ensure enemies are in front of buildings
+                Vector3 locPos = newObstacle.transform.localPosition;
+                newObstacle.transform.localPosition = new Vector3(locPos.x, locPos.y, obstacleZOffset);
+                
                 newObstacle.name = $"{obstaclePrefab.name}_Generated";
-                GameLogger.Log("MODULE", $"  - Spawned obstacle: {newObstacle.name} at {obstacleSpawnPoint.position}");
+                GameLogger.Log("MODULE", $"  - Spawned obstacle: {newObstacle.name} at {newObstacle.transform.position} (Local Z: {obstacleZOffset})");
             }
         }
 
@@ -226,11 +233,10 @@ public class ModuleBuilder : MonoBehaviour
             Vector3 spawnPosition = new Vector3(
                 spawnPoint.position.x,
                 placementTracker.position.y,
-                spawnPoint.position.z + 1f
+                spawnPoint.position.z
             );
 
             StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
-
             GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
             newBuilding.name = $"{buildingTemplate.name}_Generated";
 
@@ -259,10 +265,13 @@ public class ModuleBuilder : MonoBehaviour
             float blockHeight = moduleConfig != null ? moduleConfig.groundBlockHeight : 3f;
 
             GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
-            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * blockHeight) + 50, transform.position.z - .5f);
+            
+            // Apply obstacleZOffset to flying obstacles too
+            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * blockHeight) + 50, transform.position.z + obstacleZOffset);
+            
             GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
             newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
-            GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {flyingPosition}");
+            GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {newFlyingObstacle.transform.position} (Local Z: {obstacleZOffset})");
         }
     }
 
