@@ -31,7 +31,10 @@ public static class GameLogger
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (DebugManager.Settings.enableAllLogs && DebugManager.Settings.enableGameLogger)
+        {
+            if (DebugManager.Settings.levelDebugOnly && system.ToUpper() != "LEVEL") return;
             Debug.Log($"[{system.ToUpper()}] {message}");
+        }
 #endif
     }
     
@@ -39,7 +42,10 @@ public static class GameLogger
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (DebugManager.Settings.enableAllLogs && DebugManager.Settings.enableGameLogger)
+        {
+            if (DebugManager.Settings.levelDebugOnly && system.ToUpper() != "LEVEL") return;
             Debug.LogWarning($"[{system.ToUpper()}] {message}");
+        }
 #endif
     }
     

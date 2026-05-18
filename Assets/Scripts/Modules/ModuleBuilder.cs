@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ModuleBuilder : MonoBehaviour
 {
@@ -53,7 +54,7 @@ public class ModuleBuilder : MonoBehaviour
         }
     }
 
-    public void GenerateModule(int? explicitHeight = null)
+    public void GenerateModule(int? explicitHeight = null, bool includeContent = true, bool spawnObstacles = true, int maxObstacleLevel = 3)
     {
         if (hasGenerated)
         {
@@ -67,24 +68,28 @@ public class ModuleBuilder : MonoBehaviour
             return;
         }
 
-        GameLogger.Log("MODULE", $"=== GenerateModule '{gameObject.name}' ===");
-        GameLogger.Log("MODULE", $"  - Position: {transform.position}");
-        GameLogger.Log("MODULE", $"  - Explicit Height: {(explicitHeight.HasValue ? explicitHeight.Value.ToString() : "None")}");
+        // Verbose per-module logs suppressed — check LEVEL logs for generation summary
 
         if (placementTracker != null)
         {
             placementTracker.position = transform.position;
-            GameLogger.Log("MODULE", $"  - Placement tracker set to {placementTracker.position}");
         }
 
-        GenerateBaseTerrain(explicitHeight);
-        GenerateBuildings();
-        SpawnFlyingObstacles(explicitHeight);
+        GenerateBaseTerrain(explicitHeight, spawnObstacles, maxObstacleLevel);
+        
+        if (includeContent)
+        {
+            GenerateBuildings();
+            if (spawnObstacles)
+            {
+                SpawnFlyingObstacles(explicitHeight);
+            }
+        }
 
         hasGenerated = true;
-        GameLogger.Log("MODULE", $"✓ Module '{gameObject.name}' generated with height={actualTerrainHeight}");
+        // Module generated — height visible in LEVEL [step] logs
     }
-    private void GenerateBaseTerrain(int? explicitHeight = null)
+    private void GenerateBaseTerrain(int? explicitHeight = null, bool spawnObstacles = true, int maxObstacleLevel = 3)
     {
         if (placementTracker == null)
         {
@@ -178,7 +183,7 @@ public class ModuleBuilder : MonoBehaviour
             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
         }
 
-        if (obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
+        if (spawnObstacles && obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
         {
             obstacleSpawnPoint.position = new Vector3(
                 obstacleSpawnPoint.position.x,
@@ -189,32 +194,43 @@ public class ModuleBuilder : MonoBehaviour
             int obstacleRoll = Random.Range(0, 100);
             if (obstacleRoll < obstacleRate)
             {
-                GameObject obstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
-                GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
-                
-                // FINAL FIX: Explicitly set local Z to ensure enemies are in front of buildings
-                Vector3 locPos = newObstacle.transform.localPosition;
-                newObstacle.transform.localPosition = new Vector3(locPos.x, locPos.y, obstacleZOffset);
-                
-                newObstacle.name = $"{obstaclePrefab.name}_Generated";
-                GameLogger.Log("MODULE", $"  - Spawned obstacle: {newObstacle.name} at {newObstacle.transform.position} (Local Z: {obstacleZOffset})");
+                // Filter prefabs by level
+                List<GameObject> filteredPrefabs = new List<GameObject>();
+                foreach (var p in obstaclePrefabs)
+                {
+                    if (p == null) continue;
+                    string n = p.name.ToLower();
+                    int level = 1; // Default: Peatón/Moto
+                    if (n.Contains("truck") || n.Contains("camion") || n.Contains("van")) level = 3;
+                    else if (n.Contains("car") || n.Contains("auto")) level = 2;
+
+                    if (level <= maxObstacleLevel) filteredPrefabs.Add(p);
+                }
+
+                if (filteredPrefabs.Count > 0)
+                {
+                    GameObject obstaclePrefab = filteredPrefabs[Random.Range(0, filteredPrefabs.Count)];
+                    GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
+                    
+                    Vector3 locPos = newObstacle.transform.localPosition;
+                    newObstacle.transform.localPosition = new Vector3(locPos.x, locPos.y, obstacleZOffset);
+                    newObstacle.name = $"{obstaclePrefab.name}_Generated";
+                }
             }
         }
 
-        GameLogger.Log("MODULE", $"  - Terrain: {groundBlocksCount} blocks, from y={startPos.y:F2} to y={placementTracker.position.y:F2}");
+
     }
 
     private void GenerateBuildings()
     {
         if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0)
         {
-            GameLogger.Log("MODULE", $"  - No building spawn points");
             return;
         }
 
         if (buildingPrefabs == null || buildingPrefabs.Length == 0)
         {
-            GameLogger.Log("MODULE", $"  - No building prefabs");
             return;
         }
 
@@ -249,7 +265,7 @@ public class ModuleBuilder : MonoBehaviour
             buildingsSpawned++;
         }
 
-        GameLogger.Log("MODULE", $"  - Buildings: {buildingsSpawned}/{buildingSpawnPoints.Length} spawn points used");
+
     }
 
     private void SpawnFlyingObstacles(int? explicitHeight = 0)
@@ -260,8 +276,8 @@ public class ModuleBuilder : MonoBehaviour
 
         if (flyingObstacleRoll < flyingObstacleRate)
         {
-            // Usar groundBlockHeight del config en vez de hardcodear *3,
-            // así si el diseñador ajusta la escala de bloques el obstáculo sigue al terreno.
+            // Use groundBlockHeight from config instead of hardcoding *3,
+            // so obstacles follow the terrain if block scale is adjusted.
             float blockHeight = moduleConfig != null ? moduleConfig.groundBlockHeight : 3f;
 
             GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
@@ -271,7 +287,6 @@ public class ModuleBuilder : MonoBehaviour
             
             GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
             newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
-            GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {newFlyingObstacle.transform.position} (Local Z: {obstacleZOffset})");
         }
     }
 

@@ -6,6 +6,10 @@ public class DebugSettings
     [Header("🔧 MASTER DEBUG CONTROL")]
     [SerializeField] public bool enableAllLogs = true;
     
+    [Header("🗺️ LEVEL DEBUG FOCUS")]
+    [Tooltip("When ON, only [LEVEL] logs appear. All other GameLogger tags (HAPTICS, AUDIO, MENU, etc.) are silenced.")]
+    [SerializeField] public bool levelDebugOnly = false;
+    
     [Header("📚 GENERAL SYSTEM DEBUG")]
     [SerializeField] public bool enableGameLogger = true;
     [SerializeField] public bool enableVerboseLogs = false;
@@ -179,7 +183,24 @@ public class DebugManager : MonoBehaviour
     public void EnableAllLogs()
     {
         debugSettings.enableAllLogs = true;
+        debugSettings.levelDebugOnly = false;
         Debug.Log("🔊 ALL LOGS ENABLED");
+    }
+    
+    [ContextMenu("🗺️ Enable Level Debug Only (hide all other logs)")]
+    public void EnableLevelDebugOnly()
+    {
+        debugSettings.enableAllLogs = true;
+        debugSettings.enableGameLogger = true;
+        debugSettings.levelDebugOnly = true;
+        Debug.Log("🗺️ LEVEL DEBUG ONLY — only [LEVEL] logs will appear");
+    }
+    
+    [ContextMenu("🗺️ Disable Level Debug Only (restore all logs)")]
+    public void DisableLevelDebugOnly()
+    {
+        debugSettings.levelDebugOnly = false;
+        Debug.Log("🗺️ Level Debug Only OFF — all logs restored");
     }
     
     [ContextMenu("🎮 Enable Player Debug Only")]
