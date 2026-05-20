@@ -457,6 +457,8 @@ public class LevelStarter : MonoBehaviour
         int totalRamps = blueprint.DiagonalRamps != null ? blueprint.DiagonalRamps.Count : 0;
         foreach (var ramp in blueprint.DiagonalRamps)
         {
+            // Interlayers disabled while sidewalk elevation is being stabilized.
+            if (useRelativeSidewalkHeights) continue;
             float rampCenter = ramp.X_Position + (ramp.Width / 2f);
             int absH = baselineH + ramp.Y_Elevation;
             string cfgName = ramp.Template != null && ramp.Template.moduleConfig != null ? ramp.Template.moduleConfig.name : "NULL";
@@ -541,8 +543,8 @@ public class LevelStarter : MonoBehaviour
     {
         if (!useRelativeSidewalkHeights)
         {
-            // OLD PATH: zero visual change — identical to the original call.
-            RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
+            // OLD PATH: baselineH+1 adds one foundation layer, lifting the top surface by groundBlockHeight.
+            RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH + 1, sidewalkZOffset);
             return;
         }
 
@@ -559,9 +561,8 @@ public class LevelStarter : MonoBehaviour
                 + seg.RoadElevationAtX * 3f
                 + seg.SidewalkRelativeLevel * 1.5f;
 
-            // absH fixed at baselineH (=1) so ModuleBuilder adds 0 paddings.
-            // The visual height is fully encoded in segTransformY.
-            int absH = baselineH;
+            // absH +1 adds one foundation layer below, lifting the top surface visually by groundBlockHeight.
+            int absH = baselineH + 1;
 
             float center = seg.X_Position + seg.Width / 2f;
 
@@ -662,8 +663,9 @@ public class LevelStarter : MonoBehaviour
             if (seg.IsSlope) {
                 SpawnModularSlope(seg.Template, center, baseY, z, absH, seg.Label, z != 0f);
             } else {
-                // Generate content (buildings) only for Sidewalk (z != 0)
-                SpawnModularSegment(seg.Template, center, baseY, z, absH, seg.Label, z != 0f, z != 0f, seg.SpawnObstacles, seg.MaxObstacleLevel);
+                // generateContent=true for both Road and Sidewalk — obstacles/vehicles allowed on Road.
+                // isSidewalk flag keeps ModuleBuilder identity correct (z!=0 = elevated sidewalk).
+                SpawnModularSegment(seg.Template, center, baseY, z, absH, seg.Label, z != 0f, true, seg.SpawnObstacles, seg.MaxObstacleLevel);
             }
         }
     }

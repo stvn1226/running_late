@@ -121,8 +121,6 @@ MonoBehaviour:
   - {fileID: 8528187781347212955}
   obstacleSpawnPoint: {fileID: 7559579911119311741}
   obstaclePrefabs:
-  - {fileID: 9041243942261583109, guid: 1962d0fd9dc63a64ab8a7cc359bc4c8c, type: 3}
-  - {fileID: 9041243942261583109, guid: fc455f3084a0695488c15f2dc42493a9, type: 3}
   - {fileID: 6039526676700403722, guid: 19d79fc0fc7166949817cc36379990ed, type: 3}
   - {fileID: 5814239028954185072, guid: 62e22b1772b30254d88c50e64ba4f1b0, type: 3}
   - {fileID: 5814239028954185072, guid: 60fcf4feda5ecc64f864e13b8616a982, type: 3}
@@ -132,6 +130,13 @@ MonoBehaviour:
   flyingObstacleRate: 10
   autoGenerateOnStart: 0
   buildingSpawnChance: 90
+  isElevatedSidewalk: 1
+  omitFoundationAtBaseLevel: 1
+  pushPaddingToBackground: 1
+  disablePaddingColliders: 1
+  paddingZOffset: 5
+  obstacleZOffset: -1.5
+  baseLevelHeight: 1
 --- !u!1 &9081200904879366759
 GameObject:
   m_ObjectHideFlags: 0

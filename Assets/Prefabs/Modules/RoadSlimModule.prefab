@@ -144,19 +144,14 @@ MonoBehaviour:
   moduleConfig: {fileID: 11400000, guid: 3b402b7f00674ca18b446b252b71b8b1, type: 2}
   foundation: {fileID: 5822544086691151556, guid: 60e152360aff84dba9820aaaf30c8631, type: 3}
   padding: {fileID: 5577528594665140129, guid: c2baf0cc5b10d43edad3628b76304440, type: 3}
-  buildingPrefabs:
-  - {fileID: 3927706109960210463, guid: bb6934f4d62afb0469d35850f4e22433, type: 3}
+  buildingPrefabs: []
   placementTracker: {fileID: 2645483569602948123}
-  buildingSpawnPoints:
-  - {fileID: 276532511428578579}
-  - {fileID: 6042622800844283537}
+  buildingSpawnPoints: []
   obstacleSpawnPoint: {fileID: 2917894595998150796}
   obstaclePrefabs:
   - {fileID: 9041243942261583109, guid: 1962d0fd9dc63a64ab8a7cc359bc4c8c, type: 3}
   - {fileID: 9041243942261583109, guid: fc455f3084a0695488c15f2dc42493a9, type: 3}
-  - {fileID: 6039526676700403722, guid: 19d79fc0fc7166949817cc36379990ed, type: 3}
   - {fileID: 5814239028954185072, guid: 62e22b1772b30254d88c50e64ba4f1b0, type: 3}
-  - {fileID: 5814239028954185072, guid: 60fcf4feda5ecc64f864e13b8616a982, type: 3}
   flyingObstaclePrefabs: []
   obstacleRate: 60
   flyingObstacleRate: 10

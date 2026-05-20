@@ -175,21 +175,14 @@ MonoBehaviour:
   moduleConfig: {fileID: 11400000, guid: b2f52e036a2045439fc456c13d2f7725, type: 2}
   foundation: {fileID: 5896076673465221595, guid: 8119f05c2aa4f4374bfe58994ec09c4a, type: 3}
   padding: {fileID: 4432173102358517512, guid: 3a32ca520b502493eaaa3dc3ac644b22, type: 3}
-  buildingPrefabs:
-  - {fileID: 3927706109960210463, guid: bb6934f4d62afb0469d35850f4e22433, type: 3}
-  - {fileID: 3927706109960210463, guid: cb2d5d57318b0324092c8fbb41cfc2f9, type: 3}
-  - {fileID: 3927706109960210463, guid: 7b75e7cab8f62f944b0c19ed7c07496c, type: 3}
+  buildingPrefabs: []
   placementTracker: {fileID: 4201080838670832282}
-  buildingSpawnPoints:
-  - {fileID: 7063365527350915475}
-  - {fileID: 7752659095006625687}
+  buildingSpawnPoints: []
   obstacleSpawnPoint: {fileID: 3231241361491268583}
   obstaclePrefabs:
   - {fileID: 9041243942261583109, guid: 1962d0fd9dc63a64ab8a7cc359bc4c8c, type: 3}
   - {fileID: 9041243942261583109, guid: fc455f3084a0695488c15f2dc42493a9, type: 3}
-  - {fileID: 6039526676700403722, guid: 19d79fc0fc7166949817cc36379990ed, type: 3}
   - {fileID: 5814239028954185072, guid: 62e22b1772b30254d88c50e64ba4f1b0, type: 3}
-  - {fileID: 5814239028954185072, guid: 60fcf4feda5ecc64f864e13b8616a982, type: 3}
   flyingObstaclePrefabs: []
   obstacleRate: 60
   flyingObstacleRate: 10
