@@ -4786,6 +4786,8 @@ MonoBehaviour:
   slopeLeftModule: {fileID: 2755476972544965116, guid: 9274c1de9758c4d05b12830778faceb4, type: 3}
   slopeRightModule: {fileID: 5958189151317215206, guid: 49160df575a294a29a9d341221530d90, type: 3}
   sidewalkZOffset: 0.5
+  sidewalkYOffset: 1.5
+  useRelativeSidewalkHeights: 0
   roadHeightVarianceChance: 20
   sidewalkRelHeightVarianceChance: 30
   sidewalkMinRelativeHeight: 0
@@ -4799,6 +4801,8 @@ MonoBehaviour:
   - {fileID: 1863322558645539172, guid: 249a5aa8e4efa4559b73cb4cf3159c50, type: 3}
   roadSlopeLeftModule: {fileID: 385824349088141626, guid: 33c609a116f8444558c989be82972667, type: 3}
   roadSlopeRightModule: {fileID: 4735257349151812652, guid: 69ef809f41a304d41ab8ee0cb4faee3d, type: 3}
+  interlayerSlopeLeftModule: {fileID: 0}
+  interlayerSlopeRightModule: {fileID: 0}
   generateBuildingsInModules: 0
   moduleTest: {fileID: 3603241969965492453, guid: c122e73c74451e44b90e75ac7e2486a7, type: 3}
   groundReference: {fileID: 0}

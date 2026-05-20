@@ -230,17 +230,18 @@ public class ModuleBuilder : MonoBehaviour
             int obstacleRoll = Random.Range(0, 100);
             if (obstacleRoll < obstacleRate)
             {
-                // Filter prefabs by level
+                // TEMP: obstacle list on the prefab defines valid spawns — no name-based level filter.
+                // Filter by name (truck/car/etc.) and MaxObstacleLevel disabled while heights are being stabilized.
                 List<GameObject> filteredPrefabs = new List<GameObject>();
                 foreach (var p in obstaclePrefabs)
                 {
                     if (p == null) continue;
-                    string n = p.name.ToLower();
-                    int level = 1; // Default: Peatón/Moto
-                    if (n.Contains("truck") || n.Contains("camion") || n.Contains("van")) level = 3;
-                    else if (n.Contains("car") || n.Contains("auto")) level = 2;
-
-                    if (level <= maxObstacleLevel) filteredPrefabs.Add(p);
+                    // string n = p.name.ToLower();
+                    // int level = 1;
+                    // if (n.Contains("truck") || n.Contains("camion") || n.Contains("van")) level = 3;
+                    // else if (n.Contains("car") || n.Contains("auto")) level = 2;
+                    // if (level <= maxObstacleLevel) filteredPrefabs.Add(p);
+                    filteredPrefabs.Add(p);
                 }
 
                 if (filteredPrefabs.Count > 0)
