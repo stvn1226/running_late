@@ -127,13 +127,30 @@ public class ModuleBuilder : MonoBehaviour
 
         Vector3 startPos = placementTracker.position;
 
+        // [BuildingAudit] — terrain entry snapshot
+        int gbhForLog = moduleConfig != null ? moduleConfig.groundBlockHeight : -1;
+        bool shouldOmitForLog = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
+        GameLogger.Log("BuildingAudit",
+            $"[TerrainEntry] Segment={gameObject.name} " +
+            $"TransformY={transform.position.y:F3} " +
+            $"explicitHeight={groundBlocksCount} " +
+            $"groundBlockHeight={gbhForLog} " +
+            $"omitFoundationAtBaseLevel={omitFoundationAtBaseLevel} " +
+            $"baseLevelHeight={baseLevelHeight} " +
+            $"isElevatedSidewalk={isElevatedSidewalk} " +
+            $"groundBlocksCount={groundBlocksCount} " +
+            $"shouldOmit={shouldOmitForLog} " +
+            $"placementTrackerY_beforeTerrain={placementTracker.position.y:F3}");
+
         // Ground blocks except the top one (foundation)
+        int paddingBlocksSpawned = 0;
         for (int i = 0; i < groundBlocksCount - 1; i++)
         {
             if (padding != null)
             {
                 GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
                 paddingBlock.name = $"Padding_{i}";
+                paddingBlocksSpawned++;
                 
                 if (isElevatedSidewalk)
                 {
@@ -160,11 +177,13 @@ public class ModuleBuilder : MonoBehaviour
         }
 
         // The top-most block that the player walks on
+        bool foundationInstantiated = false;
         if (foundation != null)
         {
             bool shouldOmit = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
             if (!shouldOmit)
             {
+                foundationInstantiated = true;
                 GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
                 groundBlock.name = "Foundation";
 
@@ -179,9 +198,26 @@ public class ModuleBuilder : MonoBehaviour
                         if (platformLayer != -1) groundBlock.layer = platformLayer;
                     }
                 }
+
+                // Tracker advances only when foundation was actually placed.
+                // For elevated sidewalk with shouldOmit=true, tracker stays at transform.position.y
+                // so buildings spawn on the actual surface, not one groundBlockHeight above it.
+                placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
             }
-            placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+            else if (!isElevatedSidewalk)
+            {
+                // Road path: shouldOmit is always false here (isElevatedSidewalk=false),
+                // but guard this branch explicitly so Road never regresses.
+                placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+            }
         }
+
+        // [BuildingAudit] — terrain exit snapshot
+        GameLogger.Log("BuildingAudit",
+            $"[TerrainExit] Segment={gameObject.name} " +
+            $"paddingBlocksSpawned={paddingBlocksSpawned} " +
+            $"foundationInstantiated={foundationInstantiated} " +
+            $"placementTrackerY_afterTerrain={placementTracker.position.y:F3}");
 
         if (spawnObstacles && obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
         {
@@ -236,6 +272,12 @@ public class ModuleBuilder : MonoBehaviour
 
         int buildingsSpawned = 0;
 
+        // [BuildingAudit] — placementTracker snapshot before any building spawns
+        GameLogger.Log("BuildingAudit",
+            $"[BuildingEntry] Segment={gameObject.name} " +
+            $"placementTrackerY_beforeBuildings={placementTracker.position.y:F3} " +
+            $"transformY={transform.position.y:F3}");
+
         foreach (Transform spawnPoint in buildingSpawnPoints)
         {
             if (spawnPoint == null) continue;
@@ -255,6 +297,13 @@ public class ModuleBuilder : MonoBehaviour
             StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
             GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
             newBuilding.name = $"{buildingTemplate.name}_Generated";
+
+            // [BuildingAudit] — per-building spawn snapshot
+            GameLogger.Log("BuildingAudit",
+                $"[BuildingSpawn] Segment={gameObject.name} " +
+                $"buildingPrefab={buildingTemplate.name} " +
+                $"buildingSpawnY={spawnPosition.y:F3} " +
+                $"buildingLocalY={newBuilding.transform.localPosition.y:F3}");
 
             StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
             if (buildingBuilder != null)

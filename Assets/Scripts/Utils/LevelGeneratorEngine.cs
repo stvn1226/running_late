@@ -15,6 +15,14 @@ public class SegmentData
     public string Label;           // Etiqueta para debugging (ej: "Road_Segment", "Sidewalk_Home")
     public bool SpawnObstacles;    // Obstacle control
     public int MaxObstacleLevel;   // Max obstacle level allowed (1=pedestrian/moto, 2=car, 3=truck)
+
+    // --- Phase 2: Dual-Layer Height Extension ---
+    // All default to 0. Ignored by rendering when useRelativeSidewalkHeights = false.
+    public int RoadElevationAtX;       // Road Y_Elevation at this segment's X (Sidewalk segments)
+    public int SidewalkRelativeLevel;  // Sidewalk level relative to road: 0=flush, 1=+1.5u, 2=+3.0u
+    public int ConnectorRoadElevation; // Road elevation at connector X (DiagonalRamps only)
+    public int ConnectorRelLevelFrom;  // Sidewalk relative level at ramp start (DiagonalRamps only)
+    public int ConnectorRelLevelTo;    // Sidewalk relative level at ramp end   (DiagonalRamps only)
 }
 
 [System.Serializable]
@@ -57,11 +65,14 @@ public class LevelGeneratorEngine
         ModuleBuilder slopeRight,
         ModuleBuilder roadSlopeLeft,
         ModuleBuilder roadSlopeRight,
+        ModuleBuilder interlayerSlopeLeft,
+        ModuleBuilder interlayerSlopeRight,
         int targetLengthUnits,
         int safeZoneModules,
         int roadMaxHeight,
         int sidewalkMaxRelHeight,
-        int seed)
+        int seed,
+        bool logDualLayer = false)
     {
         // Initialize seed for deterministic generation
         Random.InitState(seed);
@@ -74,10 +85,10 @@ public class LevelGeneratorEngine
         // Pass 2: Road with Elevations
         Pass2_GenerateRoad(blueprint, roadModules, roadSlopeLeft, roadSlopeRight, safeZoneModules, roadMaxHeight);
 
-        // Pass 3: Sidewalk with Elevations (Sincronizado tipo Radar con Pista)
-        Pass3_GenerateSidewalk(blueprint, sidewalkModules, slopeLeft, slopeRight, roadSlopeLeft, roadSlopeRight, safeZoneModules, sidewalkMaxRelHeight);
+        // Pass 3: Sidewalk (synced to road) + Interlayer connection ramps
+        Pass3_GenerateSidewalk(blueprint, sidewalkModules, slopeLeft, slopeRight, interlayerSlopeLeft, interlayerSlopeRight, safeZoneModules, sidewalkMaxRelHeight, logDualLayer);
 
-        // Pass 4: Finalize Obstacles (Clearance check real tras construir ambas capas)
+        // Pass 4: Finalize Obstacles
         Pass4_FinalizeObstacles(blueprint);
 
         return blueprint;
@@ -118,59 +129,79 @@ public class LevelGeneratorEngine
         float targetX = blueprint.SchoolAnchor.X_Position;
         int segmentsCreated = 0;
         int currentH = 0;
+        int slopeCooldown = 0; // Flat segments required before next slope allowed
 
         while (currentX < targetX)
         {
             float remaining = targetX - currentX;
+            if (remaining <= 0) break;
+
             int nextH = currentH;
-            if (remaining < 60f) nextH = 0;
-            else if (segmentsCreated > safeZoneModules && Random.value < 0.12f)
+
+            // Near school: step down ONE level at a time (avoids consecutive down-slopes)
+            if (remaining < 60f && currentH > 0)
+            {
+                nextH = currentH - 1;
+            }
+            // Random height change only when cooldown has expired
+            else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.12f)
             {
                 nextH = Mathf.Clamp(currentH + (Random.value > 0.5f ? 1 : -1), 0, roadMaxHeight);
             }
 
             if (nextH != currentH)
             {
+                // Place ONE slope this iteration. Cooldown prevents the next iteration
+                // from placing another slope immediately, fixing V-shapes and staircases.
                 ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
                 if (sTemplate != null)
                 {
                     float sw = sTemplate.moduleConfig.currentTerrainWidth;
                     blueprint.RoadTrack.Segments.Add(new SegmentData {
-                        Template = sTemplate, X_Position = currentX, Y_Elevation = (nextH > currentH ? nextH : currentH), Width = sw, Label = (nextH > currentH) ? "Road_Slope_Up" : "Road_Slope_Down", IsSlope = true
+                        Template    = sTemplate,
+                        X_Position  = currentX,
+                        Y_Elevation = (nextH > currentH) ? nextH : currentH,
+                        Width       = sw,
+                        Label       = (nextH > currentH) ? "Road_Slope_Up" : "Road_Slope_Down",
+                        IsSlope     = true
                     });
                     currentX += sw;
+                    slopeCooldown = 3; // Require 3 flat segments before next slope
                 }
                 currentH = nextH;
             }
+            else
+            {
+                // Place ONE flat segment this iteration, count down cooldown
+                ModuleBuilder bestFit = GetBestFit(roadModules, remaining);
+                if (bestFit == null) break;
 
-            remaining = targetX - currentX;
-            if (remaining <= 0) break;
-
-            ModuleBuilder bestFit = GetBestFit(roadModules, remaining);
-            if (bestFit == null) break;
-
-            float pieceW = bestFit.moduleConfig.currentTerrainWidth;
-            
-            // Obstacle constraint: Clearance check for trucks
-            int sideH = GetSidewalkHeightAt(blueprint, currentX);
-            int clearance = sideH - currentH;
-            int maxObs = (clearance <= 1) ? 1 : 3;
-
-            blueprint.RoadTrack.Segments.Add(new SegmentData {
-                Template = bestFit, X_Position = currentX, Y_Elevation = currentH, Width = pieceW, Label = "Road_Segment", 
-                SpawnObstacles = (segmentsCreated >= safeZoneModules),
-                MaxObstacleLevel = 3 // Temporal, Pass 4 lo ajustará con precisión
-            });
-            currentX += pieceW;
-            segmentsCreated++;
+                float pieceW = bestFit.moduleConfig.currentTerrainWidth;
+                blueprint.RoadTrack.Segments.Add(new SegmentData {
+                    Template         = bestFit,
+                    X_Position       = currentX,
+                    Y_Elevation      = currentH,
+                    Width            = pieceW,
+                    Label            = "Road_Segment",
+                    SpawnObstacles   = (segmentsCreated >= safeZoneModules),
+                    MaxObstacleLevel = 3 // Pass 4 will refine this
+                });
+                currentX += pieceW;
+                segmentsCreated++;
+                if (slopeCooldown > 0) slopeCooldown--;
+            }
         }
         blueprint.SchoolAnchor.X_Position = currentX;
+        blueprint.TotalLength = currentX + blueprint.SchoolAnchor.Width;
     }
 
-    private static void Pass3_GenerateSidewalk(LevelBlueprint blueprint, ModuleBuilder[] sidewalkModules, ModuleBuilder slopeUp, ModuleBuilder slopeDown, ModuleBuilder diagUp, ModuleBuilder diagDown, int safeZoneModules, int sidewalkMaxRelHeight)
+    private static void Pass3_GenerateSidewalk(LevelBlueprint blueprint, ModuleBuilder[] sidewalkModules, ModuleBuilder slopeUp, ModuleBuilder slopeDown, ModuleBuilder diagUp, ModuleBuilder diagDown, int safeZoneModules, int sidewalkMaxRelHeight, bool logDualLayer = false)
     {
+        const float endpointFlushDistance = 80f; // Flush sidewalk to road level within this distance of Home/School
+
         int currentH = 0;
         int segmentsCreated = 0;
+        float roadStartX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width;
 
         foreach (var roadSeg in blueprint.RoadTrack.Segments)
         {
@@ -202,58 +233,132 @@ public class LevelGeneratorEngine
                 bool isUp = roadSeg.Label.Contains("Up");
                 nextH = isUp ? currentH + 1 : currentH - 1;
                 if (nextH < roadH_end) nextH = roadH_end; // Safety clamp
-                
+
+                int prevRelLevel = Mathf.Clamp(currentH - roadH_start, 0, 2);
+                int newRelLevel  = Mathf.Clamp(nextH   - roadH_end,   0, 2);
+
                 ModuleBuilder sTemplate = isUp ? slopeUp : slopeDown;
+                ModuleBuilder interlayerTemplate = isUp ? diagUp : diagDown;
                 int slopeY = (nextH > currentH) ? nextH : currentH;
                 
-                blueprint.SidewalkTrack.Segments.Add(new SegmentData {
-                    Template = sTemplate != null ? sTemplate : roadSeg.Template, 
-                    X_Position = segX, Y_Elevation = slopeY, Width = segW, Label = "Sidewalk_Follow_Slope", IsSlope = true
-                });
+                var swSeg = new SegmentData {
+                    Template      = sTemplate != null ? sTemplate : roadSeg.Template,
+                    X_Position    = segX, Y_Elevation = slopeY, Width = segW,
+                    Label         = "Sidewalk_Follow_Slope", IsSlope = true,
+                    // Phase 2 metadata
+                    RoadElevationAtX      = roadH_end,
+                    SidewalkRelativeLevel = newRelLevel
+                };
+                blueprint.SidewalkTrack.Segments.Add(swSeg);
+
+                if (logDualLayer)
+                    GameLogger.Log("DualLayerData", $"Sidewalk X={segX:F1} W={segW} OldYElev={slopeY} RoadElev={roadH_end} Rel={newRelLevel} AbsOld={slopeY} Label=Sidewalk_Follow_Slope");
+
+                // Interlayer alongside road slope
+                if (interlayerTemplate != null)
+                {
+                    var rampSeg = new SegmentData {
+                        Template          = interlayerTemplate,
+                        X_Position        = segX,
+                        Y_Elevation       = slopeY,
+                        Width             = segW,
+                        Label             = "Diagonal_Ramp_Follow_Slope",
+                        IsSlope           = true,
+                        // Phase 2 metadata
+                        RoadElevationAtX      = roadH_end,
+                        SidewalkRelativeLevel = newRelLevel,
+                        ConnectorRoadElevation = roadH_end,
+                        ConnectorRelLevelFrom  = prevRelLevel,
+                        ConnectorRelLevelTo    = newRelLevel
+                    };
+                    blueprint.DiagonalRamps.Add(rampSeg);
+
+                    if (logDualLayer)
+                        GameLogger.Log("DualLayerData", $"Interlayer X={segX:F1} W={segW} RoadElev={roadH_end} FromRel={prevRelLevel} ToRel={newRelLevel} Label=Diagonal_Ramp_Follow_Slope");
+                }
                 
                 currentH = nextH;
             }
             else
             {
-                // Segmento plano de pista. La vereda puede decidir cambiar de altura.
+                // Flat road segment. Sidewalk can independently vary height.
                 if (segmentsCreated > safeZoneModules && Random.value < 0.18f)
                 {
                     int randomStep = Random.value > 0.5f ? 1 : -1;
                     nextH = Mathf.Clamp(currentH + randomStep, roadH_end, roadH_end + sidewalkMaxRelHeight);
                 }
-                
-                if (blueprint.TotalLength - segX < 80f) nextH = roadH_end;
+
+                // Force sidewalk flush to road level near both Home and School endpoints
+                bool nearEndpoint = (segX - roadStartX < endpointFlushDistance)
+                                 || (blueprint.TotalLength - segX < endpointFlushDistance);
+                if (nearEndpoint) nextH = roadH_end;
+
+                float fillStartX = segX;
+                float fillWidth  = segW;
 
                 if (nextH != currentH)
                 {
-                    // CAMBIO DE ALTURA: Usar rampas diagonales para transición
-                    ModuleBuilder rTemplate = (nextH > currentH) ? diagUp : diagDown;
-                    
-                    if (rTemplate != null)
+                    int prevRelLevel = Mathf.Clamp(currentH - roadH_end, 0, 2);
+                    int newRelLevel  = Mathf.Clamp(nextH   - roadH_end, 0, 2);
+
+                    ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
+                    ModuleBuilder interlayerTemplate = (nextH > currentH) ? diagUp : diagDown;
+
+                    if (sTemplate != null)
                     {
-                        float rampW = rTemplate.moduleConfig.currentTerrainWidth;
-                        int stepH = (nextH > currentH) ? (currentH + 1) : currentH;
-                        
-                        blueprint.DiagonalRamps.Add(new SegmentData {
-                            Template = rTemplate, X_Position = segX, Y_Elevation = stepH, Width = rampW, Label = "Diagonal_Ramp_Connection"
-                        });
-                        
-                        currentH = nextH;
-                        
-                        float remainingW = segW - rampW;
-                        if (remainingW > 0) {
-                            FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, segX + rampW, remainingW, currentH, segmentsCreated >= safeZoneModules);
+                        float sw     = sTemplate.moduleConfig.currentTerrainWidth;
+                        int   slopeY = (nextH > currentH) ? nextH : currentH;
+
+                        var swSlopeSeg = new SegmentData {
+                            Template       = sTemplate,
+                            X_Position     = fillStartX,
+                            Y_Elevation    = slopeY,
+                            Width          = sw,
+                            Label          = "Sidewalk_Slope",
+                            IsSlope        = true,
+                            SpawnObstacles = false,
+                            // Phase 2 metadata
+                            RoadElevationAtX      = roadH_end,
+                            SidewalkRelativeLevel = newRelLevel
+                        };
+                        blueprint.SidewalkTrack.Segments.Add(swSlopeSeg);
+
+                        if (logDualLayer)
+                            GameLogger.Log("DualLayerData", $"Sidewalk X={fillStartX:F1} W={sw} OldYElev={slopeY} RoadElev={roadH_end} Rel={newRelLevel} AbsOld={slopeY} Label=Sidewalk_Slope");
+
+                        if (interlayerTemplate != null)
+                        {
+                            var rampSeg = new SegmentData {
+                                Template       = interlayerTemplate,
+                                X_Position     = fillStartX,
+                                Y_Elevation    = slopeY,
+                                Width          = sw,
+                                Label          = "Diagonal_Ramp_Connection",
+                                IsSlope        = true,
+                                // Phase 2 metadata
+                                RoadElevationAtX       = roadH_end,
+                                SidewalkRelativeLevel  = newRelLevel,
+                                ConnectorRoadElevation = roadH_end,
+                                ConnectorRelLevelFrom  = prevRelLevel,
+                                ConnectorRelLevelTo    = newRelLevel
+                            };
+                            blueprint.DiagonalRamps.Add(rampSeg);
+
+                            if (logDualLayer)
+                                GameLogger.Log("DualLayerData", $"Interlayer X={fillStartX:F1} W={sw} RoadElev={roadH_end} FromRel={prevRelLevel} ToRel={newRelLevel} Label=Diagonal_Ramp_Connection");
                         }
+
+                        fillStartX += sw;
+                        fillWidth  -= sw;
                     }
-                    else
-                    {
-                        currentH = nextH; 
-                        FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, segX, segW, currentH, segmentsCreated >= safeZoneModules);
-                    }
+                    currentH = nextH;
                 }
-                else
+
+                // Fill the remaining width with flat sidewalk segments
+                if (fillWidth > 0.1f)
                 {
-                    FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, segX, segW, currentH, segmentsCreated >= safeZoneModules);
+                    int curRelLevel = Mathf.Clamp(currentH - roadH_end, 0, 2);
+                    FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, fillStartX, fillWidth, currentH, segmentsCreated >= safeZoneModules, roadH_end, curRelLevel, logDualLayer);
                 }
             }
             segmentsCreated++;
@@ -261,7 +366,7 @@ public class LevelGeneratorEngine
     }
 
     // Algoritmo de Relleno Exacto para evitar "Gaps" (Huecos)
-    private static void FillSpaceExact(TrackBlueprint track, ModuleBuilder[] options, float startX, float targetWidth, int elevation, bool spawnObstacles)
+    private static void FillSpaceExact(TrackBlueprint track, ModuleBuilder[] options, float startX, float targetWidth, int elevation, bool spawnObstacles, int roadElevationAtX = 0, int sidewalkRelativeLevel = 0, bool logDualLayer = false)
     {
         if (options == null || options.Length == 0 || targetWidth <= 0) return;
 
@@ -291,16 +396,30 @@ public class LevelGeneratorEngine
                     adjustedX = startX; 
                 }
                 
-                track.Segments.Add(new SegmentData {
-                    Template = bestFit, X_Position = adjustedX, Y_Elevation = elevation, Width = pieceW, Label = "Sidewalk_Segment_Packed", SpawnObstacles = spawnObstacles
-                });
+                var seg = new SegmentData {
+                    Template = bestFit, X_Position = adjustedX, Y_Elevation = elevation, Width = pieceW,
+                    Label = "Sidewalk_Segment_Packed", SpawnObstacles = spawnObstacles,
+                    RoadElevationAtX      = roadElevationAtX,
+                    SidewalkRelativeLevel = sidewalkRelativeLevel
+                };
+                track.Segments.Add(seg);
+
+                if (logDualLayer)
+                    GameLogger.Log("DualLayerData", $"Sidewalk X={adjustedX:F1} W={pieceW} OldYElev={elevation} RoadElev={roadElevationAtX} Rel={sidewalkRelativeLevel} AbsOld={elevation} Label=Sidewalk_Segment_Packed");
                 break;
             }
             else
             {
-                track.Segments.Add(new SegmentData {
-                    Template = bestFit, X_Position = currentX, Y_Elevation = elevation, Width = pieceW, Label = "Sidewalk_Segment", SpawnObstacles = spawnObstacles
-                });
+                var seg = new SegmentData {
+                    Template = bestFit, X_Position = currentX, Y_Elevation = elevation, Width = pieceW,
+                    Label = "Sidewalk_Segment", SpawnObstacles = spawnObstacles,
+                    RoadElevationAtX      = roadElevationAtX,
+                    SidewalkRelativeLevel = sidewalkRelativeLevel
+                };
+                track.Segments.Add(seg);
+
+                if (logDualLayer)
+                    GameLogger.Log("DualLayerData", $"Sidewalk X={currentX:F1} W={pieceW} OldYElev={elevation} RoadElev={roadElevationAtX} Rel={sidewalkRelativeLevel} AbsOld={elevation} Label=Sidewalk_Segment");
                 currentX += pieceW;
             }
         }

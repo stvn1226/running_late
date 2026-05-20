@@ -65,6 +65,8 @@ public class LevelStarter : MonoBehaviour
 
     [Header("Dual-Layer Settings")]
     public float sidewalkZOffset = 0.5f;
+    public float sidewalkYOffset = 1.5f;
+    public bool useRelativeSidewalkHeights = false; // Phase 2 gate — keep false until Phase 3 is ready
     [Range(0, 100)] public int roadHeightVarianceChance = 20;
     [Range(0, 100)] public int sidewalkRelHeightVarianceChance = 30;
     public int sidewalkMinRelativeHeight = 0;
@@ -77,6 +79,10 @@ public class LevelStarter : MonoBehaviour
     public ModuleBuilder[] roadModules; // List of roads to match sidewalk widths
     public ModuleBuilder roadSlopeLeftModule;
     public ModuleBuilder roadSlopeRightModule;
+
+    [Header("Interlayer Slope Modules (Road ↔ Sidewalk Z-transition)")]
+    public ModuleBuilder interlayerSlopeLeftModule;
+    public ModuleBuilder interlayerSlopeRightModule;
 
 
 
@@ -375,11 +381,14 @@ public class LevelStarter : MonoBehaviour
             slopeRightModule,
             roadSlopeLeftModule,
             roadSlopeRightModule,
+            interlayerSlopeLeftModule,
+            interlayerSlopeRightModule,
             numberOfModules,
             safeZoneModules,
             roadMaxHeight,
             sidewalkMaxRelativeHeight,
-                currentSeed
+            currentSeed,
+            useRelativeSidewalkHeights  // logDualLayer: enables DualLayerData debug logs and is the Phase 3 gate
         );
 
         // 2. RENDER BLUEPRINT (PHYSICAL INSTANTIATION)
@@ -406,18 +415,119 @@ public class LevelStarter : MonoBehaviour
         SpawnModularSegment(blueprint.HouseAnchor.Template, homeCenter, baseY, 0f, baselineH, blueprint.HouseAnchor.Label, false, false, false);
         if (home != null) home.transform.position = new Vector3(homeCenter, baseY + 0.5f, home.transform.position.z);
 
-        // 2. Render Road Track
+        // 2. Render Road Track — with EndConnectionAudit for last 5
+        int totalRoadSegs = blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null ? blueprint.RoadTrack.Segments.Count : 0;
+        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+        {
+            for (int ri = 0; ri < blueprint.RoadTrack.Segments.Count; ri++)
+            {
+                var rseg = blueprint.RoadTrack.Segments[ri];
+                bool isNearEnd = ri >= totalRoadSegs - 5;
+                if (isNearEnd)
+                {
+                    string rCfg = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.name : "NULL";
+                    int rGbh = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.groundBlockHeight : -1;
+                    int rAbsH = baselineH + rseg.Y_Elevation;
+                    float rExpectedTopY = rGbh > 0 ? baseY + rAbsH * rGbh : -999f;
+                    GameLogger.Log("EndConnectionAudit",
+                        $"Type=Road " +
+                        $"Idx={ri}/{totalRoadSegs - 1} " +
+                        $"X={rseg.X_Position:F1} " +
+                        $"Width={rseg.Width:F1} " +
+                        $"Y_Elevation={rseg.Y_Elevation} " +
+                        $"RoadElevationAtX={rseg.Y_Elevation} " +
+                        $"SidewalkRelativeLevel=N/A " +
+                        $"TransformYActual={baseY:F3} " +
+                        $"ExpectedTopY={rExpectedTopY:F3} " +
+                        $"AbsH={rAbsH} " +
+                        $"IsSlope={rseg.IsSlope} " +
+                        $"Label={rseg.Label} " +
+                        $"PrefabName={(rseg.Template != null ? rseg.Template.name : "NULL")} " +
+                        $"ConfigName={rCfg} " +
+                        $"gbh={rGbh}");
+                }
+            }
+        }
         RenderTrack(blueprint.RoadTrack, baseY, baselineH, 0f);
 
         // 3. Render Sidewalk Track
-        RenderTrack(blueprint.SidewalkTrack, baseY, baselineH, sidewalkZOffset);
+        RenderSidewalkTrack(blueprint, baseY, baselineH);
 
         // 4. Render Diagonal Ramps (Road-Sidewalk connections)
+        int totalRamps = blueprint.DiagonalRamps != null ? blueprint.DiagonalRamps.Count : 0;
         foreach (var ramp in blueprint.DiagonalRamps)
         {
             float rampCenter = ramp.X_Position + (ramp.Width / 2f);
             int absH = baselineH + ramp.Y_Elevation;
-            SpawnModularSlope(ramp.Template, rampCenter, baseY, sidewalkZOffset / 2f, absH, ramp.Label, true);
+            string cfgName = ramp.Template != null && ramp.Template.moduleConfig != null ? ramp.Template.moduleConfig.name : "NULL";
+            int gbh = ramp.Template != null && ramp.Template.moduleConfig != null ? ramp.Template.moduleConfig.groundBlockHeight : -1;
+            float finalTopY = baseY + Mathf.Max(0, absH - 1) * gbh;
+
+            // Determine the actual Y transform passed to SpawnModularSlope.
+            float rampTransformY;
+            if (useRelativeSidewalkHeights)
+            {
+                // Position the ramp at the lower of its two endpoints so it rises/falls correctly.
+                float roadTopY = baseY + ramp.ConnectorRoadElevation * 3f;
+                float fromY    = roadTopY + ramp.ConnectorRelLevelFrom * 1.5f;
+                float toY      = roadTopY + ramp.ConnectorRelLevelTo   * 1.5f;
+                rampTransformY = Mathf.Min(fromY, toY);
+            }
+            else
+            {
+                // Original behavior: ramp anchored at baseY.
+                rampTransformY = baseY;
+            }
+
+            // [InterlayerAudit] — full connector snapshot
+            float expectedStartY    = baseY + ramp.ConnectorRoadElevation * 3f + ramp.ConnectorRelLevelFrom * 1.5f;
+            float expectedEndY      = baseY + ramp.ConnectorRoadElevation * 3f + ramp.ConnectorRelLevelTo   * 1.5f;
+            float currentTransformY = rampTransformY;
+            GameLogger.Log("InterlayerAudit",
+                $"X={ramp.X_Position:F2} " +
+                $"Width={ramp.Width:F1} " +
+                $"Y_Elevation={ramp.Y_Elevation} " +
+                $"absH={absH} " +
+                $"ConnectorRoadElevation={ramp.ConnectorRoadElevation} " +
+                $"ConnectorRelLevelFrom={ramp.ConnectorRelLevelFrom} " +
+                $"ConnectorRelLevelTo={ramp.ConnectorRelLevelTo} " +
+                $"currentTransformY={currentTransformY:F3} " +
+                $"expectedStartY={expectedStartY:F3} " +
+                $"expectedEndY={expectedEndY:F3} " +
+                $"deltaStart={currentTransformY - expectedStartY:F3} " +
+                $"deltaEnd={currentTransformY - expectedEndY:F3} " +
+                $"config={cfgName} " +
+                $"gbh={gbh} " +
+                $"label={ramp.Label}");
+
+            // [EndConnectionAudit] — all interlayers (usually few; flag last 5 explicitly)
+            bool isNearEndRamp = blueprint.DiagonalRamps.IndexOf(ramp) >= totalRamps - 5;
+            if (isNearEndRamp)
+            {
+                GameLogger.Log("EndConnectionAudit",
+                    $"Type=Interlayer " +
+                    $"X={ramp.X_Position:F1} " +
+                    $"Width={ramp.Width:F1} " +
+                    $"Y_Elevation={ramp.Y_Elevation} " +
+                    $"RoadElevationAtX={ramp.RoadElevationAtX} " +
+                    $"SidewalkRelativeLevel={ramp.SidewalkRelativeLevel} " +
+                    $"ConnectorRoadElevation={ramp.ConnectorRoadElevation} " +
+                    $"ConnectorRelLevelFrom={ramp.ConnectorRelLevelFrom} " +
+                    $"ConnectorRelLevelTo={ramp.ConnectorRelLevelTo} " +
+                    $"TransformYActual={currentTransformY:F3} " +
+                    $"ExpectedStartY={expectedStartY:F3} " +
+                    $"ExpectedEndY={expectedEndY:F3} " +
+                    $"deltaStart={currentTransformY - expectedStartY:F3} " +
+                    $"deltaEnd={currentTransformY - expectedEndY:F3} " +
+                    $"AbsH={absH} " +
+                    $"gbh={gbh} " +
+                    $"PrefabName={(ramp.Template != null ? ramp.Template.name : "NULL")} " +
+                    $"ConfigName={cfgName} " +
+                    $"Label={ramp.Label}");
+            }
+
+            GameLogger.Log("HeightAudit", $"Track=DiagonalRamp Label={ramp.Label} X={ramp.X_Position:F1} W={ramp.Width} YElev={ramp.Y_Elevation} absH={absH} BaseY={baseY:F2} rampTransformY={rampTransformY:F2} gbh={gbh} FinalTopY≈{finalTopY:F2} Config={cfgName}");
+            SpawnModularSlope(ramp.Template, rampCenter, rampTransformY, sidewalkZOffset / 2f, absH, ramp.Label, true);
         }
 
         // 5. Render School
@@ -426,15 +536,129 @@ public class LevelStarter : MonoBehaviour
         if (school != null) school.transform.position = new Vector3(schoolCenter, baseY + 0.5f, school.transform.position.z);
     }
 
+    // Sidewalk rendering wrapper — routes to old or new height path based on feature flag.
+    private void RenderSidewalkTrack(LevelBlueprint blueprint, float baseY, int baselineH)
+    {
+        if (!useRelativeSidewalkHeights)
+        {
+            // OLD PATH: zero visual change — identical to the original call.
+            RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
+            return;
+        }
+
+        // NEW PATH (Phase 3 active): per-segment transform Y from roadElevation + relativeLevel.
+        // Only reached when useRelativeSidewalkHeights = true.
+        if (blueprint.SidewalkTrack == null || blueprint.SidewalkTrack.Segments == null) return;
+
+        int totalSwSegs = blueprint.SidewalkTrack.Segments.Count;
+        int swIdx = 0;
+
+        foreach (var seg in blueprint.SidewalkTrack.Segments)
+        {
+            float segTransformY = baseY
+                + seg.RoadElevationAtX * 3f
+                + seg.SidewalkRelativeLevel * 1.5f;
+
+            // absH fixed at baselineH (=1) so ModuleBuilder adds 0 paddings.
+            // The visual height is fully encoded in segTransformY.
+            int absH = baselineH;
+
+            float center = seg.X_Position + seg.Width / 2f;
+
+            GameLogger.Log("HeightAudit-v2",
+                $"Sidewalk Label={seg.Label} X={seg.X_Position:F1} RoadElev={seg.RoadElevationAtX} "
+                + $"RelLvl={seg.SidewalkRelativeLevel} TransformY={segTransformY:F2} absH={absH}");
+
+            // [FlushAudit] — Sidewalk Rel=0 only: compare surface vs Road expected top
+            if (!seg.IsSlope && seg.SidewalkRelativeLevel == 0)
+            {
+                string swCfg = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.name : "NULL";
+                int swGbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : -1;
+                // Sidewalk surface: absH=1 → top=segTransformY; absH=N → top=segTransformY+(N-1)*gbh
+                float swExpectedTopY = swGbh > 0 ? segTransformY + Mathf.Max(0, absH - 1) * swGbh : -999f;
+                // Road expected top at same elevation: baseY + absH_road * gbh_road
+                // We don't have road gbh here — log what we have so the comparison is done in the console.
+                GameLogger.Log("FlushAudit",
+                    $"Track=Sidewalk " +
+                    $"X={seg.X_Position:F1} " +
+                    $"Width={seg.Width:F1} " +
+                    $"TransformY={segTransformY:F3} " +
+                    $"AbsH={absH} " +
+                    $"RoadElevationAtX={seg.RoadElevationAtX} " +
+                    $"SidewalkRelativeLevel={seg.SidewalkRelativeLevel} " +
+                    $"ExpectedTopY={swExpectedTopY:F3} " +
+                    $"PrefabName={(seg.Template != null ? seg.Template.name : "NULL")} " +
+                    $"ConfigName={swCfg} " +
+                    $"GroundBlockHeight={swGbh} " +
+                    $"RootY={segTransformY:F3}");
+            }
+
+            // [EndConnectionAudit] — last 5 sidewalk segments
+            bool isNearEnd = swIdx >= totalSwSegs - 5;
+            if (isNearEnd)
+            {
+                string swCfgE = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.name : "NULL";
+                GameLogger.Log("EndConnectionAudit",
+                    $"Type=Sidewalk " +
+                    $"Idx={swIdx}/{totalSwSegs - 1} " +
+                    $"X={seg.X_Position:F1} " +
+                    $"Width={seg.Width:F1} " +
+                    $"Y_Elevation={seg.Y_Elevation} " +
+                    $"RoadElevationAtX={seg.RoadElevationAtX} " +
+                    $"SidewalkRelativeLevel={seg.SidewalkRelativeLevel} " +
+                    $"TransformYActual={segTransformY:F3} " +
+                    $"AbsH={absH} " +
+                    $"IsSlope={seg.IsSlope} " +
+                    $"Label={seg.Label} " +
+                    $"PrefabName={(seg.Template != null ? seg.Template.name : "NULL")} " +
+                    $"ConfigName={swCfgE}");
+            }
+            swIdx++;
+
+            if (seg.IsSlope)
+                SpawnModularSlope(seg.Template, center, segTransformY, sidewalkZOffset, absH, seg.Label, true);
+            else
+                SpawnModularSegment(seg.Template, center, segTransformY, sidewalkZOffset, absH, seg.Label, true, true, seg.SpawnObstacles, seg.MaxObstacleLevel);
+        }
+    }
+
     private void RenderTrack(TrackBlueprint track, float baseY, int baselineH, float z)
     {
         if (track == null || track.Segments == null) return;
+
+        string trackType = z == 0f ? "Road" : "Sidewalk";
+        int totalSegs = track.Segments.Count;
 
         foreach (var seg in track.Segments)
         {
             float center = seg.X_Position + (seg.Width / 2f);
             int absH = baselineH + seg.Y_Elevation;
-            
+            string cfgName = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.name : "NULL";
+            int cfgW = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.currentTerrainWidth : -1;
+            int gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : -1;
+            float finalTopY = baseY + Mathf.Max(0, absH - 1) * gbh;
+            GameLogger.Log("HeightAudit", $"Track={trackType} Label={seg.Label} X={seg.X_Position:F1} W={seg.Width} YElev={seg.Y_Elevation} absH={absH} BaseY={baseY:F2} sYOff={(z != 0f ? sidewalkYOffset : 0f):F2} gbh={gbh} FinalTopY≈{finalTopY:F2} Config={cfgName} cfgW={cfgW}");
+
+            // [FlushAudit] — Road segments: log surface Y so we can compare against Sidewalk Rel=0
+            if (z == 0f && !seg.IsSlope)
+            {
+                // ExpectedTopY: absH=1 → top=baseY; absH=2 → top=baseY+gbh; absH=N → top=baseY+(N-1)*gbh
+                float roadExpectedTopY = gbh > 0 ? baseY + Mathf.Max(0, absH - 1) * gbh : -999f;
+                GameLogger.Log("FlushAudit",
+                    $"Track=Road " +
+                    $"X={seg.X_Position:F1} " +
+                    $"Width={seg.Width:F1} " +
+                    $"TransformY={baseY:F3} " +
+                    $"AbsH={absH} " +
+                    $"RoadElevationAtX={seg.Y_Elevation} " +
+                    $"SidewalkRelativeLevel=N/A " +
+                    $"ExpectedTopY={roadExpectedTopY:F3} " +
+                    $"PrefabName={(seg.Template != null ? seg.Template.name : "NULL")} " +
+                    $"ConfigName={cfgName} " +
+                    $"GroundBlockHeight={gbh} " +
+                    $"RootY={baseY:F3}");
+            }
+
             if (seg.IsSlope) {
                 SpawnModularSlope(seg.Template, center, baseY, z, absH, seg.Label, z != 0f);
             } else {
@@ -540,6 +764,39 @@ public class LevelStarter : MonoBehaviour
 
         SpriteRenderer tileSprite = backgroundTile.GetComponentInChildren<SpriteRenderer>();
         float tileWidth = tileSprite != null ? tileSprite.bounds.size.x : 40f;
+        bool usingFallback = tileSprite == null;
+
+        // [BackgroundAudit] — pre-generation snapshot
+        GameLogger.Log("BackgroundAudit",
+            $"[Setup] backgroundTile={backgroundTile.name} " +
+            $"backgroundParent={backgroundParent.name} " +
+            $"tileWidth={tileWidth:F3} " +
+            $"fallback={usingFallback} " +
+            $"tileY={backgroundTile.transform.position.y:F3} " +
+            $"tileZ={backgroundTile.transform.position.z:F3} " +
+            $"backgroundParentChildCount_before={backgroundParent.childCount}");
+
+        // [BackgroundAudit] — scan for background SpriteRenderers outside backgroundParent
+        SpriteRenderer[] allSRs = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
+        int orphanCount = 0;
+        foreach (var sr in allSRs)
+        {
+            if (sr == null) continue;
+            string srName = sr.gameObject.name.ToLower();
+            if ((srName.Contains("background") || srName.Contains("bg")) && !sr.transform.IsChildOf(backgroundParent))
+            {
+                GameLogger.Log("BackgroundAudit",
+                    $"[OrphanBG] name={sr.gameObject.name} " +
+                    $"parent={(sr.transform.parent != null ? sr.transform.parent.name : "ROOT")} " +
+                    $"worldY={sr.transform.position.y:F3} " +
+                    $"worldZ={sr.transform.position.z:F3} " +
+                    $"sortingLayer={sr.sortingLayerName} " +
+                    $"sortingOrder={sr.sortingOrder}");
+                orphanCount++;
+            }
+        }
+        if (orphanCount == 0)
+            GameLogger.Log("BackgroundAudit", "[OrphanBG] None found outside backgroundParent.");
 
         float rangeWidth = endX - startX;
         int tileCount = Mathf.CeilToInt(rangeWidth / tileWidth);
@@ -552,6 +809,13 @@ public class LevelStarter : MonoBehaviour
             Vector3 tilePos = new Vector3(xPos, backgroundTile.transform.position.y, backgroundTile.transform.position.z);
             Instantiate(backgroundTile, tilePos, Quaternion.identity, backgroundParent);
         }
+
+        // [BackgroundAudit] — post-generation snapshot
+        GameLogger.Log("BackgroundAudit",
+            $"[Done] tileCount={tileCount} " +
+            $"backgroundParentChildCount_after={backgroundParent.childCount} " +
+            $"firstTileX={startX + tileWidth / 2f:F3} " +
+            $"lastTileX={startX + (tileCount - 1) * tileWidth + tileWidth / 2f:F3}");
     }
 
     private void GenerateModularBuildingsInRange(float startX, float endX)
