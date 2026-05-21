@@ -16497,6 +16497,7 @@ GameObject:
   - component: {fileID: 2728795774578059727}
   - component: {fileID: 6217608470313515452}
   - component: {fileID: 8213202457272891007}
+  - component: {fileID: 8145926568267001073}
   m_Layer: 0
   m_Name: Buildings_First_Decor
   m_TagString: Untagged
@@ -16591,6 +16592,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxController
   parallaxEffect: 0.15
+--- !u!114 &8145926568267001073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6094297611951248272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4334909197ac2f44ab8d1f9d85074968, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BackgroundSpriteChanger
+  backgroundSprites:
+  - {fileID: -5912178938169035714, guid: f959d3d112ad8d748861e2810256e14c, type: 3}
+  - {fileID: 3192326785131780148, guid: 61f2df3dea4c4b34f80274f838f6110f, type: 3}
 --- !u!1 &6145354580417157683
 GameObject:
   m_ObjectHideFlags: 0
