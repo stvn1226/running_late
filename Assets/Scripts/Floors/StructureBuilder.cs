@@ -17,6 +17,9 @@ public class StructureBuilder : MonoBehaviour
     public GameObject[] powerUps;
     public int obstacleRate = 50; // % chance to spawn rooftop obstacle
     public int powerUpRate = 20; // % chance to spawn rooftop power-up
+
+    [Header("Color Shaders")]
+    public Material[] colorMaterials; // Assign different color materials in the Inspector
     
     private BoxCollider2D buildingCollider;
 
@@ -24,6 +27,7 @@ public class StructureBuilder : MonoBehaviour
     {
         int floorsCt = 0;
         floorsCt = Random.Range(config.minFloors, config.maxFloors + 1);
+        Material chosenColor = colorMaterials.Length > 0 ? colorMaterials[Random.Range(0, colorMaterials.Length)] : null;
 
         GameLogger.Log("WallRunWorkflow", $"[BUILD START] Constructing building with {floorsCt} floors at {transform.position}");
 
@@ -31,6 +35,8 @@ public class StructureBuilder : MonoBehaviour
         {
             GameObject pickedGroundPrefab = groundPrefabs[Random.Range(0, groundPrefabs.Length)];
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
+            ground.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
+            //ground.GetComponentInChildren<SpriteRenderer>().material = colorMaterials;
             ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
             if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
             else SortTilemap(ground, floorsCt);
@@ -40,10 +46,11 @@ public class StructureBuilder : MonoBehaviour
         if (floorPrefabs.Length > 0)
         {
             GameLogger.LogVerbose("BUILDING", $"Constructing {floorsCt} floors for building at {transform.position}");
-            for (int i = 0; i < floorsCt - 2; i++)
+            for (int i = 0; i < floorsCt - 2; i++) //Construct all floors EXCEPT the ground floor and roof
             {
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
                 GameObject floor = Instantiate(floorPrefabs[Random.Range(0, floorPrefabs.Length)], floorPosition, Quaternion.identity, transform);
+                floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
                 if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorsCt);
                 else SortTilemap(floor, floorsCt);
             }
@@ -53,6 +60,7 @@ public class StructureBuilder : MonoBehaviour
         {
             GameObject pickedRoofPrefab = roofPrefabs[Random.Range(0, roofPrefabs.Length)];
             GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
+            roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
             else SortTilemap(roof, floorsCt);
         }
