@@ -138,12 +138,12 @@ public class LevelGeneratorEngine
 
             int nextH = currentH;
 
-            // Start descending early enough to reach 0 before the final flat area
-            float safeDescentDistance = 35f + (currentH * 60f);
+            // Prevent any random slopes in the final descent zone to guarantee reaching 0
+            bool inEndZone = remaining < (35f + roadMaxHeight * 60f);
 
-            if (remaining < safeDescentDistance && currentH > 0)
+            if (inEndZone)
             {
-                if (slopeCooldown == 0)
+                if (currentH > 0 && slopeCooldown == 0)
                 {
                     nextH = currentH - 1;
                 }
@@ -258,16 +258,17 @@ public class LevelGeneratorEngine
 
             if (fillWidth > 0.1f)
             {
-                if (currentH < roadH_start) currentH = roadH_start;
+                // Force minimum relative height of 1
+                if (currentH < roadH_start + 1) currentH = roadH_start + 1;
                 int nextH = currentH;
 
                 if (roadSeg.IsSlope)
                 {
                     bool isUp  = roadSeg.Label.Contains("Up");
                     nextH = isUp ? currentH + 1 : currentH - 1;
-                    if (nextH < roadH_end) nextH = roadH_end;
+                    if (nextH < roadH_end + 1) nextH = roadH_end + 1;
 
-                    int newRelLevel   = Mathf.Clamp(nextH - roadH_end, 0, 2);
+                    int newRelLevel   = Mathf.Clamp(nextH - roadH_end, 1, 2);
                     ModuleBuilder sTemplate = isUp ? slopeUp : slopeDown;
                     int slopeY        = (nextH > currentH) ? nextH : currentH;
 
@@ -301,7 +302,7 @@ public class LevelGeneratorEngine
                     else if (segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.18f)
                     {
                         int randomStep = UnityEngine.Random.value > 0.5f ? 1 : -1;
-                        nextH = Mathf.Clamp(currentH + randomStep, roadH_end, roadH_end + sidewalkMaxRelHeight);
+                        nextH = Mathf.Clamp(currentH + randomStep, roadH_end + 1, roadH_end + sidewalkMaxRelHeight);
                     }
 
                     if (isStartBoundary && segmentsCreated == 0)
@@ -314,7 +315,7 @@ public class LevelGeneratorEngine
 
                     if (nextH != currentH)
                     {
-                        int newRelLevel       = Mathf.Clamp(nextH - roadH_end, 0, 2);
+                        int newRelLevel       = Mathf.Clamp(nextH - roadH_end, 1, 2);
                         ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
 
                         if (sTemplate != null)
@@ -346,7 +347,7 @@ public class LevelGeneratorEngine
 
                     if (currentFillWidth > 0.1f)
                     {
-                        int curRelLevel = Mathf.Clamp(currentH - roadH_end, 0, 2);
+                        int curRelLevel = Mathf.Clamp(currentH - roadH_end, 1, 2);
                         FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, currentFillStartX, currentFillWidth, currentH, segmentsCreated >= safeZoneModules, roadH_end, curRelLevel, logDualLayer);
                     }
                 }
