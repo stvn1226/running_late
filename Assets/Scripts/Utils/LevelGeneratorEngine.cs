@@ -206,12 +206,57 @@ public class LevelGeneratorEngine
         float startRampWidth = diagUp != null ? diagUp.moduleConfig.currentTerrainWidth : singleSpace;
         float endRampWidth = diagDown != null ? diagDown.moduleConfig.currentTerrainWidth : singleSpace;
 
-        float startRampX = roadStartX + singleSpace;
-        float sidewalkStartX = startRampX + startRampWidth;
+        float targetStartRampX = roadStartX + singleSpace;
+        float targetSidewalkStartX = targetStartRampX + startRampWidth;
+        float targetEndRampX = blueprint.SchoolAnchor.X_Position - singleSpace - endRampWidth;
 
-        float roadEndX = blueprint.SchoolAnchor.X_Position;
-        float endRampX = roadEndX - singleSpace - endRampWidth;
-        float sidewalkEndX = endRampX;
+        float startRampX = targetStartRampX;
+        float sidewalkStartX = targetSidewalkStartX;
+        float endRampX = targetEndRampX;
+        float sidewalkEndX = targetEndRampX;
+
+        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+        {
+            bool foundStart = false;
+            bool foundEnd = false;
+            
+            foreach (var rSeg in blueprint.RoadTrack.Segments)
+            {
+                // We want the start ramp to perfectly replace a road segment of the same width
+                // This ensures both the ramp's start and end align perfectly with the grid.
+                if (!foundStart && rSeg.X_Position >= targetStartRampX && Mathf.Abs(rSeg.Width - startRampWidth) < 0.1f && !rSeg.IsSlope) {
+                    startRampX = rSeg.X_Position;
+                    sidewalkStartX = startRampX + startRampWidth;
+                    foundStart = true;
+                }
+                
+                // Same for the end ramp
+                if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope) {
+                    endRampX = rSeg.X_Position;
+                    sidewalkEndX = rSeg.X_Position;
+                    foundEnd = true;
+                }
+            }
+            
+            // Fallbacks in case the ramp widths don't match any road segment widths
+            if (!foundStart) {
+                foreach (var rSeg in blueprint.RoadTrack.Segments) {
+                    if (rSeg.X_Position >= targetStartRampX) {
+                        startRampX = rSeg.X_Position;
+                        sidewalkStartX = startRampX + startRampWidth;
+                        break;
+                    }
+                }
+            }
+            if (!foundEnd) {
+                foreach (var rSeg in blueprint.RoadTrack.Segments) {
+                    if (rSeg.X_Position <= targetEndRampX) {
+                        endRampX = rSeg.X_Position;
+                        sidewalkEndX = rSeg.X_Position;
+                    }
+                }
+            }
+        }
 
         if (diagUp != null)
         {
@@ -230,6 +275,26 @@ public class LevelGeneratorEngine
                 ConnectorRelLevelFrom  = 0,
                 ConnectorRelLevelTo    = 1
             });
+        }
+
+        // --- Accumulate flat runs and fill them all at once ---
+        // Instead of calling FillSpaceExact per road segment (which causes awkward remainders
+        // because road segment widths don't align with sidewalk piece widths), we merge
+        // consecutive flat road segments at the same sidewalk elevation into one wide call.
+        float  pendingFillStartX  = -1f;
+        float  pendingFillEndX    = -1f;
+        int    pendingElevation   = -1;
+        int    pendingRoadElev    = 0;
+        int    pendingRelLevel    = 1;
+        bool   pendingObstacles   = false;
+
+        void FlushPendingFill()
+        {
+            float w = pendingFillEndX - pendingFillStartX;
+            if (w > 0.1f)
+                FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, pendingFillStartX, w,
+                               pendingElevation, pendingObstacles, pendingRoadElev, pendingRelLevel, logDualLayer);
+            pendingFillStartX = -1f;
         }
 
         foreach (var roadSeg in blueprint.RoadTrack.Segments)
@@ -264,6 +329,9 @@ public class LevelGeneratorEngine
 
                 if (roadSeg.IsSlope)
                 {
+                    // Flush any accumulated flat fill before placing a slope
+                    FlushPendingFill();
+
                     bool isUp  = roadSeg.Label.Contains("Up");
                     nextH = isUp ? currentH + 1 : currentH - 1;
                     if (nextH < roadH_end + 1) nextH = roadH_end + 1;
@@ -295,26 +363,22 @@ public class LevelGeneratorEngine
                     bool isStartBoundary = (fillStartX - sidewalkStartX < 30f);
                     bool isEndBoundary   = (sidewalkEndX - fillEndX < 30f);
 
-                    if (isStartBoundary || isEndBoundary)
-                    {
-                        nextH = roadH_end + 1;
-                    }
-                    else if (segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.18f)
-                    {
-                        int randomStep = UnityEngine.Random.value > 0.5f ? 1 : -1;
-                        nextH = Mathf.Clamp(currentH + randomStep, roadH_end + 1, roadH_end + sidewalkMaxRelHeight);
-                    }
+                    // Sidewalk always stays at roadH_end + 1 (one level above road).
+                    // It follows road elevation changes through slopes but never changes
+                    // its own height randomly, which caused double-sidewalk visual artifacts.
+                    nextH = roadH_end + 1;
 
                     if (isStartBoundary && segmentsCreated == 0)
-                    {
                         currentH = nextH;
-                    }
 
                     float currentFillStartX = fillStartX;
                     float currentFillWidth  = fillWidth;
 
                     if (nextH != currentH)
                     {
+                        // Elevation is changing — flush the accumulated flat fill first
+                        FlushPendingFill();
+
                         int newRelLevel       = Mathf.Clamp(nextH - roadH_end, 1, 2);
                         ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
 
@@ -348,13 +412,45 @@ public class LevelGeneratorEngine
                     if (currentFillWidth > 0.1f)
                     {
                         int curRelLevel = Mathf.Clamp(currentH - roadH_end, 1, 2);
-                        FillSpaceExact(blueprint.SidewalkTrack, sidewalkModules, currentFillStartX, currentFillWidth, currentH, segmentsCreated >= safeZoneModules, roadH_end, curRelLevel, logDualLayer);
+                        bool spawnObs   = segmentsCreated >= safeZoneModules;
+
+                        // Accumulate: same elevation and contiguous → extend the pending fill
+                        if (pendingFillStartX < 0f)
+                        {
+                            // Start new pending fill
+                            pendingFillStartX = currentFillStartX;
+                            pendingFillEndX   = currentFillStartX + currentFillWidth;
+                            pendingElevation  = currentH;
+                            pendingRoadElev   = roadH_end;
+                            pendingRelLevel   = curRelLevel;
+                            pendingObstacles  = spawnObs;
+                        }
+                        else if (currentH == pendingElevation && Mathf.Abs(currentFillStartX - pendingFillEndX) < 0.2f)
+                        {
+                            // Extend existing pending fill (same elevation, contiguous)
+                            pendingFillEndX  = currentFillStartX + currentFillWidth;
+                            if (spawnObs) pendingObstacles = true;
+                        }
+                        else
+                        {
+                            // Different elevation or non-contiguous — flush and start new
+                            FlushPendingFill();
+                            pendingFillStartX = currentFillStartX;
+                            pendingFillEndX   = currentFillStartX + currentFillWidth;
+                            pendingElevation  = currentH;
+                            pendingRoadElev   = roadH_end;
+                            pendingRelLevel   = curRelLevel;
+                            pendingObstacles  = spawnObs;
+                        }
                     }
                 }
                 
                 segmentsCreated++;
             }
         }
+
+        // Flush any remaining accumulated fill at the end
+        FlushPendingFill();
 
         if (diagDown != null && blueprint.SidewalkTrack.Segments.Count > 0)
         {
@@ -379,10 +475,14 @@ public class LevelGeneratorEngine
         }
     }
 
-    // Algoritmo de Relleno Exacto para evitar "Gaps" (Huecos)
+    // Greedy fill: places the largest fitting piece each time.
+    // When the last remaining gap is smaller than any piece, we do TRIM-PACKING:
+    //   1. Place the best piece shifted back so it ends exactly at endX.
+    //   2. Trim the PREVIOUS segment's Width so it ends where the new piece starts.
+    // This guarantees zero gaps AND zero visual overlap between two rendered buildings.
     private static void FillSpaceExact(TrackBlueprint track, ModuleBuilder[] options, float startX, float targetWidth, int elevation, bool spawnObstacles, int roadElevationAtX = 0, int sidewalkRelativeLevel = 0, bool logDualLayer = false)
     {
-        if (options == null || options.Length == 0 || targetWidth <= 0) return;
+        if (options == null || options.Length == 0 || targetWidth <= 0.1f) return;
 
         float currentX = startX;
         float endX = startX + targetWidth;
@@ -395,31 +495,38 @@ public class LevelGeneratorEngine
 
             float pieceW = bestFit.moduleConfig.currentTerrainWidth;
 
-            if (pieceW > remaining)
+            if (pieceW > remaining + 0.05f)
             {
-                // OVERLAP-PACKING: Si la pieza es muy grande para el hueco restante, 
-                // la desplazamos hacia atrás para que termine EXACTAMENTE en endX.
-                // Esto solapa dos piezas planas, cerrando el gap sin invadir el terreno vecino (ej: evitar invadir una rampa).
-                float adjustedX = endX - pieceW;
-                
-                if (adjustedX < startX) 
+                // Last gap is smaller than the smallest piece.
+                // TRIM-PACK: shift piece back so it ends exactly at endX,
+                // then trim the previous segment so it ends where this piece starts.
+                float packedX = endX - pieceW;
+
+                if (packedX < startX)
                 {
-                    // La pieza es incluso más grande que todo el slot disponible.
-                    // Permitimos un ligero clip si no es gigante, si no, lo saltamos (gap menor a un mal overlap).
-                    if (pieceW > targetWidth * 1.5f) break; 
-                    adjustedX = startX; 
+                    // Piece is bigger than the whole slot — skip to avoid going before startX.
+                    break;
                 }
-                
-                var seg = new SegmentData {
-                    Template = bestFit, X_Position = adjustedX, Y_Elevation = elevation, Width = pieceW,
+
+                // Trim the previous segment so they don't visually overlap.
+                if (track.Segments.Count > 0)
+                {
+                    var prev = track.Segments[track.Segments.Count - 1];
+                    // Only trim if the previous segment actually overlaps this one.
+                    if (prev.X_Position + prev.Width > packedX)
+                        prev.Width = packedX - prev.X_Position;
+                }
+
+                var packedSeg = new SegmentData {
+                    Template = bestFit, X_Position = packedX, Y_Elevation = elevation, Width = pieceW,
                     Label = "Sidewalk_Segment_Packed", SpawnObstacles = spawnObstacles,
                     RoadElevationAtX      = roadElevationAtX,
                     SidewalkRelativeLevel = sidewalkRelativeLevel
                 };
-                track.Segments.Add(seg);
+                track.Segments.Add(packedSeg);
 
                 if (logDualLayer)
-                    GameLogger.Log("DualLayerData", $"Sidewalk X={adjustedX:F1} W={pieceW} OldYElev={elevation} RoadElev={roadElevationAtX} Rel={sidewalkRelativeLevel} AbsOld={elevation} Label=Sidewalk_Segment_Packed");
+                    GameLogger.Log("DualLayerData", $"Sidewalk X={packedX:F1} W={pieceW} (trim-packed) RoadElev={roadElevationAtX} Rel={sidewalkRelativeLevel}");
                 break;
             }
             else

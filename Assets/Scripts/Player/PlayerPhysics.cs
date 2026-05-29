@@ -637,7 +637,12 @@ public class PlayerPhysics : MonoBehaviour
 
     private bool IsMidWallObject(GameObject go)
     {
-        return config != null && ((1 << go.layer) & config.midWallLayer.value) != 0;
+        if (config == null || ((1 << go.layer) & config.midWallLayer.value) == 0) return false;
+        
+        // Prevent Wall-Sliding on One-Way Platforms (e.g. roofs, sidewalks)
+        if (go.GetComponent<PlatformEffector2D>() != null) return false;
+        
+        return true;
     }
 
     private void UpdateMidWallDirectionFromNormal(Vector2 normal)

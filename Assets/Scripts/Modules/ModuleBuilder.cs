@@ -54,7 +54,7 @@ public class ModuleBuilder : MonoBehaviour
         }
     }
 
-    public void GenerateModule(int? explicitHeight = null, bool includeContent = true, bool spawnObstacles = true, int maxObstacleLevel = 3)
+    public void GenerateModule(int? explicitHeight = null, bool includeContent = true, bool spawnObstacles = true, int maxObstacleLevel = 3, DifficultyConfig diffConfig = null)
     {
         if (hasGenerated)
         {
@@ -75,21 +75,21 @@ public class ModuleBuilder : MonoBehaviour
             placementTracker.position = transform.position;
         }
 
-        GenerateBaseTerrain(explicitHeight, spawnObstacles, maxObstacleLevel);
+        GenerateBaseTerrain(explicitHeight, spawnObstacles, maxObstacleLevel, diffConfig);
         
         if (includeContent)
         {
             GenerateBuildings();
             if (spawnObstacles)
             {
-                SpawnFlyingObstacles(explicitHeight);
+                SpawnFlyingObstacles(explicitHeight, diffConfig);
             }
         }
 
         hasGenerated = true;
         // Module generated — height visible in LEVEL [step] logs
     }
-    private void GenerateBaseTerrain(int? explicitHeight = null, bool spawnObstacles = true, int maxObstacleLevel = 3)
+    private void GenerateBaseTerrain(int? explicitHeight = null, bool spawnObstacles = true, int maxObstacleLevel = 3, DifficultyConfig diffConfig = null)
     {
         if (placementTracker == null)
         {
@@ -227,8 +227,9 @@ public class ModuleBuilder : MonoBehaviour
                 obstacleSpawnPoint.position.z
             );
 
+            int currentObstacleRate = diffConfig != null ? diffConfig.groundObstacleChance : obstacleRate;
             int obstacleRoll = Random.Range(0, 100);
-            if (obstacleRoll < obstacleRate)
+            if (obstacleRoll < currentObstacleRate)
             {
                 // TEMP: obstacle list on the prefab defines valid spawns — no name-based level filter.
                 // Filter by name (truck/car/etc.) and MaxObstacleLevel disabled while heights are being stabilized.
@@ -318,13 +319,14 @@ public class ModuleBuilder : MonoBehaviour
 
     }
 
-    private void SpawnFlyingObstacles(int? explicitHeight = 0)
+    private void SpawnFlyingObstacles(int? explicitHeight = 0, DifficultyConfig diffConfig = null)
     {
         if (flyingObstaclePrefabs == null || flyingObstaclePrefabs.Length == 0) return;
 
+        int currentFlyingRate = diffConfig != null ? diffConfig.flyingObstacleChance : flyingObstacleRate;
         float flyingObstacleRoll = Random.Range(0, 100);
 
-        if (flyingObstacleRoll < flyingObstacleRate)
+        if (flyingObstacleRoll < currentFlyingRate)
         {
             // Use groundBlockHeight from config instead of hardcoding *3,
             // so obstacles follow the terrain if block scale is adjusted.

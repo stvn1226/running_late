@@ -5109,6 +5109,14 @@ MonoBehaviour:
   generateOnSceneReload: 1
   generationDelay: 0.01
   useModularGeneration: 1
+  desktopConfigs:
+  - {fileID: 11400000, guid: 078358612fd0841289ce781868986331, type: 2}
+  mobileConfigs:
+  - {fileID: 11400000, guid: f7c29662a7d154affa697a74e876a542, type: 2}
+  selectedDifficulty: 1
+  currentDifficulty: {fileID: 0}
+  overridePlatformInEditor: 1
+  editorSimulatedPlatform: 1
   useManualSeed: 0
   manualSeed: 12345
   currentSeed: 0

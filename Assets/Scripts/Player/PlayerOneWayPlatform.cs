@@ -47,7 +47,7 @@ public class PlayerOneWayPlatform : MonoBehaviour
     {
         if (playerCollider == null || playerStates == null || playerRb == null) return;
 
-        // Only allow drop-through if NOT sliding on a cable (or at least not dropping through the cable itself)
+        // Only allow drop-through if NOT sliding on a cable
         if (playerStates.dropDownHeld && !playerStates.isSlidingOnCable)
         {
             DropThrough();
@@ -153,6 +153,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private bool IsPlatform(Collider2D collider)
     {
+        // Bug 1 fix: Do NOT accept every PlatformEffector2D blindly — that catches cars too.
+        // Only accept colliders that are explicitly on the platform layer OR tagged as OneWayPlatform.
         int layer = collider.gameObject.layer;
         if ((platformLayerMask.value & (1 << layer)) != 0)
             return true;
@@ -164,7 +166,7 @@ public class PlayerOneWayPlatform : MonoBehaviour
                 return true;
         }
         
-        return collider.GetComponent<PlatformEffector2D>() != null || collider.CompareTag("OneWayPlatform");
+        return collider.CompareTag("OneWayPlatform");
     }
 
     private bool IsPlayerAbove(Collider2D platform)
@@ -172,8 +174,9 @@ public class PlayerOneWayPlatform : MonoBehaviour
         float playerBottom = playerCollider.bounds.min.y;
         float platformTop = platform.bounds.max.y;
         
-        // Add a small buffer to handle fast falling, but keep it strict
-        return playerBottom >= platformTop - 0.5f; 
+        // Use a generous buffer (4 units) so that slopes are covered:
+        // a player at the base of a tall slope still passes this check.
+        return playerBottom >= platformTop - 4.0f;
     }
 
     private void IgnorePlatform(Collider2D platform)
@@ -187,25 +190,13 @@ public class PlayerOneWayPlatform : MonoBehaviour
         foreach (Collider2D platform in ignoredPlatforms)
         {
             if (platform == null) continue;
-            
-            // If it has a PlatformEffector2D, we can restore IMMEDIATELY.
-            // The effector itself will handle the "one-way" logic if we are still inside it.
-            if (platform.GetComponent<PlatformEffector2D>() != null)
-            {
-                RestorePlatformCollision(platform);
-                continue;
-            }
 
             bool isOverlapping = playerCollider.bounds.Intersects(platform.bounds);
-            
+
             if (isOverlapping)
-            {
                 platformsToRestore.Add(platform);
-            }
             else
-            {
                 RestorePlatformCollision(platform);
-            }
         }
         
         ignoredPlatforms.Clear();
@@ -222,31 +213,19 @@ public class PlayerOneWayPlatform : MonoBehaviour
     private void RestorePlatformCollision(Collider2D platform)
     {
         if (platform != null)
-        {
             Physics2D.IgnoreCollision(playerCollider, platform, false);
-        }
     }
 
+    // Simple unconditional delay: wait a short fixed time, then restore regardless.
+    // No looping, no overlap checks — avoids frame-by-frame bound jitter causing random falls.
     private IEnumerator RestoreDelayedPlatforms()
     {
-        // Much shorter delay for more responsive collision restoration
-        float delay = 0.05f; 
-        
-        while (platformsToRestore.Count > 0)
-        {
-            yield return new WaitForSeconds(delay);
-            
-            for (int i = platformsToRestore.Count - 1; i >= 0; i--)
-            {
-                Collider2D platform = platformsToRestore[i];
-                if (platform == null || !playerCollider.bounds.Intersects(platform.bounds))
-                {
-                    RestorePlatformCollision(platform);
-                    platformsToRestore.RemoveAt(i);
-                }
-            }
-        }
-        
+        yield return new WaitForSeconds(0.1f);
+
+        foreach (Collider2D platform in platformsToRestore)
+            RestorePlatformCollision(platform);
+
+        platformsToRestore.Clear();
         restoreCoroutine = null;
     }
 

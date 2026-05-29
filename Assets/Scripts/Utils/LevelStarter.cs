@@ -14,6 +14,21 @@ public class LevelStarter : MonoBehaviour
     [Header("Generation Mode")]
     [SerializeField] private bool useModularGeneration = true;
 
+    [Header("Difficulty Configuration Lists")]
+    public List<DifficultyConfig> desktopConfigs; // PC, Console, Web
+    public List<DifficultyConfig> mobileConfigs;
+
+    [Header("Active Difficulty")]
+    public GameDifficulty selectedDifficulty = GameDifficulty.Medium;
+    
+    [Header("Resolved Config (Read Only)")]
+    public DifficultyConfig currentDifficulty;
+
+    [Header("Editor Debug Settings")]
+    [Tooltip("If true, ignores the actual device and uses 'Editor Simulated Platform'. Only works in Unity Editor.")]
+    public bool overridePlatformInEditor = false;
+    public TargetPlatform editorSimulatedPlatform = TargetPlatform.PC_Console;
+
     [Header("Seed Settings")]
     public bool useManualSeed = false;
     [SerializeField] private int manualSeed = 12345;
@@ -129,6 +144,38 @@ public class LevelStarter : MonoBehaviour
         {
             LevelManager.Instance.OnLevelReplayStarted += OnLevelRestart;
         }
+
+        ResolveDifficultyConfig();
+    }
+
+    private void ResolveDifficultyConfig()
+    {
+        bool isMobile = Application.isMobilePlatform;
+
+#if UNITY_EDITOR
+        if (overridePlatformInEditor)
+        {
+            isMobile = (editorSimulatedPlatform == TargetPlatform.Mobile);
+            GameLogger.Log("LEVEL", $"[EDITOR OVERRIDE] Simulating Platform: {editorSimulatedPlatform}");
+        }
+#endif
+
+        List<DifficultyConfig> targetList = isMobile ? mobileConfigs : desktopConfigs;
+        
+        if (targetList == null || targetList.Count == 0)
+            return;
+
+        foreach(var config in targetList)
+        {
+            if (config != null && config.difficulty == selectedDifficulty)
+            {
+                currentDifficulty = config;
+                return;
+            }
+        }
+        
+        // Fallback to the first available config in the target list if the specific difficulty is not found
+        currentDifficulty = targetList[0];
     }
 
     private void Start()
@@ -504,9 +551,10 @@ public class LevelStarter : MonoBehaviour
 
         foreach (var seg in blueprint.SidewalkTrack.Segments)
         {
+            int gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : 3;
             float segTransformY = baseY
-                + seg.RoadElevationAtX * 3f
-                + seg.SidewalkRelativeLevel * 1.5f;
+                + seg.RoadElevationAtX * gbh
+                + (seg.SidewalkRelativeLevel * gbh);
 
             int absH = baselineH + 1;
             float center = seg.X_Position + seg.Width / 2f;
@@ -604,7 +652,7 @@ public class LevelStarter : MonoBehaviour
         seg.name = name;
         seg.isElevatedSidewalk = isSidewalk;
         seg.omitFoundationAtBaseLevel = false;
-        seg.GenerateModule(h, generateContent, spawnObstacles, maxObsLevel);
+        seg.GenerateModule(h, generateContent, spawnObstacles, maxObsLevel, currentDifficulty);
         modulesInScene.Add(seg);
     }
 
