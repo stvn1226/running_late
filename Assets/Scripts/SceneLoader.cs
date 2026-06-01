@@ -34,7 +34,10 @@ public class SceneLoader : MonoBehaviour
         if (scene.name == MAIN_MENU_SCENE)
             AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicMenu);
         else if (scene.name == GAMEPLAY_SCENE)
+        {
             AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicLevel);
+            // AudioManager.Instance?.AddMusic(AudioManager.SoundType.MusicInvincibility);
+        }
     }
 
     public void LoadMainMenu()

@@ -187,23 +187,27 @@ public class PlayerStates : MonoBehaviour
         UpdatePreviousValues();
     }
 
-    public void InvokeInvincibility(float duration)
+    public void InvokeInvincibility(float duration, bool withMusicLayer = false)
     {
         if (activeInvincibility != null)
         {
             StopCoroutine(activeInvincibility);
         }
-        activeInvincibility = StartCoroutine(InvincibilityCoroutine(duration));
+        activeInvincibility = StartCoroutine(InvincibilityCoroutine(duration, withMusicLayer));
     }
 
-    private IEnumerator InvincibilityCoroutine(float duration)
+    private IEnumerator InvincibilityCoroutine(float duration, bool withMusicLayer)
     {
         isInvincible = true;
+        if (withMusicLayer)
+            AudioManager.Instance?.SetInvincibilityLayerVolume(AudioManager.InvincibilityLayerActiveVolume);
         GameLogger.Log($"[PLAYER INVULNERABILITY] ENABLED for {duration:F2}s - Can stomp but cannot take damage");
         
         yield return new WaitForSeconds(duration);
         
         isInvincible = false;
+        if (withMusicLayer)
+            AudioManager.Instance?.SetInvincibilityLayerVolume(AudioManager.InvincibilityLayerBaseVolume);
         GameLogger.Log("[PLAYER INVULNERABILITY] DISABLED - Player is vulnerable again");
         activeInvincibility = null;
     }
