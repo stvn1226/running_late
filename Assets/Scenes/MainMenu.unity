@@ -361,6 +361,58 @@ PrefabInstance:
       propertyPath: musicMixerGroup
       value: 
       objectReference: {fileID: -2273146209696275378, guid: 7e984f512e89b60468e829489e8883e3, type: 2}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.size
+      value: 17
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[13].Sounds.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[12].Sounds.Array.data[0].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 93a715c59963643f8bb6379842ab9e75, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[13].Sounds.Array.data[0].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 7004660292d7143639b2b321c4e0e287, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[13].Sounds.Array.data[1].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 2d8750fe66e384f8f8dc4e7ad7022caf, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[14].Sounds.Array.data[0].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 916fb3742e70c436eb01cf877963a3c8, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[15].Sounds.Array.data[0].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 7e62a2231f1cb4018bb8238b97d892ee, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[12].Sounds.Array.data[0].Volume
+      value: 0.706
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[13].Sounds.Array.data[0].Volume
+      value: 0.522
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[13].Sounds.Array.data[1].Volume
+      value: 0.514
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[13].Sounds.Array.data[1].IsMusic
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[14].Sounds.Array.data[0].IsMusic
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[15].Sounds.Array.data[0].IsMusic
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
