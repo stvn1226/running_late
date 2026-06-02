@@ -22,7 +22,8 @@ public class AudioManager : MonoBehaviour
         OptionReturn,
         PauseOpen,
         MusicVictory,
-        MusicDefeat
+        MusicDefeat,
+        MusicInvincibility
     }
 
     [System.Serializable]
@@ -53,8 +54,12 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioMixerGroup sfxMixerGroup;
     [SerializeField] private AudioMixerGroup musicMixerGroup;
 
+    public const float InvincibilityLayerBaseVolume = 0.01f;
+    public const float InvincibilityLayerActiveVolume = 0.6f;
+
     private Dictionary<SoundType, SoundCollection> _soundDictionary = new Dictionary<SoundType, SoundCollection>();
     private AudioSource _musicSource;
+    private AudioSource _invincibilityMusicSource;
 
     private void Awake()
     {
@@ -158,8 +163,108 @@ public class AudioManager : MonoBehaviour
         _musicSource.clip = track.Clip;
         _musicSource.volume = track.Volume;
         _musicSource.Play();
+
+        if (type == SoundType.MusicLevel)
+            StartInvincibilityLayer();
+        else
+            StopInvincibilityLayer();
         
         GameLogger.Log("Audio", $"Music changed to {type}");
+    }
+
+    /// <summary>
+    /// Starts the MusicInvincibility track as a silent layer synchronized with the level music.
+    /// </summary>
+    private void StartInvincibilityLayer()
+    {
+        if (!_soundDictionary.TryGetValue(SoundType.MusicInvincibility, out SoundCollection collection)
+            || collection.Sounds == null || collection.Sounds.Count == 0)
+        {
+            GameLogger.LogWarning("Audio", "MusicInvincibility collection not found or empty!");
+            return;
+        }
+
+        Sound track = collection.Sounds[Random.Range(0, collection.Sounds.Count)];
+
+        if (_invincibilityMusicSource == null)
+        {
+            var container = new GameObject("InvincibilityMusicSourceObj");
+            container.transform.SetParent(transform);
+            _invincibilityMusicSource = container.AddComponent<AudioSource>();
+            _invincibilityMusicSource.loop = true;
+            _invincibilityMusicSource.playOnAwake = false;
+
+            if (musicMixerGroup != null)
+                _invincibilityMusicSource.outputAudioMixerGroup = musicMixerGroup;
+        }
+
+        if (_invincibilityMusicSource.isPlaying)
+            _invincibilityMusicSource.Stop();
+
+        _invincibilityMusicSource.clip = track.Clip;
+        _invincibilityMusicSource.volume = InvincibilityLayerBaseVolume;
+        _invincibilityMusicSource.Play();
+
+        GameLogger.Log("Audio", "Invincibility music layer started");
+    }
+
+    /// <summary>
+    /// Stops the MusicInvincibility layer, e.g. when leaving the gameplay scene.
+    /// </summary>
+    private void StopInvincibilityLayer()
+    {
+        if (_invincibilityMusicSource != null && _invincibilityMusicSource.isPlaying)
+        {
+            _invincibilityMusicSource.Stop();
+            GameLogger.Log("Audio", "Invincibility music layer stopped");
+        }
+    }
+
+    /// <summary>
+    /// Sets the volume of the MusicInvincibility layer. Use InvincibilityLayerActiveVolume (0.6) when the power-up
+    /// is active, and InvincibilityLayerBaseVolume (0.01) when it expires.
+    /// </summary>
+    public void SetInvincibilityLayerVolume(float volume)
+    {
+        if (_invincibilityMusicSource != null)
+            _invincibilityMusicSource.volume = Mathf.Clamp01(volume);
+    }
+
+    public void AddMusic(SoundType type)
+    {
+        if (!_soundDictionary.TryGetValue(type, out SoundCollection collection))
+        {
+            GameLogger.LogWarning("Audio", $"Music track {type} not found!");
+            return;
+        }
+
+        if (collection.Sounds == null || collection.Sounds.Count == 0)
+        {
+            GameLogger.LogWarning("Audio", $"Music collection {type} is empty!");
+            return;
+        }
+
+        Sound track = collection.Sounds[Random.Range(0, collection.Sounds.Count)];
+
+        if (_musicSource == null)
+        {
+            var container = new GameObject("MusicSourceObj");
+            container.transform.SetParent(transform);
+            _musicSource = container.AddComponent<AudioSource>();
+            _musicSource.loop = true;
+            _musicSource.playOnAwake = false;
+            
+            if (musicMixerGroup != null)
+            {
+                _musicSource.outputAudioMixerGroup = musicMixerGroup;
+            }
+        }
+
+        _musicSource.clip = track.Clip;
+        _musicSource.volume = track.Volume;
+        _musicSource.Play();
+        
+        GameLogger.Log("Audio", $"Music added: {type}");
     }
     
     public void StopMusic()
@@ -169,6 +274,7 @@ public class AudioManager : MonoBehaviour
             _musicSource.Stop();
             GameLogger.Log("Audio", "Music stopped");
         }
+        StopInvincibilityLayer();
     }
     
     /// <summary>

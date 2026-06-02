@@ -366,7 +366,15 @@ PrefabInstance:
       value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[16].Type
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
       propertyPath: AllCollections.Array.data[13].Sounds.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[16].Sounds.Array.size
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
@@ -390,6 +398,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 7e62a2231f1cb4018bb8238b97d892ee, type: 3}
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[16].Sounds.Array.data[0].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 2d8750fe66e384f8f8dc4e7ad7022caf, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
       propertyPath: AllCollections.Array.data[12].Sounds.Array.data[0].Volume
       value: 0.706
       objectReference: {fileID: 0}
@@ -402,6 +414,10 @@ PrefabInstance:
       value: 0.514
       objectReference: {fileID: 0}
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[16].Sounds.Array.data[0].Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
       propertyPath: AllCollections.Array.data[13].Sounds.Array.data[1].IsMusic
       value: 1
       objectReference: {fileID: 0}
@@ -412,6 +428,10 @@ PrefabInstance:
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
       propertyPath: AllCollections.Array.data[15].Sounds.Array.data[0].IsMusic
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[16].Sounds.Array.data[0].IsMusic
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
