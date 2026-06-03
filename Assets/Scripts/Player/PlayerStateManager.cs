@@ -49,6 +49,14 @@ public class PlayerStateManager : MonoBehaviour
             {
                 ExpressionManager.Instance?.SwitchExpression(9);
             }
+            else if (states.isNearObstacle)
+            {
+                ExpressionManager.Instance?.SwitchExpression(7);
+            }
+            else if (states.isNearPowerUp)
+            {
+                ExpressionManager.Instance?.SwitchExpression(5);
+            }
             else if (states.isSlowFalling)
             {
                 ExpressionManager.Instance?.SwitchExpression(15);
@@ -87,6 +95,14 @@ public class PlayerStateManager : MonoBehaviour
             if (states.isStaggered)
             {
                 ExpressionManager.Instance?.SwitchExpression(9);
+            }
+            else if (states.isNearObstacle)
+            {
+                ExpressionManager.Instance?.SwitchExpression(8);
+            }
+            else if (states.isNearPowerUp)
+            {
+                ExpressionManager.Instance?.SwitchExpression(6);
             }
             else if (states.isSlowFalling)
             {

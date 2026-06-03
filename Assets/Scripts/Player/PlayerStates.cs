@@ -53,6 +53,7 @@ public class PlayerStates : MonoBehaviour
     public bool hasSlowFall = false; // True while the Slow Fall / Air Float power-up is active.
     public bool hasFastRun = false;
     public bool hasToast = true; //Player always starts with toast, but she can lose it if she gets hit.
+    public bool isNearPowerUp = false;
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -114,6 +115,7 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Stagger States")]
     public float staggerTimer;
+    public bool isNearObstacle = false;
 
     [Header("Corner Climb States")]
     public bool isCornerClimbing = false;
