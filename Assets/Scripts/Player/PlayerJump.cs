@@ -22,7 +22,6 @@ public class PlayerJump : MonoBehaviour
     private float maxJumpForce;
 
     private bool canSlowFall;
-
     private Coroutine activeHeightCoroutine;
     private Coroutine activeFloatCoroutine;
     
@@ -36,7 +35,6 @@ public class PlayerJump : MonoBehaviour
         originalGravityScale = rb.gravityScale;
         minJumpForce = config.minJumpForce;
         maxJumpForce = config.maxJumpForce;
-        canSlowFall = false;
         
         playerDive = GetComponent<PlayerDive>();
         playerPhysics = GetComponent<PlayerPhysics>();
@@ -57,6 +55,7 @@ public class PlayerJump : MonoBehaviour
     public void InvokeDoubleJump(float duration)
     {
         allowDoubleJump = true;
+        states.hasDoubleJump = true;
         currentTime = 0f;
         maxTime = duration;
         Debug.Log("Double Jump Invoked!");
@@ -70,9 +69,10 @@ public class PlayerJump : MonoBehaviour
         {
             currentTime += Time.deltaTime;
         }
-        else
+        else if (allowDoubleJump)
         {
             allowDoubleJump = false;
+            states.hasDoubleJump = false;
         }
     }
 
@@ -91,9 +91,11 @@ public class PlayerJump : MonoBehaviour
     {
         minJumpForce = config.minJumpForce + extraHeight;
         maxJumpForce = config.maxJumpForce + extraHeight;
+        states.hasHighJump = true;
         yield return new WaitForSeconds(duration);
         minJumpForce = config.minJumpForce;
         maxJumpForce = config.maxJumpForce;
+        states.hasHighJump = false;
         activeHeightCoroutine = null;
     }
 
@@ -108,9 +110,9 @@ public class PlayerJump : MonoBehaviour
 
     private IEnumerator AirFloatCoroutine(float duration)
     {
-        canSlowFall = true;
+        states.hasSlowFall = true;
         yield return new WaitForSeconds(duration);
-        canSlowFall = false;
+        states.hasSlowFall = false;
         activeFloatCoroutine = null;
     }
     private void HandleJumpInput()
@@ -390,7 +392,8 @@ public class PlayerJump : MonoBehaviour
         {
             bool inLongJumpGrace = states.longJumpGraceTimer > 0f;
             bool shouldFastFall = states.crouchHeld && !states.isGrounded && !inLongJumpGrace;
-            bool shouldSlowFall = states.jumpHeld && !states.isGrounded && states.isFalling && canSlowFall;
+            bool shouldSlowFall = states.jumpHeld && !states.isGrounded && states.isFalling && states.hasSlowFall;
+            states.isSlowFalling = shouldSlowFall;
             rb.gravityScale = shouldSlowFall ? (config.fallGravityScale * config.slowFallGravityMultiplier) : (shouldFastFall ? config.fastFallGravityScale : config.fallGravityScale);
         }
         else if (velocityY >= 0f && velocityY < config.apexThreshold && !states.isGrounded)

@@ -7,7 +7,7 @@ public class Invincibility : PowerUp
         PlayerStates playerStates = player.GetComponentInParent<PlayerStates>();
         if (playerStates != null)
         {
-            playerStates.InvokeInvincibility(activeTime);
+            playerStates.InvokeInvincibility(activeTime, withMusicLayer: true);
         }
     }
 }
