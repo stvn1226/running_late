@@ -428,8 +428,8 @@ public class LevelStarter : MonoBehaviour
             slopeRightModule,
             roadSlopeLeftModule,
             roadSlopeRightModule,
-            interlayerSlopeLeftModule,
-            interlayerSlopeRightModule,
+            interlayerSlopeLeftModule != null ? interlayerSlopeLeftModule : slopeLeftModule,
+            interlayerSlopeRightModule != null ? interlayerSlopeRightModule : slopeRightModule,
             numberOfModules,
             safeZoneModules,
             roadMaxHeight,
@@ -520,11 +520,12 @@ public class LevelStarter : MonoBehaviour
             // Z: midpoint between road (0) and sidewalk (sidewalkZOffset).
             float rampZ = sidewalkZOffset / 2f;
 
-            int rampAbsH = baselineH + ramp.ConnectorRoadElevation + 1;
+            // rampTransformY already lifts the module to the correct road elevation.
+            // We need the slope to be exactly 1 block taller than the road to reach the sidewalk.
+            int rampAbsH = baselineH + 1;
 
             SpawnModularSlope(ramp.Template, rampCenter, rampTransformY, rampZ, rampAbsH, ramp.Label, true);
         }
-
         // 5. Render School
         float schoolCenter = blueprint.SchoolAnchor.X_Position + (blueprint.SchoolAnchor.Width / 2f);
         SpawnModularSegment(blueprint.SchoolAnchor.Template, schoolCenter, baseY, 0f, baselineH, blueprint.SchoolAnchor.Label, false, false, false, 0);
@@ -533,39 +534,11 @@ public class LevelStarter : MonoBehaviour
 
     private void RenderSidewalkTrack(LevelBlueprint blueprint, float baseY, int baselineH)
     {
-        if (!useRelativeSidewalkHeights)
-        {
-            // OLD PATH: the Y_Elevation in Pass3 already accounts for +1 (e.g., roadH_end + 1).
-            // Do not add baselineH + 1 here, otherwise it doubles the height.
-            // We RESTORE sidewalkYOffset here because the user relies on it for the 0.5 unit vertical shift.
-            RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
-            return;
-        }
-
-        // NEW PATH (Phase 3 active): per-segment transform Y from roadElevation + relativeLevel.
-        // Only reached when useRelativeSidewalkHeights = true.
-        if (blueprint.SidewalkTrack == null || blueprint.SidewalkTrack.Segments == null) return;
-
-        int totalSwSegs = blueprint.SidewalkTrack.Segments.Count;
-        int swIdx = 0;
-
-        foreach (var seg in blueprint.SidewalkTrack.Segments)
-        {
-            int gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : 3;
-            float segTransformY = baseY
-                + seg.RoadElevationAtX * gbh
-                + (seg.SidewalkRelativeLevel * gbh);
-
-            int absH = baselineH + 1;
-            float center = seg.X_Position + seg.Width / 2f;
-
-            if (seg.IsSlope)
-                SpawnModularSlope(seg.Template, center, segTransformY, sidewalkZOffset, absH, seg.Label, true);
-            else
-                SpawnModularSegment(seg.Template, center, segTransformY, sidewalkZOffset, absH, seg.Label, true, true, seg.SpawnObstacles, seg.MaxObstacleLevel);
-        }
+        // OLD PATH: the Y_Elevation in Pass3 already accounts for +1 (e.g., roadH_end + 1).
+        // We RESTORE sidewalkYOffset here because the user relies on it for the 1.5 unit vertical shift.
+        // And we pass absH = 1 inside RenderTrack implicitly by letting seg.Y_Elevation be 0 relative to road.
+        RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
     }
-
     private void RenderTrack(TrackBlueprint track, float baseY, int baselineH, float z)
     {
         if (track == null || track.Segments == null) return;

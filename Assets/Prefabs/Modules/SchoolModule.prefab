@@ -60,6 +60,13 @@ MonoBehaviour:
   flyingObstacleRate: 20
   autoGenerateOnStart: 0
   buildingSpawnChance: 90
+  isElevatedSidewalk: 1
+  omitFoundationAtBaseLevel: 1
+  pushPaddingToBackground: 1
+  disablePaddingColliders: 1
+  paddingZOffset: 5
+  obstacleZOffset: -1.5
+  baseLevelHeight: 1
 --- !u!1 &4212060271448173331
 GameObject:
   m_ObjectHideFlags: 0

@@ -127,6 +127,13 @@ public class MobileInputHandler : MonoBehaviour
         // Promote Tracking → WallRun once the hold window expires with no swipe
         if (phase == GesturePhase.Tracking && committedAction == GestureAction.None)
         {
+            // If a UI button was pressed, abort tracking completely
+            if (MobileActionButton.ActiveButtonTouches > 0)
+            {
+                ResetGestureState();
+                return;
+            }
+
             if (Time.unscaledTime - touchStartTime >= holdActivationDelay)
                 CommitAction(GestureAction.WallRun);
         }
@@ -158,6 +165,9 @@ public class MobileInputHandler : MonoBehaviour
         // Ignore additional fingers if already tracking one
         if (trackedFinger != null) return;
 
+        // Prevent activating WallRun or gestures if touching a UI Button
+        if (IsPointerOverUI(finger.screenPosition)) return;
+
         trackedFinger      = finger;
         touchStartPosition = finger.screenPosition;
         touchStartTime     = Time.unscaledTime;
@@ -165,6 +175,23 @@ public class MobileInputHandler : MonoBehaviour
         committedAction    = GestureAction.None;
 
         GameLogger.LogInput($"[Mobile] FingerDown — index={finger.index} pos={finger.screenPosition}");
+    }
+
+    /// <summary>
+    /// Robust check to see if a screen position is over any UI element.
+    /// Works universally across all devices and input systems.
+    /// </summary>
+    private bool IsPointerOverUI(Vector2 screenPosition)
+    {
+        if (UnityEngine.EventSystems.EventSystem.current == null) return false;
+        
+        var eventData = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current);
+        eventData.position = screenPosition;
+        
+        var results = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+        UnityEngine.EventSystems.EventSystem.current.RaycastAll(eventData, results);
+        
+        return results.Count > 0;
     }
 
     private void OnFingerMove(Finger finger)
@@ -198,15 +225,8 @@ public class MobileInputHandler : MonoBehaviour
 
     private GestureAction ClassifySwipe(Vector2 delta)
     {
-        float absX = Mathf.Abs(delta.x);
-        float absY = Mathf.Abs(delta.y);
-
-        if (absY > absX * axialBias)
-            return delta.y > 0f ? GestureAction.Jump : GestureAction.Slide;
-
-        if (absX > absY * axialBias)
-            return delta.x > 0f ? GestureAction.Dive : GestureAction.Kick;
-
+        // Swipe gestures are disabled — Jump/Slide/Kick/Dive are driven by UI buttons.
+        // Only WallRun (hold) remains active via the Update loop.
         return GestureAction.None;
     }
 

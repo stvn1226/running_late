@@ -256,6 +256,34 @@ public class LevelGeneratorEngine
                     }
                 }
             }
+
+            // CORRECT end-of-level layout:
+            //   [Sidewalk flat high] → [Sidewalk Follow_Slope down] → [Sidewalk flat low] → [DiagRamp_End] → [Road flat]
+            // The sidewalk MUST follow the Road downslope (generating a Sidewalk_Follow_Slope),
+            // then have at least one flat unit, and THEN the DiagRamp_End connects sidewalk to road.
+            // So sidewalkEndX must be AFTER the Road downslope + at least one flat unit.
+            float lastDownSlopeX3 = -1f;
+            float lastDownSlopeW  = singleSpace;
+            foreach (var rSeg in blueprint.RoadTrack.Segments)
+            {
+                bool isDownSlope = rSeg.IsSlope && !rSeg.Label.Contains("Up");
+                if (isDownSlope && rSeg.X_Position > sidewalkStartX)
+                {
+                    lastDownSlopeX3 = rSeg.X_Position;
+                    lastDownSlopeW  = rSeg.Width;
+                }
+            }
+            if (lastDownSlopeX3 > sidewalkStartX)
+            {
+                // Sidewalk follows the Road slope, lands flat on ground-level road,
+                // has one flat unit, then DiagRamp_End bridges sidewalk → road.
+                // sidewalkEndX = start of DiagRamp_End = after slope + one flat unit.
+                float flatAfterSlope = lastDownSlopeX3 + lastDownSlopeW + singleSpace;
+                if (flatAfterSlope + endRampWidth < blueprint.SchoolAnchor.X_Position)
+                    sidewalkEndX = flatAfterSlope;
+                // else: school is too close, keep the original targetEndRampX
+                endRampX = sidewalkEndX;
+            }
         }
 
         if (diagUp != null)
@@ -321,7 +349,14 @@ public class LevelGeneratorEngine
             float fillEndX   = Mathf.Min(segX + segW, sidewalkEndX);
             float fillWidth  = fillEndX - fillStartX;
 
-            if (fillWidth > 0.1f)
+            // Skip Road Slopes that fall in the START diagonal ramp zone only:
+            //   The Diagonal_Ramp_Start already covers the Road→Sidewalk transition at the start.
+            //   A Sidewalk_Follow_Slope there creates the unwanted extra "behind" layer.
+            // NOTE: We do NOT skip slopes at the END zone - the sidewalk must follow the Road
+            //   downslope naturally (Sidewalk_Follow_Slope), then land flat, then DiagRamp_End.
+            bool inStartRampZone = roadSeg.IsSlope && fillStartX <= sidewalkStartX + startRampWidth + 0.1f;
+
+            if (fillWidth > 0.1f && !inStartRampZone)
             {
                 // Force minimum relative height of 1
                 if (currentH < roadH_start + 1) currentH = roadH_start + 1;
