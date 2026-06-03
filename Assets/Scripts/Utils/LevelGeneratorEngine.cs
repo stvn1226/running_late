@@ -148,7 +148,7 @@ public class LevelGeneratorEngine
                     nextH = currentH - 1;
                 }
             }
-            else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.12f)
+            else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.25f)
             {
                 nextH = Mathf.Clamp(currentH + (Random.value > 0.5f ? 1 : -1), 0, roadMaxHeight);
             }
@@ -168,7 +168,7 @@ public class LevelGeneratorEngine
                         IsSlope     = true
                     });
                     currentX += sw;
-                    slopeCooldown = 3;
+                    slopeCooldown = 2;
                 }
                 currentH = nextH;
             }
