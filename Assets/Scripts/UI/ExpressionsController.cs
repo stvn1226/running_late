@@ -16,4 +16,10 @@ public class ExpressionsController : MonoBehaviour
     {
         rawImage.texture = newTexture;
     }
+
+    public void SwitchImageByNumber(int textureNumber)
+    {
+        Texture newTexture = expressions[textureNumber];
+        rawImage.texture = newTexture;
+    }
 }

@@ -103,12 +103,14 @@ public class PlayerMovement : MonoBehaviour
     {
         float originalMaxSpeed = config.maxRunSpeed;
         maxRunSpeed = originalMaxSpeed + extraSpeed;
+        states.hasFastRun = true;
         
         GameLogger.Log("POWERUP", $"Extra Speed activated! Max speed: {originalMaxSpeed} -> {maxRunSpeed} for {duration} seconds");
         
         yield return new WaitForSeconds(duration);
         
         maxRunSpeed = originalMaxSpeed;
+        states.hasFastRun = false;
         activeSpeedBoostCoroutine = null;
         
         GameLogger.Log("POWERUP", $"Extra Speed expired! Max speed restored to {maxRunSpeed}");

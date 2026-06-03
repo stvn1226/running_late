@@ -46,7 +46,13 @@ public class PlayerStates : MonoBehaviour
 
     [Header("Power-Up States")]
     public bool isInvincible = false;
+    public bool hasInvincibilityPowerUp = false; // True only when the Invincibility power-up is active, not post-hit invulnerability.
     public bool isShielded = false;
+    public bool hasDoubleJump = false;
+    public bool hasHighJump = false;
+    public bool hasSlowFall = false; // True while the Slow Fall / Air Float power-up is active.
+    public bool hasFastRun = false;
+    public bool hasToast = true; //Player always starts with toast, but she can lose it if she gets hit.
 
     [Header("Jump States")]
     public bool jumpInputBuffered = false;
@@ -55,6 +61,7 @@ public class PlayerStates : MonoBehaviour
     public bool canCoyoteJump = false;
     public bool isJumpCut = false;
     public bool isFalling = false;
+    public bool isSlowFalling = false;
     public bool isGraceFalling = false;
     public float jumpHoldTimer = 0f;
     public bool isJumping = false;
@@ -200,14 +207,20 @@ public class PlayerStates : MonoBehaviour
     {
         isInvincible = true;
         if (withMusicLayer)
+        {
+            hasInvincibilityPowerUp = true;
             AudioManager.Instance?.SetInvincibilityLayerVolume(AudioManager.InvincibilityLayerActiveVolume);
+        }
         GameLogger.Log($"[PLAYER INVULNERABILITY] ENABLED for {duration:F2}s - Can stomp but cannot take damage");
         
         yield return new WaitForSeconds(duration);
         
         isInvincible = false;
         if (withMusicLayer)
+        {
+            hasInvincibilityPowerUp = false;
             AudioManager.Instance?.SetInvincibilityLayerVolume(AudioManager.InvincibilityLayerBaseVolume);
+        }
         GameLogger.Log("[PLAYER INVULNERABILITY] DISABLED - Player is vulnerable again");
         activeInvincibility = null;
     }
@@ -215,6 +228,11 @@ public class PlayerStates : MonoBehaviour
     public void InvokeShield()
     {
         isShielded = true;
+    }
+
+    public void InvokeToast()
+    {
+        hasToast = true;
     }
 
     public void RemoveShield()
@@ -611,6 +629,7 @@ public class PlayerStates : MonoBehaviour
     {
         isStaggered = true;
         staggerTimer = duration;
+        hasToast = false;
 
         if (isKicking)
         {
