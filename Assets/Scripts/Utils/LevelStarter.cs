@@ -560,7 +560,8 @@ public class LevelStarter : MonoBehaviour
 
         foreach (var seg in track.Segments)
         {
-            float center = seg.X_Position + (seg.Width / 2f);
+            float originalWidth = (seg.Template != null && seg.Template.moduleConfig != null) ? seg.Template.moduleConfig.currentTerrainWidth : seg.Width;
+            float center = seg.X_Position + (originalWidth / 2f);
             int absH = baselineH + seg.Y_Elevation;
             int gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : 3;
             bool isSidewalk = z != 0f;

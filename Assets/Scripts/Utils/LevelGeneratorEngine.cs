@@ -242,7 +242,7 @@ public class LevelGeneratorEngine
             // Fallbacks in case the ramp widths don't match any road segment widths
             if (!foundStart) {
                 foreach (var rSeg in blueprint.RoadTrack.Segments) {
-                    if (rSeg.X_Position >= targetStartRampX) {
+                    if (rSeg.X_Position >= targetStartRampX && !rSeg.IsSlope) {
                         startRampX = rSeg.X_Position;
                         sidewalkStartX = startRampX + startRampWidth;
                         break;
@@ -251,7 +251,7 @@ public class LevelGeneratorEngine
             }
             if (!foundEnd) {
                 foreach (var rSeg in blueprint.RoadTrack.Segments) {
-                    if (rSeg.X_Position <= targetEndRampX) {
+                    if (rSeg.X_Position <= targetEndRampX && !rSeg.IsSlope) {
                         endRampX = rSeg.X_Position;
                         sidewalkEndX = rSeg.X_Position;
                     }
@@ -386,11 +386,26 @@ public class LevelGeneratorEngine
                 else
                 {
                     bool isStartBoundary = (fillStartX - sidewalkStartX < 30f);
-                    bool isEndBoundary   = (sidewalkEndX - fillEndX < 30f);
+                    bool isEndBoundary   = (sidewalkEndX - fillEndX < 40f);
 
+                    // Ensure sidewalk returns to base level (+1) near boundaries
+                    if (isStartBoundary || isEndBoundary)
+                    {
+                        if (currentH > roadH_end + 1)
+                        {
+                            if (slopeCooldown == 0)
+                                nextH = currentH - 1; // Force descent
+                            else
+                                nextH = currentH; // Wait for cooldown
+                        }
+                        else
+                        {
+                            nextH = roadH_end + 1; // Stay flat
+                        }
+                    }
                     // Allow sidewalk to randomly change its elevation independent of the road
                     // while staying within bounds [roadH_end + 1, roadH_end + sidewalkMaxRelHeight]
-                    if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.25f)
+                    else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.25f)
                     {
                         nextH = Mathf.Clamp(currentH + (Random.value > 0.5f ? 1 : -1), roadH_end + 1, roadH_end + sidewalkMaxRelHeight);
                     }
