@@ -262,17 +262,19 @@ public class ModuleBuilder : MonoBehaviour
 
     private void GenerateBuildings()
     {
-        if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0)
-        {
-            return;
-        }
-
-        if (buildingPrefabs == null || buildingPrefabs.Length == 0)
-        {
-            return;
-        }
+        if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0) return;
+        if (buildingPrefabs == null || buildingPrefabs.Length == 0) return;
 
         int buildingsSpawned = 0;
+        List<Vector2> occupiedIntervals = new List<Vector2>();
+
+        // Sort spawn points from left to right to process them in spatial order
+        List<Transform> sortedSpawnPoints = new List<Transform>(buildingSpawnPoints);
+        sortedSpawnPoints.Sort((a, b) =>
+        {
+            if (a == null || b == null) return 0;
+            return a.position.x.CompareTo(b.position.x);
+        });
 
         // [BuildingAudit] — placementTracker snapshot before any building spawns
         GameLogger.Log("BuildingAudit",
@@ -280,43 +282,78 @@ public class ModuleBuilder : MonoBehaviour
             $"placementTrackerY_beforeBuildings={placementTracker.position.y:F3} " +
             $"transformY={transform.position.y:F3}");
 
-        foreach (Transform spawnPoint in buildingSpawnPoints)
+        foreach (Transform spawnPoint in sortedSpawnPoints)
         {
             if (spawnPoint == null) continue;
 
             int spawnRoll = Random.Range(0, 100);
-            if (spawnRoll >= buildingSpawnChance)
+            if (spawnRoll >= buildingSpawnChance) continue;
+
+            // Shuffle building prefabs to pick randomly but deterministically
+            List<StructureBuilder> shuffledPrefabs = new List<StructureBuilder>(buildingPrefabs);
+            for (int i = 0; i < shuffledPrefabs.Count; i++)
             {
-                continue;
+                StructureBuilder temp = shuffledPrefabs[i];
+                int randomIndex = Random.Range(i, shuffledPrefabs.Count);
+                shuffledPrefabs[i] = shuffledPrefabs[randomIndex];
+                shuffledPrefabs[randomIndex] = temp;
             }
 
-            Vector3 spawnPosition = new Vector3(
-                spawnPoint.position.x,
-                placementTracker.position.y,
-                spawnPoint.position.z
-            );
-
-            StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
-            GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
-            newBuilding.name = $"{buildingTemplate.name}_Generated";
-
-            // [BuildingAudit] — per-building spawn snapshot
-            GameLogger.Log("BuildingAudit",
-                $"[BuildingSpawn] Segment={gameObject.name} " +
-                $"buildingPrefab={buildingTemplate.name} " +
-                $"buildingSpawnY={spawnPosition.y:F3} " +
-                $"buildingLocalY={newBuilding.transform.localPosition.y:F3}");
-
-            StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
-            if (buildingBuilder != null)
+            foreach (StructureBuilder buildingTemplate in shuffledPrefabs)
             {
-                buildingBuilder.ConstructStructure();
-            }
+                if (buildingTemplate == null) continue;
 
-            buildingsSpawned++;
+                float bWidth = buildingTemplate.config != null ? buildingTemplate.config.floorWidth : 15f;
+                float minSpacing = buildingTemplate.config != null ? buildingTemplate.config.minDistanceBetweenBuildings : 2f;
+                
+                // Interval required for this building centered at spawnPoint.x
+                float startX = spawnPoint.position.x - (bWidth / 2f) - (minSpacing / 2f);
+                float endX = spawnPoint.position.x + (bWidth / 2f) + (minSpacing / 2f);
+
+                // Check for overlaps with already spawned buildings in THIS module
+                bool overlaps = false;
+                foreach (Vector2 occupied in occupiedIntervals)
+                {
+                    // If intervals overlap
+                    if (startX < occupied.y && endX > occupied.x)
+                    {
+                        overlaps = true;
+                        break;
+                    }
+                }
+
+                if (!overlaps)
+                {
+                    // It fits! Spawn it.
+                    Vector3 spawnPosition = new Vector3(
+                        spawnPoint.position.x,
+                        placementTracker.position.y,
+                        spawnPoint.position.z
+                    );
+
+                    GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
+                    newBuilding.name = $"{buildingTemplate.name}_Generated";
+
+                    StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
+                    if (buildingBuilder != null)
+                    {
+                        buildingBuilder.ConstructStructure();
+                    }
+
+                    // [BuildingAudit] — per-building spawn snapshot
+                    GameLogger.Log("BuildingAudit",
+                        $"[BuildingSpawn] Segment={gameObject.name} " +
+                        $"buildingPrefab={buildingTemplate.name} " +
+                        $"buildingSpawnY={spawnPosition.y:F3} " +
+                        $"buildingLocalY={newBuilding.transform.localPosition.y:F3}");
+
+                    // Record occupied interval
+                    occupiedIntervals.Add(new Vector2(startX, endX));
+                    buildingsSpawned++;
+                    break; // Move to the next spawnPoint
+                }
+            }
         }
-
-
     }
 
     private void SpawnFlyingObstacles(int? explicitHeight = 0, DifficultyConfig diffConfig = null)

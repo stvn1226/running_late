@@ -10,6 +10,8 @@ public class LevelManager : MonoBehaviour
     public System.Action OnLevelReplayStarted;
     public System.Action OnLevelReplayCompleted;
     
+    public int LastSeed { get; set; }
+    
     private void Awake()
     {
         if (Instance != null && Instance != this)

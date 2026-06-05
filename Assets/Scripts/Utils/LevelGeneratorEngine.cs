@@ -200,6 +200,7 @@ public class LevelGeneratorEngine
     {
         int currentH = 0;
         int segmentsCreated = 0;
+        int slopeCooldown = 0;
         float roadStartX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width;
 
         float singleSpace = sidewalkModules != null && sidewalkModules.Length > 0 ? sidewalkModules[0].moduleConfig.currentTerrainWidth : 15f;
@@ -272,17 +273,6 @@ public class LevelGeneratorEngine
                     lastDownSlopeX3 = rSeg.X_Position;
                     lastDownSlopeW  = rSeg.Width;
                 }
-            }
-            if (lastDownSlopeX3 > sidewalkStartX)
-            {
-                // Sidewalk follows the Road slope, lands flat on ground-level road,
-                // has one flat unit, then DiagRamp_End bridges sidewalk → road.
-                // sidewalkEndX = start of DiagRamp_End = after slope + one flat unit.
-                float flatAfterSlope = lastDownSlopeX3 + lastDownSlopeW + singleSpace;
-                if (flatAfterSlope + endRampWidth < blueprint.SchoolAnchor.X_Position)
-                    sidewalkEndX = flatAfterSlope;
-                // else: school is too close, keep the original targetEndRampX
-                endRampX = sidewalkEndX;
             }
         }
 
@@ -398,10 +388,16 @@ public class LevelGeneratorEngine
                     bool isStartBoundary = (fillStartX - sidewalkStartX < 30f);
                     bool isEndBoundary   = (sidewalkEndX - fillEndX < 30f);
 
-                    // Sidewalk always stays at roadH_end + 1 (one level above road).
-                    // It follows road elevation changes through slopes but never changes
-                    // its own height randomly, which caused double-sidewalk visual artifacts.
-                    nextH = roadH_end + 1;
+                    // Allow sidewalk to randomly change its elevation independent of the road
+                    // while staying within bounds [roadH_end + 1, roadH_end + sidewalkMaxRelHeight]
+                    if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.25f)
+                    {
+                        nextH = Mathf.Clamp(currentH + (Random.value > 0.5f ? 1 : -1), roadH_end + 1, roadH_end + sidewalkMaxRelHeight);
+                    }
+                    else
+                    {
+                        nextH = Mathf.Clamp(currentH, roadH_end + 1, roadH_end + sidewalkMaxRelHeight);
+                    }
 
                     if (isStartBoundary && segmentsCreated == 0)
                         currentH = nextH;
@@ -440,6 +436,7 @@ public class LevelGeneratorEngine
 
                             currentFillStartX += sw;
                             currentFillWidth  -= sw;
+                            slopeCooldown = 2;
                         }
                         currentH = nextH;
                     }
@@ -480,6 +477,7 @@ public class LevelGeneratorEngine
                     }
                 }
                 
+                if (slopeCooldown > 0) slopeCooldown--;
                 segmentsCreated++;
             }
         }

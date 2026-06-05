@@ -263,15 +263,22 @@ public class LevelStarter : MonoBehaviour
 
     private void InitializeSeed()
     {
-        if (useManualSeed)
+        if (LevelManager.Instance != null && LevelManager.Instance.IsReplaying())
+        {
+            currentSeed = LevelManager.Instance.LastSeed;
+            GameLogger.Log("LEVEL", $"Retrying with preserved seed: {currentSeed}");
+        }
+        else if (useManualSeed)
         {
             currentSeed = manualSeed;
+            if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
         }
         else
         {
             currentSeed = System.DateTime.Now.Millisecond +
                          System.DateTime.Now.Second * 1000 +
                          System.DateTime.Now.Minute * 60000;
+            if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
         }
 
         UnityEngine.Random.InitState(currentSeed);
@@ -328,9 +335,9 @@ public class LevelStarter : MonoBehaviour
         }
         else
         {
-            if (autoClearStructures && structureGenerator != null) 
-                structureGenerator.ClearStructuresInEditor();
-            ResizeLevel();
+            GameLogger.LogWarning("LEVEL", "Procedural generation is deprecated. Falling back to modular.");
+            if (autoClearStructures) ClearModules();
+            ResizeLevelModular();
         }
 
         if (homeMask != null)
@@ -378,6 +385,8 @@ public class LevelStarter : MonoBehaviour
         StartCoroutine(GenerateLevelWithDelay());
     }
 
+    #region Deprecated Old Generation
+    /*
     private void ResizeLevel()
     {
         newWidth = Random.Range(minLevelWidth, maxLevelWidth);
@@ -408,6 +417,9 @@ public class LevelStarter : MonoBehaviour
         PositionEndPoints(newWidth);
         GenerateBuildings();
     }
+    */
+    #endregion
+
 
     private void ResizeLevelModular()
     {
@@ -719,6 +731,8 @@ public class LevelStarter : MonoBehaviour
             $"lastTileX={startX + (tileCount - 1) * tileWidth + tileWidth / 2f:F3}");
     }
 
+    #region Deprecated Old Generation
+    /*
     private void GenerateModularBuildingsInRange(float startX, float endX)
     {
         if (structureGenerator == null)
@@ -773,7 +787,8 @@ public class LevelStarter : MonoBehaviour
         {
             GameLogger.Log("LEVEL", $"Generated {totalBuildings} buildings across {newWidth} units (density: {buildingDensityMultiplier:F1}x)");
         }
-    }
+    */
+    #endregion
 
     private void ClearClouds()
     {
@@ -863,6 +878,8 @@ public class LevelStarter : MonoBehaviour
         GameLogger.Log("LEVEL", $"Camera bounds resized: X=[{levelStartX:F2}, {levelEndX:F2}], Y=[{yMin:F2}, 100]");
     }
 
+    #region Deprecated Procedural Generation Utils (cont)
+    /*
     private void LayOutBackground()
     {
         if (backgroundTile == null || backgroundParent == null) return;
@@ -882,7 +899,11 @@ public class LevelStarter : MonoBehaviour
         if (school != null && groundReference != null)
             school.transform.position = new Vector3(levelWidth / 2f - 10f, groundReference.position.y + .5f, school.transform.position.z);
     }
+    */
+    #endregion
 
+
+    /*
     [ContextMenu("Start Procedural Level (Buildings)")]
     public void StartLevelInEditor()
     {
@@ -902,6 +923,7 @@ public class LevelStarter : MonoBehaviour
         ResizeLevel();
         if (spawnManager != null) spawnManager.InitializeAndSpawnPlayer();
     }
+    */
 
     [ContextMenu("Start Modular Level")]
     public void StartLevelModular()
