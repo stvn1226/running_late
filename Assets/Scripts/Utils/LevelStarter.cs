@@ -947,6 +947,33 @@ public class LevelStarter : MonoBehaviour
         ForceRegenerate();
     }
 
+#if UNITY_EDITOR
+    [ContextMenu("Debug: Generate Level (Editor)")]
+    public void DebugGenerateLevelInEditor()
+    {
+        ResolveDifficultyConfig();
+        InitializeSeed();
+        
+        if (useModularGeneration)
+        {
+            if (autoClearStructures) ClearModules();
+            ResizeLevelModular();
+            GameLogger.Log("LEVEL DEBUG", $"Successfully generated Modular level in Editor with seed {currentSeed}");
+        }
+        else
+        {
+            GameLogger.LogWarning("LEVEL DEBUG", "Editor debugging is primarily for Modular Generation. Enable 'useModularGeneration'.");
+        }
+    }
+
+    [ContextMenu("Debug: Clear Level (Editor)")]
+    public void DebugClearLevelInEditor()
+    {
+        ClearModules();
+        GameLogger.Log("LEVEL DEBUG", "Cleared all generated level content from Editor.");
+    }
+#endif
+
     public bool HasGeneratedLevel => hasGenerated;
     public int GetLevelWidth() => newWidth;
     public int GetModuleCount() => numberOfModules;

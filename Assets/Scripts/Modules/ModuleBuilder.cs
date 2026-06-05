@@ -397,4 +397,67 @@ public class ModuleBuilder : MonoBehaviour
             placementTracker = transform.Find("PlacementTracker");
         }
     }
+
+    [Header("Editor Debug Options")]
+    public bool showDebugBounds = true;
+    public Color roadDebugColor = new Color(1f, 0.4f, 0f, 0.2f);
+    public Color sidewalkDebugColor = new Color(0f, 0.8f, 1f, 0.2f);
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (moduleConfig == null || !showDebugBounds) return;
+
+        float configWidth = moduleConfig.currentTerrainWidth;
+        // Use minTerrainHeight to show the base logical height of the module's terrain
+        float logicalHeight = Mathf.Max(1, moduleConfig.minTerrainHeight) * moduleConfig.groundBlockHeight;
+        Vector3 startPos = transform.position;
+
+        // Determine color
+        Color baseColor = isElevatedSidewalk ? sidewalkDebugColor : roadDebugColor;
+        
+        // Logical bounds center and size
+        // LevelStarter instantiates modules at their CENTER horizontally.
+        // Vertically, they start at transform.position and build upwards, but sprites hang downwards.
+        // To accurately represent the logical space, we center X, and span Y downwards by one groundBlockHeight, and upwards.
+        float gbh = moduleConfig.groundBlockHeight;
+        Vector3 boxCenter = startPos + new Vector3(0, (logicalHeight / 2f) - gbh, 0); 
+        Vector3 boxSize = new Vector3(configWidth, logicalHeight, 1f);
+
+        // Draw solid box
+        Gizmos.color = baseColor;
+        Gizmos.DrawCube(boxCenter, boxSize);
+
+        // Draw wireframe border (fully opaque version of the color)
+        Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
+        Gizmos.DrawWireCube(boxCenter, boxSize);
+
+        // Draw simple start/end lines that extend a bit up for visibility
+        Gizmos.DrawLine(startPos + new Vector3(-configWidth / 2f, -5f, 0), startPos + new Vector3(-configWidth / 2f, logicalHeight + 5f, 0));
+        Gizmos.DrawLine(startPos + new Vector3(configWidth / 2f, -5f, 0), startPos + new Vector3(configWidth / 2f, logicalHeight + 5f, 0));
+
+        // Draw Width text
+        GUIStyle style = new GUIStyle();
+        style.normal.textColor = Gizmos.color;
+        style.fontSize = 12;
+        style.fontStyle = FontStyle.Bold;
+        style.alignment = TextAnchor.MiddleCenter;
+        UnityEditor.Handles.Label(startPos + new Vector3(0, logicalHeight + 1f, 0), $"{(isElevatedSidewalk ? "SW" : "RD")}: {configWidth}", style);
+    }
+
+    [ContextMenu("Preview Terrain (Real Objects)")]
+    public void PreviewTerrainInEditor()
+    {
+        ClearGeneratedContent();
+        if (placementTracker != null) placementTracker.position = transform.position;
+        // Generate with min height so it exactly matches the gizmo preview
+        GenerateBaseTerrain(moduleConfig.minTerrainHeight, false, 0, null);
+    }
+
+    [ContextMenu("Clear Preview")]
+    public void ClearPreview()
+    {
+        ClearGeneratedContent();
+    }
+#endif
 }
