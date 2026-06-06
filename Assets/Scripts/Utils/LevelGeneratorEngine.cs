@@ -252,24 +252,28 @@ public class LevelGeneratorEngine
             bool inEndZone = remaining < 40f;
             if (inEndZone)
             {
-                if (currentH > roadElev + 1 && slopeCooldown == 0)
+                if (currentH > roadElev + 1)
                     nextH = currentH - 1;
-                else if (currentH < roadElev + 1 && slopeCooldown == 0)
+                else if (currentH < roadElev + 1)
                     nextH = currentH + 1; 
             }
             else 
             {
-                if (currentH > roadElev + sidewalkMaxRelHeight && slopeCooldown == 0)
-                {
+                if (currentH > roadElev + sidewalkMaxRelHeight)
                     nextH = currentH - 1; 
-                }
-                else if (currentH < roadElev + 1 && slopeCooldown == 0)
-                {
+                else if (currentH < roadElev + 1)
                     nextH = currentH + 1; 
-                }
-                else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.25f)
-                {
+                else if (slopeCooldown <= 0 && segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.25f)
                     nextH = UnityEngine.Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), roadElev + 1, roadElev + sidewalkMaxRelHeight);
+            }
+
+            ModuleBuilder bestFit = null;
+            if (nextH == currentH)
+            {
+                bestFit = GetBestFitSidewalk(blueprint, sidewalkModules, remaining, currentX, currentH, 1);
+                if (bestFit == null) 
+                {
+                    nextH = currentH + 1;
                 }
             }
 
@@ -295,9 +299,6 @@ public class LevelGeneratorEngine
             }
             else
             {
-                ModuleBuilder bestFit = GetBestFit(sidewalkModules, remaining);
-                if (bestFit == null) break;
-
                 float pieceW = bestFit.moduleConfig.currentTerrainWidth;
                 blueprint.SidewalkTrack.Segments.Add(new SegmentData {
                     Template = bestFit,
@@ -379,19 +380,84 @@ public class LevelGeneratorEngine
         return 0;
     }
 
+    private static int GetMaxRoadElevationInRange(LevelBlueprint blueprint, float startX, float endX)
+    {
+        int maxElev = -999;
+        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+        {
+            foreach (var rSeg in blueprint.RoadTrack.Segments)
+            {
+                if (rSeg.X_Position < endX && rSeg.X_Position + rSeg.Width > startX)
+                {
+                    if (rSeg.Y_Elevation > maxElev) maxElev = rSeg.Y_Elevation;
+                }
+            }
+        }
+        return maxElev == -999 ? 0 : maxElev;
+    }
+
+    private static ModuleBuilder GetBestFitSidewalk(LevelBlueprint blueprint, ModuleBuilder[] options, float remainingSpace, float currentX, int currentH, int minClearance)
+    {
+        if (options == null || options.Length == 0) return null;
+        
+        System.Collections.Generic.List<ModuleBuilder> validOptions = new System.Collections.Generic.List<ModuleBuilder>();
+        ModuleBuilder smallestBlock = options[0];
+        float minW = float.MaxValue;
+
+        for (int i = 0; i < options.Length; i++) {
+            if (options[i] != null) {
+                float w = options[i].moduleConfig.currentTerrainWidth;
+                if (w < minW) {
+                    minW = w;
+                    smallestBlock = options[i];
+                }
+
+                if (w <= remainingSpace + 0.1f) {
+                    int maxRoad = GetMaxRoadElevationInRange(blueprint, currentX, currentX + w - 0.1f);
+                    if (currentH >= maxRoad + minClearance) {
+                        validOptions.Add(options[i]);
+                    }
+                }
+            }
+        }
+        
+        if (validOptions.Count > 0) {
+            return validOptions[UnityEngine.Random.Range(0, validOptions.Count)];
+        }
+
+        // If no block fits perfectly, and we are just trying to close a tiny gap (< 16f)
+        if (remainingSpace < 16f) {
+            return smallestBlock; // Force the smallest block to minimize overshoot
+        }
+
+        return null; // Force slope UP to avoid collision
+    }
+
     private static ModuleBuilder GetBestFit(ModuleBuilder[] options, float remainingSpace)
     {
         if (options == null || options.Length == 0) return null;
         
-        // 0=Short, 1=Medium, 2=Wide. 
-        // Priority for wider modules to minimize gaps.
-        if (options.Length >= 3)
-        {
-            if (remainingSpace >= options[2].moduleConfig.currentTerrainWidth) return options[2];
-            if (remainingSpace >= options[1].moduleConfig.currentTerrainWidth) return options[1];
-            return options[0];
+        System.Collections.Generic.List<ModuleBuilder> validOptions = new System.Collections.Generic.List<ModuleBuilder>();
+        for (int i = 0; i < options.Length; i++) {
+            if (options[i] != null && options[i].moduleConfig.currentTerrainWidth <= remainingSpace + 0.1f) {
+                validOptions.Add(options[i]);
+            }
         }
         
-        return options[Random.Range(0, options.Length)];
+        if (validOptions.Count > 0) {
+            return validOptions[UnityEngine.Random.Range(0, validOptions.Count)];
+        }
+        
+        // Fallback: Si el espacio restante es demasiado pequeño para cualquier módulo,
+        // devolvemos el más pequeño para no pasarnos por mucho.
+        ModuleBuilder smallest = options[0];
+        float minW = float.MaxValue;
+        foreach (var opt in options) {
+            if (opt != null && opt.moduleConfig.currentTerrainWidth < minW) {
+                minW = opt.moduleConfig.currentTerrainWidth;
+                smallest = opt;
+            }
+        }
+        return smallest;
     }
 }
