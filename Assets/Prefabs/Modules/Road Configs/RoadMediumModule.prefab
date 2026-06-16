@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 467d10ce7cc8f9b419ca8b73e0a6aa6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModuleBuilder
-  moduleConfig: {fileID: 11400000, guid: fd907f67a355b1a47a342c8db56a6977, type: 2}
+  moduleConfig: {fileID: 11400000, guid: df2e422e9a7284973a023a0499615a47, type: 2}
   foundation: {fileID: 5459795039267898788, guid: e42d28aa17abe450a8506f7344a6aa9b, type: 3}
   padding: {fileID: 8230712593223447874, guid: e29140a9fd7d145599f1c774937afaa7, type: 3}
   buildingPrefabs: []
@@ -133,6 +133,9 @@ MonoBehaviour:
   paddingZOffset: 5
   obstacleZOffset: -1.5
   baseLevelHeight: 1
+  showDebugBounds: 1
+  roadDebugColor: {r: 1, g: 0.4, b: 0, a: 0.2}
+  sidewalkDebugColor: {r: 0, g: 0.8, b: 1, a: 0.2}
 --- !u!1 &5535529505398825030
 GameObject:
   m_ObjectHideFlags: 0
