@@ -378,6 +378,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[5].Sounds.Array.data[0].Clip
+      value: 
+      objectReference: {fileID: 8300000, guid: fc2fe219e053c4b8590085168449a33b, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
       propertyPath: AllCollections.Array.data[12].Sounds.Array.data[0].Clip
       value: 
       objectReference: {fileID: 8300000, guid: 93a715c59963643f8bb6379842ab9e75, type: 3}
@@ -401,6 +405,10 @@ PrefabInstance:
       propertyPath: AllCollections.Array.data[16].Sounds.Array.data[0].Clip
       value: 
       objectReference: {fileID: 8300000, guid: 2d8750fe66e384f8f8dc4e7ad7022caf, type: 3}
+    - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
+      propertyPath: AllCollections.Array.data[5].Sounds.Array.data[0].Volume
+      value: 0.833
+      objectReference: {fileID: 0}
     - target: {fileID: 9115372129263079274, guid: 2f7c25bb855e040ce89da4b7cba89c26, type: 3}
       propertyPath: AllCollections.Array.data[12].Sounds.Array.data[0].Volume
       value: 0.706
