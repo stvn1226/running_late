@@ -55,7 +55,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioMixerGroup musicMixerGroup;
 
     public const float InvincibilityLayerBaseVolume = 0.01f;
-    public const float InvincibilityLayerActiveVolume = 0.6f;
+    public const float InvincibilityLayerActiveVolume = 0.8f;
 
     private Dictionary<SoundType, SoundCollection> _soundDictionary = new Dictionary<SoundType, SoundCollection>();
     private AudioSource _musicSource;

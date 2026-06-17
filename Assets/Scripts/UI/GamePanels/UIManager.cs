@@ -118,10 +118,12 @@ public class UIManager : MonoBehaviour
         if (currentActivePanel == pauseMenuPanel)
         {
             HideAllPanels();
+            // AudioManager.Instance?.SetVolume(AudioManager.SoundType.MusicLevel, 0.5f);
         }
         else if (currentActivePanel == null)
         {
             ShowPanel<PauseMenuPanel>();
+            // AudioManager.Instance?.SetVolume(AudioManager.SoundType.MusicLevel, 0.3f);
         }
     }
     
@@ -246,7 +248,7 @@ public class UIManager : MonoBehaviour
             SetInputContext(true);
             Time.timeScale = 0f;
             
-            AudioManager.Instance?.StopMusic();
+            AudioManager.Instance?.StopAll();
             AudioManager.Instance?.Play(AudioManager.SoundType.MusicVictory);
             
             GameLogger.Log("UI", "Victory panel shown");
@@ -276,7 +278,7 @@ public class UIManager : MonoBehaviour
             SetInputContext(true);
             Time.timeScale = 0f;
             
-            AudioManager.Instance?.StopMusic();
+            AudioManager.Instance?.StopAll();
             AudioManager.Instance?.Play(AudioManager.SoundType.MusicDefeat);
             
             GameLogger.Log("UI", "Defeat panel shown");

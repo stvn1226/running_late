@@ -130,7 +130,7 @@ public class StartCountdownController : MonoBehaviour
 
         yield return new WaitForSeconds(1.1f); // Small delay to ensure "GO!" sound plays
         AudioManager.Instance?.Play(AudioManager.SoundType.MusicLevel);
-    
+        AudioManager.Instance?.Play(AudioManager.SoundType.MusicInvincibility);
 
         isCountingDown = false;
     
