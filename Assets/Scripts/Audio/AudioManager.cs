@@ -81,23 +81,23 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    public void Play(SoundType type)
+    public Sound Play(SoundType soundType)
     {
-        if (!_soundDictionary.TryGetValue(type, out SoundCollection collection))
+        if (!_soundDictionary.TryGetValue(soundType, out SoundCollection collection))
         {
-            GameLogger.LogWarning("Audio", $"Sound type {type} not found!");
-            return;
+            GameLogger.LogWarning("Audio", $"Sound type {soundType} not found!");
+            return null;
         }
 
         if (collection.Sounds == null || collection.Sounds.Count == 0)
         {
-            GameLogger.LogWarning("Audio", $"Sound collection {type} is empty!");
-            return;
+            GameLogger.LogWarning("Audio", $"Sound collection {soundType} is empty!");
+            return null;
         }
 
         Sound s = collection.Sounds[Random.Range(0, collection.Sounds.Count)];
 
-        var soundObj = new GameObject($"Sound_{type}");
+        var soundObj = new GameObject($"Sound_{soundType}");
         soundObj.transform.SetParent(transform);
         var audioSrc = soundObj.AddComponent<AudioSource>();
 
@@ -117,6 +117,7 @@ public class AudioManager : MonoBehaviour
         audioSrc.Play();
 
         StartCoroutine(DestroyAfterPlay(soundObj, s.Clip.length + 0.1f));
+        return s;
     }
 
     private IEnumerator DestroyAfterPlay(GameObject soundObj, float delay)
@@ -125,17 +126,17 @@ public class AudioManager : MonoBehaviour
         Destroy(soundObj);
     }
 
-    public void ChangeMusic(SoundType type)
+    public void ChangeMusic(SoundType soundType)
     {
-        if (!_soundDictionary.TryGetValue(type, out SoundCollection collection))
+        if (!_soundDictionary.TryGetValue(soundType, out SoundCollection collection))
         {
-            GameLogger.LogWarning("Audio", $"Music track {type} not found!");
+            GameLogger.LogWarning("Audio", $"Music track {soundType} not found!");
             return;
         }
 
         if (collection.Sounds == null || collection.Sounds.Count == 0)
         {
-            GameLogger.LogWarning("Audio", $"Music collection {type} is empty!");
+            GameLogger.LogWarning("Audio", $"Music collection {soundType} is empty!");
             return;
         }
 
@@ -164,12 +165,12 @@ public class AudioManager : MonoBehaviour
         _musicSource.volume = track.Volume;
         _musicSource.Play();
 
-        if (type == SoundType.MusicLevel)
+        if (soundType == SoundType.MusicLevel)
             StartInvincibilityLayer();
         else
             StopInvincibilityLayer();
         
-        GameLogger.Log("Audio", $"Music changed to {type}");
+        GameLogger.Log("Audio", $"Music changed to {soundType}");
     }
 
     /// <summary>

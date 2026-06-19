@@ -73,6 +73,7 @@ public class StartCountdownController : MonoBehaviour
     
     private IEnumerator CountdownSequence()
     {
+        AudioManager.Sound cdSound = null;
         isCountingDown = true;
     
         GameLogger.Log("COUNTDOWN", $"Waiting {delayBeforeFreeze}s for level generation...");
@@ -89,7 +90,8 @@ public class StartCountdownController : MonoBehaviour
     
         if (playCountdownSounds)
         {
-            AudioManager.Instance?.Play(AudioManager.SoundType.CDNumbers);
+            cdSound = AudioManager.Instance?.Play(AudioManager.SoundType.CDNumbers);
+            
         }
 
         for (int i = countdownFrom; i > 0; i--)
@@ -128,9 +130,9 @@ public class StartCountdownController : MonoBehaviour
             countdownPanel.SetActive(false);
         }
 
-        yield return new WaitForSeconds(1.1f); // Small delay to ensure "GO!" sound plays
-        AudioManager.Instance?.Play(AudioManager.SoundType.MusicLevel);
-        AudioManager.Instance?.Play(AudioManager.SoundType.MusicInvincibility);
+        if (cdSound != null) yield return new WaitForSeconds(cdSound.Clip.length - 7.5f); // Small delay to ensure "GO!" sound plays
+        AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicLevel);
+        // AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicInvincibility);
 
         isCountingDown = false;
     
