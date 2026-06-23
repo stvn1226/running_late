@@ -46,9 +46,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 467d10ce7cc8f9b419ca8b73e0a6aa6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModuleBuilder
-  moduleConfig: {fileID: 11400000, guid: b7c3d4e5f6a7890bcde1234fa5678901, type: 2}
+  moduleConfig: {fileID: 11400000, guid: fbc64c73806a74bbbad13cb894827431, type: 2}
   foundation: {fileID: 8856878149859669530, guid: 4e1cc059c311f4d2a8601a8c8fb6b192, type: 3}
   padding: {fileID: 6928913078012351984, guid: c3c63efa7d73c45a395f0376ff5cb30c, type: 3}
+  basePadding: {fileID: 0}
   buildingPrefabs: []
   placementTracker: {fileID: 5282472024052771340}
   buildingSpawnPoints: []
@@ -66,6 +67,9 @@ MonoBehaviour:
   paddingZOffset: 5
   obstacleZOffset: -1.5
   baseLevelHeight: 1
+  showDebugBounds: 1
+  roadDebugColor: {r: 1, g: 0.4, b: 0, a: 0.2}
+  sidewalkDebugColor: {r: 0, g: 0.8, b: 1, a: 0.2}
 --- !u!1 &5767255399441797804
 GameObject:
   m_ObjectHideFlags: 0

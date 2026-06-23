@@ -207,6 +207,20 @@ public class LevelGeneratorEngine
         float targetStartRampX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width + singleSpace;
         float targetEndRampX = blueprint.SchoolAnchor.X_Position - singleSpace - endRampWidth;
 
+        // Ensure the end ramp is placed perfectly on top of a FLAT road segment of matching width.
+        // Otherwise, it might be placed on top of a road slope, creating a visual gap and height mismatch.
+        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+        {
+            for (int i = blueprint.RoadTrack.Segments.Count - 1; i >= 0; i--)
+            {
+                var rSeg = blueprint.RoadTrack.Segments[i];
+                if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope) {
+                    targetEndRampX = rSeg.X_Position;
+                    break;
+                }
+            }
+        }
+
         float startRampX = targetStartRampX;
         
         if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
@@ -241,6 +255,8 @@ public class LevelGeneratorEngine
         int slopeCooldown = 0;
         int segmentsCreated = 0;
 
+        int targetRoadElev = GetRoadElevationAt(blueprint, targetEndRampX);
+
         while (currentX < targetEndRampX)
         {
             float remaining = targetEndRampX - currentX;
@@ -249,13 +265,23 @@ public class LevelGeneratorEngine
             int roadElev = GetRoadElevationAt(blueprint, currentX);
             int nextH = currentH;
             
-            bool inEndZone = remaining < 40f;
+            int targetH = targetRoadElev + 1;
+            int diff = Mathf.Abs(currentH - targetH);
+            float panicThreshold = diff * 15f; // Reserve 15 units of space per level we need to drop
+            
+            bool inEndZone = remaining < 100f;
             if (inEndZone)
             {
-                if (currentH > roadElev + 1)
-                    nextH = currentH - 1;
-                else if (currentH < roadElev + 1)
-                    nextH = currentH + 1; 
+                if (currentH > targetH)
+                {
+                    if (slopeCooldown <= 0 || remaining <= panicThreshold) 
+                        nextH = currentH - 1;
+                }
+                else if (currentH < targetH)
+                {
+                    if (slopeCooldown <= 0 || remaining <= panicThreshold) 
+                        nextH = currentH + 1;
+                }
             }
             else 
             {

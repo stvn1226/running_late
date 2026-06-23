@@ -81,6 +81,7 @@ MonoBehaviour:
   moduleConfig: {fileID: 11400000, guid: ac0b2794d0d5deb4f8c0c4fc329796e8, type: 2}
   foundation: {fileID: 8683936979058533683, guid: 3876c3a25d1debd41b6fe0c54122cb2f, type: 3}
   padding: {fileID: 8683936979058533683, guid: 19f1a1e5f5e938349b6efc6aaaab018b, type: 3}
+  basePadding: {fileID: 0}
   buildingPrefabs:
   - {fileID: 3927706109960210463, guid: bb6934f4d62afb0469d35850f4e22433, type: 3}
   - {fileID: 3927706109960210463, guid: cb2d5d57318b0324092c8fbb41cfc2f9, type: 3}
@@ -163,7 +164,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8491166780575429206}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

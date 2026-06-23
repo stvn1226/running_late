@@ -107,7 +107,9 @@ public class LevelStarter : MonoBehaviour
     public Transform groundReference;
     public SpriteRenderer[] background;
     public GameObject home;
+    public float homeYOffset = 0.5f;
     public GameObject school;
+    public float schoolYOffset = 0.5f;
     public int minLevelWidth = 1000;
     public int maxLevelWidth = 2000;
     public bool autoClearStructures = true;
@@ -472,7 +474,7 @@ public class LevelStarter : MonoBehaviour
         // 1. Render House
         float homeCenter = blueprint.HouseAnchor.X_Position + (blueprint.HouseAnchor.Width / 2f);
         SpawnModularSegment(blueprint.HouseAnchor.Template, homeCenter, baseY, 0f, baselineH, blueprint.HouseAnchor.Label, false, false, false);
-        if (home != null) home.transform.position = new Vector3(homeCenter, baseY + 0.5f, home.transform.position.z);
+        if (home != null) home.transform.position = new Vector3(homeCenter, baseY + homeYOffset, home.transform.position.z);
 
         // 2. Render Road Track — with EndConnectionAudit for last 5
         int totalRoadSegs = blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null ? blueprint.RoadTrack.Segments.Count : 0;
@@ -485,7 +487,7 @@ public class LevelStarter : MonoBehaviour
                 if (isNearEnd)
                 {
                     string rCfg = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.name : "NULL";
-                    int rGbh = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.groundBlockHeight : -1;
+                    float rGbh = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.groundBlockHeight : -1f;
                     int rAbsH = baselineH + rseg.Y_Elevation;
                     float rExpectedTopY = rGbh > 0 ? baseY + rAbsH * rGbh : -999f;
                     GameLogger.Log("EndConnectionAudit",
@@ -521,8 +523,7 @@ public class LevelStarter : MonoBehaviour
 
             float rampCenter = ramp.X_Position + (ramp.Width / 2f);
 
-            // Resolve groundBlockHeight from the ramp prefab itself.
-            int gbh = ramp.Template.moduleConfig != null ? ramp.Template.moduleConfig.groundBlockHeight : 3;
+            float gbh = ramp.Template.moduleConfig != null ? ramp.Template.moduleConfig.groundBlockHeight : 3f;
 
             // Y: the road surface at this elevation.
             // Road transform is always baseY; road top = baseY + (baselineH + roadElev - 1) * gbh.
@@ -541,7 +542,7 @@ public class LevelStarter : MonoBehaviour
         // 5. Render School
         float schoolCenter = blueprint.SchoolAnchor.X_Position + (blueprint.SchoolAnchor.Width / 2f);
         SpawnModularSegment(blueprint.SchoolAnchor.Template, schoolCenter, baseY, 0f, baselineH, blueprint.SchoolAnchor.Label, false, false, false, 0);
-        if (school != null) school.transform.position = new Vector3(schoolCenter, baseY + 0.5f, school.transform.position.z);
+        if (school != null) school.transform.position = new Vector3(schoolCenter, baseY + schoolYOffset, school.transform.position.z);
     }
 
     private void RenderSidewalkTrack(LevelBlueprint blueprint, float baseY, int baselineH)
@@ -563,7 +564,7 @@ public class LevelStarter : MonoBehaviour
             float originalWidth = (seg.Template != null && seg.Template.moduleConfig != null) ? seg.Template.moduleConfig.currentTerrainWidth : seg.Width;
             float center = seg.X_Position + (originalWidth / 2f);
             int absH = baselineH + seg.Y_Elevation;
-            int gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : 3;
+            float gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : 3f;
             bool isSidewalk = z != 0f;
             float segTransformY = baseY + seg.RoadElevationAtX * gbh; // Used primarily by OLD PATH sidewalk
 

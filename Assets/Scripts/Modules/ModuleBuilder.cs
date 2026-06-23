@@ -9,6 +9,8 @@ public class ModuleBuilder : MonoBehaviour
     [Header("Building Materials")]
     public GameObject foundation;
     public GameObject padding;
+    [Tooltip("Optional. If assigned, 'padding' is used only once right below the foundation, and this basePadding repeats for the rest of the depth.")]
+    public GameObject basePadding;
     public StructureBuilder[] buildingPrefabs;
 
     [Header("Spawn Points")]
@@ -128,7 +130,7 @@ public class ModuleBuilder : MonoBehaviour
         Vector3 startPos = placementTracker.position;
 
         // [BuildingAudit] — terrain entry snapshot
-        int gbhForLog = moduleConfig != null ? moduleConfig.groundBlockHeight : -1;
+        float gbhForLog = moduleConfig != null ? moduleConfig.groundBlockHeight : -1f;
         bool shouldOmitForLog = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
         GameLogger.Log("BuildingAudit",
             $"[TerrainEntry] Segment={gameObject.name} " +
@@ -146,9 +148,12 @@ public class ModuleBuilder : MonoBehaviour
         int paddingBlocksSpawned = 0;
         for (int i = 0; i < groundBlocksCount - 1; i++)
         {
-            if (padding != null)
+            bool isTopPadding = (i == groundBlocksCount - 2);
+            GameObject prefabToUse = (basePadding != null && !isTopPadding) ? basePadding : padding;
+
+            if (prefabToUse != null)
             {
-                GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
+                GameObject paddingBlock = Instantiate(prefabToUse, placementTracker.position, Quaternion.identity, transform);
                 paddingBlock.name = $"Padding_{i}";
                 paddingBlocksSpawned++;
                 
@@ -202,13 +207,13 @@ public class ModuleBuilder : MonoBehaviour
                 // Tracker advances only when foundation was actually placed.
                 // For elevated sidewalk with shouldOmit=true, tracker stays at transform.position.y
                 // so buildings spawn on the actual surface, not one groundBlockHeight above it.
-                placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+                placementTracker.position += Vector3.up * (moduleConfig.groundBlockHeight / 2f);
             }
             else if (!isElevatedSidewalk)
             {
                 // Road path: shouldOmit is always false here (isElevatedSidewalk=false),
                 // but guard this branch explicitly so Road never regresses.
-                placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+                placementTracker.position += Vector3.up * (moduleConfig.groundBlockHeight / 2f);
             }
         }
 
@@ -327,7 +332,7 @@ public class ModuleBuilder : MonoBehaviour
                     // It fits! Spawn it.
                     Vector3 spawnPosition = new Vector3(
                         spawnPoint.position.x,
-                        placementTracker.position.y,
+                        placementTracker.position.y + spawnPoint.localPosition.y,
                         spawnPoint.position.z
                     );
 

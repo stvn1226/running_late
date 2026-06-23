@@ -6,12 +6,12 @@ public class ModulePlan : ScriptableObject
     [Header("Base Terrain")]
     public int minTerrainHeight = 1;
     public int maxTerrainHeight = 5;
-    public int currentTerrainWidth = 10;
+    public float currentTerrainWidth = 10f;
 
     [Tooltip("Cuántas unidades de Unity equivale 1 bloque de altura.\n" +
              "Este valor afecta TODO: terreno, obstáculos voladores y la escala visual.\n" +
              "Coordinarlo con 'blocksPerDesignerUnit' en LevelStarter.")]
-    public int groundBlockHeight = 3;
+    public float groundBlockHeight = 3f;
 
     [Header("Building Generation")]
     [Range(1, 10)]

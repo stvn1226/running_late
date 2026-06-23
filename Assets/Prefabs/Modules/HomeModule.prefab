@@ -356,6 +356,7 @@ MonoBehaviour:
   moduleConfig: {fileID: 11400000, guid: 5e9066bfc8325ab4baa558821af20afb, type: 2}
   foundation: {fileID: 8683936979058533683, guid: 87d6e9f11344a46ed80d8e6f0ad23f20, type: 3}
   padding: {fileID: 8683936979058533683, guid: 53f2cfda983b54f508d79e857db36ef5, type: 3}
+  basePadding: {fileID: 0}
   buildingPrefabs: []
   placementTracker: {fileID: 9168961235274905915}
   buildingSpawnPoints: []
@@ -3670,7 +3671,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2104477312145499864, guid: f9e66b8528ca3f447bd4bce5de71d629, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.4
+      value: 1.7
       objectReference: {fileID: 0}
     - target: {fileID: 2104477312145499864, guid: f9e66b8528ca3f447bd4bce5de71d629, type: 3}
       propertyPath: m_LocalPosition.z

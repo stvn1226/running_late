@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4192140394541015233}
   - component: {fileID: 4972974535986136186}
   m_Layer: 7
-  m_Name: Collider (1)
+  m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -79,10 +79,10 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 13, y: -4.5}
-      - {x: -10.5, y: 4.5}
-      - {x: -13.4, y: 4.5}
-      - {x: -13.4, y: -4.5}
+    - - {x: 9.5, y: -1.7}
+      - {x: -8.3, y: 1.7}
+      - {x: -9.5, y: 1.7}
+      - {x: -9.5, y: -1.7}
   m_UseDelaunayMesh: 0
 --- !u!251 &4972974535986136186
 PlatformEffector2D:
@@ -162,7 +162,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4264178664767549741}
@@ -216,12 +216,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1369113319051600354, guid: 56552462c3e384515b43986efd06ba0e, type: 3}
+  m_Sprite: {fileID: 719930572736197576, guid: e2abdc7e3e2df43e190cd25a600eb6a9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: -26.65564, y: 8.694933}
+  m_Size: {x: 19.05, y: 3.382}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
