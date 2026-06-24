@@ -72,7 +72,9 @@ public class LevelGeneratorEngine
         int roadMaxHeight,
         int sidewalkMaxRelHeight,
         int seed,
-        bool logDualLayer = false)
+        bool logDualLayer = false,
+        LevelPathMode pathMode = LevelPathMode.DualPath,
+        FloorTheme theme = null)
     {
         // Initialize seed for deterministic generation
         Random.InitState(seed);
@@ -82,14 +84,26 @@ public class LevelGeneratorEngine
         // Pass 1: Anchors (House & School)
         Pass1_SetAnchors(blueprint, houseModule, schoolModule, targetLengthUnits);
 
-        // Pass 2: Road with Elevations
-        Pass2_GenerateRoad(blueprint, roadModules, roadSlopeLeft, roadSlopeRight, safeZoneModules, roadMaxHeight);
+        if (pathMode == LevelPathMode.DualPath)
+        {
+            // Pass 2: Road with Elevations
+            Pass2_GenerateRoad(blueprint, roadModules, roadSlopeLeft, roadSlopeRight, safeZoneModules, roadMaxHeight);
 
-        // Pass 3: Sidewalk (synced to road) + Interlayer connection ramps
-        Pass3_GenerateSidewalk(blueprint, sidewalkModules, slopeLeft, slopeRight, interlayerSlopeLeft, interlayerSlopeRight, safeZoneModules, sidewalkMaxRelHeight, logDualLayer);
+            // Pass 3: Sidewalk (synced to road) + Interlayer connection ramps
+            Pass3_GenerateSidewalk(blueprint, sidewalkModules, slopeLeft, slopeRight, interlayerSlopeLeft, interlayerSlopeRight, safeZoneModules, sidewalkMaxRelHeight, logDualLayer);
 
-        // Pass 4: Finalize Obstacles
-        Pass4_FinalizeObstacles(blueprint);
+            // Pass 4: Finalize Obstacles
+            Pass4_FinalizeObstacles(blueprint);
+        }
+        else if (pathMode == LevelPathMode.SingleSidewalk)
+        {
+            // Use Pass2's continuous logic but store in SidewalkTrack and use Theme assets
+            ModuleBuilder[] currentFlats = theme != null && theme.flatModules != null && theme.flatModules.Length > 0 ? theme.flatModules : sidewalkModules;
+            ModuleBuilder currentSlopeL = theme != null && theme.slopeLeftModule != null ? theme.slopeLeftModule : slopeLeft;
+            ModuleBuilder currentSlopeR = theme != null && theme.slopeRightModule != null ? theme.slopeRightModule : slopeRight;
+
+            Pass2_GenerateSingleSidewalk(blueprint, currentFlats, currentSlopeL, currentSlopeR, safeZoneModules, roadMaxHeight + sidewalkMaxRelHeight);
+        }
 
         return blueprint;
     }
@@ -186,6 +200,83 @@ public class LevelGeneratorEngine
                     Label            = "Road_Segment",
                     SpawnObstacles   = (segmentsCreated >= safeZoneModules),
                     MaxObstacleLevel = 3
+                });
+                currentX += pieceW;
+                segmentsCreated++;
+                if (slopeCooldown > 0) slopeCooldown--;
+            }
+        }
+        blueprint.SchoolAnchor.X_Position = currentX;
+        blueprint.TotalLength = currentX + blueprint.SchoolAnchor.Width;
+    }
+
+    private static void Pass2_GenerateSingleSidewalk(LevelBlueprint blueprint, ModuleBuilder[] flats, ModuleBuilder slopeUp, ModuleBuilder slopeDown, int safeZoneModules, int maxHeight)
+    {
+        float currentX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width;
+        float targetX = blueprint.SchoolAnchor.X_Position;
+        int segmentsCreated = 0;
+        int currentH = 0;
+        int slopeCooldown = 0; 
+
+        while (currentX < targetX)
+        {
+            float remaining = targetX - currentX;
+            if (remaining <= 0) break;
+
+            int nextH = currentH;
+
+            // Accidented rules: More frequent slopes in Single Mode
+            bool inEndZone = remaining < (35f + maxHeight * 60f);
+
+            if (inEndZone)
+            {
+                if (currentH > 0 && slopeCooldown == 0)
+                {
+                    nextH = currentH - 1;
+                }
+            }
+            else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.50f)
+            {
+                nextH = Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), 0, maxHeight);
+            }
+
+            if (nextH != currentH)
+            {
+                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
+                if (sTemplate != null)
+                {
+                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
+                    blueprint.SidewalkTrack.Segments.Add(new SegmentData {
+                        Template    = sTemplate,
+                        X_Position  = currentX,
+                        Y_Elevation = (nextH > currentH) ? nextH : currentH,
+                        Width       = sw,
+                        Label       = (nextH > currentH) ? "Sidewalk_Slope_Up" : "Sidewalk_Slope_Down",
+                        IsSlope     = true,
+                        SidewalkRelativeLevel = 0,
+                        RoadElevationAtX = 0
+                    });
+                    currentX += sw;
+                    slopeCooldown = 1; // Faster cooldown for more bumpy terrain
+                }
+                currentH = nextH;
+            }
+            else
+            {
+                ModuleBuilder bestFit = GetBestFit(flats, remaining);
+                if (bestFit == null) break;
+
+                float pieceW = bestFit.moduleConfig.currentTerrainWidth;
+                blueprint.SidewalkTrack.Segments.Add(new SegmentData {
+                    Template         = bestFit,
+                    X_Position       = currentX,
+                    Y_Elevation      = currentH,
+                    Width            = pieceW,
+                    Label            = "Sidewalk_Segment",
+                    SpawnObstacles   = (segmentsCreated >= safeZoneModules),
+                    MaxObstacleLevel = 3,
+                    SidewalkRelativeLevel = 0,
+                    RoadElevationAtX = 0
                 });
                 currentX += pieceW;
                 segmentsCreated++;

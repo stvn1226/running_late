@@ -4,6 +4,17 @@ using UnityEngine;
 using System;
 using Random = UnityEngine.Random;
 
+public enum LevelPathMode { DualPath, SingleSidewalk }
+
+[System.Serializable]
+public class FloorTheme
+{
+    public string themeId;
+    public ModuleBuilder[] flatModules;
+    public ModuleBuilder slopeLeftModule;
+    public ModuleBuilder slopeRightModule;
+}
+
 public class LevelStarter : MonoBehaviour
 {
     [Header("Level Generation Settings")]
@@ -13,6 +24,11 @@ public class LevelStarter : MonoBehaviour
 
     [Header("Generation Mode")]
     [SerializeField] private bool useModularGeneration = true;
+    public LevelPathMode pathMode = LevelPathMode.DualPath;
+
+    [Header("Single Sidewalk Mode Themes")]
+    public List<FloorTheme> sidewalkThemes;
+    public string forcedThemeId = "";
 
     [Header("Difficulty Configuration Lists")]
     public List<DifficultyConfig> desktopConfigs; // PC, Console, Web
@@ -432,6 +448,20 @@ public class LevelStarter : MonoBehaviour
         numberOfModules = Random.Range(minModules, maxModules);
         InitializeSeed();
 
+        FloorTheme selectedTheme = null;
+        if (pathMode == LevelPathMode.SingleSidewalk && sidewalkThemes != null && sidewalkThemes.Count > 0)
+        {
+            if (!string.IsNullOrEmpty(forcedThemeId))
+            {
+                selectedTheme = sidewalkThemes.Find(t => t.themeId == forcedThemeId);
+            }
+            if (selectedTheme == null)
+            {
+                selectedTheme = sidewalkThemes[Random.Range(0, sidewalkThemes.Count)];
+            }
+            GameLogger.Log("LEVEL", $"Selected Theme: {selectedTheme.themeId}");
+        }
+
         // 1. GENERATE BLUEPRINT (PURE MATH)
         LevelBlueprint blueprint = LevelGeneratorEngine.GenerateBlueprint(
             homeModule,
@@ -449,7 +479,9 @@ public class LevelStarter : MonoBehaviour
             roadMaxHeight,
             sidewalkMaxRelativeHeight,
             currentSeed,
-            useRelativeSidewalkHeights  // logDualLayer: enables DualLayerData debug logs and is the Phase 3 gate
+            useRelativeSidewalkHeights,
+            pathMode,
+            selectedTheme
         );
 
         // 2. RENDER BLUEPRINT (PHYSICAL INSTANTIATION)
@@ -547,10 +579,17 @@ public class LevelStarter : MonoBehaviour
 
     private void RenderSidewalkTrack(LevelBlueprint blueprint, float baseY, int baselineH)
     {
-        // OLD PATH: the Y_Elevation in Pass3 already accounts for +1 (e.g., roadH_end + 1).
-        // We RESTORE sidewalkYOffset here because the user relies on it for the 1.5 unit vertical shift.
-        // And we pass absH = 1 inside RenderTrack implicitly by letting seg.Y_Elevation be 0 relative to road.
-        RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
+        if (pathMode == LevelPathMode.SingleSidewalk)
+        {
+            RenderTrack(blueprint.SidewalkTrack, baseY, baselineH, 0f);
+        }
+        else
+        {
+            // OLD PATH: the Y_Elevation in Pass3 already accounts for +1 (e.g., roadH_end + 1).
+            // We RESTORE sidewalkYOffset here because the user relies on it for the 1.5 unit vertical shift.
+            // And we pass absH = 1 inside RenderTrack implicitly by letting seg.Y_Elevation be 0 relative to road.
+            RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
+        }
     }
     private void RenderTrack(TrackBlueprint track, float baseY, int baselineH, float z)
     {
