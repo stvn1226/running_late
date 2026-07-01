@@ -158,6 +158,15 @@ public class LevelStarter : MonoBehaviour
         }
         Instance = this;
 
+        // Load PathMode from settings (0 = DualPath, 1 = SingleSidewalk)
+        // Default to DualPath (0) if not set
+        if (PlayerPrefs.HasKey("PathMode"))
+        {
+            int savedPathMode = PlayerPrefs.GetInt("PathMode", 0);
+            pathMode = (LevelPathMode)savedPathMode;
+            GameLogger.Log("LEVEL", $"Loaded PathMode from settings: {pathMode}");
+        }
+
         if (LevelManager.Instance != null)
         {
             LevelManager.Instance.OnLevelReplayStarted += OnLevelRestart;

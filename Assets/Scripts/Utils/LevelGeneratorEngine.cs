@@ -153,7 +153,7 @@ public class LevelGeneratorEngine
             int nextH = currentH;
 
             // Prevent any random slopes in the final descent zone to guarantee reaching 0
-            bool inEndZone = remaining < (35f + roadMaxHeight * 60f);
+            bool inEndZone = remaining < (100f + roadMaxHeight * 80f);
 
             if (inEndZone)
             {
@@ -298,16 +298,31 @@ public class LevelGeneratorEngine
         float targetStartRampX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width + singleSpace;
         float targetEndRampX = blueprint.SchoolAnchor.X_Position - singleSpace - endRampWidth;
 
-        // Ensure the end ramp is placed perfectly on top of a FLAT road segment of matching width.
-        // Otherwise, it might be placed on top of a road slope, creating a visual gap and height mismatch.
+        // Ensure the end ramp is placed perfectly on top of a FLAT road segment of matching width at BASE LEVEL (0).
+        // Otherwise, it might be placed on top of an elevated road slope, creating a visual gap and making the ramp float in the air.
+        bool foundEndSnap = false;
         if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
         {
             for (int i = blueprint.RoadTrack.Segments.Count - 1; i >= 0; i--)
             {
                 var rSeg = blueprint.RoadTrack.Segments[i];
-                if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope) {
+                if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope && rSeg.Y_Elevation == 0) {
                     targetEndRampX = rSeg.X_Position;
+                    foundEndSnap = true;
                     break;
+                }
+            }
+            
+            // Fallback just in case no base level segment is found
+            if (!foundEndSnap)
+            {
+                for (int i = blueprint.RoadTrack.Segments.Count - 1; i >= 0; i--)
+                {
+                    var rSeg = blueprint.RoadTrack.Segments[i];
+                    if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope) {
+                        targetEndRampX = rSeg.X_Position;
+                        break;
+                    }
                 }
             }
         }
@@ -360,7 +375,7 @@ public class LevelGeneratorEngine
             int diff = Mathf.Abs(currentH - targetH);
             float panicThreshold = diff * 15f; // Reserve 15 units of space per level we need to drop
             
-            bool inEndZone = remaining < 100f;
+            bool inEndZone = remaining < (100f + diff * 80f);
             if (inEndZone)
             {
                 if (currentH > targetH)
@@ -382,6 +397,38 @@ public class LevelGeneratorEngine
                     nextH = currentH + 1; 
                 else if (slopeCooldown <= 0 && segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.25f)
                     nextH = UnityEngine.Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), roadElev + 1, roadElev + sidewalkMaxRelHeight);
+            }
+
+            // Ensure the sidewalk slope is placed perfectly on top of a FLAT road segment.
+            // Otherwise, it creates a visual gap and height mismatch (same fix as 18357ed52 for end ramps).
+            if (nextH != currentH)
+            {
+                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
+                if (sTemplate != null)
+                {
+                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
+                    bool isRoadFlat = true;
+                    if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+                    {
+                        foreach (var rSeg in blueprint.RoadTrack.Segments)
+                        {
+                            float rSegWidth = rSeg.Template != null && rSeg.Template.moduleConfig != null ? rSeg.Template.moduleConfig.currentTerrainWidth : rSeg.Width;
+                            if (rSeg.X_Position < currentX + sw - 0.1f && rSeg.X_Position + rSegWidth > currentX + 0.1f)
+                            {
+                                if (rSeg.IsSlope)
+                                {
+                                    isRoadFlat = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isRoadFlat)
+                    {
+                        nextH = currentH; // Delay the slope until road is flat
+                    }
+                }
             }
 
             ModuleBuilder bestFit = null;

@@ -282,6 +282,15 @@ public class MainMenuController : MonoBehaviour
         }
     }
     
+    public void SetDualPathMode(bool isDualPath)
+    {
+        // 0 = DualPath, 1 = SingleSidewalk
+        int mode = isDualPath ? 0 : 1;
+        PlayerPrefs.SetInt("PathMode", mode);
+        PlayerPrefs.Save();
+        GameLogger.Log("MENU", $"PathMode set to {(isDualPath ? "DualPath" : "SingleSidewalk")}");
+    }
+    
     private IEnumerator LoadGameplayAndGenerate()
     {
         if (SceneLoader.Instance != null)

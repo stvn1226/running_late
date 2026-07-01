@@ -306,10 +306,12 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 8.3, y: 1.7}
-      - {x: -9.5, y: -1.7}
-      - {x: 9.5, y: -1.7}
-      - {x: 9.5, y: 1.7}
+    - - {x: 7.5, y: 2.45}
+      - {x: -9.5, y: -2.45}
+      - {x: -8, y: -2.45}
+      - {x: 7.35, y: 2}
+      - {x: 9.5, y: 2}
+      - {x: 9.5, y: 2.45}
   m_UseDelaunayMesh: 0
 --- !u!251 &59778999658496192
 PlatformEffector2D:
@@ -323,7 +325,7 @@ PlatformEffector2D:
   m_ColliderMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RotationalOffset: 21
+  m_RotationalOffset: 16.2
   m_UseOneWay: 1
   m_UseOneWayGrouping: 0
   m_SurfaceArc: 180

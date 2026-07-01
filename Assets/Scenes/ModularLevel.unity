@@ -4460,18 +4460,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1858603731}
     m_Modifications:
-    - target: {fileID: 1870206022501762731, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2408905490801099924, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 32.96
-      objectReference: {fileID: 0}
-    - target: {fileID: 4652321439637450971, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 22.960001
-      objectReference: {fileID: 0}
     - target: {fileID: 4657840017791338747, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -4512,57 +4500,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4880905878968973563, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -17.039999
-      objectReference: {fileID: 0}
-    - target: {fileID: 5683511657632016358, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5683511657632016358, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5694081473735472043, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 2.96
-      objectReference: {fileID: 0}
     - target: {fileID: 6099017266231502039, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
       propertyPath: m_Name
       value: Home_Mask
-      objectReference: {fileID: 0}
-    - target: {fileID: 6409431711836783487, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 12.96
-      objectReference: {fileID: 0}
-    - target: {fileID: 6464096530201902664, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.111
-      objectReference: {fileID: 0}
-    - target: {fileID: 6946952641642774848, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7352455114815866076, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7646438779373576269, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_Name
-      value: HomeTilemap
-      objectReference: {fileID: 0}
-    - target: {fileID: 8619635006443172244, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8649784322765992676, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8873813897757080260, guid: ab859f344d41748489fbbbc9c891728a, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4724,7 +4664,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 96584975612198468, guid: 84100c2d62b5a4b1ca9d2a8560255d49, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 137.47
+      value: 137.46997
       objectReference: {fileID: 0}
     - target: {fileID: 96584975612198468, guid: 84100c2d62b5a4b1ca9d2a8560255d49, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -5360,6 +5300,18 @@ MonoBehaviour:
   generateOnSceneReload: 1
   generationDelay: 0.01
   useModularGeneration: 1
+  pathMode: 1
+  sidewalkThemes:
+  - themeId: grass
+    flatModules:
+    - {fileID: 6877803549350271885, guid: 63374cc18876b47818c5b2ae23316a6b, type: 3}
+    - {fileID: 5979050493410814231, guid: 1c9cbcd0dcadb4d0499398517ed1e055, type: 3}
+    - {fileID: 3603241969965492453, guid: 6b92ab8f7b0f0455e925dada87565881, type: 3}
+    - {fileID: 4069502681158129930, guid: 6146b78f9190e4fb38a469abc2d8eb88, type: 3}
+    - {fileID: 4313241089442768526, guid: d86de1a42654f4ee089a04a9d0d0c19e, type: 3}
+    slopeLeftModule: {fileID: 2755476972544965116, guid: f2290d32c76e74c0cb8f5db1bcc917eb, type: 3}
+    slopeRightModule: {fileID: 5958189151317215206, guid: d334e6f56529246b7ac8e1bcca31495e, type: 3}
+  forcedThemeId: 
   desktopConfigs:
   - {fileID: 11400000, guid: 078358612fd0841289ce781868986331, type: 2}
   mobileConfigs:
@@ -5421,7 +5373,9 @@ MonoBehaviour:
   groundReference: {fileID: 0}
   background: []
   home: {fileID: 0}
+  homeYOffset: 0.5
   school: {fileID: 0}
+  schoolYOffset: 0.5
   minLevelWidth: 500
   maxLevelWidth: 600
   autoClearStructures: 1
