@@ -6,6 +6,12 @@ public class Defeat : MonoBehaviour
     [Header("Time Settings")]
     [SerializeField] private float timeLimit = 120f;
 
+#if UNITY_EDITOR
+    [Header("Editor Testing (Won't affect build)")]
+    [SerializeField, Tooltip("Set this to a high number (e.g. 9999) to test without time running out. 0 means use normal timeLimit.")]
+    private float editorTimeOverride = 0f;
+#endif
+
     [Header("Visual Timer")]
     [SerializeField] private Image timerCountdown;
 
@@ -14,6 +20,17 @@ public class Defeat : MonoBehaviour
 
     private float elapsedTime = 0f;
     private bool isDefeated = false;
+
+    private void Awake()
+    {
+#if UNITY_EDITOR
+        if (editorTimeOverride > 0f)
+        {
+            timeLimit = editorTimeOverride;
+            GameLogger.Log("DEFEAT", $"[EDITOR ONLY] Time limit overridden to {editorTimeOverride}s for testing.");
+        }
+#endif
+    }
 
     void Update()
     {

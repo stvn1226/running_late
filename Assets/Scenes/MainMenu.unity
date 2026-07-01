@@ -530,6 +530,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4232322029452982379, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: pathModeToggle
+      value: 
+      objectReference: {fileID: 1993606066}
     - target: {fileID: 4537097656006110035, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1302,6 +1306,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8119f05c2aa4f4374bfe58994ec09c4a, type: 3}
+--- !u!114 &1993606066 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4587772862071644058, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+  m_PrefabInstance: {fileID: 1203587925}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!1 &2032654900
 GameObject:
   m_ObjectHideFlags: 0

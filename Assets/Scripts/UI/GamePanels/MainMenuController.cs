@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
@@ -13,6 +14,9 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private SavedLevelsPanel recentLevelsPanel;
     [SerializeField] private SavedLevelsPanel savedLevelsPanel;
     [SerializeField] private TextInputPanel textInputPanel;
+
+    [Header("Settings UI")]
+    [SerializeField] private Toggle pathModeToggle;
 
     [Header("Fade Settings")]
     [SerializeField] private CanvasGroup menuCanvasGroup;
@@ -39,6 +43,13 @@ public class MainMenuController : MonoBehaviour
         if (gameplayCanvas != null)
         {
             gameplayCanvas.gameObject.SetActive(false);
+        }
+
+        if (pathModeToggle != null)
+        {
+            // 0 = DualPath (default), 1 = SingleSidewalk
+            int savedMode = PlayerPrefs.GetInt("PathMode", 0);
+            pathModeToggle.isOn = (savedMode == 0);
         }
         
         Time.timeScale = 1f;
