@@ -90,8 +90,7 @@ public class StartCountdownController : MonoBehaviour
     
         if (playCountdownSounds)
         {
-            cdSound = AudioManager.Instance?.Play(AudioManager.SoundType.CDNumbers);
-            
+            AudioManager.Instance?.Play(AudioManager.SoundType.CDNumbers);
         }
 
         for (int i = countdownFrom; i > 0; i--)
@@ -111,6 +110,7 @@ public class StartCountdownController : MonoBehaviour
         }
     
         DisplayGo();
+        cdSound = AudioManager.Instance?.Play(AudioManager.SoundType.CDGo);
         
         Time.timeScale = 1f;
         GameLogger.Log("COUNTDOWN", "GO! - Game resumed and player launched!");
@@ -130,7 +130,7 @@ public class StartCountdownController : MonoBehaviour
             countdownPanel.SetActive(false);
         }
 
-        if (cdSound != null) yield return new WaitForSeconds(cdSound.Clip.length - 7.5f); // Small delay to ensure "GO!" sound plays
+        if (cdSound != null) yield return new WaitForSeconds(cdSound.Clip.length - 0.4f); // Small delay to ensure "GO!" sound plays
         AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicLevel);
         // AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicInvincibility);
 
