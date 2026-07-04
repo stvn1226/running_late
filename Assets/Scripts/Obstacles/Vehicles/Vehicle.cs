@@ -103,13 +103,6 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
                 targetVel.y -= (distanceError * 15f);
             }
 
-            // Apply a downward "glue" force only when moving flat or downhill.
-            // This prevents the vehicle from flying off the crest of a hill.
-            if (leftTangent.y <= 0.1f)
-            {
-                targetVel.y -= 4f;
-            }
-
             rb.linearVelocity = targetVel;
 
             float targetAngle = Mathf.Atan2(validHit.normal.y, validHit.normal.x) * Mathf.Rad2Deg - 90f;
