@@ -101,12 +101,7 @@ public class PlayerPhysics : MonoBehaviour
     {
         CheckSlope();
         CheckGrounded();
-        CheckWallRun();
-        CheckWallSlide();
-    }
-
-    private void Update()
-    {
+        
         if (states.isGrounded != previousGrounded)
         {
 #if ENABLE_VERBOSE_LOGGING
@@ -118,7 +113,16 @@ public class PlayerPhysics : MonoBehaviour
                 states.OnLanded?.Invoke();
             }
         }
+        
+        previousGrounded = states.isGrounded;
+        states.wasGrounded = states.isGrounded;
+        
+        CheckWallRun();
+        CheckWallSlide();
+    }
 
+    private void Update()
+    {
         if (states.canWallRun != previousCanWallRun || states.wallDirection != previousWallDirection)
         {
 #if ENABLE_VERBOSE_LOGGING
@@ -134,12 +138,9 @@ public class PlayerPhysics : MonoBehaviour
         }
 #endif
         
-        previousGrounded = states.isGrounded;
         previousCanWallRun = states.canWallRun;
         previousWallDirection = states.wallDirection;
         previousIsWallRunning = states.isWallRunning;
-        
-        states.wasGrounded = states.isGrounded;
     }
 
     /// Returns the collider's offset scaled to world space, accounting for the Transform's lossyScale.

@@ -63,7 +63,6 @@ public class PlayerOneWayPlatform : MonoBehaviour
         if (!playerStates.isDroppingDown)
         {
             playerStates.isDroppingDown = true;
-            GameLogger.Log("PLATFORM", "DropThrough STARTED");
         }
 
         IgnoreCurrentPlatforms();
@@ -212,8 +211,18 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private void RestorePlatformCollision(Collider2D platform)
     {
-        if (platform != null)
+        if (platform != null && playerCollider != null)
+        {
             Physics2D.IgnoreCollision(playerCollider, platform, false);
+            
+            // CRITICAL: Unity does not recalculate contacts if IgnoreCollision is set to false
+            // while the objects are already overlapping. We must force a recalculation!
+            if (playerCollider.enabled)
+            {
+                playerCollider.enabled = false;
+                playerCollider.enabled = true;
+            }
+        }
     }
 
     // Simple unconditional delay: wait a short fixed time, then restore regardless.
@@ -238,6 +247,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
         
         StopDropThrough();
     }
+
+
 
     private void OnDrawGizmosSelected()
     {

@@ -706,6 +706,7 @@ public class PlayerStates : MonoBehaviour
         jumpInputBuffered = false;
         canCoyoteJump = false;
         jumpGraceTimer = 0.15f; // NEW: Prevent instant re-grounding
+        dropDownHeld = false;   // FORCE STOP dropping down when jumping
     }
 
     public void BufferCrouchInput(float bufferTime)
