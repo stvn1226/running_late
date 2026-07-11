@@ -130,7 +130,7 @@ public class StartCountdownController : MonoBehaviour
             countdownPanel.SetActive(false);
         }
 
-        if (cdSound != null) yield return new WaitForSeconds(cdSound.Clip.length - 0.4f); // Small delay to ensure "GO!" sound plays
+        if (cdSound != null) yield return new WaitForSeconds(cdSound.Clip.length - 0.2f); // Small delay to ensure "GO!" sound plays
         AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicLevel);
         // AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicInvincibility);
 

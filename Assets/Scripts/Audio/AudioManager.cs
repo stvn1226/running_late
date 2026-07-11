@@ -60,6 +60,7 @@ public class AudioManager : MonoBehaviour
     private Dictionary<SoundType, SoundCollection> _soundDictionary = new Dictionary<SoundType, SoundCollection>();
     private AudioSource _musicSource;
     private AudioSource _invincibilityMusicSource;
+    private bool _levelMusicPrewarmed;
 
     private void Awake()
     {
@@ -77,6 +78,92 @@ public class AudioManager : MonoBehaviour
             if (collection.Sounds != null && collection.Sounds.Count > 0)
             {
                 _soundDictionary[collection.Type] = collection;
+            }
+        }
+    }
+
+    private void Start()
+    {
+        // MusicLevel starts a second, silent MusicInvincibility source.  Starting both clips for
+        // the first time at the end of the countdown forces Unity/FMOD to create their native
+        // sounds in a gameplay frame. Do that one-time work while the initial scene is loading.
+        StartCoroutine(PrewarmLevelMusic());
+    }
+
+    private IEnumerator PrewarmLevelMusic()
+    {
+        if (_levelMusicPrewarmed)
+        {
+            yield break;
+        }
+
+        _levelMusicPrewarmed = true;
+
+        var clipsToPrewarm = new HashSet<AudioClip>();
+        CollectClips(SoundType.MusicLevel, clipsToPrewarm);
+        CollectClips(SoundType.MusicInvincibility, clipsToPrewarm);
+
+        foreach (AudioClip clip in clipsToPrewarm)
+        {
+            // This is normally already requested by the importer's Preload Audio Data option,
+            // but calling it is harmless for an already-loaded clip and covers clips configured
+            // not to preload.
+            if (clip.loadState == AudioDataLoadState.Unloaded)
+            {
+                clip.LoadAudioData();
+            }
+
+            while (clip.loadState == AudioDataLoadState.Loading)
+            {
+                yield return null;
+            }
+
+            if (clip.loadState != AudioDataLoadState.Loaded)
+            {
+                GameLogger.LogWarning("Audio", $"Could not prewarm music clip {clip.name}.");
+                continue;
+            }
+
+            // Assigning a clip is not enough to populate FMOD's first-use cache. Play it silently
+            // for one frame so the expensive native Sound creation cannot occur during countdown.
+            var warmupObject = new GameObject($"MusicWarmup_{clip.name}");
+            warmupObject.transform.SetParent(transform);
+            var warmupSource = warmupObject.AddComponent<AudioSource>();
+            warmupSource.clip = clip;
+            warmupSource.volume = 0f;
+            warmupSource.loop = false;
+            warmupSource.playOnAwake = false;
+
+            if (musicMixerGroup != null)
+            {
+                warmupSource.outputAudioMixerGroup = musicMixerGroup;
+            }
+
+            warmupSource.Play();
+            yield return null;
+            warmupSource.Stop();
+            Destroy(warmupObject);
+
+            // Keep the two first-use operations out of the same frame.
+            yield return null;
+        }
+
+        GameLogger.Log("Audio", "Level music prewarm complete");
+    }
+
+    private void CollectClips(SoundType soundType, HashSet<AudioClip> clips)
+    {
+        if (!_soundDictionary.TryGetValue(soundType, out SoundCollection collection)
+            || collection.Sounds == null)
+        {
+            return;
+        }
+
+        foreach (Sound sound in collection.Sounds)
+        {
+            if (sound.Clip != null)
+            {
+                clips.Add(sound.Clip);
             }
         }
     }
