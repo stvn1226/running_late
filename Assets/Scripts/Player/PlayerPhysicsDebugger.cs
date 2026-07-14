@@ -30,19 +30,24 @@ public class PlayerPhysicsDebugger : MonoBehaviour
         lastPosition = transform.position;
         lastVelocity = rb != null ? rb.linearVelocity : Vector2.zero;
         
-        GameLogger.Log("PLAYER_PHYSICS", "PLAYER AWAKE");
-        GameLogger.Log("PLAYER_PHYSICS", $"  Spawn Position: {spawnPosition}");
-        GameLogger.Log("PLAYER_PHYSICS", $"  Rigidbody: {(rb != null ? "OK" : "MISSING")}");
-        GameLogger.Log("PLAYER_PHYSICS", $"  States: {(states != null ? "OK" : "MISSING")}");
+        /*
+             GameLogger.Log("PLAYER_PHYSICS", "PLAYER AWAKE");
+             GameLogger.Log("PLAYER_PHYSICS", $"  Spawn Position: {spawnPosition}");
+             GameLogger.Log("PLAYER_PHYSICS", $"  Rigidbody: {(rb != null ? "OK" : "MISSING")}");
+             GameLogger.Log("PLAYER_PHYSICS", $"  States: {(states != null ? "OK" : "MISSING")}");
+        */
+
         
         if (rb != null)
         {
-            GameLogger.Log("PLAYER_PHYSICS", "  Rigidbody settings:");
-            GameLogger.Log("PLAYER_PHYSICS", $"    Mass: {rb.mass}");
-            GameLogger.Log("PLAYER_PHYSICS", $"    Gravity Scale: {rb.gravityScale}");
-            GameLogger.Log("PLAYER_PHYSICS", $"    Linear Drag: {rb.linearDamping}");
-            GameLogger.Log("PLAYER_PHYSICS", $"    Body Type: {rb.bodyType}");
-            GameLogger.Log("PLAYER_PHYSICS", $"    Constraints: {rb.constraints}");
+            /* 
+                   GameLogger.Log("PLAYER_PHYSICS", "  Rigidbody settings:");
+                   GameLogger.Log("PLAYER_PHYSICS", $"    Mass: {rb.mass}");
+                   GameLogger.Log("PLAYER_PHYSICS", $"    Gravity Scale: {rb.gravityScale}");
+                   GameLogger.Log("PLAYER_PHYSICS", $"    Linear Drag: {rb.linearDamping}");
+                   GameLogger.Log("PLAYER_PHYSICS", $"    Body Type: {rb.bodyType}");
+                   GameLogger.Log("PLAYER_PHYSICS", $"    Constraints: {rb.constraints}");
+            */
         }
     }
     
@@ -52,9 +57,11 @@ public class PlayerPhysicsDebugger : MonoBehaviour
         timeSinceSpawn = 0f;
         frameCount = 0;
         
+        /* 
         GameLogger.Log("PLAYER_PHYSICS", "PLAYER START");
         GameLogger.Log("PLAYER_PHYSICS", $"  Position: {transform.position}");
         GameLogger.Log("PLAYER_PHYSICS", $"  Velocity: {(rb != null ? rb.linearVelocity : Vector2.zero)}");
+        */
     }
     
     private void FixedUpdate()
@@ -78,13 +85,13 @@ public class PlayerPhysicsDebugger : MonoBehaviour
         if (!shouldLog && logPositionChanges && distanceMoved > significantPositionChange)
         {
             shouldLog = true;
-            GameLogger.LogWarning("PLAYER_PHYSICS", $"LARGE POSITION CHANGE: {distanceMoved:F2} units in one frame");
+            // GameLogger.LogWarning("PLAYER_PHYSICS", $"LARGE POSITION CHANGE: {distanceMoved:F2} units in one frame");
         }
         
         if (!shouldLog && logVelocityChanges && velocityChange > significantVelocityChange)
         {
             shouldLog = true;
-            GameLogger.LogWarning("PLAYER_PHYSICS", $"LARGE VELOCITY CHANGE: {velocityChange:F2} units/s in one frame");
+            // GameLogger.LogWarning("PLAYER_PHYSICS", $"LARGE VELOCITY CHANGE: {velocityChange:F2} units/s in one frame");
         }
         
         if (shouldLog || frameCount <= 10 || (frameCount % 50 == 0))
@@ -94,11 +101,13 @@ public class PlayerPhysicsDebugger : MonoBehaviour
         
         if (currentPosition.y < -50f)
         {
+            /*
             GameLogger.LogError("PLAYER_PHYSICS", $"PLAYER FALLING INFINITELY - Y={currentPosition.y:F2}");
             GameLogger.LogError("PLAYER_PHYSICS", $"  Time since spawn: {timeSinceSpawn:F2}s");
             GameLogger.LogError("PLAYER_PHYSICS", $"  Spawn position: {spawnPosition}");
             GameLogger.LogError("PLAYER_PHYSICS", $"  Current velocity: {currentVelocity}");
             GameLogger.LogError("PLAYER_PHYSICS", $"  Is grounded: {(states != null ? states.isGrounded : false)}");
+            */
         }
         
         lastPosition = currentPosition;
@@ -112,12 +121,14 @@ public class PlayerPhysicsDebugger : MonoBehaviour
         {
             stateInfo = $"Grounded={states.isGrounded}, WallRun={states.isWallRunning}, Slide={states.isSliding}, Kick={states.isKicking}";
         }
-        
-        GameLogger.Log("PLAYER_PHYSICS", $"[Frame {frameCount}, T={timeSinceSpawn:F2}s]");
-        GameLogger.Log("PLAYER_PHYSICS", $"  Pos: {position} (Delta={posDelta})");
-        GameLogger.Log("PLAYER_PHYSICS", $"  Vel: {velocity} (Delta={velDelta})");
-        GameLogger.Log("PLAYER_PHYSICS", $"  State: {stateInfo}");
-        GameLogger.Log("PLAYER_PHYSICS", $"  Dist from spawn: {Vector3.Distance(position, spawnPosition):F2}");
+        /*
+                GameLogger.Log("PLAYER_PHYSICS", $"[Frame {frameCount}, T={timeSinceSpawn:F2}s]");
+                GameLogger.Log("PLAYER_PHYSICS", $"  Pos: {position} (Delta={posDelta})");
+                GameLogger.Log("PLAYER_PHYSICS", $"  Vel: {velocity} (Delta={velDelta})");
+                GameLogger.Log("PLAYER_PHYSICS", $"  State: {stateInfo}");
+                GameLogger.Log("PLAYER_PHYSICS", $"  Dist from spawn: {Vector3.Distance(position, spawnPosition):F2}");
+        */
+       
     }
     
     private void OnCollisionEnter2D(Collision2D collision)
@@ -129,12 +140,14 @@ public class PlayerPhysicsDebugger : MonoBehaviour
         {
             normal = collision.GetContact(0).normal;
         }
-        
+        /*
         GameLogger.Log("PLAYER_PHYSICS", $"COLLISION ENTER: {collision.gameObject.name}");
         GameLogger.Log("PLAYER_PHYSICS", $"  Layer: {LayerMask.LayerToName(collision.gameObject.layer)}");
         GameLogger.Log("PLAYER_PHYSICS", $"  Normal: {normal}");
         GameLogger.Log("PLAYER_PHYSICS", $"  Contact count: {collision.contactCount}");
         GameLogger.Log("PLAYER_PHYSICS", $"  Velocity before: {rb.linearVelocity}");
+        */
+       
     }
     
     private void OnCollisionExit2D(Collision2D collision)
@@ -149,15 +162,21 @@ public class PlayerPhysicsDebugger : MonoBehaviour
     {
         if (!logCollisions) return;
         
-        GameLogger.Log("PLAYER_PHYSICS", $"TRIGGER ENTER: {other.gameObject.name}");
-        GameLogger.Log("PLAYER_PHYSICS", $"  Layer: {LayerMask.LayerToName(other.gameObject.layer)}");
+        /*
+            GameLogger.Log("PLAYER_PHYSICS", $"TRIGGER ENTER: {other.gameObject.name}");
+            GameLogger.Log("PLAYER_PHYSICS", $"  Layer: {LayerMask.LayerToName(other.gameObject.layer)}");
+        */
+        
     }
     
     private void OnTriggerExit2D(Collider2D other)
     {
         if (!logCollisions) return;
         
-        GameLogger.Log("PLAYER_PHYSICS", $"TRIGGER EXIT: {other.gameObject.name}");
+        /*
+            GameLogger.Log("PLAYER_PHYSICS", $"TRIGGER EXIT: {other.gameObject.name}");
+        */
+        
     }
     
     public void LogManualEvent(string eventName, string details = "")

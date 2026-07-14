@@ -59,7 +59,12 @@ public class PlayerAnimatorController : MonoBehaviour
         {
             xVel = Mathf.Abs(rb.linearVelocity.x);
             
-            if (xVel < 0.2f)
+            // Instantly stop the run animation if the user releases the input while grounded (and not performing special moves)
+            if (states.isGrounded && Mathf.Abs(states.moveInput.x) < 0.1f && !states.isSliding && !states.isRolling && !states.isDiving)
+            {
+                xVel = 0f;
+            }
+            else if (xVel < 0.2f)
             {
                 xVel = 0f;
             }

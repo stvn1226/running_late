@@ -103,12 +103,14 @@ public class PlayerMovement : MonoBehaviour
     {
         float originalMaxSpeed = config.maxRunSpeed;
         maxRunSpeed = originalMaxSpeed + extraSpeed;
+        states.hasFastRun = true;
         
         GameLogger.Log("POWERUP", $"Extra Speed activated! Max speed: {originalMaxSpeed} -> {maxRunSpeed} for {duration} seconds");
         
         yield return new WaitForSeconds(duration);
         
         maxRunSpeed = originalMaxSpeed;
+        states.hasFastRun = false;
         activeSpeedBoostCoroutine = null;
         
         GameLogger.Log("POWERUP", $"Extra Speed expired! Max speed restored to {maxRunSpeed}");
@@ -631,7 +633,7 @@ public class PlayerMovement : MonoBehaviour
         Vector2 velocity = rb.linearVelocity;
         float horizontalInput = states.moveInput.x;
         
-        if (Mathf.Abs(velocity.x) < 0.15f && Mathf.Abs(horizontalInput) < 0.1f && states.isGrounded)
+        if (Mathf.Abs(velocity.x) < 1.0f && Mathf.Abs(horizontalInput) < 0.1f && states.isGrounded)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -726,7 +728,7 @@ public class PlayerMovement : MonoBehaviour
         
         if (Mathf.Abs(horizontalInput) < 0.1f)
         {
-            targetDrag = config.groundDrag * 2.1f; 
+            targetDrag = config.groundDrag * 5.0f; // Increased from 2.1f for much faster stopping
         }
         else
         {

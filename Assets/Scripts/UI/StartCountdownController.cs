@@ -10,6 +10,7 @@ public class StartCountdownController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI countdownText;
     [SerializeField] private Image countdownBackground;
     [SerializeField] private Image countdownCircle;
+    [SerializeField] private TextMeshProUGUI seedText;
     
     [Header("Countdown Settings")]
     [SerializeField] private int countdownFrom = 3;
@@ -73,6 +74,7 @@ public class StartCountdownController : MonoBehaviour
     
     private IEnumerator CountdownSequence()
     {
+        AudioManager.Sound cdSound = null;
         isCountingDown = true;
     
         GameLogger.Log("COUNTDOWN", $"Waiting {delayBeforeFreeze}s for level generation...");
@@ -82,19 +84,25 @@ public class StartCountdownController : MonoBehaviour
     
         if (countdownPanel != null)
         {
+            if (seedText != null && LevelStarter.Instance != null)
+            {
+                seedText.text = $"Seed: {LevelStarter.Instance.GetCurrentSeed()}";
+            }
             countdownPanel.SetActive(true);
         }
     
         GameLogger.Log("COUNTDOWN", "Starting countdown sequence");
     
+        if (playCountdownSounds)
+        {
+            AudioManager.Instance?.Play(AudioManager.SoundType.CDNumbers);
+        }
+
         for (int i = countdownFrom; i > 0; i--)
         {
             DisplayNumber(i);
         
-            if (playCountdownSounds)
-            {
-                AudioManager.Instance?.Play(AudioManager.SoundType.CDNumbers);
-            }
+
         
             if (useScaleAnimation)
             {
@@ -107,16 +115,12 @@ public class StartCountdownController : MonoBehaviour
         }
     
         DisplayGo();
-    
-        if (playCountdownSounds)
-        {
-            AudioManager.Instance?.Play(AudioManager.SoundType.CDGo);
-        }
-    
+        cdSound = AudioManager.Instance?.Play(AudioManager.SoundType.CDGo);
+        
         Time.timeScale = 1f;
         GameLogger.Log("COUNTDOWN", "GO! - Game resumed and player launched!");
         OnCountdownComplete?.Invoke();
-    
+
         if (useScaleAnimation)
         {
             yield return StartCoroutine(AnimateCountdownNumber());
@@ -130,7 +134,11 @@ public class StartCountdownController : MonoBehaviour
         {
             countdownPanel.SetActive(false);
         }
-    
+
+        if (cdSound != null) yield return new WaitForSeconds(cdSound.Clip.length - 0.2f); // Small delay to ensure "GO!" sound plays
+        AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicLevel);
+        // AudioManager.Instance?.ChangeMusic(AudioManager.SoundType.MusicInvincibility);
+
         isCountingDown = false;
     
         GameLogger.Log("COUNTDOWN", "Countdown UI hidden");

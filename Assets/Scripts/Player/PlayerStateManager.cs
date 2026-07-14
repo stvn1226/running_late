@@ -28,6 +28,7 @@ public class PlayerStateManager : MonoBehaviour
     private void Update()
     {
         HandleStates();
+        HandleExpressionChange();
 
         // CableManager.instance.isFastFalling = states.crouchHeld;
         CableManager.instance.isFastFalling = states.crouchHeld && !states.isGrounded;
@@ -37,6 +38,104 @@ public class PlayerStateManager : MonoBehaviour
         {
             GameLogger.LogVerbose("STATE", $"STATE: Crouch={states.isCrouching}, Slide={states.isSliding}, Roll={states.isRolling}, Dive={states.isDiving}, WallRun={states.isWallRunning}, Grounded={states.isGrounded}, Speed={Mathf.Abs(rb.linearVelocity.x):F1}");
             lastStateLog = Time.time;
+        }
+    }
+
+    private void HandleExpressionChange()
+    {
+        if (states.hasToast)
+        {
+            if (states.isStaggered)
+            {
+                ExpressionManager.Instance?.SwitchExpression(9);
+            }
+            else if (states.isNearObstacle)
+            {
+                ExpressionManager.Instance?.SwitchExpression(7);
+            }
+            else if (states.isNearPowerUp)
+            {
+                ExpressionManager.Instance?.SwitchExpression(5);
+            }
+            else if (states.isSlowFalling)
+            {
+                ExpressionManager.Instance?.SwitchExpression(15);
+            }
+            else if (states.hasInvincibilityPowerUp)
+            {
+                ExpressionManager.Instance?.SwitchExpression(17);
+            }
+            else if (states.isShielded)
+            {
+                ExpressionManager.Instance?.SwitchExpression(19);
+            }
+            else if (states.hasHighJump && states.isJumping)
+            {
+                ExpressionManager.Instance?.SwitchExpression(12);
+            }
+            else if (states.hasHighJump && !states.isJumping)
+            {
+                ExpressionManager.Instance?.SwitchExpression(11);
+            }
+            else if (states.hasDoubleJump)
+            {
+                ExpressionManager.Instance?.SwitchExpression(10);
+            }
+            else if (states.hasFastRun)
+            {
+                ExpressionManager.Instance?.SwitchExpression(3);
+            }
+            else
+            {
+                ExpressionManager.Instance?.SwitchExpression(1);
+            }
+        }
+        else
+        {
+            if (states.isStaggered)
+            {
+                ExpressionManager.Instance?.SwitchExpression(9);
+            }
+            else if (states.isNearObstacle)
+            {
+                ExpressionManager.Instance?.SwitchExpression(8);
+            }
+            else if (states.isNearPowerUp)
+            {
+                ExpressionManager.Instance?.SwitchExpression(6);
+            }
+            else if (states.isSlowFalling)
+            {
+                ExpressionManager.Instance?.SwitchExpression(16);
+            }
+            else if (states.hasInvincibilityPowerUp)
+            {
+                ExpressionManager.Instance?.SwitchExpression(18);
+            }
+            else if (states.isShielded)
+            {
+                ExpressionManager.Instance?.SwitchExpression(19);
+            }
+            else if (states.hasHighJump && states.isJumping)
+            {
+                ExpressionManager.Instance?.SwitchExpression(14);
+            }
+            else if (states.hasHighJump && !states.isJumping)
+            {
+                ExpressionManager.Instance?.SwitchExpression(13);
+            }
+            else if (states.hasDoubleJump)
+            {
+                ExpressionManager.Instance?.SwitchExpression(10);
+            }
+            else if (states.hasFastRun)
+            {
+                ExpressionManager.Instance?.SwitchExpression(4);
+            }
+            else
+            {
+                ExpressionManager.Instance?.SwitchExpression(2);
+            }
         }
     }
 

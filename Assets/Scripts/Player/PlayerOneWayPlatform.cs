@@ -47,7 +47,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
     {
         if (playerCollider == null || playerStates == null || playerRb == null) return;
 
-        if (playerStates.dropDownHeld)
+        // Only allow drop-through if NOT sliding on a cable
+        if (playerStates.dropDownHeld && !playerStates.isSlidingOnCable)
         {
             DropThrough();
         }
@@ -73,6 +74,7 @@ public class PlayerOneWayPlatform : MonoBehaviour
         if (playerStates.isDroppingDown)
         {
             playerStates.isDroppingDown = false;
+            GameLogger.Log("PLATFORM", "DropThrough ENDED - Restoring collisions");
             RestoreAllCollisions();
         }
     }
@@ -92,6 +94,9 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private void IgnorePlatformsAhead()
     {
+        // Only look ahead if falling or moving down
+        if (playerRb.linearVelocity.y > 0.1f) return;
+
         Bounds lookAheadBounds = CalculateLookAheadBounds();
         Collider2D[] platforms = GetPlatformsInBounds(lookAheadBounds);
         
@@ -107,21 +112,25 @@ public class PlayerOneWayPlatform : MonoBehaviour
     private Bounds CalculateLookAheadBounds()
     {
         Vector2 velocity = playerRb.linearVelocity;
-        float speed = velocity.magnitude;
         
-        float lookAheadDistance = Mathf.Max(baseLookAhead, speed * velocityLookAheadMultiplier);
-        Vector2 lookAheadOffset = velocity.normalized * lookAheadDistance;
+        // Only look down
+        float lookAheadDistance = Mathf.Max(baseLookAhead, Mathf.Abs(velocity.y) * velocityLookAheadMultiplier);
+        Vector3 lookAheadOffset = Vector3.down * (lookAheadDistance * 0.5f);
         
         Bounds bounds = playerCollider.bounds;
-        bounds.center += (Vector3)lookAheadOffset * 0.5f;
-        bounds.size += new Vector3(0.5f, lookAheadDistance, 0f);
+        bounds.center += lookAheadOffset;
+        bounds.size = new Vector3(bounds.size.x + 0.2f, lookAheadDistance, bounds.size.z);
         
         return bounds;
     }
 
     private Collider2D[] GetPlatformsInBounds(Bounds bounds)
     {
-        return Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, platformLayerMask);
+        LayerMask searchMask = platformLayerMask;
+        int oneWayLayer = LayerMask.NameToLayer("OneWayPlatform");
+        if (oneWayLayer != -1) searchMask |= (1 << oneWayLayer);
+
+        return Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, searchMask);
     }
 
     private bool ShouldIgnorePlatform(Collider2D platform)
@@ -129,7 +138,13 @@ public class PlayerOneWayPlatform : MonoBehaviour
         if (platform == null) return false;
         if (platform == playerCollider) return false;
         if (ignoredPlatforms.Contains(platform)) return false;
+        
+        // PROTECTION: Never ignore the cable we are currently sliding on!
+        if (playerStates.isSlidingOnCable && platform == playerStates.currentCable) return false;
+
         if (!IsPlatform(platform)) return false;
+        
+        // Only ignore if we are above it (one-way logic)
         if (!IsPlayerAbove(platform)) return false;
         
         return true;
@@ -137,6 +152,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private bool IsPlatform(Collider2D collider)
     {
+        // Bug 1 fix: Do NOT accept every PlatformEffector2D blindly — that catches cars too.
+        // Only accept colliders that are explicitly on the platform layer OR tagged as OneWayPlatform.
         int layer = collider.gameObject.layer;
         if ((platformLayerMask.value & (1 << layer)) != 0)
             return true;
@@ -148,14 +165,17 @@ public class PlayerOneWayPlatform : MonoBehaviour
                 return true;
         }
         
-        return collider.GetComponent<PlatformEffector2D>() != null;
+        return collider.CompareTag("OneWayPlatform");
     }
 
     private bool IsPlayerAbove(Collider2D platform)
     {
         float playerBottom = playerCollider.bounds.min.y;
         float platformTop = platform.bounds.max.y;
-        return playerBottom >= platformTop - 0.2f;
+        
+        // Use a generous buffer (4 units) so that slopes are covered:
+        // a player at the base of a tall slope still passes this check.
+        return playerBottom >= platformTop - 4.0f;
     }
 
     private void IgnorePlatform(Collider2D platform)
@@ -166,23 +186,16 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private void RestoreAllCollisions()
     {
-        platformsToRestore.Clear();
-        
         foreach (Collider2D platform in ignoredPlatforms)
         {
             if (platform == null) continue;
-            
+
             bool isOverlapping = playerCollider.bounds.Intersects(platform.bounds);
-            bool isPlayerBelow = IsPlayerBelow(platform);
-            
-            if (isOverlapping && !isPlayerBelow)
-            {
+
+            if (isOverlapping)
                 platformsToRestore.Add(platform);
-            }
             else
-            {
                 RestorePlatformCollision(platform);
-            }
         }
         
         ignoredPlatforms.Clear();
@@ -196,31 +209,33 @@ public class PlayerOneWayPlatform : MonoBehaviour
         }
     }
 
-    private bool IsPlayerBelow(Collider2D platform)
-    {
-        float playerTop = playerCollider.bounds.max.y;
-        float platformBottom = platform.bounds.min.y;
-        return playerTop <= platformBottom + 0.1f;
-    }
-
     private void RestorePlatformCollision(Collider2D platform)
     {
-        if (platform != null)
+        if (platform != null && playerCollider != null)
         {
             Physics2D.IgnoreCollision(playerCollider, platform, false);
+            
+            // CRITICAL: Unity does not recalculate contacts if IgnoreCollision is set to false
+            // while the objects are already overlapping. We must force a recalculation!
+            if (playerCollider.enabled)
+            {
+                playerCollider.enabled = false;
+                playerCollider.enabled = true;
+            }
         }
     }
 
+    // Simple unconditional delay: wait a short fixed time, then restore regardless.
+    // No looping, no overlap checks — avoids frame-by-frame bound jitter causing random falls.
     private IEnumerator RestoreDelayedPlatforms()
     {
-        yield return new WaitForSeconds(safetyDelay);
-        
+        yield return new WaitForSeconds(0.1f);
+
         foreach (Collider2D platform in platformsToRestore)
-        {
             RestorePlatformCollision(platform);
-        }
-        
+
         platformsToRestore.Clear();
+        restoreCoroutine = null;
     }
 
     public int IgnoredPlatformCount => ignoredPlatforms.Count;
@@ -232,6 +247,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
         
         StopDropThrough();
     }
+
+
 
     private void OnDrawGizmosSelected()
     {

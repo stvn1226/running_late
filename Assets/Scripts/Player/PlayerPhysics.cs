@@ -101,12 +101,7 @@ public class PlayerPhysics : MonoBehaviour
     {
         CheckSlope();
         CheckGrounded();
-        CheckWallRun();
-        CheckWallSlide();
-    }
-
-    private void Update()
-    {
+        
         if (states.isGrounded != previousGrounded)
         {
 #if ENABLE_VERBOSE_LOGGING
@@ -118,7 +113,16 @@ public class PlayerPhysics : MonoBehaviour
                 states.OnLanded?.Invoke();
             }
         }
+        
+        previousGrounded = states.isGrounded;
+        states.wasGrounded = states.isGrounded;
+        
+        CheckWallRun();
+        CheckWallSlide();
+    }
 
+    private void Update()
+    {
         if (states.canWallRun != previousCanWallRun || states.wallDirection != previousWallDirection)
         {
 #if ENABLE_VERBOSE_LOGGING
@@ -134,12 +138,9 @@ public class PlayerPhysics : MonoBehaviour
         }
 #endif
         
-        previousGrounded = states.isGrounded;
         previousCanWallRun = states.canWallRun;
         previousWallDirection = states.wallDirection;
         previousIsWallRunning = states.isWallRunning;
-        
-        states.wasGrounded = states.isGrounded;
     }
 
     /// Returns the collider's offset scaled to world space, accounting for the Transform's lossyScale.
@@ -343,8 +344,10 @@ public class PlayerPhysics : MonoBehaviour
                     }
 
                     BuildingDetector bd = hit.collider.GetComponentInParent<BuildingDetector>();
-                    int order = bd != null ? bd.sortingOrder : -100;
-                    float depth = bd != null ? bd.buildingZ : 100f; // Default large for far away
+                    if (bd == null) continue; // EXHAUSTIVE FIX: Only buildings allow wallrunning
+
+                    int order = bd.sortingOrder;
+                    float depth = bd.buildingZ; 
 
                     if (order > maxOrder || (order == maxOrder && depth < maxDepth))
                     {
@@ -404,8 +407,10 @@ public class PlayerPhysics : MonoBehaviour
                     }
                 }
                 BuildingDetector bd = col.GetComponentInParent<BuildingDetector>();
-                int sOrder = bd != null ? bd.sortingOrder : -100;
-                float depth = bd != null ? bd.buildingZ : 100f;
+                if (bd == null) continue; // EXHAUSTIVE FIX: Air-catch also requires building context
+
+                int sOrder = bd.sortingOrder;
+                float depth = bd.buildingZ;
 
                 // Priority: Lane (Sorting Order) -> Depth (Smaller Z is Closer) -> Distance
                 bool isBetter = false;
@@ -633,7 +638,12 @@ public class PlayerPhysics : MonoBehaviour
 
     private bool IsMidWallObject(GameObject go)
     {
-        return config != null && ((1 << go.layer) & config.midWallLayer.value) != 0;
+        if (config == null || ((1 << go.layer) & config.midWallLayer.value) == 0) return false;
+        
+        // Prevent Wall-Sliding on One-Way Platforms (e.g. roofs, sidewalks)
+        if (go.GetComponent<PlatformEffector2D>() != null) return false;
+        
+        return true;
     }
 
     private void UpdateMidWallDirectionFromNormal(Vector2 normal)

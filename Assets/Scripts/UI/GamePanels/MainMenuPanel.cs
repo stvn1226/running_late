@@ -226,11 +226,6 @@ public class MainMenuPanel : BaseMainMenuPanel
         Navigation nav = seedToggle.navigation;
         nav.mode = Navigation.Mode.Explicit;
         
-        if (playButtonStep2 != null)
-        {
-            nav.selectOnUp = playButtonStep2;
-        }
-        
         if (seedInputActive && seedInputField != null)
         {
             nav.selectOnDown = seedInputField;

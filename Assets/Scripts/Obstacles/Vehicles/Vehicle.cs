@@ -16,6 +16,7 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
     private bool wasHit;
     private Coroutine hitboxDisableCoroutine;
     protected bool movementOverridden;
+    private float baseGroundedDistance = -1f;
     
     [Header("Warning Indicator")]
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -32,6 +33,13 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        // Measure resting distance to ground
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 5f);
+        if (hit.collider != null && !hit.collider.isTrigger)
+        {
+            baseGroundedDistance = hit.distance;
         }
     }
 
@@ -57,7 +65,58 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
         if (!isRunning) return;
         if (movementOverridden) return;
 
-        rb.linearVelocityX = -speed;
+        // Detect slopes and adjust velocity/rotation accordingly
+        RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, Vector2.down, 5f);
+        RaycastHit2D validHit = new RaycastHit2D();
+        bool foundGround = false;
+
+        foreach (var h in hits)
+        {
+            if (h.collider != null && !h.collider.isTrigger && h.collider.gameObject != gameObject && !h.collider.transform.IsChildOf(transform))
+            {
+                validHit = h;
+                foundGround = true;
+                break;
+            }
+        }
+
+        if (baseGroundedDistance < 0 && foundGround && validHit.normal.y > 0.9f)
+        {
+            baseGroundedDistance = validHit.distance;
+        }
+
+        float expectedDist = (baseGroundedDistance > 0 ? baseGroundedDistance : 1.0f) / (validHit.normal.y > 0.1f ? validHit.normal.y : 1f);
+        float maxAllowedDistance = expectedDist + 0.8f;
+        
+        bool isCloseToGround = foundGround && validHit.distance <= maxAllowedDistance;
+
+        if (isCloseToGround && validHit.normal.y > 0.3f)
+        {
+            Vector2 leftTangent = new Vector2(-validHit.normal.y, validHit.normal.x);
+            Vector2 targetVel = leftTangent * speed;
+
+            float distanceError = validHit.distance - expectedDist;
+
+            // Dynamically pull the vehicle down to the ground if it floats
+            if (distanceError > 0.05f)
+            {
+                targetVel.y -= (distanceError * 15f);
+            }
+
+            rb.linearVelocity = targetVel;
+
+            float targetAngle = Mathf.Atan2(validHit.normal.y, validHit.normal.x) * Mathf.Rad2Deg - 90f;
+            Quaternion targetRot = Quaternion.Euler(0, 0, targetAngle);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * 15f);
+        }
+        else
+        {
+            // In the air or flat ground - let gravity act naturally on Y
+            rb.linearVelocityX = -speed;
+            
+            // Smoothly rotate back to flat if we're falling
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, Time.deltaTime * 10f);
+        }
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)

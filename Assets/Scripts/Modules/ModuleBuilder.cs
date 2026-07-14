@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ModuleBuilder : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class ModuleBuilder : MonoBehaviour
     [Header("Building Materials")]
     public GameObject foundation;
     public GameObject padding;
+    [Tooltip("Optional. If assigned, 'padding' is used only once right below the foundation, and this basePadding repeats for the rest of the depth.")]
+    public GameObject basePadding;
     public StructureBuilder[] buildingPrefabs;
 
     [Header("Spawn Points")]
@@ -26,6 +29,16 @@ public class ModuleBuilder : MonoBehaviour
     [Range(0, 100)]
     public int buildingSpawnChance = 90;
 
+    [Header("Dual Level Config")]
+    public bool isElevatedSidewalk = true;
+    public bool omitFoundationAtBaseLevel = true;
+    public bool pushPaddingToBackground = true;
+    public bool disablePaddingColliders = true;
+    public float paddingZOffset = 5f;
+    [Tooltip("Z offset for obstacles relative to the module root. Use negative values to move them closer to camera.")]
+    public float obstacleZOffset = -1.5f;
+    public int baseLevelHeight = 1;
+
     private bool hasGenerated = false;
     private int actualTerrainHeight = -1;
 
@@ -43,7 +56,7 @@ public class ModuleBuilder : MonoBehaviour
         }
     }
 
-    public void GenerateModule(int? explicitHeight = null)
+    public void GenerateModule(int? explicitHeight = null, bool includeContent = true, bool spawnObstacles = true, int maxObstacleLevel = 3, DifficultyConfig diffConfig = null)
     {
         if (hasGenerated)
         {
@@ -57,24 +70,28 @@ public class ModuleBuilder : MonoBehaviour
             return;
         }
 
-        GameLogger.Log("MODULE", $"=== GenerateModule '{gameObject.name}' ===");
-        GameLogger.Log("MODULE", $"  - Position: {transform.position}");
-        GameLogger.Log("MODULE", $"  - Explicit Height: {(explicitHeight.HasValue ? explicitHeight.Value.ToString() : "None")}");
+        // Verbose per-module logs suppressed — check LEVEL logs for generation summary
 
         if (placementTracker != null)
         {
             placementTracker.position = transform.position;
-            GameLogger.Log("MODULE", $"  - Placement tracker set to {placementTracker.position}");
         }
 
-        GenerateBaseTerrain(explicitHeight);
-        GenerateBuildings();
-        SpawnFlyingObstacles(explicitHeight);
+        GenerateBaseTerrain(explicitHeight, spawnObstacles, maxObstacleLevel, diffConfig);
+        
+        if (includeContent)
+        {
+            GenerateBuildings();
+            if (spawnObstacles)
+            {
+                SpawnFlyingObstacles(explicitHeight, diffConfig);
+            }
+        }
 
         hasGenerated = true;
-        GameLogger.Log("MODULE", $"✓ Module '{gameObject.name}' generated with height={actualTerrainHeight}");
+        // Module generated — height visible in LEVEL [step] logs
     }
-    private void GenerateBaseTerrain(int? explicitHeight = null)
+    private void GenerateBaseTerrain(int? explicitHeight = null, bool spawnObstacles = true, int maxObstacleLevel = 3, DifficultyConfig diffConfig = null)
     {
         if (placementTracker == null)
         {
@@ -86,15 +103,20 @@ public class ModuleBuilder : MonoBehaviour
         if (explicitHeight.HasValue)
         {
             // SAFETY: System requires at least 1 block to provide a walkable floor
-            if (explicitHeight.Value < 1)
+            if (explicitHeight.Value < 0)
             {
-                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 1). Clamping to 1 to prevent 'void' errors.");
+                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 0). Clamping to 0.");
             }
 
-            int minHeight = Mathf.Max(1, moduleConfig.minTerrainHeight);
+            int minHeight = Mathf.Max(0, moduleConfig.minTerrainHeight);
             groundBlocksCount = Mathf.Clamp(explicitHeight.Value, minHeight, moduleConfig.maxTerrainHeight);
             
-            GameLogger.Log("MODULE", $"  - Using explicit height: {explicitHeight.Value} -> clamped to {groundBlocksCount}");
+            if (groundBlocksCount == 0)
+            {
+                actualTerrainHeight = 0;
+                GameLogger.Log("MODULE", "  - Height is 0, skipping terrain generation (Road Level).");
+                return;
+            }
         }
         else
         {
@@ -107,27 +129,102 @@ public class ModuleBuilder : MonoBehaviour
 
         Vector3 startPos = placementTracker.position;
 
+        // [BuildingAudit] — terrain entry snapshot
+        float gbhForLog = moduleConfig != null ? moduleConfig.groundBlockHeight : -1f;
+        bool shouldOmitForLog = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
+        GameLogger.Log("BuildingAudit",
+            $"[TerrainEntry] Segment={gameObject.name} " +
+            $"TransformY={transform.position.y:F3} " +
+            $"explicitHeight={groundBlocksCount} " +
+            $"groundBlockHeight={gbhForLog} " +
+            $"omitFoundationAtBaseLevel={omitFoundationAtBaseLevel} " +
+            $"baseLevelHeight={baseLevelHeight} " +
+            $"isElevatedSidewalk={isElevatedSidewalk} " +
+            $"groundBlocksCount={groundBlocksCount} " +
+            $"shouldOmit={shouldOmitForLog} " +
+            $"placementTrackerY_beforeTerrain={placementTracker.position.y:F3}");
+
         // Ground blocks except the top one (foundation)
+        int paddingBlocksSpawned = 0;
         for (int i = 0; i < groundBlocksCount - 1; i++)
         {
-            if (padding != null)
+            bool isTopPadding = (i == groundBlocksCount - 2);
+            GameObject prefabToUse = (basePadding != null && !isTopPadding) ? basePadding : padding;
+
+            if (prefabToUse != null)
             {
-                GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
+                GameObject paddingBlock = Instantiate(prefabToUse, placementTracker.position, Quaternion.identity, transform);
                 paddingBlock.name = $"Padding_{i}";
+                paddingBlocksSpawned++;
+                
+                if (isElevatedSidewalk)
+                {
+                    if (pushPaddingToBackground)
+                    {
+                        paddingBlock.transform.position += new Vector3(0, 0, paddingZOffset);
+                        
+                        // Force SpriteRenderer sorting layer if needed
+                        SpriteRenderer[] renderers = paddingBlock.GetComponentsInChildren<SpriteRenderer>();
+                        foreach(var sr in renderers)
+                        {
+                            sr.sortingOrder = -50; // Push far back
+                        }
+                    }
+                    if (disablePaddingColliders)
+                    {
+                        Collider2D[] cols = paddingBlock.GetComponentsInChildren<Collider2D>();
+                        foreach(var c in cols) c.enabled = false;
+                    }
+                }
             }
 
             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
         }
 
         // The top-most block that the player walks on
+        bool foundationInstantiated = false;
         if (foundation != null)
         {
-            GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
-            groundBlock.name = "Foundation";
-            placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+            bool shouldOmit = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
+            if (!shouldOmit)
+            {
+                foundationInstantiated = true;
+                GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
+                groundBlock.name = "Foundation";
+
+                if (isElevatedSidewalk)
+                {
+                    Collider2D col = groundBlock.GetComponent<Collider2D>();
+                    if (col == null) col = groundBlock.GetComponentInChildren<Collider2D>();
+                    if (col != null)
+                    {
+                        col.usedByEffector = true;
+                        int platformLayer = LayerMask.NameToLayer("OneWayPlatform");
+                        if (platformLayer != -1) groundBlock.layer = platformLayer;
+                    }
+                }
+
+                // Tracker advances only when foundation was actually placed.
+                // For elevated sidewalk with shouldOmit=true, tracker stays at transform.position.y
+                // so buildings spawn on the actual surface, not one groundBlockHeight above it.
+                placementTracker.position += Vector3.up * (moduleConfig.groundBlockHeight / 2f);
+            }
+            else if (!isElevatedSidewalk)
+            {
+                // Road path: shouldOmit is always false here (isElevatedSidewalk=false),
+                // but guard this branch explicitly so Road never regresses.
+                placementTracker.position += Vector3.up * (moduleConfig.groundBlockHeight / 2f);
+            }
         }
 
-        if (obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
+        // [BuildingAudit] — terrain exit snapshot
+        GameLogger.Log("BuildingAudit",
+            $"[TerrainExit] Segment={gameObject.name} " +
+            $"paddingBlocksSpawned={paddingBlocksSpawned} " +
+            $"foundationInstantiated={foundationInstantiated} " +
+            $"placementTrackerY_afterTerrain={placementTracker.position.y:F3}");
+
+        if (spawnObstacles && obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
         {
             obstacleSpawnPoint.position = new Vector3(
                 obstacleSpawnPoint.position.x,
@@ -135,81 +232,155 @@ public class ModuleBuilder : MonoBehaviour
                 obstacleSpawnPoint.position.z
             );
 
+            int currentObstacleRate = diffConfig != null ? diffConfig.groundObstacleChance : obstacleRate;
             int obstacleRoll = Random.Range(0, 100);
-            if (obstacleRoll < obstacleRate)
+            if (obstacleRoll < currentObstacleRate)
             {
-                GameObject obstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
-                GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
-                newObstacle.name = $"{obstaclePrefab.name}_Generated";
-                GameLogger.Log("MODULE", $"  - Spawned obstacle: {newObstacle.name} at {obstacleSpawnPoint.position}");
+                // TEMP: obstacle list on the prefab defines valid spawns — no name-based level filter.
+                // Filter by name (truck/car/etc.) and MaxObstacleLevel disabled while heights are being stabilized.
+                List<GameObject> filteredPrefabs = new List<GameObject>();
+                foreach (var p in obstaclePrefabs)
+                {
+                    if (p == null) continue;
+                    // string n = p.name.ToLower();
+                    // int level = 1;
+                    // if (n.Contains("truck") || n.Contains("camion") || n.Contains("van")) level = 3;
+                    // else if (n.Contains("car") || n.Contains("auto")) level = 2;
+                    // if (level <= maxObstacleLevel) filteredPrefabs.Add(p);
+                    filteredPrefabs.Add(p);
+                }
+
+                if (filteredPrefabs.Count > 0)
+                {
+                    GameObject obstaclePrefab = filteredPrefabs[Random.Range(0, filteredPrefabs.Count)];
+                    GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
+                    
+                    Vector3 locPos = newObstacle.transform.localPosition;
+                    newObstacle.transform.localPosition = new Vector3(locPos.x, locPos.y, obstacleZOffset);
+                    newObstacle.name = $"{obstaclePrefab.name}_Generated";
+                }
             }
         }
 
-        GameLogger.Log("MODULE", $"  - Terrain: {groundBlocksCount} blocks, from y={startPos.y:F2} to y={placementTracker.position.y:F2}");
+
     }
 
     private void GenerateBuildings()
     {
-        if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0)
-        {
-            GameLogger.Log("MODULE", $"  - No building spawn points");
-            return;
-        }
-
-        if (buildingPrefabs == null || buildingPrefabs.Length == 0)
-        {
-            GameLogger.Log("MODULE", $"  - No building prefabs");
-            return;
-        }
+        if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0) return;
+        if (buildingPrefabs == null || buildingPrefabs.Length == 0) return;
 
         int buildingsSpawned = 0;
+        List<Vector2> occupiedIntervals = new List<Vector2>();
 
-        foreach (Transform spawnPoint in buildingSpawnPoints)
+        // Sort spawn points from left to right to process them in spatial order
+        List<Transform> sortedSpawnPoints = new List<Transform>(buildingSpawnPoints);
+        sortedSpawnPoints.Sort((a, b) =>
+        {
+            if (a == null || b == null) return 0;
+            return a.position.x.CompareTo(b.position.x);
+        });
+
+        // [BuildingAudit] — placementTracker snapshot before any building spawns
+        GameLogger.Log("BuildingAudit",
+            $"[BuildingEntry] Segment={gameObject.name} " +
+            $"placementTrackerY_beforeBuildings={placementTracker.position.y:F3} " +
+            $"transformY={transform.position.y:F3}");
+
+        foreach (Transform spawnPoint in sortedSpawnPoints)
         {
             if (spawnPoint == null) continue;
 
             int spawnRoll = Random.Range(0, 100);
-            if (spawnRoll >= buildingSpawnChance)
+            if (spawnRoll >= buildingSpawnChance) continue;
+
+            // Shuffle building prefabs to pick randomly but deterministically
+            List<StructureBuilder> shuffledPrefabs = new List<StructureBuilder>(buildingPrefabs);
+            for (int i = 0; i < shuffledPrefabs.Count; i++)
             {
-                continue;
+                StructureBuilder temp = shuffledPrefabs[i];
+                int randomIndex = Random.Range(i, shuffledPrefabs.Count);
+                shuffledPrefabs[i] = shuffledPrefabs[randomIndex];
+                shuffledPrefabs[randomIndex] = temp;
             }
 
-            Vector3 spawnPosition = new Vector3(
-                spawnPoint.position.x,
-                placementTracker.position.y,
-                spawnPoint.position.z + 1f
-            );
-
-            StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
-
-            GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
-            newBuilding.name = $"{buildingTemplate.name}_Generated";
-
-            StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
-            if (buildingBuilder != null)
+            foreach (StructureBuilder buildingTemplate in shuffledPrefabs)
             {
-                buildingBuilder.ConstructStructure();
-            }
+                if (buildingTemplate == null) continue;
 
-            buildingsSpawned++;
+                float bWidth = buildingTemplate.config != null ? buildingTemplate.config.floorWidth : 15f;
+                float minSpacing = buildingTemplate.config != null ? buildingTemplate.config.minDistanceBetweenBuildings : 2f;
+                
+                // Interval required for this building centered at spawnPoint.x
+                float startX = spawnPoint.position.x - (bWidth / 2f) - (minSpacing / 2f);
+                float endX = spawnPoint.position.x + (bWidth / 2f) + (minSpacing / 2f);
+
+                // Check for overlaps with already spawned buildings in THIS module
+                bool overlaps = false;
+                foreach (Vector2 occupied in occupiedIntervals)
+                {
+                    // If intervals overlap
+                    if (startX < occupied.y && endX > occupied.x)
+                    {
+                        overlaps = true;
+                        break;
+                    }
+                }
+
+                if (!overlaps)
+                {
+                    // It fits! Spawn it.
+                    Vector3 spawnPosition = new Vector3(
+                        spawnPoint.position.x,
+                        placementTracker.position.y + spawnPoint.localPosition.y,
+                        spawnPoint.position.z
+                    );
+
+                    GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
+                    newBuilding.name = $"{buildingTemplate.name}_Generated";
+
+                    StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
+                    if (buildingBuilder != null)
+                    {
+                        buildingBuilder.ConstructStructure();
+                    }
+
+                    // [BuildingAudit] — per-building spawn snapshot
+                    GameLogger.Log("BuildingAudit",
+                        $"[BuildingSpawn] Segment={gameObject.name} " +
+                        $"buildingPrefab={buildingTemplate.name} " +
+                        $"buildingSpawnY={spawnPosition.y:F3} " +
+                        $"buildingLocalY={newBuilding.transform.localPosition.y:F3}");
+
+                    // Record occupied interval
+                    occupiedIntervals.Add(new Vector2(startX, endX));
+                    buildingsSpawned++;
+                    break; // Move to the next spawnPoint
+                }
+            }
         }
-
-        GameLogger.Log("MODULE", $"  - Buildings: {buildingsSpawned}/{buildingSpawnPoints.Length} spawn points used");
     }
 
-    private void SpawnFlyingObstacles(int? explicitHeight = 0)
+    private void SpawnFlyingObstacles(int? explicitHeight = 0, DifficultyConfig diffConfig = null)
     {
         if (flyingObstaclePrefabs == null || flyingObstaclePrefabs.Length == 0) return;
 
+        int currentFlyingRate = diffConfig != null ? diffConfig.flyingObstacleChance : flyingObstacleRate;
         float flyingObstacleRoll = Random.Range(0, 100);
 
-        if (flyingObstacleRoll < flyingObstacleRate)
+        if (flyingObstacleRoll < currentFlyingRate)
         {
+            // Use groundBlockHeight from config instead of hardcoding *3,
+            // so obstacles follow the terrain if block scale is adjusted.
+            float blockHeight = moduleConfig != null ? moduleConfig.groundBlockHeight : 3f;
+
             GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
-            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * 3) + 50, transform.position.z - .5f);
+            
+            // Apply obstacleZOffset to flying obstacles too
+            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * blockHeight) + 50, transform.position.z + obstacleZOffset);
+            
             GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
             newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
-            GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {flyingPosition}");
         }
     }
 
@@ -268,4 +439,67 @@ public class ModuleBuilder : MonoBehaviour
             placementTracker = transform.Find("PlacementTracker");
         }
     }
+
+    [Header("Editor Debug Options")]
+    public bool showDebugBounds = true;
+    public Color roadDebugColor = new Color(1f, 0.4f, 0f, 0.2f);
+    public Color sidewalkDebugColor = new Color(0f, 0.8f, 1f, 0.2f);
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (moduleConfig == null || !showDebugBounds) return;
+
+        float configWidth = moduleConfig.currentTerrainWidth;
+        // Use minTerrainHeight to show the base logical height of the module's terrain
+        float logicalHeight = Mathf.Max(1, moduleConfig.minTerrainHeight) * moduleConfig.groundBlockHeight;
+        Vector3 startPos = transform.position;
+
+        // Determine color
+        Color baseColor = isElevatedSidewalk ? sidewalkDebugColor : roadDebugColor;
+        
+        // Logical bounds center and size
+        // LevelStarter instantiates modules at their CENTER horizontally.
+        // Vertically, they start at transform.position and build upwards, but sprites hang downwards.
+        // To accurately represent the logical space, we center X, and span Y downwards by one groundBlockHeight, and upwards.
+        float gbh = moduleConfig.groundBlockHeight;
+        Vector3 boxCenter = startPos + new Vector3(0, (logicalHeight / 2f) - gbh, 0); 
+        Vector3 boxSize = new Vector3(configWidth, logicalHeight, 1f);
+
+        // Draw solid box
+        Gizmos.color = baseColor;
+        Gizmos.DrawCube(boxCenter, boxSize);
+
+        // Draw wireframe border (fully opaque version of the color)
+        Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
+        Gizmos.DrawWireCube(boxCenter, boxSize);
+
+        // Draw simple start/end lines that extend a bit up for visibility
+        Gizmos.DrawLine(startPos + new Vector3(-configWidth / 2f, -5f, 0), startPos + new Vector3(-configWidth / 2f, logicalHeight + 5f, 0));
+        Gizmos.DrawLine(startPos + new Vector3(configWidth / 2f, -5f, 0), startPos + new Vector3(configWidth / 2f, logicalHeight + 5f, 0));
+
+        // Draw Width text
+        GUIStyle style = new GUIStyle();
+        style.normal.textColor = Gizmos.color;
+        style.fontSize = 12;
+        style.fontStyle = FontStyle.Bold;
+        style.alignment = TextAnchor.MiddleCenter;
+        UnityEditor.Handles.Label(startPos + new Vector3(0, logicalHeight + 1f, 0), $"{(isElevatedSidewalk ? "SW" : "RD")}: {configWidth}", style);
+    }
+
+    [ContextMenu("Preview Terrain (Real Objects)")]
+    public void PreviewTerrainInEditor()
+    {
+        ClearGeneratedContent();
+        if (placementTracker != null) placementTracker.position = transform.position;
+        // Generate with min height so it exactly matches the gizmo preview
+        GenerateBaseTerrain(moduleConfig.minTerrainHeight, false, 0, null);
+    }
+
+    [ContextMenu("Clear Preview")]
+    public void ClearPreview()
+    {
+        ClearGeneratedContent();
+    }
+#endif
 }

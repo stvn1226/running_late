@@ -312,6 +312,62 @@ public class PlayerControllerModular : MonoBehaviour
             UIManager.Instance.TogglePause();
         }
     }
+    
+    // --- Mobile UI Button ---
+    // Wire these to a UI Button's EventTrigger:
+    //   PointerDown → OnJumpButtonDown
+    //   PointerUp   → OnJumpButtonUp
+    public void OnJumpButtonDown()
+    {
+        if (states == null) return;
+        states.SetJumpPressed();
+        if (config != null)
+            states.jumpBufferTimer = config.jumpBufferTime;
+    }
+
+    public void OnJumpButtonUp()
+    {
+        if (states != null)
+            states.SetJumpReleased();
+    }
+
+    public void OnSlideButtonDown()
+    {
+        if (states == null) return;
+        states.crouchHeld = true;
+        if (config != null && !states.isGrounded)
+            states.BufferCrouchInput(config.longJumpBufferTime);
+    }
+
+    public void OnSlideButtonUp()
+    {
+        if (states != null)
+            states.crouchHeld = false;
+    }
+
+    public void OnKickButton()
+    {
+        if (states != null && config != null)
+            states.SetKickPressed(config.kickDuration);
+    }
+
+    public void OnDiveButton()
+    {
+        if (states != null)
+            states.SetDivePressed();
+    }
+
+    public void OnDropDownButtonDown()
+    {
+        if (states != null)
+            states.SetDropDownPressed();
+    }
+
+    public void OnDropDownButtonUp()
+    {
+        if (states != null)
+            states.SetDropDownReleased();
+    }
     #endregion
 
     #region Component Management
