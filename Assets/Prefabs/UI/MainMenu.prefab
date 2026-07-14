@@ -675,10 +675,10 @@ RectTransform:
   - {fileID: 8525918345066225986}
   m_Father: {fileID: 7840215627235890728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 177.255, y: -92.5}
-  m_SizeDelta: {x: 294.51, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &148533215948044569
 CanvasRenderer:
@@ -2374,10 +2374,10 @@ RectTransform:
   - {fileID: 7586862669644809718}
   m_Father: {fileID: 7840215627235890728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 177.255, y: -27.5}
-  m_SizeDelta: {x: 294.51, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8787922998308172793
 MonoBehaviour:
@@ -2394,7 +2394,7 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 6119033804116480700}
+    m_SelectOnUp: {fileID: 4587772862071644058}
     m_SelectOnDown: {fileID: 628816430589443420}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
@@ -2719,10 +2719,10 @@ RectTransform:
   - {fileID: 3899677387534931932}
   m_Father: {fileID: 7916613072723565837}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 268.3825, y: -61.1248}
-  m_SizeDelta: {x: 172.255, y: 122.2496}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1857070792022817531
 GameObject:
@@ -3909,10 +3909,10 @@ RectTransform:
   - {fileID: 1761709424594029021}
   m_Father: {fileID: 3841581610838330255}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 177.255, y: -40}
-  m_SizeDelta: {x: 294.51, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4587772862071644058
 MonoBehaviour:
@@ -3930,7 +3930,7 @@ MonoBehaviour:
     m_Mode: 4
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 6119033804116480700}
-    m_SelectOnDown: {fileID: 628816430589443420}
+    m_SelectOnDown: {fileID: 8787922998308172793}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 3
@@ -3960,7 +3960,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 4232322029452982379}
+        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
+        m_MethodName: SetDualPathMode
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!95 &5760465060363762343
 Animator:
@@ -4242,10 +4254,10 @@ RectTransform:
   - {fileID: 984171511375614742}
   m_Father: {fileID: 7916613072723565837}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 86.1275, y: -61.1248}
-  m_SizeDelta: {x: 172.255, y: 122.2496}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2846234089955378331
 GameObject:
@@ -6514,10 +6526,10 @@ RectTransform:
   - {fileID: 6088747524300409698}
   m_Father: {fileID: 6382072577471908636}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 177.255, y: -26.32}
-  m_SizeDelta: {x: 294.51, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1109116248429988370
 MonoBehaviour:
@@ -11045,10 +11057,10 @@ RectTransform:
   - {fileID: 5735350182063931904}
   m_Father: {fileID: 6382072577471908636}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 177.255, y: -88.96}
-  m_SizeDelta: {x: 294.51, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2396546831654271809
 CanvasRenderer:
@@ -13107,6 +13119,7 @@ MonoBehaviour:
   recentLevelsPanel: {fileID: 6017624047542435026}
   savedLevelsPanel: {fileID: 5579112103579909189}
   textInputPanel: {fileID: 5501054782424442515}
+  pathModeToggle: {fileID: 4587772862071644058}
   menuCanvasGroup: {fileID: 0}
   fadeOutDuration: 0.5
   gameplayCanvas: {fileID: 0}
@@ -13494,7 +13507,7 @@ MonoBehaviour:
     m_Mode: 4
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 628816430589443420}
-    m_SelectOnDown: {fileID: 8787922998308172793}
+    m_SelectOnDown: {fileID: 4587772862071644058}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 2
@@ -15105,7 +15118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4839155954629555576, guid: 7f69a470ebf314236af396195e0438e4, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -20.697266
+      value: -20.697388
       objectReference: {fileID: 0}
     - target: {fileID: 5018514788820660546, guid: 7f69a470ebf314236af396195e0438e4, type: 3}
       propertyPath: m_AnchorMax.y

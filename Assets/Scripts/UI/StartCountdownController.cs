@@ -10,6 +10,7 @@ public class StartCountdownController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI countdownText;
     [SerializeField] private Image countdownBackground;
     [SerializeField] private Image countdownCircle;
+    [SerializeField] private TextMeshProUGUI seedText;
     
     [Header("Countdown Settings")]
     [SerializeField] private int countdownFrom = 3;
@@ -83,6 +84,10 @@ public class StartCountdownController : MonoBehaviour
     
         if (countdownPanel != null)
         {
+            if (seedText != null && LevelStarter.Instance != null)
+            {
+                seedText.text = $"Seed: {LevelStarter.Instance.GetCurrentSeed()}";
+            }
             countdownPanel.SetActive(true);
         }
     
