@@ -5303,15 +5303,15 @@ MonoBehaviour:
   useModularGeneration: 1
   pathMode: 1
   sidewalkThemes:
-  - themeId: grass
+  - themeId: ground
     flatModules:
-    - {fileID: 6877803549350271885, guid: 63374cc18876b47818c5b2ae23316a6b, type: 3}
-    - {fileID: 5979050493410814231, guid: 1c9cbcd0dcadb4d0499398517ed1e055, type: 3}
-    - {fileID: 3603241969965492453, guid: 6b92ab8f7b0f0455e925dada87565881, type: 3}
-    - {fileID: 4069502681158129930, guid: 6146b78f9190e4fb38a469abc2d8eb88, type: 3}
-    - {fileID: 4313241089442768526, guid: d86de1a42654f4ee089a04a9d0d0c19e, type: 3}
-    slopeLeftModule: {fileID: 2755476972544965116, guid: f2290d32c76e74c0cb8f5db1bcc917eb, type: 3}
-    slopeRightModule: {fileID: 5958189151317215206, guid: d334e6f56529246b7ac8e1bcca31495e, type: 3}
+    - {fileID: 6877803549350271885, guid: f1ee00e350f8d46a5a55e0d9246682f3, type: 3}
+    - {fileID: 5979050493410814231, guid: 38e563a16c48d45e59658f1e70c03399, type: 3}
+    - {fileID: 3603241969965492453, guid: 9dd071c938983493b8bae225de645a8f, type: 3}
+    - {fileID: 4069502681158129930, guid: 2cc4699ece23a49099e78394d2176b52, type: 3}
+    - {fileID: 4313241089442768526, guid: 5da12b28efa064756a77f5797dcdfcc5, type: 3}
+    slopeLeftModule: {fileID: 2755476972544965116, guid: e4d38074706084a8981dfcc0471789ac, type: 3}
+    slopeRightModule: {fileID: 5958189151317215206, guid: d33732477bd93470daabb8fb23784902, type: 3}
   forcedThemeId: 
   desktopConfigs:
   - {fileID: 11400000, guid: 078358612fd0841289ce781868986331, type: 2}
