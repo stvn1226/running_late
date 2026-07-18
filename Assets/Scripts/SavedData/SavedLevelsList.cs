@@ -36,7 +36,7 @@ public class SavedLevelsList : MonoBehaviour
             levelName = PlayerPrefs.GetString(key);
         }
 
-        LevelSavingParams levelEntry = new LevelSavingParams(seed, levelName);
+        LevelSavingParams levelEntry = LevelSavingParams.Create(seed, levelName);
 
         if (!savedLevels.Exists(l => l.savedLevelSeed == seed))
         {
@@ -92,7 +92,7 @@ public class SavedLevelsList : MonoBehaviour
             {
                 foreach (var levelData in data.levels)
                 {
-                    LevelSavingParams level = new LevelSavingParams(levelData.seed, levelData.name);
+                    LevelSavingParams level = LevelSavingParams.Create(levelData.seed, levelData.name);
                     savedLevels.Add(level);
                 }
 

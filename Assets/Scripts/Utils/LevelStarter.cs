@@ -351,7 +351,7 @@ public class LevelStarter : MonoBehaviour
 
         if (AnalyticsManager.Instance != null)
         {
-            string levelType = useModularGeneration ? "Modular" : "Procedural";
+            string levelType = pathMode.ToString();
             AnalyticsManager.Instance.TrackLevelStart(currentSeed, levelType);
         }
 

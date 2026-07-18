@@ -76,7 +76,7 @@ public class UnityAnalyticsProvider : IAnalyticsProvider
         }
     }
     
-    public void TrackLevelComplete(int seed, float time, bool victory)
+    public void TrackLevelComplete(int seed, string levelType, float time, bool victory)
     {
         if (!isInitialized) return;
         

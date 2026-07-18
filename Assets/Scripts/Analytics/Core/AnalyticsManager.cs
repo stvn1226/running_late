@@ -104,8 +104,11 @@ public class AnalyticsManager : MonoBehaviour
         }
     }
     
+    private string _currentLevelType = "DualPath";
+
     public void TrackLevelStart(int seed, string levelType)
     {
+        _currentLevelType = levelType;
         if (!config.enableAnalytics) return;
         
         var parameters = new Dictionary<string, object>
@@ -115,6 +118,14 @@ public class AnalyticsManager : MonoBehaviour
         };
         
         TrackEvent(AnalyticsEvents.LEVEL_START, parameters);
+        
+        foreach (var provider in activeProviders)
+        {
+            if (provider.IsInitialized)
+            {
+                provider.TrackLevelStart(seed, levelType);
+            }
+        }
     }
     
     public void TrackLevelComplete(int seed, float time, bool victory, float progressPercentage = 0f, float playerPositionX = 0f, string defeatReason = "")
@@ -124,9 +135,19 @@ public class AnalyticsManager : MonoBehaviour
         var parameters = new Dictionary<string, object>
         {
             { "seed", seed },
+            { "level_type", _currentLevelType },
             { "completion_time", time },
             { "success", victory }
         };
+
+        if (LeaderboardManager.Instance != null)
+        {
+            var bestRecord = LeaderboardManager.Instance.GetBestTime(seed);
+            if (bestRecord != null)
+            {
+                parameters["best_time"] = bestRecord.time;
+            }
+        }
     
         if (!victory)
         {
@@ -137,6 +158,14 @@ public class AnalyticsManager : MonoBehaviour
     
         TrackEvent(AnalyticsEvents.LEVEL_COMPLETE, parameters);
     
+        foreach (var provider in activeProviders)
+        {
+            if (provider.IsInitialized)
+            {
+                provider.TrackLevelComplete(seed, _currentLevelType, time, victory);
+            }
+        }
+
         if (victory && LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.SaveTime(seed, time);
@@ -161,6 +190,14 @@ public class AnalyticsManager : MonoBehaviour
         }
         
         TrackEvent("player_action", parameters);
+
+        foreach (var provider in activeProviders)
+        {
+            if (provider.IsInitialized)
+            {
+                provider.TrackPlayerAction(actionType, context);
+            }
+        }
     }
     
     public void ClearEventBuffer()
