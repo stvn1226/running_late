@@ -1,5 +1,24 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "Game Package Registry by Google",
+      "url": "https://unityregistry-pa.googleapis.com/",
+      "scopes": [
+        "com.google"
+      ]
+    },
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.gameanalytics",
+        "com.google.external-dependency-manager"
+      ]
+    }
+  ],
   "dependencies": {
+    "com.google.external-dependency-manager": "1.2.188",
+    "com.gameanalytics.sdk": "8.0.1",
     "com.yasirkula.nativeshare": "https://github.com/yasirkula/UnityNativeShare.git",
     "com.unity.2d.animation": "13.0.4",
     "com.unity.2d.aseprite": "3.0.1",

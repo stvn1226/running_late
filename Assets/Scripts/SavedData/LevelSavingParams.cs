@@ -6,10 +6,12 @@ public class LevelSavingParams : ScriptableObject
     public int savedLevelSeed;
     public string savedLevelName;
 
-    public LevelSavingParams(int seed, string name)
+    public static LevelSavingParams Create(int seed, string name)
     {
-        savedLevelSeed = seed;
-        savedLevelName = name;
+        var instance = ScriptableObject.CreateInstance<LevelSavingParams>();
+        instance.savedLevelSeed = seed;
+        instance.savedLevelName = name;
+        return instance;
     }
 
     //public int minModules;

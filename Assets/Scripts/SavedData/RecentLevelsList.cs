@@ -26,7 +26,7 @@ public class RecentLevelsList : MonoBehaviour
 
     public void AddRecentLevel(int seed)
     {
-        LevelSavingParams levelEntry = new LevelSavingParams(seed, $"{seed}");
+        LevelSavingParams levelEntry = LevelSavingParams.Create(seed, $"{seed}");
         recentLevels.RemoveAll(l => l.savedLevelSeed == seed);
 
         if (!recentLevels.Exists(l => l.savedLevelSeed == seed))
@@ -88,7 +88,7 @@ public class RecentLevelsList : MonoBehaviour
             {
                 foreach (var levelData in data.levels)
                 {
-                    LevelSavingParams level = new LevelSavingParams(levelData.seed, levelData.name);
+                    LevelSavingParams level = LevelSavingParams.Create(levelData.seed, levelData.name);
                     recentLevels.Add(level);
                 }
 

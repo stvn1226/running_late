@@ -30,7 +30,7 @@ public class CustomAnalyticsProvider : IAnalyticsProvider
         TrackEvent("level_start", parameters);
     }
     
-    public void TrackLevelComplete(int seed, float time, bool victory)
+    public void TrackLevelComplete(int seed, string levelType, float time, bool victory)
     {
         var parameters = new Dictionary<string, object>
         {
