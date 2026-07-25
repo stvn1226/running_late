@@ -175,8 +175,9 @@ MonoBehaviour:
   moduleConfig: {fileID: 11400000, guid: fd907f67a355b1a47a342c8db56a6977, type: 2}
   foundation: {fileID: 8683936979058533683, guid: 3876c3a25d1debd41b6fe0c54122cb2f, type: 3}
   padding: {fileID: 8683936979058533683, guid: 19f1a1e5f5e938349b6efc6aaaab018b, type: 3}
+  basePadding: {fileID: 0}
   buildingPrefabs:
-  - {fileID: 3927706109960210463, guid: bb6934f4d62afb0469d35850f4e22433, type: 3}
+  - {fileID: 3927706109960210463, guid: 6130019af6f03664889ee53abd24378e, type: 3}
   placementTracker: {fileID: 1916377060600151773}
   buildingSpawnPoints:
   - {fileID: 7682890860290158248}
@@ -199,3 +200,6 @@ MonoBehaviour:
   paddingZOffset: 5
   obstacleZOffset: -1.5
   baseLevelHeight: 1
+  showDebugBounds: 1
+  roadDebugColor: {r: 1, g: 0.4, b: 0, a: 0.2}
+  sidewalkDebugColor: {r: 0, g: 0.8, b: 1, a: 0.2}
