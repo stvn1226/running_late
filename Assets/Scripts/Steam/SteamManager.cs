@@ -2,7 +2,7 @@ using UnityEngine;
 using Steamworks;
 
 /// <summary>
-/// Manages the Steam SDK lifecycle using Facepunch.Steamworks.
+/// Manages the Steam SDK lifecycle using Steamworks.NET.
 /// Persists across scenes via DontDestroyOnLoad.
 ///
 /// HOW TO FINISH SETUP:
@@ -43,17 +43,19 @@ public class SteamManager : MonoBehaviour
     {
         try
         {
-            // asyncCallbacks: true lets Facepunch handle callback dispatching automatically.
-            // This is the recommended mode for Unity.
-            SteamClient.Init(APP_ID, asyncCallbacks: true);
+            if (!SteamAPI.Init())
+            {
+                throw new System.InvalidOperationException("SteamAPI.Init returned false.");
+            }
+
             IsInitialized = true;
 
-            GameLogger.Log("STEAM", $"Steam initialized OK — Player: {SteamClient.Name} | SteamID: {SteamClient.SteamId}");
+            GameLogger.Log("STEAM", $"Steam initialized OK — Player: {SteamFriends.GetPersonaName()} | SteamID: {SteamUser.GetSteamID()}");
 
             // Pass the SteamID to GameAnalytics as the custom user ID.
             // SetCustomId must be called before GA initializes — guaranteed by Script Execution Order.
-            GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamClient.SteamId.ToString());
-            GameLogger.Log("STEAM", $"SteamID enviado a GameAnalytics: {SteamClient.SteamId}");
+            GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamUser.GetSteamID().ToString());
+            GameLogger.Log("STEAM", $"SteamID enviado a GameAnalytics: {SteamUser.GetSteamID()}");
         }
         catch (System.Exception e)
         {
@@ -69,9 +71,17 @@ public class SteamManager : MonoBehaviour
     {
         if (IsInitialized)
         {
-            SteamClient.Shutdown();
+            SteamAPI.Shutdown();
             IsInitialized = false;
             GameLogger.Log("STEAM", "Steam shut down.");
+        }
+    }
+
+    private void Update()
+    {
+        if (IsInitialized)
+        {
+            SteamAPI.RunCallbacks();
         }
     }
 
@@ -81,20 +91,20 @@ public class SteamManager : MonoBehaviour
     public static string GetSteamId()
     {
         if (!IsInitialized) return null;
-        return SteamClient.SteamId.ToString();
+        return SteamUser.GetSteamID().ToString();
     }
 
     /// <summary>Returns the player's Steam display name, or null if Steam is unavailable.</summary>
     public static string GetPlayerName()
     {
         if (!IsInitialized) return null;
-        return SteamClient.Name;
+        return SteamFriends.GetPersonaName();
     }
 
     /// <summary>Returns true if the player owns this app on Steam.</summary>
     public static bool IsOwned()
     {
         if (!IsInitialized) return false;
-        return SteamApps.IsSubscribed;
+        return SteamApps.BIsSubscribed();
     }
 }
