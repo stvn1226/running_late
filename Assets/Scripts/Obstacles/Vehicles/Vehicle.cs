@@ -121,6 +121,8 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
+        GameLogger.Log("VEHICLE_DEBUG", $"[{gameObject.name}] OnTriggerEnter2D hit: {collision.gameObject.name} (Tag: {collision.gameObject.tag}) | isRunning: {isRunning} | movementOverridden: {movementOverridden}");
+
         if (!isRunning) return;
 
         //if (wasHit)

@@ -7,6 +7,8 @@ public class HitboxCollider : MonoBehaviour
 
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
+        GameLogger.Log("VEHICLE_DEBUG", $"[{gameObject.name}] OnTriggerEnter2D (Animal) hit: {collision.gameObject.name} (Tag: {collision.gameObject.tag})");
+
         if (parent == null)
         {
             GameLogger.LogError("HITBOX", "Parent Animal reference is null!");
