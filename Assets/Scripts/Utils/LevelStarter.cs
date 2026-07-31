@@ -218,6 +218,11 @@ public class LevelStarter : MonoBehaviour
         else if (PlayerPrefs.GetInt("UseNewLevelSeed", 0) == 1)
         {
             int newSeed = PlayerPrefs.GetInt("NewLevelSeed", 0);
+            if (PlayerPrefs.HasKey("NewLevelPathMode"))
+            {
+                pathMode = (LevelPathMode)PlayerPrefs.GetInt("NewLevelPathMode");
+                PlayerPrefs.DeleteKey("NewLevelPathMode");
+            }
             SetManualSeed(newSeed);
             PlayerPrefs.DeleteKey("UseNewLevelSeed");
             PlayerPrefs.DeleteKey("NewLevelSeed");
@@ -378,7 +383,7 @@ public class LevelStarter : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
 
-        RecentLevelsList.instance.AddRecentLevel(currentSeed);
+        RecentLevelsList.instance.AddRecentLevel(currentSeed, (int)pathMode);
         LogCurrentLevel();
         NotifySpawnManager();
     }

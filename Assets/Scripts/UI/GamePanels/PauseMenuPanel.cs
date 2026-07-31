@@ -31,6 +31,11 @@ public class PauseMenuPanel : BaseMenuPanel
     protected override void SetupButtons()
     {
         SetupFrameRateToggles();
+
+        if (seedInputField != null && seedInputField.gameObject.GetComponent<VirtualKeyboardHelper>() == null)
+        {
+            seedInputField.gameObject.AddComponent<VirtualKeyboardHelper>();
+        }
     }
     
     protected override void RegisterButtonCallbacks()
@@ -60,6 +65,11 @@ public class PauseMenuPanel : BaseMenuPanel
             headerText.text = "<bounce>PAUSE</bounce>";
         }
         LoadSettings();
+        
+        if (seedToggle != null)
+        {
+            UpdateToggleNavigation(seedToggle.isOn);
+        }
     }
     
     private void OnRetryClicked()
@@ -110,12 +120,42 @@ public class PauseMenuPanel : BaseMenuPanel
     private void OnSeedToggleChanged(bool useManualSeed)
     {
         isManualSeedMode = useManualSeed;
-        seedInputField.interactable = useManualSeed;
         
-        if (useManualSeed)
+        if (seedInputField != null)
         {
-            seedInputField.text = levelStarter.GetCurrentSeed().ToString();
+            seedInputField.interactable = useManualSeed;
+            
+            if (useManualSeed)
+            {
+                seedInputField.text = levelStarter.GetCurrentSeed().ToString();
+            }
+            else if (UnityEngine.EventSystems.EventSystem.current != null && 
+                     UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject == seedInputField.gameObject)
+            {
+                UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(seedToggle.gameObject);
+            }
         }
+        
+        UpdateToggleNavigation(useManualSeed);
+    }
+    
+    private void UpdateToggleNavigation(bool seedInputActive)
+    {
+        if (seedToggle == null) return;
+        
+        Navigation nav = seedToggle.navigation;
+        nav.mode = Navigation.Mode.Explicit;
+        
+        if (seedInputActive && seedInputField != null)
+        {
+            nav.selectOnDown = seedInputField;
+        }
+        else 
+        {
+            nav.selectOnDown = (fps60Toggle != null && fps60Toggle.gameObject.activeInHierarchy) ? fps60Toggle : quitButton;
+        }
+        
+        seedToggle.navigation = nav;
     }
     
     private void OnSeedInputChanged(string seedText)

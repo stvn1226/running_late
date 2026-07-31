@@ -24,9 +24,9 @@ public class RecentLevelsList : MonoBehaviour
         LoadFromPlayerPrefs();
     }
 
-    public void AddRecentLevel(int seed)
+    public void AddRecentLevel(int seed, int pathMode)
     {
-        LevelSavingParams levelEntry = LevelSavingParams.Create(seed, $"{seed}");
+        LevelSavingParams levelEntry = LevelSavingParams.Create(seed, $"{seed}", pathMode);
         recentLevels.RemoveAll(l => l.savedLevelSeed == seed);
 
         if (!recentLevels.Exists(l => l.savedLevelSeed == seed))
@@ -65,7 +65,7 @@ public class RecentLevelsList : MonoBehaviour
         LevelListData data = new LevelListData();
         foreach (var level in recentLevels)
         {
-            data.levels.Add(new LevelSaveData(level.savedLevelSeed, level.savedLevelName));
+            data.levels.Add(new LevelSaveData(level.savedLevelSeed, level.savedLevelName, level.pathMode));
         }
 
         string json = JsonUtility.ToJson(data);
@@ -88,7 +88,7 @@ public class RecentLevelsList : MonoBehaviour
             {
                 foreach (var levelData in data.levels)
                 {
-                    LevelSavingParams level = LevelSavingParams.Create(levelData.seed, levelData.name);
+                    LevelSavingParams level = LevelSavingParams.Create(levelData.seed, levelData.name, levelData.pathMode);
                     recentLevels.Add(level);
                 }
 

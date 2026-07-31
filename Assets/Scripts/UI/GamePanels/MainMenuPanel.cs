@@ -42,6 +42,11 @@ public class MainMenuPanel : BaseMainMenuPanel
                 GameLogger.Log("MENU", "RandomSeedController created");
             }
         }
+
+        if (seedInputField != null && seedInputField.gameObject.GetComponent<VirtualKeyboardHelper>() == null)
+        {
+            seedInputField.gameObject.AddComponent<VirtualKeyboardHelper>();
+        }
     }
     
     private void SetupStep1Buttons()

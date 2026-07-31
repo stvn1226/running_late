@@ -25,7 +25,7 @@ public class SavedLevelsList : MonoBehaviour
         LoadFromPlayerPrefs();
     }
 
-    public void AddSavedLevel(int seed)
+    public void AddSavedLevel(int seed, int pathMode)
     {
         savedLevels.RemoveAll(l => l.savedLevelSeed == seed);
 
@@ -36,7 +36,7 @@ public class SavedLevelsList : MonoBehaviour
             levelName = PlayerPrefs.GetString(key);
         }
 
-        LevelSavingParams levelEntry = LevelSavingParams.Create(seed, levelName);
+        LevelSavingParams levelEntry = LevelSavingParams.Create(seed, levelName, pathMode);
 
         if (!savedLevels.Exists(l => l.savedLevelSeed == seed))
         {
@@ -69,7 +69,7 @@ public class SavedLevelsList : MonoBehaviour
         LevelListData data = new LevelListData();
         foreach (var level in savedLevels)
         {
-            data.levels.Add(new LevelSaveData(level.savedLevelSeed, level.savedLevelName));
+            data.levels.Add(new LevelSaveData(level.savedLevelSeed, level.savedLevelName, level.pathMode));
         }
 
         string json = JsonUtility.ToJson(data);
@@ -92,7 +92,7 @@ public class SavedLevelsList : MonoBehaviour
             {
                 foreach (var levelData in data.levels)
                 {
-                    LevelSavingParams level = LevelSavingParams.Create(levelData.seed, levelData.name);
+                    LevelSavingParams level = LevelSavingParams.Create(levelData.seed, levelData.name, levelData.pathMode);
                     savedLevels.Add(level);
                 }
 

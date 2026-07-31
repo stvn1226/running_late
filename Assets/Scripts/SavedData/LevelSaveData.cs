@@ -7,11 +7,13 @@ public class LevelSaveData
 {
     public int seed;
     public string name;
+    public int pathMode;
 
-    public LevelSaveData(int seed, string name)
+    public LevelSaveData(int seed, string name, int pathMode = 0)
     {
         this.seed = seed;
         this.name = name;
+        this.pathMode = pathMode;
     }
 }
 

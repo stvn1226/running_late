@@ -43,6 +43,7 @@ public class SavedLevelsPanel : BaseMainMenuPanel
 
         PlayerPrefs.SetInt("UseNewLevelSeed", 1);
         PlayerPrefs.SetInt("NewLevelSeed", savedLevelEntry.levelSeed);
+        PlayerPrefs.SetInt("NewLevelPathMode", savedLevelEntry.levelPathMode);
         PlayerPrefs.Save();
 
         if (menuController != null)
@@ -85,7 +86,7 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             foreach (LevelSavingParams l in RecentLevelsList.instance.GetRecentLevels())
             {
                 SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
-                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel, ct);
+                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, l.pathMode, isRecentsPanel, ct);
                 savedLevelEntries.Add(newEntry);
                 ct++;
             }
@@ -95,7 +96,7 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             foreach (LevelSavingParams l in SavedLevelsList.instance.GetSavedLevels())
             {
                 SavedLevelEntry newEntry = Instantiate(exampleEntry, entriesLayoutGroup.transform);
-                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, isRecentsPanel, ct);
+                newEntry.SetupEntry(l.savedLevelSeed, l.savedLevelName, l.pathMode, isRecentsPanel, ct);
                 savedLevelEntries.Add(newEntry);
                 ct++;
             }
