@@ -18,41 +18,28 @@ public class PanCamObject : MonoBehaviour
     private Vector2 currentVelocity;
     private Vector2 targetLocalPosition = Vector2.zero;
 
+    private PlayerInputActions inputActions;
+
+    private void Awake()
+    {
+        inputActions = new PlayerInputActions();
+    }
+
     private void OnEnable()
     {
-        SubscribeToPanInput();
+        inputActions.Gameplay.PanCamera.Enable();
+        inputActions.Gameplay.PanCamera.performed += OnPanInput;
+        inputActions.Gameplay.PanCamera.canceled += OnPanInput;
+        
+        if (showDebug)
+            Debug.Log("[PanCam] Successfully subscribed to PanCamera input");
     }
 
     private void OnDisable()
     {
-        UnsubscribeFromPanInput();
-    }
-
-    private void SubscribeToPanInput()
-    {
-        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
-        {
-            UIManager.Instance.inputActions.Gameplay.PanCamera.performed += OnPanInput;
-            UIManager.Instance.inputActions.Gameplay.PanCamera.canceled += OnPanInput;
-            
-            if (showDebug)
-                Debug.Log("[PanCam] Successfully subscribed to PanCamera input");
-        }
-        else
-        {
-            Invoke(nameof(SubscribeToPanInput), 0.1f);
-        }
-    }
-
-    private void UnsubscribeFromPanInput()
-    {
-        CancelInvoke(nameof(SubscribeToPanInput));
-        
-        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
-        {
-            UIManager.Instance.inputActions.Gameplay.PanCamera.performed -= OnPanInput;
-            UIManager.Instance.inputActions.Gameplay.PanCamera.canceled -= OnPanInput;
-        }
+        inputActions.Gameplay.PanCamera.performed -= OnPanInput;
+        inputActions.Gameplay.PanCamera.canceled -= OnPanInput;
+        inputActions.Gameplay.PanCamera.Disable();
     }
 
     private void OnPanInput(InputAction.CallbackContext context)
