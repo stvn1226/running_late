@@ -2,13 +2,14 @@ using UnityEngine;
 using Steamworks;
 using TMPro;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 
 /// <summary>
 /// Opens Steam's controller keyboard when its assigned input field receives a UI submit event.
 /// While the Steam overlay owns controller input, Unity's menu navigation is suspended.
 /// </summary>
-public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
+public class SteamKeyboardController : MonoBehaviour
 {
     [Header("UI Reference")]
     [SerializeField] private TMP_InputField targetInputField;
@@ -18,6 +19,7 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
     private bool uiInputModuleWasEnabled;
     private bool menuNavigationSuspended;
     private InputSystemUIInputModule uiInputModule;
+    private PlayerInputActions inputActions;
 
     public static bool IsAnyKeyboardOpen { get; private set; }
 
@@ -29,11 +31,25 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
         }
 
         SteamUtils.OnGamepadTextInputDismissed += OnSteamKeyboardDismissed;
+        inputActions = new PlayerInputActions();
+    }
+
+    private void OnEnable()
+    {
+        inputActions.UI.Enable();
+        inputActions.UI.Submit.performed += OnControllerSubmit;
+    }
+
+    private void OnDisable()
+    {
+        inputActions.UI.Submit.performed -= OnControllerSubmit;
+        inputActions.UI.Disable();
     }
 
     private void OnDestroy()
     {
         SteamUtils.OnGamepadTextInputDismissed -= OnSteamKeyboardDismissed;
+        inputActions.Dispose();
         IsAnyKeyboardOpen = false;
 
         // SteamManager owns the Steam client lifecycle. Only restore the UI state this
@@ -49,11 +65,16 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
         targetInputField = inputField;
     }
 
-    /// <summary>
-    /// Called by the EventSystem when the focused input field is confirmed.
-    /// </summary>
-    public void OnSubmit(BaseEventData eventData)
+    private void OnControllerSubmit(InputAction.CallbackContext context)
     {
+        if (targetInputField == null ||
+            context.control.device is not Gamepad ||
+            EventSystem.current == null ||
+            EventSystem.current.currentSelectedGameObject != targetInputField.gameObject)
+        {
+            return;
+        }
+
         OpenSteamOverlayKeyboard();
     }
 
@@ -62,11 +83,11 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
     /// </summary>
     public void OpenSteamOverlayKeyboard()
     {
-        // if (isKeyboardOpen || targetInputField == null || !SteamClient.IsValid)
-        // {
-        //     Debug.Log("Steam client failed!");
-        //     return;
-        // }
+        if (isKeyboardOpen || targetInputField == null || !SteamClient.IsValid)
+        {
+            Debug.Log("Steam client failed!");
+            return;
+        }
 
         isKeyboardOpen = true;
         IsAnyKeyboardOpen = true;
@@ -80,6 +101,8 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
             targetInputField.characterLimit > 0 ? targetInputField.characterLimit : 100,
             targetInputField.text
         );
+
+        Debug.Log($"Steam keyboard requested. Opened: {keyboardOpened}, Overlay enabled: {SteamUtils.IsOverlayEnabled}, Big Picture: {SteamUtils.IsSteamInBigPictureMode}");
 
         if (!keyboardOpened)
         {
