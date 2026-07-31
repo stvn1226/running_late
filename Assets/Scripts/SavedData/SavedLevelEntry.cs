@@ -15,8 +15,12 @@ public class SavedLevelEntry : MonoBehaviour
     [SerializeField] private TextMeshProUGUI levelNameDisplay;
     [SerializeField] private TextMeshProUGUI levelSeedDisplay;
     [SerializeField] private TextMeshProUGUI levelBestTimeDisplay;
+    [SerializeField] private Image modeImage;
+    [SerializeField] private Sprite singleDeckerSprite;
+    [SerializeField] private Sprite doubleDeckerSprite;
     [SerializeField] public string levelName;
     [SerializeField] public int levelSeed;
+    [SerializeField] public int levelPathMode;
     [SerializeField] private TimeRecord levelBestTime;
     [SerializeField] public Button startButton;
     [SerializeField] public Button renameButton;
@@ -86,11 +90,12 @@ public class SavedLevelEntry : MonoBehaviour
                selected == deleteButton.gameObject;
     }
 
-    public void SetupEntry(int seed, string name, bool isRecents, int rowNum)
+    public void SetupEntry(int seed, string name, int pathMode, bool isRecents, int rowNum)
     {
         rowNumber = rowNum;
         levelSeed = seed;
         levelName = name;
+        levelPathMode = pathMode;
         isRecentsEntry = isRecents;
 
         if (isRecents)
@@ -109,6 +114,12 @@ public class SavedLevelEntry : MonoBehaviour
         if (levelSeedDisplay != null)
         {
             levelSeedDisplay.text = $"Seed: {levelSeed}";
+        }
+
+        if (modeImage != null)
+        {
+            modeImage.sprite = (levelPathMode == 1) ? singleDeckerSprite : doubleDeckerSprite;
+            modeImage.gameObject.SetActive(true);
         }
 
         LoadBestTimeFromRecords();
@@ -193,7 +204,7 @@ public class SavedLevelEntry : MonoBehaviour
     {
         if (SavedLevelsList.instance != null)
         {
-            SavedLevelsList.instance.AddSavedLevel(levelSeed);
+            SavedLevelsList.instance.AddSavedLevel(levelSeed, levelPathMode);
 
             SaveLevelNameToPlayerPrefs();
 

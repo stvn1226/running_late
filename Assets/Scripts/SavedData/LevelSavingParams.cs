@@ -5,12 +5,14 @@ public class LevelSavingParams : ScriptableObject
 {
     public int savedLevelSeed;
     public string savedLevelName;
+    public int pathMode;
 
-    public static LevelSavingParams Create(int seed, string name)
+    public static LevelSavingParams Create(int seed, string name, int pathMode = 0)
     {
         var instance = ScriptableObject.CreateInstance<LevelSavingParams>();
         instance.savedLevelSeed = seed;
         instance.savedLevelName = name;
+        instance.pathMode = pathMode;
         return instance;
     }
 

@@ -149,3 +149,9 @@ Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/AOTGenerationConfig.asset
 Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/AOTGenerationConfig.asset.meta
 Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/ImportSettingsConfig.asset
 Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/ImportSettingsConfig.asset.meta
+
+# Ignore UI font metadata changes (automatically dirtied by Unity)
+Assets/Sprites/Art/UI/Font/*.asset
+Assets/Sprites/Art/UI/Font/*/*.asset
+Assets/Fonts/*.asset
+Assets/Fonts/*/*.asset
