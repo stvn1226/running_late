@@ -17,6 +17,7 @@ public class TextInputPanel : BaseMainMenuPanel
 
     protected override void SetupPanel()
     {
+        inputField.characterLimit = 16;
         inputField.text = string.Empty;
         okButton.onClick.AddListener(RenameLevel);
         cancelButton.onClick.AddListener(OnBackClicked);

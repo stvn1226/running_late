@@ -2,7 +2,7 @@ using UnityEngine;
 using Steamworks;
 
 /// <summary>
-/// Manages the Steam SDK lifecycle using Steamworks.NET.
+/// Manages the Steam SDK lifecycle using Facepunch Steamworks.
 /// Persists across scenes via DontDestroyOnLoad.
 ///
 /// HOW TO FINISH SETUP:
@@ -43,19 +43,16 @@ public class SteamManager : MonoBehaviour
     {
         try
         {
-            if (!SteamAPI.Init())
-            {
-                throw new System.InvalidOperationException("SteamAPI.Init returned false.");
-            }
+            SteamClient.Init(APP_ID);
 
             IsInitialized = true;
 
-            GameLogger.Log("STEAM", $"Steam initialized OK — Player: {SteamFriends.GetPersonaName()} | SteamID: {SteamUser.GetSteamID()}");
+            GameLogger.Log("STEAM", $"Steam initialized OK - Player: {SteamClient.Name} | SteamID: {SteamClient.SteamId}");
 
             // Pass the SteamID to GameAnalytics as the custom user ID.
             // SetCustomId must be called before GA initializes — guaranteed by Script Execution Order.
-            GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamUser.GetSteamID().ToString());
-            GameLogger.Log("STEAM", $"SteamID enviado a GameAnalytics: {SteamUser.GetSteamID()}");
+            GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamClient.SteamId.ToString());
+            GameLogger.Log("STEAM", $"SteamID enviado a GameAnalytics: {SteamClient.SteamId}");
         }
         catch (System.Exception e)
         {
@@ -71,17 +68,9 @@ public class SteamManager : MonoBehaviour
     {
         if (IsInitialized)
         {
-            SteamAPI.Shutdown();
+            SteamClient.Shutdown();
             IsInitialized = false;
             GameLogger.Log("STEAM", "Steam shut down.");
-        }
-    }
-
-    private void Update()
-    {
-        if (IsInitialized)
-        {
-            SteamAPI.RunCallbacks();
         }
     }
 
@@ -91,20 +80,20 @@ public class SteamManager : MonoBehaviour
     public static string GetSteamId()
     {
         if (!IsInitialized) return null;
-        return SteamUser.GetSteamID().ToString();
+        return SteamClient.SteamId.ToString();
     }
 
     /// <summary>Returns the player's Steam display name, or null if Steam is unavailable.</summary>
     public static string GetPlayerName()
     {
         if (!IsInitialized) return null;
-        return SteamFriends.GetPersonaName();
+        return SteamClient.Name;
     }
 
     /// <summary>Returns true if the player owns this app on Steam.</summary>
     public static bool IsOwned()
     {
         if (!IsInitialized) return false;
-        return SteamApps.BIsSubscribed();
+        return SteamApps.IsSubscribed;
     }
 }
