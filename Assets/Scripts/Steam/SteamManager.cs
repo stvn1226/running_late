@@ -2,7 +2,7 @@ using UnityEngine;
 using Steamworks;
 
 /// <summary>
-/// Manages the Steam SDK lifecycle using Facepunch.Steamworks.
+/// Manages the Steam SDK lifecycle using Facepunch Steamworks.
 /// Persists across scenes via DontDestroyOnLoad.
 ///
 /// HOW TO FINISH SETUP:
@@ -43,17 +43,16 @@ public class SteamManager : MonoBehaviour
     {
         try
         {
-            // asyncCallbacks: true lets Facepunch handle callback dispatching automatically.
-            // This is the recommended mode for Unity.
-            SteamClient.Init(APP_ID, asyncCallbacks: true);
+            SteamClient.Init(APP_ID);
+
             IsInitialized = true;
 
-            GameLogger.Log("STEAM", $"Steam initialized OK — Player: {SteamClient.Name} | SteamID: {SteamClient.SteamId}");
+            GameLogger.Log("STEAM", $"Steam initialized OK - Player: {SteamClient.Name} | SteamID: {SteamClient.SteamId}");
 
             // Pass the SteamID to GameAnalytics as the custom user ID.
             // SetCustomId must be called before GA initializes — guaranteed by Script Execution Order.
             GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamClient.SteamId.ToString());
-            GameLogger.Log("STEAM", $"SteamID enviado a GameAnalytics: {SteamClient.SteamId}");
+            GameLogger.Log("STEAM", $"SteamID sent to GameAnalytics: {SteamClient.SteamId}");
         }
         catch (System.Exception e)
         {
@@ -72,6 +71,14 @@ public class SteamManager : MonoBehaviour
             SteamClient.Shutdown();
             IsInitialized = false;
             GameLogger.Log("STEAM", "Steam shut down.");
+        }
+    }
+
+    private void Update()
+    {
+        if (IsInitialized)
+        {
+            SteamClient.RunCallbacks();
         }
     }
 

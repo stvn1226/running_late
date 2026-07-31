@@ -1,7 +1,7 @@
-# Integración de Steam con Facepunch.Steamworks
+# Integración de Steam con Steamworks.NET
 
 **Estado:** 🔴 Bloqueado — falta `libsteam_api.dylib` (librería nativa de Valve)  
-**Biblioteca:** [Facepunch.Steamworks](https://github.com/Facepunch/Facepunch.Steamworks)  
+**Biblioteca:** [Steamworks.NET](https://github.com/rlabrecque/Steamworks.NET)
 **App ID configurado:** `4724080`  
 **Acceso a cuenta Steamworks Partner:** ❌ No disponible — solo se proporcionó el App ID
 
@@ -9,7 +9,7 @@
 
 ## 🔴 Bloqueante actual — Falta `libsteam_api.dylib`
 
-El código está completo y el App ID está configurado, pero el SDK de Facepunch requiere una librería nativa de Valve (`libsteam_api.dylib` en Mac, `steam_api64.dll` en Windows) que **no viene incluida en los DLLs de Facepunch.Steamworks**.
+El código está completo y el App ID está configurado, pero Steamworks.NET requiere una librería nativa de Valve (`libsteam_api.dylib` en Mac, `steam_api64.dll` en Windows) que no forma parte del ensamblado C# administrado.
 
 Esta librería solo se obtiene del **Steamworks SDK oficial de Valve**, que requiere acceso a la cuenta de Steamworks Partner.
 
@@ -44,7 +44,7 @@ Esta librería solo se obtiene del **Steamworks SDK oficial de Valve**, que requ
 
 | Componente | Estado |
 |---|---|
-| DLLs de Facepunch.Steamworks | ✅ Instalados y configurados |
+| Paquete Steamworks.NET | ✅ Declarado en `Packages/manifest.json` |
 | `SteamManager.cs` | ✅ Completo |
 | App ID `4724080` | ✅ Configurado |
 | `steam_appid.txt` en raíz del proyecto | ✅ Creado |
@@ -55,23 +55,15 @@ Esta librería solo se obtiene del **Steamworks SDK oficial de Valve**, que requ
 
 ---
 
-## Paso 1 — Instalar Facepunch.Steamworks en Unity
+## Paso 1 — Instalar Steamworks.NET en Unity
 
-### Opción A: Via NuGet / DLL (recomendada para Unity)
+La dependencia ya está declarada en `Packages/manifest.json`:
 
-1. Ve a la página de [Releases en GitHub](https://github.com/Facepunch/Facepunch.Steamworks/releases)
-2. Descarga el archivo `.zip` de la versión más reciente (busca `Facepunch.Steamworks.Unity.zip` o similar)
-3. Extrae y copia los `.dll` a `Assets/Plugins/Steamworks/`
+```json
+"com.rlabrecque.steamworks.net": "https://github.com/rlabrecque/Steamworks.NET.git?path=/com.rlabrecque.steamworks.net#2025.163.0"
+```
 
-Los archivos que necesitas son tres DLL y tienes que configurarlos por plataforma en Unity:
-
-| DLL | Any Platform | Plataformas incluidas | CPU |
-|---|---|---|---|
-| `Facepunch.Steamworks.Posix.dll` | ❌ | Editor + Standalone | Any (OS: OSX + Linux) |
-| `Facepunch.Steamworks.Win32.dll` | ✅ | (ninguna extra) | x86 (Windows) |
-| `Facepunch.Steamworks.Win64.dll` | ✅ | (ninguna extra) | x86_64 (Windows) |
-
-> En el Inspector de Unity, selecciona cada `.dll` y configura las plataformas en el tab "Plugin Inspector".
+Al abrir el proyecto, Unity Package Manager descarga el paquete y proporciona el ensamblado administrado que expone el espacio de nombres `Steamworks`. No instales Facepunch.Steamworks junto a este paquete: ambos son wrappers distintos para la misma API nativa.
 
 ---
 
@@ -123,9 +115,12 @@ public class SteamManager : MonoBehaviour
 
         try
         {
-            SteamClient.Init(APP_ID, asyncCallbacks: true);
+            if (!SteamAPI.Init())
+            {
+                throw new System.InvalidOperationException("SteamAPI.Init returned false.");
+            }
             IsInitialized = true;
-            GameLogger.Log("STEAM", $"Steam initialized. Player: {SteamClient.Name} | SteamID: {SteamClient.SteamId}");
+            GameLogger.Log("STEAM", $"Steam initialized. Player: {SteamFriends.GetPersonaName()} | SteamID: {SteamUser.GetSteamID()}");
         }
         catch (System.Exception e)
         {
@@ -136,16 +131,17 @@ public class SteamManager : MonoBehaviour
 
     private void Update()
     {
-        // Facepunch necesita que se procesen los callbacks manualmente si asyncCallbacks=false
-        // Si usas asyncCallbacks=true (recomendado para Unity), puedes quitar esto.
-        // SteamClient.RunCallbacks();
+        if (IsInitialized)
+        {
+            SteamAPI.RunCallbacks();
+        }
     }
 
     private void OnDestroy()
     {
         if (IsInitialized)
         {
-            SteamClient.Shutdown();
+            SteamAPI.Shutdown();
         }
     }
 
@@ -155,7 +151,7 @@ public class SteamManager : MonoBehaviour
     public static string GetSteamId()
     {
         if (!IsInitialized) return null;
-        return SteamClient.SteamId.ToString();
+        return SteamUser.GetSteamID().ToString();
     }
 
     /// <summary>
@@ -164,7 +160,7 @@ public class SteamManager : MonoBehaviour
     public static string GetPlayerName()
     {
         if (!IsInitialized) return null;
-        return SteamClient.Name;
+        return SteamFriends.GetPersonaName();
     }
 }
 ```
@@ -208,16 +204,12 @@ if (SteamManager.IsInitialized)
 
 ## Paso 6 — Logros de Steam (opcional, para más adelante)
 
-Con Facepunch.Steamworks, los logros se gestionan así:
+Con Steamworks.NET, los logros se gestionan así:
 
 ```csharp
 // Desbloquear un logro
-SteamUserStats.AddStat("ACH_FIRST_COMPLETE", 1);
-await SteamUserStats.StoreStatsAsync();
-
-// O más simple:
-var ach = new Steamworks.Data.Achievement("ACH_FIRST_COMPLETE");
-ach.Trigger();
+SteamUserStats.SetAchievement("ACH_FIRST_COMPLETE");
+SteamUserStats.StoreStats();
 ```
 
 Los IDs de los logros (ej: `"ACH_FIRST_COMPLETE"`) los defines tú en el panel de Steamworks en la web.
@@ -227,8 +219,7 @@ Los IDs de los logros (ej: `"ACH_FIRST_COMPLETE"`) los defines tú en el panel d
 ## Checklist de implementación
 
 - [ ] Obtener Steam App ID de Steamworks Partner
-- [ ] Descargar e instalar DLLs de Facepunch.Steamworks
-- [ ] Configurar los 3 DLLs por plataforma en el Inspector de Unity
+- [x] Declarar Steamworks.NET en Unity Package Manager
 - [ ] Crear `steam_appid.txt` en la raíz del proyecto
 - [ ] Reemplazar `APP_ID = 480` con el App ID real en `SteamManager.cs`
 - [ ] Crear GameObject `SteamManager` en `MainMenu.unity`
@@ -241,6 +232,6 @@ Los IDs de los logros (ej: `"ACH_FIRST_COMPLETE"`) los defines tú en el panel d
 
 ## Notas importantes
 
-- **El juego debe lanzarse desde Steam** (o con `steam_appid.txt` presente) para que `SteamClient.Init()` funcione. Si se lanza de otra forma, fallará silenciosamente.
+- **El juego debe lanzarse desde Steam** (o con `steam_appid.txt` presente) para que `SteamAPI.Init()` funcione. Si se lanza de otra forma, fallará silenciosamente.
 - **Para la versión de itch.io**, el bloque de init fallará (Steam no estará presente) y el juego seguirá funcionando normalmente gracias al `try/catch`.
 - **Para WebGL**: Steamworks no es compatible con WebGL. El `SteamManager` simplemente fallará en init y no afectará nada.

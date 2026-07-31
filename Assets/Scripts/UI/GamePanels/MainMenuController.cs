@@ -184,7 +184,7 @@ public class MainMenuController : MonoBehaviour
     
     private void OnCancelPressed(InputAction.CallbackContext context)
     {
-        if (currentPanel == null) return;
+        if (currentPanel == null || SteamKeyboardController.IsAnyKeyboardOpen) return;
         
         if (textInputPanel != null && textInputPanel.IsVisible)
         {
