@@ -118,6 +118,7 @@ public class SavedLevelEntry : MonoBehaviour
 
         if (modeImage != null)
         {
+            // LevelPathMode: 0 = DualPath (Double Decker), 1 = SingleSidewalk (Single Decker)
             modeImage.sprite = (levelPathMode == 1) ? singleDeckerSprite : doubleDeckerSprite;
             modeImage.gameObject.SetActive(true);
         }

@@ -28,6 +28,7 @@ public class VirtualKeyboardHelper : MonoBehaviour, ISubmitHandler, IPointerClic
 
     public void OnMove(AxisEventData eventData)
     {
+        // Bypass TMP_InputField's internal caret navigation and force standard UI navigation
         if (VirtualKeyboardPanel.Instance != null && VirtualKeyboardPanel.Instance.IsOpen)
             return;
 

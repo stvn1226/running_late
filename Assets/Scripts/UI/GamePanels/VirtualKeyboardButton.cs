@@ -26,8 +26,14 @@ public class VirtualKeyboardButton : MonoBehaviour
         if (buttonText == null) buttonText = GetComponentInChildren<TMP_Text>();
     }
 
+    /// <summary>
+    /// Called by VirtualKeyboardPanel when initializing a layout.
+    /// Sets both the character logic and the visible text label automatically.
+    /// Special values: BACKSPACE, ENTER, CANCEL, SPACE, COPY, PASTE
+    /// </summary>
     public void SetKey(string keyValue)
     {
+        // Reset all flags
         isBackspace = isConfirm = isCancel = isSpace = isCopy = isPaste = isShift = false;
         character = "";
 
