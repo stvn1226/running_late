@@ -62,11 +62,11 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
     /// </summary>
     public void OpenSteamOverlayKeyboard()
     {
-        if (isKeyboardOpen || targetInputField == null || !SteamClient.IsValid)
-        {
-            Debug.Log("Steam client failed!");
-            return;
-        }
+        // if (isKeyboardOpen || targetInputField == null || !SteamClient.IsValid)
+        // {
+        //     Debug.Log("Steam client failed!");
+        //     return;
+        // }
 
         isKeyboardOpen = true;
         IsAnyKeyboardOpen = true;
