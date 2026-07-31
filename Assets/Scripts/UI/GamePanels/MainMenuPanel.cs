@@ -24,6 +24,7 @@ public class MainMenuPanel : BaseMainMenuPanel
     [SerializeField] private Toggle seedToggle;
     [SerializeField] private TMP_InputField seedInputField;
     [SerializeField] private RandomSeedController randomSeedController;
+    [SerializeField] private SteamKeyboardController steamKeyboardController;
     
     private bool isInStep2 = false;
     
@@ -69,6 +70,8 @@ public class MainMenuPanel : BaseMainMenuPanel
     
     private void SetupStep2Buttons()
     {
+        SetupSeedKeyboard();
+
         if (playButtonStep2 != null)
         {
             playButtonStep2.onClick.AddListener(OnPlayStep2Clicked);
@@ -89,6 +92,28 @@ public class MainMenuPanel : BaseMainMenuPanel
             seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
             OnSeedToggleChanged(seedToggle.isOn);
         }
+    }
+
+    private void SetupSeedKeyboard()
+    {
+        if (seedInputField == null)
+            return;
+
+        // Keep the field selectable for controller navigation, but don't enter text
+        // editing merely by moving the selection onto it. Confirm opens Steam's keyboard.
+        seedInputField.shouldActivateOnSelect = false;
+
+        if (steamKeyboardController == null)
+        {
+            steamKeyboardController = seedInputField.GetComponent<SteamKeyboardController>();
+        }
+
+        if (steamKeyboardController == null)
+        {
+            steamKeyboardController = seedInputField.gameObject.AddComponent<SteamKeyboardController>();
+        }
+
+        steamKeyboardController.Configure(seedInputField);
     }
     
     private void OnDestroy()

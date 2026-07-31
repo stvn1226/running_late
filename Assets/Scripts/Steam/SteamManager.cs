@@ -52,7 +52,7 @@ public class SteamManager : MonoBehaviour
             // Pass the SteamID to GameAnalytics as the custom user ID.
             // SetCustomId must be called before GA initializes — guaranteed by Script Execution Order.
             GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamClient.SteamId.ToString());
-            GameLogger.Log("STEAM", $"SteamID enviado a GameAnalytics: {SteamClient.SteamId}");
+            GameLogger.Log("STEAM", $"SteamID sent to GameAnalytics: {SteamClient.SteamId}");
         }
         catch (System.Exception e)
         {
@@ -71,6 +71,14 @@ public class SteamManager : MonoBehaviour
             SteamClient.Shutdown();
             IsInitialized = false;
             GameLogger.Log("STEAM", "Steam shut down.");
+        }
+    }
+
+    private void Update()
+    {
+        if (IsInitialized)
+        {
+            SteamClient.RunCallbacks();
         }
     }
 
