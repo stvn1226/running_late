@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47f96741ce8e5469f81e6ff7d5e170e6, type: 3}
+  m_Name: ChallengeConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ChallengeConfig
+  productName: Running Late
+  steamStoreUrl: https://store.steampowered.com/app/4724080/
+  discordUrl: https://discord.gg/CqhgVGKcW
+  twitterBaseUrl: 
+  shareTextTemplate: I completed Challenge Code {CODE} in {PRODUCT} with a time of
+    {TIME} on {ROUTE}. Can you beat my time?
+  cardExpressionText: PHEW!
+  challengeMessage: Can you beat my time?
+  challengeCompleteLabel: Challenge Complete
+  outputFolderName: Running Late
+  outputSubfolderName: Challenges
+  fileBaseName: RunningLate_Challenge
+  outputWidth: 1280
+  outputHeight: 720
+  overlayHeightFraction: 0.27
+  attemptSteamScreenshot: 1
+  autoCopyTextOnCardCreate: 1
+  showOpenFolderButton: 0
+  logoSprite: {fileID: 21300000, guid: af42de092087446f4a1926e104ea6df4, type: 3}
+  singleDeckerSprite: {fileID: 2160370787217559040, guid: 69c10b139474a4b1d816528b27a58dbd, type: 3}
+  doubleDeckerSprite: {fileID: -7944910784870431047, guid: 51e2f9e3d03a54b01b5dddf2a6b7969d, type: 3}
+  overlayBackgroundColor: {r: 0.08, g: 0.08, b: 0.12, a: 0.95}
+  accentColor: {r: 0.95, g: 0.75, b: 0.15, a: 1}
+  primaryTextColor: {r: 1, g: 1, b: 1, a: 1}
+  secondaryTextColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  challengeCardOverlayPrefab: {fileID: 3577176398125508320, guid: 63a22aba305ee40e4a9e3c1a065c4bfe, type: 3}

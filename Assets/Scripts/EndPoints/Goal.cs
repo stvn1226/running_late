@@ -100,6 +100,23 @@ public class Goal : MonoBehaviour
 
     private IEnumerator VictorySequence()
     {
+        // Capture a clean gameplay frame BEFORE any UI panels appear.
+        // CaptureGameplayFrame() waits for WaitForEndOfFrame internally,
+        // ensuring the frame is fully rendered without any victory UI.
+        ChallengeCardCaptureService captureService = ChallengeCardCaptureService.Instance;
+        if (captureService != null)
+        {
+            yield return StartCoroutine(captureService.CaptureGameplayFrame());
+        }
+        else
+        {
+            // Still wait for the frame boundary even without the capture service
+            yield return new WaitForEndOfFrame();
+            GameLogger.LogWarning("GOAL",
+                "ChallengeCardCaptureService not found in scene. " +
+                "Add it as a component to enable gameplay capture for Challenge Cards.");
+        }
+
         if (victoryDelay > 0f)
         {
             yield return new WaitForSecondsRealtime(victoryDelay);
