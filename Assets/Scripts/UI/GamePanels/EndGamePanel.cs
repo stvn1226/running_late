@@ -196,7 +196,7 @@ public class EndGamePanel : BaseMenuPanel
     {
         if (isManualSeedMode && !string.IsNullOrEmpty(seedInputField.text))
         {
-            if (int.TryParse(seedInputField.text, out int seed))
+            if (int.TryParse(seedInputField.text.Replace("\u200B", "").Trim(), out int seed))
             {
                 PlayerPrefs.SetInt("NewLevelSeed", seed);
                 PlayerPrefs.SetInt("UseNewLevelSeed", 1);
