@@ -12,7 +12,7 @@ public class FixOneWayPlatforms : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Label("Converts BoxCollider2D/PolygonCollider2D to EdgeCollider2D on OneWayPlatforms", EditorStyles.boldLabel);
+        GUILayout.Label("Select prefabs or folders in the Project window, then click:", EditorStyles.wordWrappedLabel);
 
         if (GUILayout.Button("Run Conversion on Prefabs"))
         {
@@ -22,17 +22,22 @@ public class FixOneWayPlatforms : EditorWindow
 
     public static void RunConversion()
     {
-        string[] searchPaths = new string[] { "Assets/Prefabs/Floors", "Assets/Prefabs/Modules" };
-        string[] guids = AssetDatabase.FindAssets("t:Prefab", searchPaths);
+        // Get all selected GameObjects in the Project window (including those inside selected folders)
+        GameObject[] selectedPrefabs = Selection.GetFiltered<GameObject>(SelectionMode.DeepAssets);
+        
+        if (selectedPrefabs == null || selectedPrefabs.Length == 0)
+        {
+            Debug.LogWarning("[FixOneWayPlatforms] No prefabs selected. Please select the specific prefabs or folders in the Project window first.");
+            return;
+        }
         
         int convertedCount = 0;
         int prefabCount = 0;
 
-        foreach (string guid in guids)
+        foreach (GameObject prefab in selectedPrefabs)
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (prefab == null) continue;
+            string path = AssetDatabase.GetAssetPath(prefab);
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab")) continue;
 
             bool modifiedPrefab = false;
 

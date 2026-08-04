@@ -6,7 +6,11 @@ public class ObstacleApproachTrigger : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            collision.GetComponentInParent<PlayerStates>().isNearObstacle = true;
+            PlayerStates states = collision.GetComponentInParent<PlayerStates>();
+            if (states != null)
+            {
+                states.isNearObstacle = true;
+            }
         }
     }
 
@@ -14,7 +18,11 @@ public class ObstacleApproachTrigger : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            collision.GetComponentInParent<PlayerStates>().isNearObstacle = false;
+            PlayerStates states = collision.GetComponentInParent<PlayerStates>();
+            if (states != null)
+            {
+                states.isNearObstacle = false;
+            }
         }
     }
 }
