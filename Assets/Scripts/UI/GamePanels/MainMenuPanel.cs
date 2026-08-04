@@ -290,44 +290,35 @@ public class MainMenuPanel : BaseMainMenuPanel
     
     private void ApplySeedConfiguration()
     {
-        if (seedToggle != null && seedToggle.isOn)
+        string customSeed = seedInputField != null ? seedInputField.text.Replace("\u200B", "").Trim() : "";
+        
+        if (!string.IsNullOrEmpty(customSeed))
         {
-            string customSeed = seedInputField != null ? seedInputField.text : "";
-            
-            if (!string.IsNullOrEmpty(customSeed))
+            int numericSeed;
+            if (int.TryParse(customSeed, out numericSeed))
             {
-                int numericSeed;
-                if (int.TryParse(customSeed, out numericSeed))
-                {
-                    // Parsed successfully
-                }
-                else
-                {
-                    numericSeed = customSeed.GetHashCode();
-                }
-
-                PlayerPrefs.SetInt("NewLevelSeed", numericSeed);
-                PlayerPrefs.SetInt("UseNewLevelSeed", 1);
-
-                if (randomSeedController != null)
-                {
-                    randomSeedController.SetRandomSeed(customSeed);
-                }
-                
-                GameLogger.Log("MENU", $"Using custom seed via PlayerPrefs: {numericSeed}");
+                // Parsed successfully
             }
             else
             {
-                PlayerPrefs.SetInt("UseNewLevelSeed", 0);
-                if (randomSeedController != null) randomSeedController.GenerateRandomSeed();
-                GameLogger.Log("MENU", "Custom seed enabled but empty - Generating random seed");
+                numericSeed = customSeed.GetHashCode();
             }
+
+            PlayerPrefs.SetInt("NewLevelSeed", numericSeed);
+            PlayerPrefs.SetInt("UseNewLevelSeed", 1);
+
+            if (randomSeedController != null)
+            {
+                randomSeedController.SetRandomSeed(customSeed);
+            }
+            
+            GameLogger.Log("MENU", $"Using custom seed via PlayerPrefs: {numericSeed}");
         }
         else
         {
             PlayerPrefs.SetInt("UseNewLevelSeed", 0);
             if (randomSeedController != null) randomSeedController.GenerateRandomSeed();
-            GameLogger.Log("MENU", "Generating random seed");
+            GameLogger.Log("MENU", "Custom seed empty - Generating random seed");
         }
     }
     

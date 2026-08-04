@@ -76,7 +76,7 @@ public class VictoryPanel : BaseMenuPanel
     {
         retryButton.onClick.AddListener(OnRetryClicked);
         newLevelButton.onClick.AddListener(OnNewLevelClicked);
-        seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
+        seedToggle?.onValueChanged.AddListener(OnSeedToggleChanged);
         quitButton.onClick.AddListener(OnQuitClicked);
 
         // Challenge Sharing buttons
@@ -94,7 +94,7 @@ public class VictoryPanel : BaseMenuPanel
     {
         retryButton.onClick.RemoveListener(OnRetryClicked);
         newLevelButton.onClick.RemoveListener(OnNewLevelClicked);
-        seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
+        seedToggle?.onValueChanged.RemoveListener(OnSeedToggleChanged);
         quitButton.onClick.RemoveListener(OnQuitClicked);
 
         // Challenge Sharing buttons
@@ -239,17 +239,18 @@ public class VictoryPanel : BaseMenuPanel
     
     private void OnNewLevelClicked()
     {
-        if (isManualSeedMode && !string.IsNullOrEmpty(seedInputField.text))
+        string inputVal = seedInputField != null ? seedInputField.text.Replace("\u200B", "").Trim() : "";
+        if (!string.IsNullOrEmpty(inputVal))
         {
-            if (int.TryParse(seedInputField.text, out int seed))
+            if (int.TryParse(inputVal, out int seed))
             {
                 PlayerPrefs.SetInt("NewLevelSeed", seed);
                 PlayerPrefs.SetInt("UseNewLevelSeed", 1);
             }
             else
             {
-                GameLogger.LogWarning("UI", "Invalid seed format!");
-                PlayerPrefs.SetInt("UseNewLevelSeed", 0);
+                PlayerPrefs.SetInt("NewLevelSeed", inputVal.GetHashCode());
+                PlayerPrefs.SetInt("UseNewLevelSeed", 1);
             }
         }
         else

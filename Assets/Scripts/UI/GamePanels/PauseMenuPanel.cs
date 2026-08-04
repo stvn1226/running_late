@@ -44,7 +44,7 @@ public class PauseMenuPanel : BaseMenuPanel
         newLevelButton.onClick.AddListener(OnNewLevelClicked);
         settingsButton?.onClick.AddListener(OnSettingsClicked);
         quitButton?.onClick.AddListener(OnQuitClicked);
-        seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
+        seedToggle?.onValueChanged.AddListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.AddListener(OnSeedInputChanged);
     }
     
@@ -54,7 +54,7 @@ public class PauseMenuPanel : BaseMenuPanel
         newLevelButton.onClick.RemoveListener(OnNewLevelClicked);
         settingsButton?.onClick.RemoveListener(OnSettingsClicked);
         quitButton?.onClick.RemoveListener(OnQuitClicked);
-        seedToggle.onValueChanged.RemoveListener(OnSeedToggleChanged);
+        seedToggle?.onValueChanged.RemoveListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.RemoveListener(OnSeedInputChanged);
     }
     
@@ -84,17 +84,18 @@ public class PauseMenuPanel : BaseMenuPanel
     
     private void OnNewLevelClicked()
     {
-        if (isManualSeedMode && !string.IsNullOrEmpty(seedInputField.text))
+        string inputVal = seedInputField != null ? seedInputField.text.Replace("\u200B", "").Trim() : "";
+        if (!string.IsNullOrEmpty(inputVal))
         {
-            if (int.TryParse(seedInputField.text, out int seed))
+            if (int.TryParse(inputVal, out int seed))
             {
                 PlayerPrefs.SetInt("NewLevelSeed", seed);
                 PlayerPrefs.SetInt("UseNewLevelSeed", 1);
             }
             else
             {
-                GameLogger.LogWarning("UI", "Invalid seed format!");
-                PlayerPrefs.SetInt("UseNewLevelSeed", 0);
+                PlayerPrefs.SetInt("NewLevelSeed", inputVal.GetHashCode());
+                PlayerPrefs.SetInt("UseNewLevelSeed", 1);
             }
         }
         else

@@ -1,0 +1,1852 @@
+diff --git a/Assets/Scripts/Modules/ModuleBuilder.cs b/Assets/Scripts/Modules/ModuleBuilder.cs
+index eea4dabff..eb2d575fb 100644
+--- a/Assets/Scripts/Modules/ModuleBuilder.cs
++++ b/Assets/Scripts/Modules/ModuleBuilder.cs
+@@ -1,4 +1,5 @@
+ using UnityEngine;
++using System.Collections.Generic;
+ 
+ public class ModuleBuilder : MonoBehaviour
+ {
+@@ -8,8 +9,15 @@ public class ModuleBuilder : MonoBehaviour
+     [Header("Building Materials")]
+     public GameObject foundation;
+     public GameObject padding;
++    [Tooltip("Optional. If assigned, 'padding' is used only once right below the foundation, and this basePadding repeats for the rest of the depth.")]
++    public GameObject basePadding;
+     public StructureBuilder[] buildingPrefabs;
+ 
++    [Header("Props / Environment")]
++    public GameObject[] propPrefabs;
++    public bool useDenseProceduralGeneration = true;
++    public int proceduralAttempts = 50;
++
+     [Header("Spawn Points")]
+     public Transform placementTracker;
+     public Transform[] buildingSpawnPoints;
+@@ -26,6 +34,16 @@ public class ModuleBuilder : MonoBehaviour
+     [Range(0, 100)]
+     public int buildingSpawnChance = 90;
+ 
++    [Header("Dual Level Config")]
++    public bool isElevatedSidewalk = true;
++    public bool omitFoundationAtBaseLevel = true;
++    public bool pushPaddingToBackground = true;
++    public bool disablePaddingColliders = true;
++    public float paddingZOffset = 5f;
++    [Tooltip("Z offset for obstacles relative to the module root. Use negative values to move them closer to camera.")]
++    public float obstacleZOffset = -1.5f;
++    public int baseLevelHeight = 1;
++
+     private bool hasGenerated = false;
+     private int actualTerrainHeight = -1;
+ 
+@@ -43,7 +61,7 @@ public class ModuleBuilder : MonoBehaviour
+         }
+     }
+ 
+-    public void GenerateModule(int? explicitHeight = null)
++    public void GenerateModule(int? explicitHeight = null, bool includeContent = true, bool spawnObstacles = true, int maxObstacleLevel = 3, DifficultyConfig diffConfig = null)
+     {
+         if (hasGenerated)
+         {
+@@ -57,24 +75,28 @@ public class ModuleBuilder : MonoBehaviour
+             return;
+         }
+ 
+-        GameLogger.Log("MODULE", $"=== GenerateModule '{gameObject.name}' ===");
+-        GameLogger.Log("MODULE", $"  - Position: {transform.position}");
+-        GameLogger.Log("MODULE", $"  - Explicit Height: {(explicitHeight.HasValue ? explicitHeight.Value.ToString() : "None")}");
++        // Verbose per-module logs suppressed — check LEVEL logs for generation summary
+ 
+         if (placementTracker != null)
+         {
+             placementTracker.position = transform.position;
+-            GameLogger.Log("MODULE", $"  - Placement tracker set to {placementTracker.position}");
+         }
+ 
+-        GenerateBaseTerrain(explicitHeight);
+-        GenerateBuildings();
+-        SpawnFlyingObstacles(explicitHeight);
++        GenerateBaseTerrain(explicitHeight, spawnObstacles, maxObstacleLevel, diffConfig);
++        
++        if (includeContent)
++        {
++            GenerateBuildings();
++            if (spawnObstacles)
++            {
++                SpawnFlyingObstacles(explicitHeight, diffConfig);
++            }
++        }
+ 
+         hasGenerated = true;
+-        GameLogger.Log("MODULE", $"✓ Module '{gameObject.name}' generated with height={actualTerrainHeight}");
++        // Module generated — height visible in LEVEL [step] logs
+     }
+-    private void GenerateBaseTerrain(int? explicitHeight = null)
++    private void GenerateBaseTerrain(int? explicitHeight = null, bool spawnObstacles = true, int maxObstacleLevel = 3, DifficultyConfig diffConfig = null)
+     {
+         if (placementTracker == null)
+         {
+@@ -86,15 +108,20 @@ public class ModuleBuilder : MonoBehaviour
+         if (explicitHeight.HasValue)
+         {
+             // SAFETY: System requires at least 1 block to provide a walkable floor
+-            if (explicitHeight.Value < 1)
++            if (explicitHeight.Value < 0)
+             {
+-                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 1). Clamping to 1 to prevent 'void' errors.");
++                GameLogger.LogWarning("MODULE", $"ModuleBuilder '{gameObject.name}': Requested height {explicitHeight.Value} is invalid (min is 0). Clamping to 0.");
+             }
+ 
+-            int minHeight = Mathf.Max(1, moduleConfig.minTerrainHeight);
++            int minHeight = Mathf.Max(0, moduleConfig.minTerrainHeight);
+             groundBlocksCount = Mathf.Clamp(explicitHeight.Value, minHeight, moduleConfig.maxTerrainHeight);
+             
+-            GameLogger.Log("MODULE", $"  - Using explicit height: {explicitHeight.Value} -> clamped to {groundBlocksCount}");
++            if (groundBlocksCount == 0)
++            {
++                actualTerrainHeight = 0;
++                GameLogger.Log("MODULE", "  - Height is 0, skipping terrain generation (Road Level).");
++                return;
++            }
+         }
+         else
+         {
+@@ -107,27 +134,102 @@ public class ModuleBuilder : MonoBehaviour
+ 
+         Vector3 startPos = placementTracker.position;
+ 
++        // [BuildingAudit] — terrain entry snapshot
++        float gbhForLog = moduleConfig != null ? moduleConfig.groundBlockHeight : -1f;
++        bool shouldOmitForLog = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
++        GameLogger.Log("BuildingAudit",
++            $"[TerrainEntry] Segment={gameObject.name} " +
++            $"TransformY={transform.position.y:F3} " +
++            $"explicitHeight={groundBlocksCount} " +
++            $"groundBlockHeight={gbhForLog} " +
++            $"omitFoundationAtBaseLevel={omitFoundationAtBaseLevel} " +
++            $"baseLevelHeight={baseLevelHeight} " +
++            $"isElevatedSidewalk={isElevatedSidewalk} " +
++            $"groundBlocksCount={groundBlocksCount} " +
++            $"shouldOmit={shouldOmitForLog} " +
++            $"placementTrackerY_beforeTerrain={placementTracker.position.y:F3}");
++
+         // Ground blocks except the top one (foundation)
++        int paddingBlocksSpawned = 0;
+         for (int i = 0; i < groundBlocksCount - 1; i++)
+         {
+-            if (padding != null)
++            bool isTopPadding = (i == groundBlocksCount - 2);
++            GameObject prefabToUse = (basePadding != null && !isTopPadding) ? basePadding : padding;
++
++            if (prefabToUse != null)
+             {
+-                GameObject paddingBlock = Instantiate(padding, placementTracker.position, Quaternion.identity, transform);
++                GameObject paddingBlock = Instantiate(prefabToUse, placementTracker.position, Quaternion.identity, transform);
+                 paddingBlock.name = $"Padding_{i}";
++                paddingBlocksSpawned++;
++                
++                if (isElevatedSidewalk)
++                {
++                    if (pushPaddingToBackground)
++                    {
++                        paddingBlock.transform.position += new Vector3(0, 0, paddingZOffset);
++                        
++                        // Force SpriteRenderer sorting layer if needed
++                        SpriteRenderer[] renderers = paddingBlock.GetComponentsInChildren<SpriteRenderer>();
++                        foreach(var sr in renderers)
++                        {
++                            sr.sortingOrder = -50; // Push far back
++                        }
++                    }
++                    if (disablePaddingColliders)
++                    {
++                        Collider2D[] cols = paddingBlock.GetComponentsInChildren<Collider2D>();
++                        foreach(var c in cols) c.enabled = false;
++                    }
++                }
+             }
+ 
+             placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
+         }
+ 
+         // The top-most block that the player walks on
++        bool foundationInstantiated = false;
+         if (foundation != null)
+         {
+-            GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
+-            groundBlock.name = "Foundation";
+-            placementTracker.position += Vector3.up * moduleConfig.groundBlockHeight;
++            bool shouldOmit = isElevatedSidewalk && omitFoundationAtBaseLevel && groundBlocksCount <= baseLevelHeight;
++            if (!shouldOmit)
++            {
++                foundationInstantiated = true;
++                GameObject groundBlock = Instantiate(foundation, placementTracker.position, Quaternion.identity, transform);
++                groundBlock.name = "Foundation";
++
++                if (isElevatedSidewalk)
++                {
++                    Collider2D col = groundBlock.GetComponent<Collider2D>();
++                    if (col == null) col = groundBlock.GetComponentInChildren<Collider2D>();
++                    if (col != null)
++                    {
++                        col.usedByEffector = true;
++                        int platformLayer = LayerMask.NameToLayer("OneWayPlatform");
++                        if (platformLayer != -1) groundBlock.layer = platformLayer;
++                    }
++                }
++
++                // Tracker advances only when foundation was actually placed.
++                // For elevated sidewalk with shouldOmit=true, tracker stays at transform.position.y
++                // so buildings spawn on the actual surface, not one groundBlockHeight above it.
++                placementTracker.position += Vector3.up * (moduleConfig.groundBlockHeight / 2f);
++            }
++            else if (!isElevatedSidewalk)
++            {
++                // Road path: shouldOmit is always false here (isElevatedSidewalk=false),
++                // but guard this branch explicitly so Road never regresses.
++                placementTracker.position += Vector3.up * (moduleConfig.groundBlockHeight / 2f);
++            }
+         }
+ 
+-        if (obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
++        // [BuildingAudit] — terrain exit snapshot
++        GameLogger.Log("BuildingAudit",
++            $"[TerrainExit] Segment={gameObject.name} " +
++            $"paddingBlocksSpawned={paddingBlocksSpawned} " +
++            $"foundationInstantiated={foundationInstantiated} " +
++            $"placementTrackerY_afterTerrain={placementTracker.position.y:F3}");
++
++        if (spawnObstacles && obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
+         {
+             obstacleSpawnPoint.position = new Vector3(
+                 obstacleSpawnPoint.position.x,
+@@ -135,81 +237,204 @@ public class ModuleBuilder : MonoBehaviour
+                 obstacleSpawnPoint.position.z
+             );
+ 
++            int currentObstacleRate = diffConfig != null ? diffConfig.groundObstacleChance : obstacleRate;
+             int obstacleRoll = Random.Range(0, 100);
+-            if (obstacleRoll < obstacleRate)
++            if (obstacleRoll < currentObstacleRate)
+             {
+-                GameObject obstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
+-                GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
+-                newObstacle.name = $"{obstaclePrefab.name}_Generated";
+-                GameLogger.Log("MODULE", $"  - Spawned obstacle: {newObstacle.name} at {obstacleSpawnPoint.position}");
++                // TEMP: obstacle list on the prefab defines valid spawns — no name-based level filter.
++                // Filter by name (truck/car/etc.) and MaxObstacleLevel disabled while heights are being stabilized.
++                List<GameObject> filteredPrefabs = new List<GameObject>();
++                foreach (var p in obstaclePrefabs)
++                {
++                    if (p == null) continue;
++                    // string n = p.name.ToLower();
++                    // int level = 1;
++                    // if (n.Contains("truck") || n.Contains("camion") || n.Contains("van")) level = 3;
++                    // else if (n.Contains("car") || n.Contains("auto")) level = 2;
++                    // if (level <= maxObstacleLevel) filteredPrefabs.Add(p);
++                    filteredPrefabs.Add(p);
++                }
++
++                if (filteredPrefabs.Count > 0)
++                {
++                    GameObject obstaclePrefab = filteredPrefabs[Random.Range(0, filteredPrefabs.Count)];
++                    GameObject newObstacle = Instantiate(obstaclePrefab, obstacleSpawnPoint.position, Quaternion.identity, transform);
++                    
++                    Vector3 locPos = newObstacle.transform.localPosition;
++                    newObstacle.transform.localPosition = new Vector3(locPos.x, locPos.y, obstacleZOffset);
++                    newObstacle.name = $"{obstaclePrefab.name}_Generated";
++                }
+             }
+         }
+ 
+-        GameLogger.Log("MODULE", $"  - Terrain: {groundBlocksCount} blocks, from y={startPos.y:F2} to y={placementTracker.position.y:F2}");
++
+     }
+ 
+     private void GenerateBuildings()
+     {
+-        if (buildingSpawnPoints == null || buildingSpawnPoints.Length == 0)
++        if (buildingPrefabs == null || buildingPrefabs.Length == 0) return;
++
++        int buildingsSpawned = 0;
++        int propsSpawned = 0;
++        List<Vector2> occupiedIntervals = new List<Vector2>();
++
++        // [BuildingAudit] — placementTracker snapshot before any building spawns
++        GameLogger.Log("BuildingAudit",
++            $"[BuildingEntry] Segment={gameObject.name} " +
++            $"placementTrackerY_beforeBuildings={placementTracker.position.y:F3} " +
++            $"transformY={transform.position.y:F3}");
++
++        if (!useDenseProceduralGeneration && buildingSpawnPoints != null && buildingSpawnPoints.Length > 0)
+         {
+-            GameLogger.Log("MODULE", $"  - No building spawn points");
+-            return;
+-        }
++            // Legacy behavior: use fixed spawn points
++            List<Transform> sortedSpawnPoints = new List<Transform>(buildingSpawnPoints);
++            sortedSpawnPoints.Sort((a, b) => { if (a == null || b == null) return 0; return a.position.x.CompareTo(b.position.x); });
++
++            foreach (Transform spawnPoint in sortedSpawnPoints)
++            {
++                if (spawnPoint == null) continue;
++                int spawnRoll = Random.Range(0, 100);
++                if (spawnRoll >= buildingSpawnChance) continue;
+ 
+-        if (buildingPrefabs == null || buildingPrefabs.Length == 0)
++                TrySpawnRandomStructure(spawnPoint.position.x, spawnPoint.localPosition.y, spawnPoint.localPosition.z, occupiedIntervals, ref buildingsSpawned);
++            }
++        }
++        else if (useDenseProceduralGeneration && moduleConfig != null)
+         {
+-            GameLogger.Log("MODULE", $"  - No building prefabs");
+-            return;
++            // New behavior: Dense procedural fill within the module boundaries
++            float halfWidth = moduleConfig.currentTerrainWidth / 2f;
++            float minX = transform.position.x - halfWidth;
++            float maxX = transform.position.x + halfWidth;
++
++            // Try to spawn buildings
++            for (int i = 0; i < proceduralAttempts; i++)
++            {
++                int spawnRoll = Random.Range(0, 100);
++                if (spawnRoll >= buildingSpawnChance) continue;
++
++                float randomX = Random.Range(minX, maxX);
++                TrySpawnRandomStructure(randomX, 0f, 0f, occupiedIntervals, ref buildingsSpawned);
++            }
++
++            // Try to spawn props in remaining gaps
++            if (propPrefabs != null && propPrefabs.Length > 0)
++            {
++                for (int i = 0; i < proceduralAttempts; i++)
++                {
++                    float randomX = Random.Range(minX, maxX);
++                    TrySpawnRandomProp(randomX, 0f, 0f, occupiedIntervals, ref propsSpawned);
++                }
++            }
+         }
++    }
+ 
+-        int buildingsSpawned = 0;
++    private bool TrySpawnRandomStructure(float x, float localYOffset, float localZOffset, List<Vector2> occupiedIntervals, ref int spawnCount)
++    {
++        List<StructureBuilder> shuffledPrefabs = new List<StructureBuilder>(buildingPrefabs);
++        for (int i = 0; i < shuffledPrefabs.Count; i++)
++        {
++            StructureBuilder temp = shuffledPrefabs[i];
++            int randomIndex = Random.Range(i, shuffledPrefabs.Count);
++            shuffledPrefabs[i] = shuffledPrefabs[randomIndex];
++            shuffledPrefabs[randomIndex] = temp;
++        }
+ 
+-        foreach (Transform spawnPoint in buildingSpawnPoints)
++        foreach (StructureBuilder buildingTemplate in shuffledPrefabs)
+         {
+-            if (spawnPoint == null) continue;
++            if (buildingTemplate == null) continue;
++
++            float bWidth = buildingTemplate.config != null ? buildingTemplate.config.floorWidth : 15f;
++            float minSpacing = buildingTemplate.config != null ? buildingTemplate.config.minDistanceBetweenBuildings : 2f;
++            
++            float startX = x - (bWidth / 2f) - (minSpacing / 2f);
++            float endX = x + (bWidth / 2f) + (minSpacing / 2f);
+ 
+-            int spawnRoll = Random.Range(0, 100);
+-            if (spawnRoll >= buildingSpawnChance)
++            bool overlaps = false;
++            foreach (Vector2 occupied in occupiedIntervals)
+             {
+-                continue;
++                if (startX < occupied.y && endX > occupied.x)
++                {
++                    overlaps = true;
++                    break;
++                }
+             }
+ 
+-            Vector3 spawnPosition = new Vector3(
+-                spawnPoint.position.x,
+-                placementTracker.position.y,
+-                spawnPoint.position.z + 1f
+-            );
++            if (!overlaps)
++            {
++                Vector3 spawnPosition = new Vector3(x, placementTracker.position.y + localYOffset, transform.position.z + localZOffset);
++                GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
++                newBuilding.name = $"{buildingTemplate.name}_Generated";
+ 
+-            StructureBuilder buildingTemplate = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
++                StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
++                if (buildingBuilder != null) buildingBuilder.ConstructStructure();
+ 
+-            GameObject newBuilding = Instantiate(buildingTemplate.gameObject, spawnPosition, Quaternion.identity, transform);
+-            newBuilding.name = $"{buildingTemplate.name}_Generated";
++                GameLogger.Log("BuildingAudit",
++                    $"[BuildingSpawn] Segment={gameObject.name} " +
++                    $"buildingPrefab={buildingTemplate.name} " +
++                    $"buildingSpawnY={spawnPosition.y:F3}");
+ 
+-            StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
+-            if (buildingBuilder != null)
+-            {
+-                buildingBuilder.ConstructStructure();
++                occupiedIntervals.Add(new Vector2(startX, endX));
++                spawnCount++;
++                return true;
+             }
++        }
++        return false;
++    }
++
++    private bool TrySpawnRandomProp(float x, float localYOffset, float localZOffset, List<Vector2> occupiedIntervals, ref int spawnCount)
++    {
++        GameObject propTemplate = propPrefabs[Random.Range(0, propPrefabs.Length)];
++        if (propTemplate == null) return false;
+ 
+-            buildingsSpawned++;
++        float pWidth = 2f; 
++        float minSpacing = 1f;
++        
++        float startX = x - (pWidth / 2f) - (minSpacing / 2f);
++        float endX = x + (pWidth / 2f) + (minSpacing / 2f);
++
++        bool overlaps = false;
++        foreach (Vector2 occupied in occupiedIntervals)
++        {
++            if (startX < occupied.y && endX > occupied.x)
++            {
++                overlaps = true;
++                break;
++            }
+         }
+ 
+-        GameLogger.Log("MODULE", $"  - Buildings: {buildingsSpawned}/{buildingSpawnPoints.Length} spawn points used");
++        if (!overlaps)
++        {
++            Vector3 spawnPosition = new Vector3(x, placementTracker.position.y + localYOffset, transform.position.z + localZOffset);
++            GameObject newProp = Instantiate(propTemplate, spawnPosition, Quaternion.identity, transform);
++            newProp.name = $"{propTemplate.name}_Prop";
++
++            occupiedIntervals.Add(new Vector2(startX, endX));
++            spawnCount++;
++            return true;
++        }
++        return false;
+     }
+ 
+-    private void SpawnFlyingObstacles(int? explicitHeight = 0)
++    private void SpawnFlyingObstacles(int? explicitHeight = 0, DifficultyConfig diffConfig = null)
+     {
+         if (flyingObstaclePrefabs == null || flyingObstaclePrefabs.Length == 0) return;
+ 
++        int currentFlyingRate = diffConfig != null ? diffConfig.flyingObstacleChance : flyingObstacleRate;
+         float flyingObstacleRoll = Random.Range(0, 100);
+ 
+-        if (flyingObstacleRoll < flyingObstacleRate)
++        if (flyingObstacleRoll < currentFlyingRate)
+         {
++            // Use groundBlockHeight from config instead of hardcoding *3,
++            // so obstacles follow the terrain if block scale is adjusted.
++            float blockHeight = moduleConfig != null ? moduleConfig.groundBlockHeight : 3f;
++
+             GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
+-            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * 3) + 50, transform.position.z - .5f);
++            
++            // Apply obstacleZOffset to flying obstacles too
++            Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * blockHeight) + 50, transform.position.z + obstacleZOffset);
++            
+             GameObject newFlyingObstacle = Instantiate(flyingObstaclePrefab, flyingPosition, Quaternion.identity, transform);
+             newFlyingObstacle.name = $"{flyingObstaclePrefab.name}_Generated";
+-            GameLogger.Log("MODULE", $"  - Spawned obstacle: {newFlyingObstacle.name} at {flyingPosition}");
+         }
+     }
+ 
+@@ -268,4 +493,67 @@ public class ModuleBuilder : MonoBehaviour
+             placementTracker = transform.Find("PlacementTracker");
+         }
+     }
++
++    [Header("Editor Debug Options")]
++    public bool showDebugBounds = true;
++    public Color roadDebugColor = new Color(1f, 0.4f, 0f, 0.2f);
++    public Color sidewalkDebugColor = new Color(0f, 0.8f, 1f, 0.2f);
++
++#if UNITY_EDITOR
++    private void OnDrawGizmos()
++    {
++        if (moduleConfig == null || !showDebugBounds) return;
++
++        float configWidth = moduleConfig.currentTerrainWidth;
++        // Use minTerrainHeight to show the base logical height of the module's terrain
++        float logicalHeight = Mathf.Max(1, moduleConfig.minTerrainHeight) * moduleConfig.groundBlockHeight;
++        Vector3 startPos = transform.position;
++
++        // Determine color
++        Color baseColor = isElevatedSidewalk ? sidewalkDebugColor : roadDebugColor;
++        
++        // Logical bounds center and size
++        // LevelStarter instantiates modules at their CENTER horizontally.
++        // Vertically, they start at transform.position and build upwards, but sprites hang downwards.
++        // To accurately represent the logical space, we center X, and span Y downwards by one groundBlockHeight, and upwards.
++        float gbh = moduleConfig.groundBlockHeight;
++        Vector3 boxCenter = startPos + new Vector3(0, (logicalHeight / 2f) - gbh, 0); 
++        Vector3 boxSize = new Vector3(configWidth, logicalHeight, 1f);
++
++        // Draw solid box
++        Gizmos.color = baseColor;
++        Gizmos.DrawCube(boxCenter, boxSize);
++
++        // Draw wireframe border (fully opaque version of the color)
++        Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
++        Gizmos.DrawWireCube(boxCenter, boxSize);
++
++        // Draw simple start/end lines that extend a bit up for visibility
++        Gizmos.DrawLine(startPos + new Vector3(-configWidth / 2f, -5f, 0), startPos + new Vector3(-configWidth / 2f, logicalHeight + 5f, 0));
++        Gizmos.DrawLine(startPos + new Vector3(configWidth / 2f, -5f, 0), startPos + new Vector3(configWidth / 2f, logicalHeight + 5f, 0));
++
++        // Draw Width text
++        GUIStyle style = new GUIStyle();
++        style.normal.textColor = Gizmos.color;
++        style.fontSize = 12;
++        style.fontStyle = FontStyle.Bold;
++        style.alignment = TextAnchor.MiddleCenter;
++        UnityEditor.Handles.Label(startPos + new Vector3(0, logicalHeight + 1f, 0), $"{(isElevatedSidewalk ? "SW" : "RD")}: {configWidth}", style);
++    }
++
++    [ContextMenu("Preview Terrain (Real Objects)")]
++    public void PreviewTerrainInEditor()
++    {
++        ClearGeneratedContent();
++        if (placementTracker != null) placementTracker.position = transform.position;
++        // Generate with min height so it exactly matches the gizmo preview
++        GenerateBaseTerrain(moduleConfig.minTerrainHeight, false, 0, null);
++    }
++
++    [ContextMenu("Clear Preview")]
++    public void ClearPreview()
++    {
++        ClearGeneratedContent();
++    }
++#endif
+ }
+diff --git a/Assets/Scripts/Utils/LevelGeneratorEngine.cs b/Assets/Scripts/Utils/LevelGeneratorEngine.cs
+new file mode 100644
+index 000000000..146b7aebe
+--- /dev/null
++++ b/Assets/Scripts/Utils/LevelGeneratorEngine.cs
+@@ -0,0 +1,580 @@
++using UnityEngine;
++using System.Collections.Generic;
++
++// --- DATA STRUCTURES (BLUEPRINTS) ---
++// These classes store abstract level information before instantiation.
++
++[System.Serializable]
++public class SegmentData
++{
++    public ModuleBuilder Template; // Prefab to instantiate
++    public float X_Position;       // World position
++    public int Y_Elevation;        // Logical height
++    public float Width;            // Visual width
++    public bool IsSlope;           // Is a ramp?
++    public string Label;           // Etiqueta para debugging (ej: "Road_Segment", "Sidewalk_Home")
++    public bool SpawnObstacles;    // Obstacle control
++    public int MaxObstacleLevel;   // Max obstacle level allowed (1=pedestrian/moto, 2=car, 3=truck)
++
++    // --- Phase 2: Dual-Layer Height Extension ---
++    // All default to 0. Ignored by rendering when useRelativeSidewalkHeights = false.
++    public int RoadElevationAtX;       // Road Y_Elevation at this segment's X (Sidewalk segments)
++    public int SidewalkRelativeLevel;  // Sidewalk level relative to road: 0=flush, 1=+1.5u, 2=+3.0u
++    public int ConnectorRoadElevation; // Road elevation at connector X (DiagonalRamps only)
++    public int ConnectorRelLevelFrom;  // Sidewalk relative level at ramp start (DiagonalRamps only)
++    public int ConnectorRelLevelTo;    // Sidewalk relative level at ramp end   (DiagonalRamps only)
++}
++
++[System.Serializable]
++public class TrackBlueprint
++{
++    public List<SegmentData> Segments = new List<SegmentData>();
++    
++    // Returns where this track exactly ends
++    public float GetEndPosition()
++    {
++        if (Segments.Count == 0) return 0f;
++        var last = Segments[Segments.Count - 1];
++        return last.X_Position + last.Width;
++    }
++}
++
++[System.Serializable]
++public class LevelBlueprint
++{
++    public SegmentData HouseAnchor;
++    public SegmentData SchoolAnchor;
++    
++    public TrackBlueprint RoadTrack = new TrackBlueprint();
++    public TrackBlueprint SidewalkTrack = new TrackBlueprint();
++    public List<SegmentData> DiagonalRamps = new List<SegmentData>(); // Ramps connecting Road and Sidewalk (Z-axis)
++    
++    public float TotalLength;
++}
++
++// --- GENERATOR ENGINE ---
++// Fill and return the LevelBlueprint without using Instantiate()
++public class LevelGeneratorEngine
++{
++    public static LevelBlueprint GenerateBlueprint(
++        ModuleBuilder houseModule, 
++        ModuleBuilder schoolModule, 
++        ModuleBuilder[] roadModules, 
++        ModuleBuilder[] sidewalkModules,
++        ModuleBuilder slopeLeft,
++        ModuleBuilder slopeRight,
++        ModuleBuilder roadSlopeLeft,
++        ModuleBuilder roadSlopeRight,
++        ModuleBuilder interlayerSlopeLeft,
++        ModuleBuilder interlayerSlopeRight,
++        int targetLengthUnits,
++        int safeZoneModules,
++        int roadMaxHeight,
++        int sidewalkMaxRelHeight,
++        int seed,
++        bool logDualLayer = false,
++        LevelPathMode pathMode = LevelPathMode.DualPath,
++        FloorTheme theme = null)
++    {
++        // Initialize seed for deterministic generation
++        Random.InitState(seed);
++        
++        LevelBlueprint blueprint = new LevelBlueprint();
++
++        // Pass 1: Anchors (House & School)
++        Pass1_SetAnchors(blueprint, houseModule, schoolModule, targetLengthUnits);
++
++        if (pathMode == LevelPathMode.DualPath)
++        {
++            // Pass 2: Road with Elevations
++            Pass2_GenerateRoad(blueprint, roadModules, roadSlopeLeft, roadSlopeRight, safeZoneModules, roadMaxHeight);
++
++            // Pass 3: Sidewalk (synced to road) + Interlayer connection ramps
++            Pass3_GenerateSidewalk(blueprint, sidewalkModules, slopeLeft, slopeRight, interlayerSlopeLeft, interlayerSlopeRight, safeZoneModules, sidewalkMaxRelHeight, logDualLayer);
++
++            // Pass 4: Finalize Obstacles
++            Pass4_FinalizeObstacles(blueprint);
++        }
++        else if (pathMode == LevelPathMode.SingleSidewalk)
++        {
++            // Use Pass2's continuous logic but store in SidewalkTrack and use Theme assets
++            ModuleBuilder[] currentFlats = theme != null && theme.flatModules != null && theme.flatModules.Length > 0 ? theme.flatModules : sidewalkModules;
++            ModuleBuilder currentSlopeL = theme != null && theme.slopeLeftModule != null ? theme.slopeLeftModule : slopeLeft;
++            ModuleBuilder currentSlopeR = theme != null && theme.slopeRightModule != null ? theme.slopeRightModule : slopeRight;
++
++            Pass2_GenerateSingleSidewalk(blueprint, currentFlats, currentSlopeL, currentSlopeR, safeZoneModules, roadMaxHeight + sidewalkMaxRelHeight);
++        }
++
++        return blueprint;
++    }
++
++    private static void Pass1_SetAnchors(LevelBlueprint blueprint, ModuleBuilder houseModule, ModuleBuilder schoolModule, int targetLengthUnits)
++    {
++        float houseWidth = houseModule.moduleConfig.currentTerrainWidth;
++        // Offset start position for correct camera framing
++        float startX = -houseWidth / 2f;
++        
++        blueprint.HouseAnchor = new SegmentData {
++            Template = houseModule,
++            X_Position = startX,
++            Y_Elevation = 0,
++            Width = houseWidth,
++            Label = "Road_Home",
++            SpawnObstacles = false
++        };
++
++        // Estimate school position
++        float schoolX = targetLengthUnits * 25f; 
++        blueprint.SchoolAnchor = new SegmentData {
++            Template = schoolModule,
++            X_Position = schoolX,
++            Y_Elevation = 0,
++            Width = schoolModule.moduleConfig.currentTerrainWidth,
++            Label = "Road_School",
++            SpawnObstacles = false
++        };
++        
++        blueprint.TotalLength = schoolX + schoolModule.moduleConfig.currentTerrainWidth;
++    }
++
++    private static void Pass2_GenerateRoad(LevelBlueprint blueprint, ModuleBuilder[] roadModules, ModuleBuilder slopeUp, ModuleBuilder slopeDown, int safeZoneModules, int roadMaxHeight)
++    {
++        float currentX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width;
++        float targetX = blueprint.SchoolAnchor.X_Position;
++        int segmentsCreated = 0;
++        int currentH = 0;
++        int slopeCooldown = 0; // Flat segments required before next slope allowed
++
++        while (currentX < targetX)
++        {
++            float remaining = targetX - currentX;
++            if (remaining <= 0) break;
++
++            int nextH = currentH;
++
++            // Prevent any random slopes in the final descent zone to guarantee reaching 0
++            bool inEndZone = remaining < (35f + roadMaxHeight * 60f);
++
++            if (inEndZone)
++            {
++                if (currentH > 0 && slopeCooldown == 0)
++                {
++                    nextH = currentH - 1;
++                }
++            }
++            else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && Random.value < 0.25f)
++            {
++                nextH = Mathf.Clamp(currentH + (Random.value > 0.5f ? 1 : -1), 0, roadMaxHeight);
++            }
++
++            if (nextH != currentH)
++            {
++                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
++                if (sTemplate != null)
++                {
++                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
++                    blueprint.RoadTrack.Segments.Add(new SegmentData {
++                        Template    = sTemplate,
++                        X_Position  = currentX,
++                        Y_Elevation = (nextH > currentH) ? nextH : currentH,
++                        Width       = sw,
++                        Label       = (nextH > currentH) ? "Road_Slope_Up" : "Road_Slope_Down",
++                        IsSlope     = true
++                    });
++                    currentX += sw;
++                    slopeCooldown = 2;
++                }
++                currentH = nextH;
++            }
++            else
++            {
++                ModuleBuilder bestFit = GetBestFit(roadModules, remaining);
++                if (bestFit == null) break;
++
++                float pieceW = bestFit.moduleConfig.currentTerrainWidth;
++                blueprint.RoadTrack.Segments.Add(new SegmentData {
++                    Template         = bestFit,
++                    X_Position       = currentX,
++                    Y_Elevation      = currentH,
++                    Width            = pieceW,
++                    Label            = "Road_Segment",
++                    SpawnObstacles   = (segmentsCreated >= safeZoneModules),
++                    MaxObstacleLevel = 3
++                });
++                currentX += pieceW;
++                segmentsCreated++;
++                if (slopeCooldown > 0) slopeCooldown--;
++            }
++        }
++        blueprint.SchoolAnchor.X_Position = currentX;
++        blueprint.TotalLength = currentX + blueprint.SchoolAnchor.Width;
++    }
++
++    private static void Pass2_GenerateSingleSidewalk(LevelBlueprint blueprint, ModuleBuilder[] flats, ModuleBuilder slopeUp, ModuleBuilder slopeDown, int safeZoneModules, int maxHeight)
++    {
++        float currentX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width;
++        float targetX = blueprint.SchoolAnchor.X_Position;
++        int segmentsCreated = 0;
++        int currentH = 0;
++        int slopeCooldown = 0; 
++
++        while (currentX < targetX)
++        {
++            float remaining = targetX - currentX;
++            if (remaining <= 0) break;
++
++            int nextH = currentH;
++
++            // Accidented rules: More frequent slopes in Single Mode
++            bool inEndZone = remaining < (35f + maxHeight * 60f);
++
++            if (inEndZone)
++            {
++                if (currentH > 0 && slopeCooldown == 0)
++                {
++                    nextH = currentH - 1;
++                }
++            }
++            else if (slopeCooldown == 0 && segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.50f)
++            {
++                nextH = Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), 0, maxHeight);
++            }
++
++            if (nextH != currentH)
++            {
++                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
++                if (sTemplate != null)
++                {
++                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
++                    blueprint.SidewalkTrack.Segments.Add(new SegmentData {
++                        Template    = sTemplate,
++                        X_Position  = currentX,
++                        Y_Elevation = (nextH > currentH) ? nextH : currentH,
++                        Width       = sw,
++                        Label       = (nextH > currentH) ? "Sidewalk_Slope_Up" : "Sidewalk_Slope_Down",
++                        IsSlope     = true,
++                        SidewalkRelativeLevel = 0,
++                        RoadElevationAtX = 0
++                    });
++                    currentX += sw;
++                    slopeCooldown = 1; // Faster cooldown for more bumpy terrain
++                }
++                currentH = nextH;
++            }
++            else
++            {
++                ModuleBuilder bestFit = GetBestFit(flats, remaining);
++                if (bestFit == null) break;
++
++                float pieceW = bestFit.moduleConfig.currentTerrainWidth;
++                blueprint.SidewalkTrack.Segments.Add(new SegmentData {
++                    Template         = bestFit,
++                    X_Position       = currentX,
++                    Y_Elevation      = currentH,
++                    Width            = pieceW,
++                    Label            = "Sidewalk_Segment",
++                    SpawnObstacles   = (segmentsCreated >= safeZoneModules),
++                    MaxObstacleLevel = 3,
++                    SidewalkRelativeLevel = 0,
++                    RoadElevationAtX = 0
++                });
++                currentX += pieceW;
++                segmentsCreated++;
++                if (slopeCooldown > 0) slopeCooldown--;
++            }
++        }
++        blueprint.SchoolAnchor.X_Position = currentX;
++        blueprint.TotalLength = currentX + blueprint.SchoolAnchor.Width;
++    }
++
++    private static void Pass3_GenerateSidewalk(LevelBlueprint blueprint, ModuleBuilder[] sidewalkModules, ModuleBuilder slopeUp, ModuleBuilder slopeDown, ModuleBuilder diagUp, ModuleBuilder diagDown, int safeZoneModules, int sidewalkMaxRelHeight, bool logDualLayer = false)
++    {
++        if (sidewalkModules == null || sidewalkModules.Length == 0) return;
++
++        float singleSpace = sidewalkModules[0].moduleConfig.currentTerrainWidth;
++        float startRampWidth = diagUp != null ? diagUp.moduleConfig.currentTerrainWidth : singleSpace;
++        float endRampWidth = diagDown != null ? diagDown.moduleConfig.currentTerrainWidth : singleSpace;
++
++        float targetStartRampX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width + singleSpace;
++        float targetEndRampX = blueprint.SchoolAnchor.X_Position - singleSpace - endRampWidth;
++
++        // Ensure the end ramp is placed perfectly on top of a FLAT road segment of matching width.
++        // Otherwise, it might be placed on top of a road slope, creating a visual gap and height mismatch.
++        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
++        {
++            for (int i = blueprint.RoadTrack.Segments.Count - 1; i >= 0; i--)
++            {
++                var rSeg = blueprint.RoadTrack.Segments[i];
++                if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope) {
++                    targetEndRampX = rSeg.X_Position;
++                    break;
++                }
++            }
++        }
++
++        float startRampX = targetStartRampX;
++        
++        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
++        {
++            foreach (var rSeg in blueprint.RoadTrack.Segments)
++            {
++                if (rSeg.X_Position >= targetStartRampX && Mathf.Abs(rSeg.Width - startRampWidth) < 0.1f && !rSeg.IsSlope) {
++                    startRampX = rSeg.X_Position;
++                    break;
++                }
++            }
++        }
++
++        float sidewalkStartX = startRampX + startRampWidth;
++
++        int roadElevAtStart = GetRoadElevationAt(blueprint, startRampX);
++        blueprint.DiagonalRamps.Add(new SegmentData {
++            Template = diagUp,
++            X_Position = startRampX,
++            Y_Elevation = roadElevAtStart,
++            Width = startRampWidth,
++            Label = "Diagonal_Ramp_Start",
++            IsSlope = false,
++            SpawnObstacles = false,
++            RoadElevationAtX = roadElevAtStart,
++            SidewalkRelativeLevel = 0,
++            ConnectorRoadElevation = roadElevAtStart
++        });
++
++        float currentX = sidewalkStartX;
++        int currentH = GetRoadElevationAt(blueprint, currentX) + 1; 
++        int slopeCooldown = 0;
++        int segmentsCreated = 0;
++
++        int targetRoadElev = GetRoadElevationAt(blueprint, targetEndRampX);
++
++        while (currentX < targetEndRampX)
++        {
++            float remaining = targetEndRampX - currentX;
++            if (remaining <= 0) break;
++
++            int roadElev = GetRoadElevationAt(blueprint, currentX);
++            int nextH = currentH;
++            
++            int targetH = targetRoadElev + 1;
++            int diff = Mathf.Abs(currentH - targetH);
++            float panicThreshold = diff * 15f; // Reserve 15 units of space per level we need to drop
++            
++            bool inEndZone = remaining < 100f;
++            if (inEndZone)
++            {
++                if (currentH > targetH)
++                {
++                    if (slopeCooldown <= 0 || remaining <= panicThreshold) 
++                        nextH = currentH - 1;
++                }
++                else if (currentH < targetH)
++                {
++                    if (slopeCooldown <= 0 || remaining <= panicThreshold) 
++                        nextH = currentH + 1;
++                }
++            }
++            else 
++            {
++                if (currentH > roadElev + sidewalkMaxRelHeight)
++                    nextH = currentH - 1; 
++                else if (currentH < roadElev + 1)
++                    nextH = currentH + 1; 
++                else if (slopeCooldown <= 0 && segmentsCreated > safeZoneModules && UnityEngine.Random.value < 0.25f)
++                    nextH = UnityEngine.Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), roadElev + 1, roadElev + sidewalkMaxRelHeight);
++            }
++
++            ModuleBuilder bestFit = null;
++            if (nextH == currentH)
++            {
++                bestFit = GetBestFitSidewalk(blueprint, sidewalkModules, remaining, currentX, currentH, 1);
++                if (bestFit == null) 
++                {
++                    nextH = currentH + 1;
++                }
++            }
++
++            if (nextH != currentH)
++            {
++                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
++                if (sTemplate != null)
++                {
++                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
++                    blueprint.SidewalkTrack.Segments.Add(new SegmentData {
++                        Template = sTemplate,
++                        X_Position = currentX,
++                        Y_Elevation = (nextH > currentH) ? nextH : currentH,
++                        Width = sw,
++                        Label = (nextH > currentH) ? "Sidewalk_Slope_Up" : "Sidewalk_Slope_Down",
++                        IsSlope = true,
++                        SidewalkRelativeLevel = nextH - roadElev
++                    });
++                    currentX += sw;
++                    slopeCooldown = 2;
++                }
++                currentH = nextH;
++            }
++            else
++            {
++                float pieceW = bestFit.moduleConfig.currentTerrainWidth;
++                blueprint.SidewalkTrack.Segments.Add(new SegmentData {
++                    Template = bestFit,
++                    X_Position = currentX,
++                    Y_Elevation = currentH,
++                    Width = pieceW,
++                    Label = "Sidewalk_Segment",
++                    SpawnObstacles = (segmentsCreated >= safeZoneModules),
++                    MaxObstacleLevel = 3,
++                    SidewalkRelativeLevel = currentH - roadElev
++                });
++                currentX += pieceW;
++                segmentsCreated++;
++                if (slopeCooldown > 0) slopeCooldown--;
++            }
++        }
++
++        int roadElevAtEnd = GetRoadElevationAt(blueprint, currentX);
++        blueprint.DiagonalRamps.Add(new SegmentData {
++            Template = diagDown,
++            X_Position = currentX,
++            Y_Elevation = roadElevAtEnd,
++            Width = endRampWidth,
++            Label = "Diagonal_Ramp_End",
++            IsSlope = false,
++            SpawnObstacles = false,
++            RoadElevationAtX = roadElevAtEnd,
++            SidewalkRelativeLevel = 0,
++            ConnectorRoadElevation = roadElevAtEnd
++        });
++    }
++
++    private static int GetRoadElevationAt(LevelBlueprint blueprint, float x)
++    {
++        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
++        {
++            foreach (var rSeg in blueprint.RoadTrack.Segments)
++            {
++                if (x >= rSeg.X_Position && x < rSeg.X_Position + rSeg.Width)
++                {
++                    return rSeg.Y_Elevation;
++                }
++            }
++        }
++        return 0;
++    }
++
++    private static void Pass4_FinalizeObstacles(LevelBlueprint blueprint)
++    {
++        foreach (var roadSeg in blueprint.RoadTrack.Segments)
++        {
++            if (!roadSeg.SpawnObstacles) continue;
++
++            // Clearance check ultra-preciso
++            int sideH = GetSidewalkHeightAt(blueprint, roadSeg.X_Position + 0.5f);
++            int roadH = roadSeg.Y_Elevation;
++            int clearance = sideH - roadH;
++
++            // Si hay poco techo (clearance <= 1), solo peatones/motos. Si hay espacio, camiones.
++            roadSeg.MaxObstacleLevel = (clearance <= 1) ? 1 : 3;
++        }
++    }
++
++    private static int GetRoadHeightAt(LevelBlueprint blueprint, float x)
++    {
++        foreach (var seg in blueprint.RoadTrack.Segments)
++        {
++            if (x >= seg.X_Position && x < seg.X_Position + seg.Width) return seg.Y_Elevation;
++        }
++        return 0;
++    }
++
++    private static int GetSidewalkHeightAt(LevelBlueprint blueprint, float x)
++    {
++        foreach (var seg in blueprint.SidewalkTrack.Segments)
++        {
++            if (x >= seg.X_Position && x < seg.X_Position + seg.Width) return seg.Y_Elevation;
++        }
++        return 0;
++    }
++
++    private static int GetMaxRoadElevationInRange(LevelBlueprint blueprint, float startX, float endX)
++    {
++        int maxElev = -999;
++        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
++        {
++            foreach (var rSeg in blueprint.RoadTrack.Segments)
++            {
++                if (rSeg.X_Position < endX && rSeg.X_Position + rSeg.Width > startX)
++                {
++                    if (rSeg.Y_Elevation > maxElev) maxElev = rSeg.Y_Elevation;
++                }
++            }
++        }
++        return maxElev == -999 ? 0 : maxElev;
++    }
++
++    private static ModuleBuilder GetBestFitSidewalk(LevelBlueprint blueprint, ModuleBuilder[] options, float remainingSpace, float currentX, int currentH, int minClearance)
++    {
++        if (options == null || options.Length == 0) return null;
++        
++        System.Collections.Generic.List<ModuleBuilder> validOptions = new System.Collections.Generic.List<ModuleBuilder>();
++        ModuleBuilder smallestBlock = options[0];
++        float minW = float.MaxValue;
++
++        for (int i = 0; i < options.Length; i++) {
++            if (options[i] != null) {
++                float w = options[i].moduleConfig.currentTerrainWidth;
++                if (w < minW) {
++                    minW = w;
++                    smallestBlock = options[i];
++                }
++
++                if (w <= remainingSpace + 0.1f) {
++                    int maxRoad = GetMaxRoadElevationInRange(blueprint, currentX, currentX + w - 0.1f);
++                    if (currentH >= maxRoad + minClearance) {
++                        validOptions.Add(options[i]);
++                    }
++                }
++            }
++        }
++        
++        if (validOptions.Count > 0) {
++            return validOptions[UnityEngine.Random.Range(0, validOptions.Count)];
++        }
++
++        // If no block fits perfectly, and we are just trying to close a tiny gap (< 16f)
++        if (remainingSpace < 16f) {
++            return smallestBlock; // Force the smallest block to minimize overshoot
++        }
++
++        return null; // Force slope UP to avoid collision
++    }
++
++    private static ModuleBuilder GetBestFit(ModuleBuilder[] options, float remainingSpace)
++    {
++        if (options == null || options.Length == 0) return null;
++        
++        System.Collections.Generic.List<ModuleBuilder> validOptions = new System.Collections.Generic.List<ModuleBuilder>();
++        for (int i = 0; i < options.Length; i++) {
++            if (options[i] != null && options[i].moduleConfig.currentTerrainWidth <= remainingSpace + 0.1f) {
++                validOptions.Add(options[i]);
++            }
++        }
++        
++        if (validOptions.Count > 0) {
++            return validOptions[UnityEngine.Random.Range(0, validOptions.Count)];
++        }
++        
++        // Fallback: Si el espacio restante es demasiado pequeño para cualquier módulo,
++        // devolvemos el más pequeño para no pasarnos por mucho.
++        ModuleBuilder smallest = options[0];
++        float minW = float.MaxValue;
++        foreach (var opt in options) {
++            if (opt != null && opt.moduleConfig.currentTerrainWidth < minW) {
++                minW = opt.moduleConfig.currentTerrainWidth;
++                smallest = opt;
++            }
++        }
++        return smallest;
++    }
++}
+diff --git a/Assets/Scripts/Utils/LevelStarter.cs b/Assets/Scripts/Utils/LevelStarter.cs
+index e72e6c75b..3cf4723af 100644
+--- a/Assets/Scripts/Utils/LevelStarter.cs
++++ b/Assets/Scripts/Utils/LevelStarter.cs
+@@ -4,6 +4,17 @@ using UnityEngine;
+ using System;
+ using Random = UnityEngine.Random;
+ 
++public enum LevelPathMode { DualPath, SingleSidewalk }
++
++[System.Serializable]
++public class FloorTheme
++{
++    public string themeId;
++    public ModuleBuilder[] flatModules;
++    public ModuleBuilder slopeLeftModule;
++    public ModuleBuilder slopeRightModule;
++}
++
+ public class LevelStarter : MonoBehaviour
+ {
+     [Header("Level Generation Settings")]
+@@ -13,6 +24,26 @@ public class LevelStarter : MonoBehaviour
+ 
+     [Header("Generation Mode")]
+     [SerializeField] private bool useModularGeneration = true;
++    public LevelPathMode pathMode = LevelPathMode.DualPath;
++
++    [Header("Single Sidewalk Mode Themes")]
++    public List<FloorTheme> sidewalkThemes;
++    public string forcedThemeId = "";
++
++    [Header("Difficulty Configuration Lists")]
++    public List<DifficultyConfig> desktopConfigs; // PC, Console, Web
++    public List<DifficultyConfig> mobileConfigs;
++
++    [Header("Active Difficulty")]
++    public GameDifficulty selectedDifficulty = GameDifficulty.Medium;
++    
++    [Header("Resolved Config (Read Only)")]
++    public DifficultyConfig currentDifficulty;
++
++    [Header("Editor Debug Settings")]
++    [Tooltip("If true, ignores the actual device and uses 'Editor Simulated Platform'. Only works in Unity Editor.")]
++    public bool overridePlatformInEditor = false;
++    public TargetPlatform editorSimulatedPlatform = TargetPlatform.PC_Console;
+ 
+     [Header("Seed Settings")]
+     public bool useManualSeed = false;
+@@ -40,7 +71,10 @@ public class LevelStarter : MonoBehaviour
+     [Header("Module Count Settings")]
+     public int minModules = 5;
+     public int maxModules = 10;
+-    public int targetSchoolHeight = 0; // The goal height for the END of the level
++    public int targetSchoolHeight = 0; // The goal height for the end of the level
++
++    [Header("Safe Zone Settings")]
++    public int safeZoneModules = 2; // Number of modules at start without obstacles
+ 
+     [Header("Modular Level Settings")]
+     public ModuleBuilder[] modules;
+@@ -60,13 +94,38 @@ public class LevelStarter : MonoBehaviour
+     public ModuleBuilder slopeLeftModule;
+     public ModuleBuilder slopeRightModule;
+ 
++    [Header("Dual-Layer Settings")]
++    public float sidewalkZOffset = 0.5f;
++    public float sidewalkYOffset = 1.5f;
++    public bool useRelativeSidewalkHeights = false; // Phase 2 gate — keep false until Phase 3 is ready
++    [Range(0, 100)] public int roadHeightVarianceChance = 20;
++    [Range(0, 100)] public int sidewalkRelHeightVarianceChance = 30;
++    public int sidewalkMinRelativeHeight = 0;
++    public int sidewalkMaxRelativeHeight = 2;
++    public int roadMaxHeight = 2;
++    public Transform continuousRoadReference;
++
++    [Header("Road-Specific Modules")]
++    public ModuleBuilder roadModule; // Fallback
++    public ModuleBuilder[] roadModules; // List of roads to match sidewalk widths
++    public ModuleBuilder roadSlopeLeftModule;
++    public ModuleBuilder roadSlopeRightModule;
++
++    [Header("Interlayer Slope Modules (Road ↔ Sidewalk Z-transition)")]
++    public ModuleBuilder interlayerSlopeLeftModule;
++    public ModuleBuilder interlayerSlopeRightModule;
++
++
++
+     [Header("=== LEGACY PROCEDURAL (Unused) ===")]
+     [SerializeField] private bool generateBuildingsInModules = false;
+     public ModuleBuilder moduleTest;
+     public Transform groundReference;
+     public SpriteRenderer[] background;
+     public GameObject home;
++    public float homeYOffset = 0.5f;
+     public GameObject school;
++    public float schoolYOffset = 0.5f;
+     public int minLevelWidth = 1000;
+     public int maxLevelWidth = 2000;
+     public bool autoClearStructures = true;
+@@ -103,6 +162,38 @@ public class LevelStarter : MonoBehaviour
+         {
+             LevelManager.Instance.OnLevelReplayStarted += OnLevelRestart;
+         }
++
++        ResolveDifficultyConfig();
++    }
++
++    private void ResolveDifficultyConfig()
++    {
++        bool isMobile = Application.isMobilePlatform;
++
++#if UNITY_EDITOR
++        if (overridePlatformInEditor)
++        {
++            isMobile = (editorSimulatedPlatform == TargetPlatform.Mobile);
++            GameLogger.Log("LEVEL", $"[EDITOR OVERRIDE] Simulating Platform: {editorSimulatedPlatform}");
++        }
++#endif
++
++        List<DifficultyConfig> targetList = isMobile ? mobileConfigs : desktopConfigs;
++        
++        if (targetList == null || targetList.Count == 0)
++            return;
++
++        foreach(var config in targetList)
++        {
++            if (config != null && config.difficulty == selectedDifficulty)
++            {
++                currentDifficulty = config;
++                return;
++            }
++        }
++        
++        // Fallback to the first available config in the target list if the specific difficulty is not found
++        currentDifficulty = targetList[0];
+     }
+ 
+     private void Start()
+@@ -190,15 +281,22 @@ public class LevelStarter : MonoBehaviour
+ 
+     private void InitializeSeed()
+     {
+-        if (useManualSeed)
++        if (LevelManager.Instance != null && LevelManager.Instance.IsReplaying())
++        {
++            currentSeed = LevelManager.Instance.LastSeed;
++            GameLogger.Log("LEVEL", $"Retrying with preserved seed: {currentSeed}");
++        }
++        else if (useManualSeed)
+         {
+             currentSeed = manualSeed;
++            if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
+         }
+         else
+         {
+             currentSeed = System.DateTime.Now.Millisecond +
+                          System.DateTime.Now.Second * 1000 +
+                          System.DateTime.Now.Minute * 60000;
++            if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
+         }
+ 
+         UnityEngine.Random.InitState(currentSeed);
+@@ -255,9 +353,9 @@ public class LevelStarter : MonoBehaviour
+         }
+         else
+         {
+-            if (autoClearStructures && structureGenerator != null) 
+-                structureGenerator.ClearStructuresInEditor();
+-            ResizeLevel();
++            GameLogger.LogWarning("LEVEL", "Procedural generation is deprecated. Falling back to modular.");
++            if (autoClearStructures) ClearModules();
++            ResizeLevelModular();
+         }
+ 
+         if (homeMask != null)
+@@ -305,6 +403,8 @@ public class LevelStarter : MonoBehaviour
+         StartCoroutine(GenerateLevelWithDelay());
+     }
+ 
++    #region Deprecated Old Generation
++    /*
+     private void ResizeLevel()
+     {
+         newWidth = Random.Range(minLevelWidth, maxLevelWidth);
+@@ -335,201 +435,251 @@ public class LevelStarter : MonoBehaviour
+         PositionEndPoints(newWidth);
+         GenerateBuildings();
+     }
++    */
++    #endregion
++
+ 
+     private void ResizeLevelModular()
+     {
+-        GameLogger.Log("LEVEL", "=== MODULAR GENERATION START ===");
++        GameLogger.Log("LEVEL", "=== MULTI-PASS GENERATION START ===");
++        ClearModules();
+ 
+-        newWidth = 0;
++        float roadBaseY = continuousRoadReference != null ? continuousRoadReference.position.y : 0f;
+         numberOfModules = Random.Range(minModules, maxModules);
+-        List<ModuleBuilder> modulesToSpawn = new List<ModuleBuilder>();
+-
+-        modulesToSpawn.Add(homeModule);
+-        float homeWidth = homeModule.moduleConfig.currentTerrainWidth;
+-        levelStartX = -homeWidth / 2f;
+-
+-        // Home keeps it's height
+-        int homeHeight = homeModule.moduleConfig.minTerrainHeight;
+-        GameLogger.Log("LEVEL", $"Will spawn Home, Width={homeWidth:F2}, Height={homeHeight} (FIXED)");
+-
+-        newWidth += (int)homeWidth;
++        InitializeSeed();
+ 
+-        // Generate random modules
+-        for (int i = 0; i < numberOfModules; i++)
++        FloorTheme selectedTheme = null;
++        if (pathMode == LevelPathMode.SingleSidewalk && sidewalkThemes != null && sidewalkThemes.Count > 0)
+         {
+-            ModuleBuilder module = modules[Random.Range(0, modules.Length)];
+-            modulesToSpawn.Add(module);
+-            newWidth += module.moduleConfig.currentTerrainWidth;
+-        }
+-
+-        // SCHOOL - Consolidate height calculation
+-        int schoolMinHeight = Mathf.Max(1, targetSchoolHeight, schoolModule.moduleConfig.minTerrainHeight);
+-        int schoolMaxHeight = Mathf.Max(schoolMinHeight, schoolModule.moduleConfig.maxTerrainHeight);
+-        int finalSchoolHeight = Random.Range(schoolMinHeight, schoolMaxHeight + 1);
+-        
+-        modulesToSpawn.Add(schoolModule);
+-        newWidth += schoolModule.moduleConfig.currentTerrainWidth;
+-
+-        GameLogger.Log("LEVEL", $"Total modules: {modulesToSpawn.Count}, Width: {newWidth}, Target School Height: {finalSchoolHeight}");
+-
+-        // ========== SPAWNING CON SLOPES ==========
+-        
+-        float moduleSpawnerX = levelStartX + (homeWidth / 2f);
+-        Vector2 homePos = new Vector2(moduleSpawnerX, 0f);
+-
+-        // Spawn HOME 
+-        ModuleBuilder spawnedHome = Instantiate(homeModule, homePos, Quaternion.identity, levelParent);
+-        spawnedHome.GenerateModule(homeHeight);
+-        modulesInScene.Add(spawnedHome);
+-
+-        int previousHeight = homeHeight;
+-        GameLogger.Log("LEVEL", $"Home spawned at X={moduleSpawnerX:F2}, Height={previousHeight}");
+-
+-        moduleSpawnerX += homeWidth / 2f;
+-
+-        // Spawning
+-        int modulesSpawningCount = modulesToSpawn.Count;
+-        for (int i = 0; i < modulesSpawningCount; i++)
+-        {
+-            ModuleBuilder module = modulesToSpawn[i];
+-            
+-            // Skip Home (already spawned)
+-            if (module == homeModule)
+-                continue;
+-            
+-            // Skip School (spawned after loop, but we need its target height now)
+-            if (module == schoolModule)
+-                continue;
+-
+-            // --- BIASED HEIGHT COMPENSATION LOGIC ---
+-            int remainingModules = (modulesSpawningCount - i); // Updated calculation for better foresight
+-            int heightDiff = finalSchoolHeight - previousHeight;
+-            
+-            int heightChange = 0;
+-
+-            // EMERGENCY MODE: If we MUST change height now to make it in time
+-            if (Mathf.Abs(heightDiff) >= remainingModules && remainingModules > 0)
++            if (!string.IsNullOrEmpty(forcedThemeId))
+             {
+-                heightChange = (int)Mathf.Sign(heightDiff);
+-                GameLogger.Log("LEVEL", $"FORCE HEIGHT CHANGE: Diff={heightDiff}, Remaining={remainingModules}, Forcing Change={heightChange}");
++                selectedTheme = sidewalkThemes.Find(t => t.themeId == forcedThemeId);
+             }
+-            else
++            if (selectedTheme == null)
+             {
+-                // BIASED RANDOM WALK:
+-                float randomVal = Random.value;
+-                
+-                if (heightDiff > 0) // Target is higher
+-                {
+-                    if (randomVal < 0.45f) heightChange = 1;
+-                    else if (randomVal < 0.90f) heightChange = 0;
+-                    else heightChange = -1;
+-                }
+-                else if (heightDiff < 0) // Target is lower
+-                {
+-                    if (randomVal < 0.45f) heightChange = -1;
+-                    else if (randomVal < 0.90f) heightChange = 0;
+-                    else heightChange = 1;
+-                }
+-                else // Already at target height
+-                {
+-                    if (randomVal < 0.20f) heightChange = 1;
+-                    else if (randomVal < 0.40f) heightChange = -1;
+-                    else heightChange = 0;
+-                }
++                selectedTheme = sidewalkThemes[Random.Range(0, sidewalkThemes.Count)];
+             }
++            GameLogger.Log("LEVEL", $"Selected Theme: {selectedTheme.themeId}");
++        }
+ 
+-            int nextHeight = previousHeight + heightChange;
+-            
+-            // CLAMP SAFETY: Never go below 1 or below school target if school is higher
+-            int minPossibleHeight = Mathf.Max(1, module.moduleConfig.minTerrainHeight);
+-            nextHeight = Mathf.Clamp(nextHeight, minPossibleHeight, module.moduleConfig.maxTerrainHeight);
++        // 1. GENERATE BLUEPRINT (PURE MATH)
++        LevelBlueprint blueprint = LevelGeneratorEngine.GenerateBlueprint(
++            homeModule,
++            schoolModule,
++            roadModules,
++            modules, 
++            slopeLeftModule,
++            slopeRightModule,
++            roadSlopeLeftModule,
++            roadSlopeRightModule,
++            interlayerSlopeLeftModule != null ? interlayerSlopeLeftModule : slopeLeftModule,
++            interlayerSlopeRightModule != null ? interlayerSlopeRightModule : slopeRightModule,
++            numberOfModules,
++            safeZoneModules,
++            roadMaxHeight,
++            sidewalkMaxRelativeHeight,
++            currentSeed,
++            useRelativeSidewalkHeights,
++            pathMode,
++            selectedTheme
++        );
++
++        // 2. RENDER BLUEPRINT (PHYSICAL INSTANTIATION)
++        int baselineH = homeModule != null ? homeModule.moduleConfig.minTerrainHeight : 1;
++        RenderBlueprint(blueprint, roadBaseY, baselineH);
++
++        // 3. FINALIZE
++        levelStartX = blueprint.HouseAnchor.X_Position;
++        levelEndX = blueprint.TotalLength;
++        newWidth = Mathf.RoundToInt(levelEndX - levelStartX);
+ 
+-            // *** INSERT SLOPES WHEN HEIGHT CHANGES ***
+-            int heightDifference = nextHeight - previousHeight;
+-            
+-            if (heightDifference != 0)
++        ResizeCamBounds(0f);
++        GenerateModularCloudsInRange(levelStartX, levelEndX);
++        LayOutBackgroundInRange(levelStartX, levelEndX);
++        OnCameraBoundsUpdated?.Invoke();
++        
++        GameLogger.Log("LEVEL", $"=== MULTI-PASS GENERATION COMPLETE | Width={newWidth} ===");
++    }
++
++    private void RenderBlueprint(LevelBlueprint blueprint, float baseY, int baselineH)
++    {
++        // 1. Render House
++        float homeCenter = blueprint.HouseAnchor.X_Position + (blueprint.HouseAnchor.Width / 2f);
++        SpawnModularSegment(blueprint.HouseAnchor.Template, homeCenter, baseY, 0f, baselineH, blueprint.HouseAnchor.Label, false, false, false);
++        if (home != null) home.transform.position = new Vector3(homeCenter, baseY + homeYOffset, home.transform.position.z);
++
++        // 2. Render Road Track — with EndConnectionAudit for last 5
++        int totalRoadSegs = blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null ? blueprint.RoadTrack.Segments.Count : 0;
++        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
++        {
++            for (int ri = 0; ri < blueprint.RoadTrack.Segments.Count; ri++)
+             {
+-                GameLogger.Log("LEVEL", $"Height change: {previousHeight} -> {nextHeight} (diff: {heightDifference})");
+-                
+-                int slopesToSpawn = Mathf.Abs(heightDifference);
+-                bool isAscending = heightDifference > 0;
+-                ModuleBuilder slopeToUse = isAscending ? slopeLeftModule : slopeRightModule;
+-                
+-                for (int s = 0; s < slopesToSpawn; s++)
++                var rseg = blueprint.RoadTrack.Segments[ri];
++                bool isNearEnd = ri >= totalRoadSegs - 5;
++                if (isNearEnd)
+                 {
+-                    moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
+-                    Vector2 slopePos = new Vector2(moduleSpawnerX, 0f);
+-                    int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
+-                    
+-                    // SAFETY: Slope height must at least be 1 to have a foundation
+-                    slopeHeight = Mathf.Max(1, slopeHeight);
+-                    
+-                    ModuleBuilder spawnedSlope = Instantiate(slopeToUse, slopePos, Quaternion.identity, levelParent);
+-                    spawnedSlope.GenerateModule(slopeHeight);
+-                    modulesInScene.Add(spawnedSlope);
+-                    
+-                    newWidth += slopeToUse.moduleConfig.currentTerrainWidth;
+-                    moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
++                    string rCfg = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.name : "NULL";
++                    float rGbh = rseg.Template != null && rseg.Template.moduleConfig != null ? rseg.Template.moduleConfig.groundBlockHeight : -1f;
++                    int rAbsH = baselineH + rseg.Y_Elevation;
++                    float rExpectedTopY = rGbh > 0 ? baseY + rAbsH * rGbh : -999f;
++                    GameLogger.Log("EndConnectionAudit",
++                        $"Type=Road " +
++                        $"Idx={ri}/{totalRoadSegs - 1} " +
++                        $"X={rseg.X_Position:F1} " +
++                        $"Width={rseg.Width:F1} " +
++                        $"Y_Elevation={rseg.Y_Elevation} " +
++                        $"RoadElevationAtX={rseg.Y_Elevation} " +
++                        $"SidewalkRelativeLevel=N/A " +
++                        $"TransformYActual={baseY:F3} " +
++                        $"ExpectedTopY={rExpectedTopY:F3} " +
++                        $"AbsH={rAbsH} " +
++                        $"IsSlope={rseg.IsSlope} " +
++                        $"Label={rseg.Label} " +
++                        $"PrefabName={(rseg.Template != null ? rseg.Template.name : "NULL")} " +
++                        $"ConfigName={rCfg} " +
++                        $"gbh={rGbh}");
+                 }
+             }
++        }
++        RenderTrack(blueprint.RoadTrack, baseY, baselineH, 0f);
+ 
+-            // Spawn normal module
+-            moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
+-            Vector2 spawnPos = new Vector2(moduleSpawnerX, 0f);
++        // 3. Render Sidewalk Track
++        RenderSidewalkTrack(blueprint, baseY, baselineH);
+ 
+-            ModuleBuilder newModule = Instantiate(module, spawnPos, Quaternion.identity, levelParent);
+-            newModule.GenerateModule(nextHeight);
+-            modulesInScene.Add(newModule);
++        // 4. Render Diagonal Ramps (Road-Sidewalk connections)
++        // Each ramp is anchored at the road's world-Y at its elevation, and placed at Z midway
++        // between road (z=0) and sidewalk (z=sidewalkZOffset) to visually bridge both layers.
++        foreach (var ramp in blueprint.DiagonalRamps)
++        {
++            if (ramp.Template == null) continue;
+ 
+-            previousHeight = nextHeight;
+-            moduleSpawnerX += module.moduleConfig.currentTerrainWidth / 2f;
++            float rampCenter = ramp.X_Position + (ramp.Width / 2f);
++
++            float gbh = ramp.Template.moduleConfig != null ? ramp.Template.moduleConfig.groundBlockHeight : 3f;
++
++            // Y: the road surface at this elevation.
++            // Road transform is always baseY; road top = baseY + (baselineH + roadElev - 1) * gbh.
++            // We set the ramp root to that same surface so its visual content sits flush with the road.
++            float rampTransformY = baseY + ramp.ConnectorRoadElevation * gbh;
++
++            // Z: midpoint between road (0) and sidewalk (sidewalkZOffset).
++            float rampZ = sidewalkZOffset / 2f;
++
++            // rampTransformY already lifts the module to the correct road elevation.
++            // We need the slope to be exactly 1 block taller than the road to reach the sidewalk.
++            int rampAbsH = baselineH + 1;
++
++            SpawnModularSlope(ramp.Template, rampCenter, rampTransformY, rampZ, rampAbsH, ramp.Label, true);
+         }
++        // 5. Render School
++        float schoolCenter = blueprint.SchoolAnchor.X_Position + (blueprint.SchoolAnchor.Width / 2f);
++        SpawnModularSegment(blueprint.SchoolAnchor.Template, schoolCenter, baseY, 0f, baselineH, blueprint.SchoolAnchor.Label, false, false, false, 0);
++        if (school != null) school.transform.position = new Vector3(schoolCenter, baseY + schoolYOffset, school.transform.position.z);
++    }
+ 
+-        // *** FINAL TRANSITION TO SCHOOL ***
+-        int schoolHeightDiff = finalSchoolHeight - previousHeight;
+-        
+-        if (schoolHeightDiff != 0)
+-        {
+-            GameLogger.Log("LEVEL", $"Final transition to School: {previousHeight} -> {finalSchoolHeight}");
+-            
+-            int slopesToSchool = Mathf.Abs(schoolHeightDiff);
+-            bool isAscending = schoolHeightDiff > 0;
+-            ModuleBuilder slopeToUse = isAscending ? slopeLeftModule : slopeRightModule;
+-            
+-            for (int s = 0; s < slopesToSchool; s++)
++    private void RenderSidewalkTrack(LevelBlueprint blueprint, float baseY, int baselineH)
++    {
++        if (pathMode == LevelPathMode.SingleSidewalk)
++        {
++            RenderTrack(blueprint.SidewalkTrack, baseY, baselineH, 0f);
++        }
++        else
++        {
++            // OLD PATH: the Y_Elevation in Pass3 already accounts for +1 (e.g., roadH_end + 1).
++            // We RESTORE sidewalkYOffset here because the user relies on it for the 1.5 unit vertical shift.
++            // And we pass absH = 1 inside RenderTrack implicitly by letting seg.Y_Elevation be 0 relative to road.
++            RenderTrack(blueprint.SidewalkTrack, baseY + sidewalkYOffset, baselineH, sidewalkZOffset);
++        }
++    }
++    private void RenderTrack(TrackBlueprint track, float baseY, int baselineH, float z)
++    {
++        if (track == null || track.Segments == null) return;
++
++        string trackType = z == 0f ? "Road" : "Sidewalk";
++        int totalSegs = track.Segments.Count;
++
++        foreach (var seg in track.Segments)
++        {
++            float originalWidth = (seg.Template != null && seg.Template.moduleConfig != null) ? seg.Template.moduleConfig.currentTerrainWidth : seg.Width;
++            float center = seg.X_Position + (originalWidth / 2f);
++            int absH = baselineH + seg.Y_Elevation;
++            float gbh = seg.Template != null && seg.Template.moduleConfig != null ? seg.Template.moduleConfig.groundBlockHeight : 3f;
++            bool isSidewalk = z != 0f;
++            float segTransformY = baseY + seg.RoadElevationAtX * gbh; // Used primarily by OLD PATH sidewalk
++
++            if (!isSidewalk)
+             {
+-                moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
+-                int slopeHeight = isAscending ? (previousHeight + s + 1) : (previousHeight - s);
+-                
+-                // SAFETY: Slope height must at least be 1 to avoid 'ground 0' voids
+-                slopeHeight = Mathf.Max(1, slopeHeight);
+-                
+-                ModuleBuilder spawnedSlope = Instantiate(slopeToUse, new Vector2(moduleSpawnerX, 0f), Quaternion.identity, levelParent);
+-                spawnedSlope.GenerateModule(slopeHeight);
+-                modulesInScene.Add(spawnedSlope);
+-                newWidth += slopeToUse.moduleConfig.currentTerrainWidth;
+-                moduleSpawnerX += slopeToUse.moduleConfig.currentTerrainWidth / 2f;
++                segTransformY = baseY;
++            }
++
++            if (seg.IsSlope) {
++                SpawnModularSlope(seg.Template, center, baseY, z, absH, seg.Label, isSidewalk);
++            } else {
++                // generateContent=true for both Road and Sidewalk — obstacles/vehicles allowed on Road.
++                // isSidewalk flag keeps ModuleBuilder identity correct (z!=0 = elevated sidewalk).
++                SpawnModularSegment(seg.Template, center, baseY, z, absH, seg.Label, isSidewalk, true, seg.SpawnObstacles, seg.MaxObstacleLevel);
+             }
+         }
++    }
+ 
+-        // Spawn SCHOOL
+-        moduleSpawnerX += schoolModule.moduleConfig.currentTerrainWidth / 2f;
+-        Vector2 schoolPos = new Vector2(moduleSpawnerX, 0f);
++    private ModuleBuilder GetModuleOfWidth(float targetWidth, ModuleBuilder fallback)
++    {
++        if (modules == null || modules.Length == 0) return fallback;
++        
++        // Find a module that matches the width closely
++        foreach (var m in modules) {
++            if (m != null && Mathf.Abs(m.moduleConfig.currentTerrainWidth - targetWidth) < 0.1f)
++                return m;
++        }
++        return fallback;
++    }
+ 
+-        ModuleBuilder spawnedSchool = Instantiate(schoolModule, schoolPos, Quaternion.identity, levelParent);
+-        spawnedSchool.GenerateModule(finalSchoolHeight);
+-        modulesInScene.Add(spawnedSchool);
++    private ModuleBuilder GetClosestRoadModule(float targetWidth, ModuleBuilder fallback)
++    {
++        if (roadModules == null || roadModules.Length == 0) return fallback;
+ 
+-        levelEndX = moduleSpawnerX + (schoolModule.moduleConfig.currentTerrainWidth / 2f);
++        ModuleBuilder best = null;
++        float minDiff = float.MaxValue;
+ 
+-        GameLogger.Log("LEVEL", $"School at X={moduleSpawnerX:F2}, Height={finalSchoolHeight}");
+-        GameLogger.Log("LEVEL", $"=== GENERATION COMPLETE: StartX={levelStartX:F2}, EndX={levelEndX:F2} ===");
++        foreach (var m in roadModules) {
++            if (m != null && m.moduleConfig != null) {
++                float diff = Mathf.Abs(m.moduleConfig.currentTerrainWidth - targetWidth);
++                if (diff < minDiff) {
++                    minDiff = diff;
++                    best = m;
++                }
++            }
++        }
+ 
+-        ResizeCamBounds(0f);
+-        GenerateModularCloudsInRange(levelStartX, levelEndX);
+-        LayOutBackgroundInRange(levelStartX, levelEndX);
++        return best != null ? best : fallback;
++    }
+ 
+-        OnCameraBoundsUpdated?.Invoke();
++
++
++
++
++
++    private void SpawnModularSlope(ModuleBuilder template, float x, float baseY, float z, int h, string name, bool isSidewalk)
++    {
++        if (template == null) return;
++        ModuleBuilder slope = Instantiate(template, new Vector3(x, baseY, z), Quaternion.identity, levelParent);
++        slope.name = name;
++        slope.isElevatedSidewalk = isSidewalk;
++        slope.omitFoundationAtBaseLevel = false;
++        // Slopes usually don't have content (buildings/obstacles)
++        slope.GenerateModule(h, false, false);
++        modulesInScene.Add(slope);
++    }
++
++    private void SpawnModularSegment(ModuleBuilder template, float x, float baseY, float z, int h, string name, bool isSidewalk, bool generateContent, bool spawnObstacles = true, int maxObsLevel = 3)
++    {
++        if (template == null) return;
++        ModuleBuilder seg = Instantiate(template, new Vector3(x, baseY, z), Quaternion.identity, levelParent);
++        seg.name = name;
++        seg.isElevatedSidewalk = isSidewalk;
++        seg.omitFoundationAtBaseLevel = false;
++        seg.GenerateModule(h, generateContent, spawnObstacles, maxObsLevel, currentDifficulty);
++        modulesInScene.Add(seg);
+     }
+ 
+     private void GenerateModularCloudsInRange(float startX, float endX)
+@@ -568,6 +718,39 @@ public class LevelStarter : MonoBehaviour
+ 
+         SpriteRenderer tileSprite = backgroundTile.GetComponentInChildren<SpriteRenderer>();
+         float tileWidth = tileSprite != null ? tileSprite.bounds.size.x : 40f;
++        bool usingFallback = tileSprite == null;
++
++        // [BackgroundAudit] — pre-generation snapshot
++        GameLogger.Log("BackgroundAudit",
++            $"[Setup] backgroundTile={backgroundTile.name} " +
++            $"backgroundParent={backgroundParent.name} " +
++            $"tileWidth={tileWidth:F3} " +
++            $"fallback={usingFallback} " +
++            $"tileY={backgroundTile.transform.position.y:F3} " +
++            $"tileZ={backgroundTile.transform.position.z:F3} " +
++            $"backgroundParentChildCount_before={backgroundParent.childCount}");
++
++        // [BackgroundAudit] — scan for background SpriteRenderers outside backgroundParent
++        SpriteRenderer[] allSRs = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
++        int orphanCount = 0;
++        foreach (var sr in allSRs)
++        {
++            if (sr == null) continue;
++            string srName = sr.gameObject.name.ToLower();
++            if ((srName.Contains("background") || srName.Contains("bg")) && !sr.transform.IsChildOf(backgroundParent))
++            {
++                GameLogger.Log("BackgroundAudit",
++                    $"[OrphanBG] name={sr.gameObject.name} " +
++                    $"parent={(sr.transform.parent != null ? sr.transform.parent.name : "ROOT")} " +
++                    $"worldY={sr.transform.position.y:F3} " +
++                    $"worldZ={sr.transform.position.z:F3} " +
++                    $"sortingLayer={sr.sortingLayerName} " +
++                    $"sortingOrder={sr.sortingOrder}");
++                orphanCount++;
++            }
++        }
++        if (orphanCount == 0)
++            GameLogger.Log("BackgroundAudit", "[OrphanBG] None found outside backgroundParent.");
+ 
+         float rangeWidth = endX - startX;
+         int tileCount = Mathf.CeilToInt(rangeWidth / tileWidth);
+@@ -580,8 +763,17 @@ public class LevelStarter : MonoBehaviour
+             Vector3 tilePos = new Vector3(xPos, backgroundTile.transform.position.y, backgroundTile.transform.position.z);
+             Instantiate(backgroundTile, tilePos, Quaternion.identity, backgroundParent);
+         }
++
++        // [BackgroundAudit] — post-generation snapshot
++        GameLogger.Log("BackgroundAudit",
++            $"[Done] tileCount={tileCount} " +
++            $"backgroundParentChildCount_after={backgroundParent.childCount} " +
++            $"firstTileX={startX + tileWidth / 2f:F3} " +
++            $"lastTileX={startX + (tileCount - 1) * tileWidth + tileWidth / 2f:F3}");
+     }
+ 
++    #region Deprecated Old Generation
++    /*
+     private void GenerateModularBuildingsInRange(float startX, float endX)
+     {
+         if (structureGenerator == null)
+@@ -636,7 +828,8 @@ public class LevelStarter : MonoBehaviour
+         {
+             GameLogger.Log("LEVEL", $"Generated {totalBuildings} buildings across {newWidth} units (density: {buildingDensityMultiplier:F1}x)");
+         }
+-    }
++    */
++    #endregion
+ 
+     private void ClearClouds()
+     {
+@@ -726,6 +919,8 @@ public class LevelStarter : MonoBehaviour
+         GameLogger.Log("LEVEL", $"Camera bounds resized: X=[{levelStartX:F2}, {levelEndX:F2}], Y=[{yMin:F2}, 100]");
+     }
+ 
++    #region Deprecated Procedural Generation Utils (cont)
++    /*
+     private void LayOutBackground()
+     {
+         if (backgroundTile == null || backgroundParent == null) return;
+@@ -745,7 +940,11 @@ public class LevelStarter : MonoBehaviour
+         if (school != null && groundReference != null)
+             school.transform.position = new Vector3(levelWidth / 2f - 10f, groundReference.position.y + .5f, school.transform.position.z);
+     }
++    */
++    #endregion
+ 
++
++    /*
+     [ContextMenu("Start Procedural Level (Buildings)")]
+     public void StartLevelInEditor()
+     {
+@@ -765,6 +964,7 @@ public class LevelStarter : MonoBehaviour
+         ResizeLevel();
+         if (spawnManager != null) spawnManager.InitializeAndSpawnPlayer();
+     }
++    */
+ 
+     [ContextMenu("Start Modular Level")]
+     public void StartLevelModular()
+@@ -810,6 +1010,33 @@ public class LevelStarter : MonoBehaviour
+         ForceRegenerate();
+     }
+ 
++#if UNITY_EDITOR
++    [ContextMenu("Debug: Generate Level (Editor)")]
++    public void DebugGenerateLevelInEditor()
++    {
++        ResolveDifficultyConfig();
++        InitializeSeed();
++        
++        if (useModularGeneration)
++        {
++            if (autoClearStructures) ClearModules();
++            ResizeLevelModular();
++            GameLogger.Log("LEVEL DEBUG", $"Successfully generated Modular level in Editor with seed {currentSeed}");
++        }
++        else
++        {
++            GameLogger.LogWarning("LEVEL DEBUG", "Editor debugging is primarily for Modular Generation. Enable 'useModularGeneration'.");
++        }
++    }
++
++    [ContextMenu("Debug: Clear Level (Editor)")]
++    public void DebugClearLevelInEditor()
++    {
++        ClearModules();
++        GameLogger.Log("LEVEL DEBUG", "Cleared all generated level content from Editor.");
++    }
++#endif
++
+     public bool HasGeneratedLevel => hasGenerated;
+     public int GetLevelWidth() => newWidth;
+     public int GetModuleCount() => numberOfModules;

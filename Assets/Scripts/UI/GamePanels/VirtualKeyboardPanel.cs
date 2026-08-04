@@ -304,7 +304,9 @@ public class VirtualKeyboardPanel : MonoBehaviour
     {
         var buttons = layout.layoutContainer.GetComponentsInChildren<VirtualKeyboardButton>(true);
         foreach (var btn in buttons)
+        {
             btn.gameObject.SetActive(true);
+        }
 
         ApplySequenceToButtons(layout, useShift: false);
     }
@@ -352,18 +354,33 @@ public class VirtualKeyboardPanel : MonoBehaviour
                 if (other == btn) continue;
                 var otherPos = ((RectTransform)other.transform).position;
                 Vector2 diff = (Vector2)otherPos - (Vector2)pos;
-                float absX = Mathf.Abs(diff.x);
-                float absY = Mathf.Abs(diff.y);
+                
+                // Use squared Euclidean distance
+                float dist = diff.sqrMagnitude;
+                
+                // Avoid zero division or perfectly overlapping elements
+                if (dist < 0.001f) continue;
 
-                if (absY >= absX)
+                // Check which 45-degree quadrant the target is in
+                if (diff.y > Mathf.Abs(diff.x))
                 {
-                    if (diff.y > 0 && absY < minUp)  { minUp   = absY; up   = other; }
-                    if (diff.y < 0 && absY < minDown) { minDown = absY; down = other; }
+                    // UP Quadrant
+                    if (dist < minUp) { minUp = dist; up = other; }
                 }
-                else
+                else if (diff.y < -Mathf.Abs(diff.x))
                 {
-                    if (diff.x > 0 && absX < minRight) { minRight = absX; right = other; }
-                    if (diff.x < 0 && absX < minLeft)  { minLeft  = absX; left  = other; }
+                    // DOWN Quadrant
+                    if (dist < minDown) { minDown = dist; down = other; }
+                }
+                else if (diff.x > Mathf.Abs(diff.y))
+                {
+                    // RIGHT Quadrant
+                    if (dist < minRight) { minRight = dist; right = other; }
+                }
+                else if (diff.x < -Mathf.Abs(diff.y))
+                {
+                    // LEFT Quadrant
+                    if (dist < minLeft) { minLeft = dist; left = other; }
                 }
             }
 

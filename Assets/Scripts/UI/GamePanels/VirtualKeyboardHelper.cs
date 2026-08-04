@@ -18,12 +18,17 @@ public class VirtualKeyboardHelper : MonoBehaviour, ISubmitHandler, IPointerClic
 
     public void OnSubmit(BaseEventData eventData)
     {
+        if (ControllerTypeDetector.Instance != null && !ControllerTypeDetector.Instance.IsUsingGamepad)
+            return;
+            
         ShowVirtualKeyboard();
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        ShowVirtualKeyboard();
+        // A direct pointer click (mouse/touch) implies the user wants to use 
+        // the native physical keyboard or native touch keyboard.
+        // We only show the custom virtual keyboard on Gamepad 'Submit' (A button).
     }
 
     public void OnMove(AxisEventData eventData)
