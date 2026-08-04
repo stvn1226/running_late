@@ -295,12 +295,7 @@ public class LevelStarter : MonoBehaviour
 
     private void InitializeSeed()
     {
-        if (LevelManager.Instance != null && LevelManager.Instance.IsReplaying())
-        {
-            currentSeed = LevelManager.Instance.LastSeed;
-            GameLogger.Log("LEVEL", $"Retrying with preserved seed: {currentSeed}");
-        }
-        else if (useManualSeed)
+        if (useManualSeed)
         {
             currentSeed = manualSeed;
             if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;

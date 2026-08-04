@@ -631,18 +631,6 @@ PrefabInstance:
       propertyPath: m_MovementType
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: m_ContentType
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: m_KeyboardType
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
-      propertyPath: m_CharacterValidation
-      value: 4
-      objectReference: {fileID: 0}
     - target: {fileID: 1414422761218225911, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -684,11 +672,23 @@ PrefabInstance:
       value: -87.5
       objectReference: {fileID: 0}
     - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: m_ContentType
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_Interactable
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: m_KeyboardType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: m_CharacterValidation
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
@@ -871,6 +871,10 @@ PrefabInstance:
       propertyPath: m_Navigation.m_SelectOnDown
       value: 
       objectReference: {fileID: 1860802288}
+    - target: {fileID: 4672013674644736291, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -20.697449
+      objectReference: {fileID: 0}
     - target: {fileID: 5249211856724917080, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -1051,8 +1055,13 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 1448902720942998583, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: [{targetCorrespondingSourceObject: {fileID: 251161888206662947, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}, insertIndex: -1, addedObject: {fileID: 432637651}},
-      {targetCorrespondingSourceObject: {fileID: 5688593138279665595, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}, insertIndex: -1, addedObject: {fileID: 1418181331}}]
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 251161888206662947, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 432637651}
+    - targetCorrespondingSourceObject: {fileID: 5688593138279665595, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1418181331}
   m_SourcePrefab: {fileID: 100100000, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
 --- !u!1 &1239634958
 GameObject:
@@ -1596,7 +1605,7 @@ Transform:
   m_GameObject: {fileID: 1852714626}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 10, z: -12}
+  m_LocalPosition: {x: 0, y: 10, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1640,7 +1649,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2013782512302053426, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
   m_PrefabInstance: {fileID: 1203587925}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 432637645}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
