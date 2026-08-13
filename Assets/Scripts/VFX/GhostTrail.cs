@@ -21,8 +21,6 @@ public class GhostTrail : MonoBehaviour
         ghostPool = new ObjectPool<SpriteRenderer>(
             createFunc: () => {
                 GameObject obj = new GameObject("GhostSprite");
-                // We don't set a parent so it stays in world space, 
-                // leaving a trail and avoiding double-scaling.
                 
                 SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
                 
