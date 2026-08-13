@@ -142,6 +142,7 @@ public class PlayerStates : MonoBehaviour
     private Coroutine activeInvincibility;
     private Coroutine activeBlinkCoroutine;
     private Color originalSpriteColor;
+    private PlayerVFX playerVFX;
 
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
@@ -175,6 +176,7 @@ public class PlayerStates : MonoBehaviour
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
+        playerVFX = GetComponent<PlayerVFX>();
 
         if (spriteRenderer != null)
         {
@@ -631,7 +633,12 @@ public class PlayerStates : MonoBehaviour
     {
         isStaggered = true;
         staggerTimer = duration;
-        hasToast = false;
+        
+        if (hasToast)
+        {
+            hasToast = false;
+            if (playerVFX != null) playerVFX.PlayToastBreak();
+        }
 
         if (isKicking)
         {
