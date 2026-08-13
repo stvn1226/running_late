@@ -52,11 +52,25 @@ public class PlayerVFX : MonoBehaviour
     {
         if (ps != null)
         {
+            Vector3 finalOffset = localOffset;
+            SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+            bool isFlipped = sr != null && sr.flipX;
+
+            if (isFlipped)
+            {
+                finalOffset.x = -finalOffset.x;
+            }
+
             // Mover el emisor a la posición actual del jugador + el offset guardado
-            ps.transform.position = transform.TransformPoint(localOffset);
+            ps.transform.position = transform.TransformPoint(finalOffset);
             
-            // Emitir las partículas. Usamos Play para respetar los Bursts configurados.
-            ps.Play();
+            // Rotar las partículas si el jugador está volteado
+            ps.transform.rotation = isFlipped ? Quaternion.Euler(0, 180, 0) : Quaternion.identity;
+            
+            // Reiniciar la emisión para asegurar que los "bursts" se disparen,
+            // pero sin borrar las partículas que ya están volando (StopEmitting).
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            ps.Play(true);
         }
     }
 

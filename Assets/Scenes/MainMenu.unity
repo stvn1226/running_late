@@ -480,6 +480,7 @@ GameObject:
   m_Component:
   - component: {fileID: 761049362}
   - component: {fileID: 761049361}
+  - component: {fileID: 761049363}
   m_Layer: 0
   m_Name: GameReferences
   m_TagString: Untagged
@@ -514,6 +515,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &761049363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761049360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a3856ddb9fe94eab9575be02b5a4ddc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VFXManager
+  poolConfigs:
+  - vfxId: RunDust
+    prefab: {fileID: 7612749723988238436, guid: 663daec8fc4fd4fb19a52739bd84a00b, type: 3}
+    sortingLayerName: Default
+    sortingOrder: 10
+    defaultCapacity: 10
+    maxSize: 50
+  - vfxId: LandDust
+    prefab: {fileID: 3971620820735495852, guid: fd00ccd284729485c9ea5d439fc49436, type: 3}
+    sortingLayerName: Default
+    sortingOrder: 10
+    defaultCapacity: 10
+    maxSize: 50
+  - vfxId: JumpDust
+    prefab: {fileID: 6001902250954684511, guid: a7ff369d09af442d09203e9c24107047, type: 3}
+    sortingLayerName: Default
+    sortingOrder: 10
+    defaultCapacity: 10
+    maxSize: 50
+  - vfxId: DoubleJumpDust
+    prefab: {fileID: 1217460533010513959, guid: 66305bc50cb77471cae82f25b34a209b, type: 3}
+    sortingLayerName: Default
+    sortingOrder: 10
+    defaultCapacity: 10
+    maxSize: 50
+  - vfxId: ToastBreak
+    prefab: {fileID: 5033382082124153248, guid: 749b4ebe7176348d2ad89e8e0d9fbd4a, type: 3}
+    sortingLayerName: Default
+    sortingOrder: 10
+    defaultCapacity: 10
+    maxSize: 50
+  debugMode: 1
 --- !u!1 &1180138039
 GameObject:
   m_ObjectHideFlags: 0
