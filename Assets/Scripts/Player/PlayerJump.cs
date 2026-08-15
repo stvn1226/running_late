@@ -28,6 +28,7 @@ public class PlayerJump : MonoBehaviour
     [SerializeField] private PlayerMovement playerMovement;
     private PlayerDive playerDive;
     private PlayerPhysics playerPhysics;
+    private PlayerVFX playerVFX;
 
 
     private void Awake()
@@ -38,6 +39,7 @@ public class PlayerJump : MonoBehaviour
         
         playerDive = GetComponent<PlayerDive>();
         playerPhysics = GetComponent<PlayerPhysics>();
+        playerVFX = GetComponent<PlayerVFX>();
     }
 
     private void Update()
@@ -139,6 +141,7 @@ public class PlayerJump : MonoBehaviour
                 {
                     playerDive.OnDoubleJump();
                 }
+                if (playerVFX != null) playerVFX.PlayDoubleJumpDust();
             }
             else
             {
@@ -239,6 +242,7 @@ public class PlayerJump : MonoBehaviour
         }
         
         rb.AddForce(jumpDirection * appliedJumpForce, ForceMode2D.Impulse);
+        if (playerVFX != null) playerVFX.PlayJumpDust();
         
         // Force grounded state to false immediately to clear movement logic
         states.isGrounded = false;
@@ -295,6 +299,7 @@ public class PlayerJump : MonoBehaviour
 
         rb.AddForce(verticalDirection * appliedLongJumpVertical, ForceMode2D.Impulse);
         rb.AddForce(Vector2.right * horizontalForce, ForceMode2D.Impulse);
+        if (playerVFX != null) playerVFX.PlayJumpDust();
 
         // Force grounded state to false immediately
         states.isGrounded = false;

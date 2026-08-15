@@ -6,10 +6,14 @@ public class StructureBuilder : MonoBehaviour
     [Header("Configuration")]
     public FloorPlan config;
 
-    [Header("Component References")]
+    [Header("Component References (Default)")]
     public GameObject[] groundPrefabs;
     public GameObject[] floorPrefabs;
     public GameObject[] roofPrefabs;
+
+    [Header("Thematic Sets (Optional)")]
+    [Tooltip("Si asignas sets aquí, el edificio elegirá uno al azar y usará solo sus piezas. Si está vacío, usará los de arriba.")]
+    public BuildingThemeSet[] allowedThemes;
 
     [Header("Rooftop Obstacles")]
     //public Transform roofObstacleSpawnPoint;
@@ -31,9 +35,20 @@ public class StructureBuilder : MonoBehaviour
 
         GameLogger.Log("WallRunWorkflow", $"[BUILD START] Constructing building with {floorsCt} floors at {transform.position}");
 
-        if (groundPrefabs.Length > 0)
+        BuildingThemeSet activeTheme = null;
+        if (allowedThemes != null && allowedThemes.Length > 0)
         {
-            GameObject pickedGroundPrefab = groundPrefabs[Random.Range(0, groundPrefabs.Length)];
+            activeTheme = allowedThemes[Random.Range(0, allowedThemes.Length)];
+        }
+
+        GameObject[] currentGrounds = (activeTheme != null && activeTheme.groundPrefabs != null && activeTheme.groundPrefabs.Length > 0) ? activeTheme.groundPrefabs : groundPrefabs;
+        GameObject[] currentFloors = (activeTheme != null && activeTheme.floorPrefabs != null && activeTheme.floorPrefabs.Length > 0) ? activeTheme.floorPrefabs : floorPrefabs;
+        GameObject[] currentRoofs = (activeTheme != null && activeTheme.roofPrefabs != null && activeTheme.roofPrefabs.Length > 0) ? activeTheme.roofPrefabs : roofPrefabs;
+        GameObject[] currentObstacles = (activeTheme != null && activeTheme.roofObstaclePrefabs != null && activeTheme.roofObstaclePrefabs.Length > 0) ? activeTheme.roofObstaclePrefabs : roofObstaclePrefabs;
+
+        if (currentGrounds.Length > 0)
+        {
+            GameObject pickedGroundPrefab = currentGrounds[Random.Range(0, currentGrounds.Length)];
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
             ground.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             //ground.GetComponentInChildren<SpriteRenderer>().material = colorMaterials;
@@ -43,22 +58,22 @@ public class StructureBuilder : MonoBehaviour
         }
         else return;
 
-        if (floorPrefabs.Length > 0)
+        if (currentFloors.Length > 0)
         {
             GameLogger.LogVerbose("BUILDING", $"Constructing {floorsCt} floors for building at {transform.position}");
             for (int i = 0; i < floorsCt - 2; i++) //Construct all floors EXCEPT the ground floor and roof
             {
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
-                GameObject floor = Instantiate(floorPrefabs[Random.Range(0, floorPrefabs.Length)], floorPosition, Quaternion.identity, transform);
+                GameObject floor = Instantiate(currentFloors[Random.Range(0, currentFloors.Length)], floorPosition, Quaternion.identity, transform);
                 floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
                 if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorsCt);
                 else SortTilemap(floor, floorsCt);
             }
         }
 
-        if (roofPrefabs.Length > 0)
+        if (currentRoofs.Length > 0)
         {
-            GameObject pickedRoofPrefab = roofPrefabs[Random.Range(0, roofPrefabs.Length)];
+            GameObject pickedRoofPrefab = currentRoofs[Random.Range(0, currentRoofs.Length)];
             GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
             roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
@@ -69,11 +84,11 @@ public class StructureBuilder : MonoBehaviour
         int obstacleChance = Random.Range(0, 100);
         if (obstacleChance < obstacleRate) // % chance to spawn rooftop obstacle
         { 
-            if (roofObstaclePrefabs.Length > 0)
+            if (currentObstacles.Length > 0)
             {
                 float varyObstacleSpawnX = Random.Range(-3f, 4f);
                 Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight));
-                GameObject obstacle = Instantiate(roofObstaclePrefabs[Random.Range(0, roofObstaclePrefabs.Length)], obstaclePosition, Quaternion.identity, transform);
+                GameObject obstacle = Instantiate(currentObstacles[Random.Range(0, currentObstacles.Length)], obstaclePosition, Quaternion.identity, transform);
             }
         }
 

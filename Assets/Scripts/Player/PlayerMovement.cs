@@ -38,6 +38,9 @@ public class PlayerMovement : MonoBehaviour
 
     // Enhanced logging for sprite flipping
     private bool previousSpriteFlipX;
+    private PlayerDive playerDive;
+    private PlayerPhysics playerPhysics;
+    private PlayerVFX playerVFX;
     private Vector2 previousVelocity;
     private float lastFlipAnalysisLog = 0f;
     private const float FLIP_ANALYSIS_LOG_INTERVAL = 2f;
@@ -64,6 +67,10 @@ public class PlayerMovement : MonoBehaviour
         {
             kickBox.enabled = false;
         }
+
+        playerDive = GetComponent<PlayerDive>();
+        playerPhysics = GetComponent<PlayerPhysics>();
+        playerVFX = GetComponent<PlayerVFX>();
 
         if (wallClimb == null)
         {
@@ -107,7 +114,17 @@ public class PlayerMovement : MonoBehaviour
         
         GameLogger.Log("POWERUP", $"Extra Speed activated! Max speed: {originalMaxSpeed} -> {maxRunSpeed} for {duration} seconds");
         
+        GhostTrail ghostTrail = GetComponentInChildren<GhostTrail>();
+        if (ghostTrail == null)
+        {
+            SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+            if (sr != null) ghostTrail = sr.gameObject.AddComponent<GhostTrail>();
+        }
+        if (ghostTrail != null) ghostTrail.EnableTrail(true);
+        
         yield return new WaitForSeconds(duration);
+        
+        if (ghostTrail != null) ghostTrail.EnableTrail(false);
         
         maxRunSpeed = originalMaxSpeed;
         states.hasFastRun = false;
@@ -487,6 +504,7 @@ public class PlayerMovement : MonoBehaviour
             if (footstepTimer <= 0f)
             {
                 AudioManager.Instance?.Play(AudioManager.SoundType.Footsteps);
+                if (playerVFX != null) playerVFX.PlayRunDust();
                 footstepTimer = FOOTSTEP_INTERVAL;
             }
         }
@@ -759,6 +777,7 @@ public class PlayerMovement : MonoBehaviour
             }
 
             landingFeedbacks.PlayFeedbacks();
+            if (playerVFX != null) playerVFX.PlayLandDust();
             
             float downwardSpeed = Mathf.Abs(states.landingVerticalVelocity);
             bool isSlamLanding = downwardSpeed > Mathf.Abs(config.slamLandingThreshold);
