@@ -70,6 +70,13 @@ public class PlayerVFX : MonoBehaviour
             // Reiniciar la emisión para asegurar que los "bursts" se disparen,
             // pero sin borrar las partículas que ya están volando (StopEmitting).
             ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            
+            var systems = ps.GetComponentsInChildren<ParticleSystem>();
+            foreach (var system in systems)
+            {
+                system.time = 0f;
+            }
+            
             ps.Play(true);
         }
     }

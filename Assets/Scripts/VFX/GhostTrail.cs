@@ -5,6 +5,7 @@ public class GhostTrail : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer targetRenderer;
     [SerializeField] private Material ghostMaterial;
+    [SerializeField] private bool enableTint = true;
     [SerializeField] private float spawnInterval = 0.1f;
     [SerializeField] private float fadeSpeed = 2f;
     [SerializeField] private Color ghostColor = new Color(1f, 1f, 1f, 0.5f);
@@ -21,11 +22,7 @@ public class GhostTrail : MonoBehaviour
         ghostPool = new ObjectPool<SpriteRenderer>(
             createFunc: () => {
                 GameObject obj = new GameObject("GhostSprite");
-                
                 SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-                
-                if (ghostMaterial != null) sr.material = ghostMaterial;
-                else sr.material = targetRenderer.material; // Fallback
                 
                 var fader = obj.AddComponent<GhostFader>();
                 fader.Initialize(this, fadeSpeed);
@@ -69,7 +66,20 @@ public class GhostTrail : MonoBehaviour
         ghost.sprite = targetRenderer.sprite;
         ghost.flipX = targetRenderer.flipX;
         ghost.flipY = targetRenderer.flipY;
-        ghost.color = ghostColor;
+        
+        if (enableTint)
+        {
+            if (ghostMaterial != null) ghost.material = ghostMaterial;
+            ghost.color = ghostColor;
+        }
+        else
+        {
+            ghost.material = targetRenderer.material;
+            Color originalColor = targetRenderer.color;
+            originalColor.a = ghostColor.a; // Use the alpha from ghostColor as starting alpha
+            ghost.color = originalColor;
+        }
+        
         ghost.sortingLayerID = targetRenderer.sortingLayerID;
         ghost.sortingOrder = targetRenderer.sortingOrder - 1;
         
