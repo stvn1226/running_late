@@ -79,7 +79,7 @@ PolygonCollider2D:
   m_Points:
     m_Paths:
     - - {x: 9.5, y: -1.7}
-      - {x: -8.3, y: 1.7}
+      - {x: -7.551009, y: 1.7077217}
       - {x: -9.5, y: 1.7}
       - {x: -9.5, y: -1.7}
   m_UseDelaunayMesh: 0
@@ -142,7 +142,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 0.99999994, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4264178664767549741}
@@ -196,12 +196,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 2043363464479038441, guid: 18454f05c8ca8420095e1541608d8790, type: 3}
+  m_Sprite: {fileID: -1844389180873417010, guid: 1a73926c69d884e2db71c60f61e68bf0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 19.05, y: 3.382}
+  m_Size: {x: 19.06, y: 3.38}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
