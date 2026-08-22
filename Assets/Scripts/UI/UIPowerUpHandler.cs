@@ -45,16 +45,25 @@ public class UIPowerUpHandler : MonoBehaviour
         if (!_UIPowerUps.Any(x => x.powerUpName == powerUpContract.powerUpName))
         {
             GameObject myObject = Instantiate(_template, this.transform);
-            myObject.transform.SetParent(this.transform);
-            UIPowerUp myUIPowerUp = myObject.GetComponent<UIPowerUp>();
-            myUIPowerUp.Initialize(powerUpContract);
-            myUIPowerUp.AssignHandler(this);
-            _UIPowerUps.Add(myUIPowerUp);
+            UIPowerUp myUIPowerUp = myObject.GetComponentInChildren<UIPowerUp>();
+            if (myUIPowerUp != null)
+            {
+                myUIPowerUp.AssignHandler(this);
+                myUIPowerUp.Initialize(powerUpContract);
+                _UIPowerUps.Add(myUIPowerUp);
+            }
+            else
+            {
+                GameLogger.LogError("POWERUP", $"UIPowerUpHandler: No UIPowerUp component found on template '{_template.name}' or its children!");
+            }
         }
         else //if power up already exists... 
         {
-            UIPowerUp powerUp = _UIPowerUps.First(x => x.powerUpName == powerUpContract.powerUpName);
-            powerUp.Initialize(powerUpContract);
+            UIPowerUp powerUp = _UIPowerUps.FirstOrDefault(x => x.powerUpName == powerUpContract.powerUpName);
+            if (powerUp != null)
+            {
+                powerUp.Initialize(powerUpContract);
+            }
         }
 
         return true;
@@ -66,7 +75,16 @@ public class UIPowerUpHandler : MonoBehaviour
         if (powerUp != null)
         {
             _UIPowerUps.Remove(powerUp);
-            Destroy(powerUp.gameObject);
+            
+            // Si el objeto está dentro de un contenedor padre (ej. PowerUpContainer), destruye el contenedor completo
+            if (powerUp.transform.parent != null && powerUp.transform.parent != this.transform)
+            {
+                Destroy(powerUp.transform.parent.gameObject);
+            }
+            else
+            {
+                Destroy(powerUp.gameObject);
+            }
         }
     }
 

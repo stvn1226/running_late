@@ -73,6 +73,12 @@ public class StructureBuilder : MonoBehaviour
         GameObject[] currentRoofs = (activeTheme != null && activeTheme.roofPrefabs != null && activeTheme.roofPrefabs.Length > 0) ? activeTheme.roofPrefabs : roofPrefabs;
         GameObject[] currentObstacles = (activeTheme != null && activeTheme.roofObstaclePrefabs != null && activeTheme.roofObstaclePrefabs.Length > 0) ? activeTheme.roofObstaclePrefabs : roofObstaclePrefabs;
 
+        float gHeight = config != null ? config.GetGroundHeight() : 3f;
+        float mHeight = config != null ? config.GetMidFloorHeight() : 3f;
+        float rHeight = config != null ? config.GetRoofHeight() : 3f;
+
+        float currentY = transform.position.y;
+
         if (currentGrounds.Length > 0)
         {
             GameObject pickedGroundPrefab = currentGrounds[Random.Range(0, currentGrounds.Length)];
@@ -81,9 +87,11 @@ public class StructureBuilder : MonoBehaviour
             if (groundPicker != null) groundPicker.RandomizeBaseSprite();
             ground.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             //ground.GetComponentInChildren<SpriteRenderer>().material = colorMaterials;
-            ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
+            ground.transform.position = new Vector3(transform.position.x, currentY, 10f);
             if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, floorsCt);
             else SortTilemap(ground, floorsCt);
+
+            currentY += gHeight;
         }
         else return;
 
@@ -92,27 +100,33 @@ public class StructureBuilder : MonoBehaviour
             GameLogger.LogVerbose("BUILDING", $"Constructing {floorsCt} floors for building at {transform.position}");
             for (int i = 0; i < floorsCt - 2; i++) //Construct all floors EXCEPT the ground floor and roof
             {
-                Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
+                Vector2 floorPosition = new Vector2(transform.position.x, currentY);
                 GameObject floor = Instantiate(currentFloors[Random.Range(0, currentFloors.Length)], floorPosition, Quaternion.identity, transform);
                 FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
                 if (floorPicker != null) floorPicker.RandomizeBaseSprite();
                 floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
                 if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorsCt);
                 else SortTilemap(floor, floorsCt);
+
+                currentY += mHeight;
             }
         }
 
         if (currentRoofs.Length > 0)
         {
             GameObject pickedRoofPrefab = currentRoofs[Random.Range(0, currentRoofs.Length)];
-            GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
+            GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, currentY), Quaternion.identity, transform);
             FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
             if (roofPicker != null) roofPicker.RandomizeBaseSprite();
             roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
             else SortTilemap(roof, floorsCt);
+
+            currentY += rHeight;
         }
         else return;
+
+        float totalBuildingHeight = currentY - transform.position.y;
 
         int obstacleChance = Random.Range(0, 100);
         if (obstacleChance < obstacleRate) // % chance to spawn rooftop obstacle
@@ -120,23 +134,23 @@ public class StructureBuilder : MonoBehaviour
             if (currentObstacles.Length > 0)
             {
                 float varyObstacleSpawnX = Random.Range(-3f, 4f);
-                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight));
+                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, currentY);
                 GameObject obstacle = Instantiate(currentObstacles[Random.Range(0, currentObstacles.Length)], obstaclePosition, Quaternion.identity, transform);
             }
         }
 
         int powerUpChance = Random.Range(0, 100);
         if (powerUpChance < powerUpRate) // % chance to spawn rooftop power-up
-        {
+        { 
             if (powerUps.Length > 0)
             {
-                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * config.floorHeight) + 2f);
+                Vector2 powerUpPosition = new Vector2(transform.position.x, currentY + 2f);
                 GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)], powerUpPosition, Quaternion.identity, transform);
             }
         }
         
         // Setup building detection collider AFTER all floors are created
-        SetupBuildingCollider(floorsCt);
+        SetupBuildingCollider(floorsCt, totalBuildingHeight);
     }
 
     private void SortTilemap(GameObject toUse, int floorsCt)
@@ -174,7 +188,7 @@ public class StructureBuilder : MonoBehaviour
         toUse.transform.position = new Vector3(currentPos.x, currentPos.y, calculatedZ);
     }
     
-    private void SetupBuildingCollider(int floorsCt)
+    private void SetupBuildingCollider(int floorsCt, float totalBuildingHeight = 0f)
     {
         buildingCollider = gameObject.GetComponent<BoxCollider2D>();
         if (buildingCollider == null)
@@ -229,7 +243,7 @@ public class StructureBuilder : MonoBehaviour
             offsetX = 0f;
         }
         
-        float buildingHeight = floorsCt * config.floorHeight;
+        float buildingHeight = totalBuildingHeight > 0f ? totalBuildingHeight : (floorsCt * config.floorHeight);
         
         buildingCollider.size = new Vector2(buildingWidth, buildingHeight);
         buildingCollider.offset = new Vector2(offsetX, buildingHeight * 0.5f);

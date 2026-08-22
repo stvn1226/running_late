@@ -31,6 +31,8 @@ public class UIPowerUp : MonoBehaviour
 
     public void Initialize(PowerUpContract powerUpContract)
     {
+        if (powerUpContract == null) return;
+
         powerUpName = powerUpContract.powerUpName;
         _icon = powerUpContract.image;
         _theme = powerUpContract.color;
@@ -39,33 +41,52 @@ public class UIPowerUp : MonoBehaviour
 
         _currentTime = 0f;
 
-        _timerCircle = GetComponent<Image>();
-        //_powerIcon = GetComponentInChildren<Image>();
+        if (_timerCircle == null)
+        {
+            _timerCircle = GetComponent<Image>();
+        }
 
-        _timerCircle.color = _theme;
-        _powerIcon.sprite = _icon;
-        _powerText.text = _description;
-        if (powerUpName != "Shield") _powerText.color = _theme;
+        if (_timerCircle != null)
+        {
+            _timerCircle.color = _theme;
+        }
+
+        if (_powerIcon != null)
+        {
+            _powerIcon.sprite = _icon;
+        }
+
+        if (_powerText != null)
+        {
+            _powerText.text = _description;
+            if (powerUpName != "Shield") _powerText.color = _theme;
+        }
 
         if (_canvasGroup == null)
         {
-            _canvasGroup = GetComponent<CanvasGroup>();
+            // Busca CanvasGroup en el contenedor padre (PowerUpContainer) o en sí mismo
+            Transform rootTarget = (transform.parent != null && transform.parent.name.Contains("Container")) ? transform.parent : transform;
+            _canvasGroup = rootTarget.GetComponent<CanvasGroup>();
             if (_canvasGroup == null)
             {
-                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+                _canvasGroup = rootTarget.gameObject.AddComponent<CanvasGroup>();
             }
         }
-
+        if (_canvasGroup != null)
+        {
+            _canvasGroup.alpha = 1f;
+        }
     }
 
     private void Update()
     {
         ProcessFill();
-
     }
 
     private void ProcessFill()
     {
+        if (_duration <= 0f) return;
+
         _targetAlpha = 1f;
 
         _currentTime += Time.deltaTime;
@@ -74,7 +95,10 @@ public class UIPowerUp : MonoBehaviour
         {
             float remainingTime = _duration - _currentTime;
             float fillAmount = remainingTime / _duration;
-            _timerCircle.fillAmount = fillAmount;
+            if (_timerCircle != null)
+            {
+                _timerCircle.fillAmount = fillAmount;
+            }
         }
         else
         {
@@ -84,11 +108,21 @@ public class UIPowerUp : MonoBehaviour
         if (_canvasGroup != null)
         {
             _canvasGroup.alpha = Mathf.Lerp(_canvasGroup.alpha, _targetAlpha, _fadeSpeed * Time.deltaTime);
-        }
 
-        if (_canvasGroup.alpha <= 0.1f && _targetAlpha == 0f)
+            if (_canvasGroup.alpha <= 0.05f && _targetAlpha == 0f)
+            {
+                if (_UIPowerUpHandler != null)
+                {
+                    _UIPowerUpHandler.UnregisterPowerUp(powerUpName);
+                }
+            }
+        }
+        else if (_targetAlpha == 0f)
         {
-            _UIPowerUpHandler.UnregisterPowerUp(powerUpName);
+            if (_UIPowerUpHandler != null)
+            {
+                _UIPowerUpHandler.UnregisterPowerUp(powerUpName);
+            }
         }
     }
 
