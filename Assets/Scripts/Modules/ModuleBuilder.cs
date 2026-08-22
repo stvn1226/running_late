@@ -29,6 +29,16 @@ public class ModuleBuilder : MonoBehaviour
     [Range(0, 100)]
     public int buildingSpawnChance = 90;
 
+    [Header("Building Anti-Repeat")]
+    [Tooltip("Reglas para evitar que edificios del mismo tema aparezcan consecutivos. Crear con Runner/Building Pool Config.")]
+    public BuildingPoolConfig poolConfig;
+
+    private static string s_lastUsedThemeId = null;
+
+    // Resetea el tracker al entrar en Play Mode o al regenerar nivel
+    [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.BeforeSceneLoad)]
+    public static void ResetStaticThemeTracking() => s_lastUsedThemeId = null;
+
     [Header("Dual Level Config")]
     public bool isElevatedSidewalk = true;
     public bool omitFoundationAtBaseLevel = true;
@@ -272,6 +282,7 @@ public class ModuleBuilder : MonoBehaviour
 
         int buildingsSpawned = 0;
         List<Vector2> occupiedIntervals = new List<Vector2>();
+        string lastThemeInModule = s_lastUsedThemeId; // inicia con el tema del módulo anterior
 
         // Sort spawn points from left to right to process them in spatial order
         List<Transform> sortedSpawnPoints = new List<Transform>(buildingSpawnPoints);
@@ -319,7 +330,6 @@ public class ModuleBuilder : MonoBehaviour
                 bool overlaps = false;
                 foreach (Vector2 occupied in occupiedIntervals)
                 {
-                    // If intervals overlap
                     if (startX < occupied.y && endX > occupied.x)
                     {
                         overlaps = true;
@@ -342,7 +352,22 @@ public class ModuleBuilder : MonoBehaviour
                     StructureBuilder buildingBuilder = newBuilding.GetComponent<StructureBuilder>();
                     if (buildingBuilder != null)
                     {
-                        buildingBuilder.ConstructStructure();
+                        bool applyAntiRepeat = poolConfig != null && poolConfig.avoidAdjacentRepeat && !string.IsNullOrEmpty(lastThemeInModule);
+                        string excludeTheme = applyAntiRepeat ? lastThemeInModule : null;
+
+                        buildingBuilder.ConstructStructure(excludeTheme);
+
+                        // Registrar el tema elegido para el próximo edificio y renombrar el GameObject
+                        if (buildingBuilder.ActiveTheme != null && !string.IsNullOrEmpty(buildingBuilder.ActiveTheme.themeId))
+                        {
+                            lastThemeInModule = buildingBuilder.ActiveTheme.themeId;
+                            newBuilding.name = $"{buildingTemplate.name}_[{lastThemeInModule}]_Generated";
+                            GameLogger.Log("BuildingAudit", $"[AntiRepeat] Edificio generado con tema: '{lastThemeInModule}' (excluido: '{excludeTheme}')");
+                        }
+                        else if (buildingBuilder.ActiveTheme != null)
+                        {
+                            newBuilding.name = $"{buildingTemplate.name}_[{buildingBuilder.ActiveTheme.name}]_Generated";
+                        }
                     }
 
                     // [BuildingAudit] — per-building spawn snapshot
@@ -358,6 +383,12 @@ public class ModuleBuilder : MonoBehaviour
                     break; // Move to the next spawnPoint
                 }
             }
+        }
+
+        // Actualizar el tracker estático con el último tema de este módulo
+        if (poolConfig != null && poolConfig.avoidRepeatAcrossModules)
+        {
+            s_lastUsedThemeId = lastThemeInModule;
         }
     }
 

@@ -452,6 +452,7 @@ public class LevelStarter : MonoBehaviour
     {
         GameLogger.Log("LEVEL", "=== MULTI-PASS GENERATION START ===");
         ClearModules();
+        ModuleBuilder.ResetStaticThemeTracking();
 
         float roadBaseY = continuousRoadReference != null ? continuousRoadReference.position.y : 0f;
         numberOfModules = Random.Range(minModules, maxModules);

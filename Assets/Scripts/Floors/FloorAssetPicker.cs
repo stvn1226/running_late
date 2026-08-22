@@ -17,9 +17,13 @@ public class FloorAssetPicker : MonoBehaviour
         RandomizeBaseSprite();
     }
 
-    private void RandomizeBaseSprite()
+    public void RandomizeBaseSprite()
     {
-        if (_baseSprites.Length == 0) return;
-        _base.sprite = _baseSprites[Random.Range(0, _baseSprites.Length)];
+        if (_baseSprites == null || _baseSprites.Length == 0) return;
+        if (_base == null) _base = GetComponentInChildren<SpriteRenderer>();
+        if (_base != null)
+        {
+            _base.sprite = _baseSprites[Random.Range(0, _baseSprites.Length)];
+        }
     }
 }

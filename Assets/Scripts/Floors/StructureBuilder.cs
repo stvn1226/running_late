@@ -27,7 +27,10 @@ public class StructureBuilder : MonoBehaviour
     
     private BoxCollider2D buildingCollider;
 
-    public void ConstructStructure()
+    /// <summary>El BuildingThemeSet elegido al azar en la última llamada a ConstructStructure(). Null si usa los prefabs default.</summary>
+    public BuildingThemeSet ActiveTheme { get; private set; }
+
+    public void ConstructStructure(string excludeThemeId = null)
     {
         int floorsCt = 0;
         floorsCt = Random.Range(config.minFloors, config.maxFloors + 1);
@@ -38,8 +41,32 @@ public class StructureBuilder : MonoBehaviour
         BuildingThemeSet activeTheme = null;
         if (allowedThemes != null && allowedThemes.Length > 0)
         {
-            activeTheme = allowedThemes[Random.Range(0, allowedThemes.Length)];
+            System.Collections.Generic.List<BuildingThemeSet> validThemes = new System.Collections.Generic.List<BuildingThemeSet>();
+            for (int i = 0; i < allowedThemes.Length; i++)
+            {
+                if (allowedThemes[i] == null) continue;
+                if (!string.IsNullOrEmpty(excludeThemeId) && allowedThemes[i].themeId == excludeThemeId)
+                {
+                    continue;
+                }
+                validThemes.Add(allowedThemes[i]);
+            }
+
+            // Fallback si todos fueron filtrados
+            if (validThemes.Count == 0)
+            {
+                for (int i = 0; i < allowedThemes.Length; i++)
+                {
+                    if (allowedThemes[i] != null) validThemes.Add(allowedThemes[i]);
+                }
+            }
+
+            if (validThemes.Count > 0)
+            {
+                activeTheme = validThemes[Random.Range(0, validThemes.Count)];
+            }
         }
+        ActiveTheme = activeTheme;
 
         GameObject[] currentGrounds = (activeTheme != null && activeTheme.groundPrefabs != null && activeTheme.groundPrefabs.Length > 0) ? activeTheme.groundPrefabs : groundPrefabs;
         GameObject[] currentFloors = (activeTheme != null && activeTheme.floorPrefabs != null && activeTheme.floorPrefabs.Length > 0) ? activeTheme.floorPrefabs : floorPrefabs;
@@ -50,6 +77,8 @@ public class StructureBuilder : MonoBehaviour
         {
             GameObject pickedGroundPrefab = currentGrounds[Random.Range(0, currentGrounds.Length)];
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
+            FloorAssetPicker groundPicker = ground.GetComponentInChildren<FloorAssetPicker>();
+            if (groundPicker != null) groundPicker.RandomizeBaseSprite();
             ground.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             //ground.GetComponentInChildren<SpriteRenderer>().material = colorMaterials;
             ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
@@ -65,6 +94,8 @@ public class StructureBuilder : MonoBehaviour
             {
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + ((i + 1) * config.floorHeight));
                 GameObject floor = Instantiate(currentFloors[Random.Range(0, currentFloors.Length)], floorPosition, Quaternion.identity, transform);
+                FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
+                if (floorPicker != null) floorPicker.RandomizeBaseSprite();
                 floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
                 if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorsCt);
                 else SortTilemap(floor, floorsCt);
@@ -75,6 +106,8 @@ public class StructureBuilder : MonoBehaviour
         {
             GameObject pickedRoofPrefab = currentRoofs[Random.Range(0, currentRoofs.Length)];
             GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * config.floorHeight)), Quaternion.identity, transform);
+            FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
+            if (roofPicker != null) roofPicker.RandomizeBaseSprite();
             roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
             if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, floorsCt);
             else SortTilemap(roof, floorsCt);
