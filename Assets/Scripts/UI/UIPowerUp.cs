@@ -58,7 +58,7 @@ public class UIPowerUp : MonoBehaviour
         if (_powerText != null)
         {
             _powerText.text = _description;
-            if (powerUpName != "Shield") _powerText.color = _theme;
+            _powerText.color = new Color(0.12f, 0.14f, 0.22f, 1f);
         }
 
         Transform rootTarget = (transform.parent != null && transform.parent.name.Contains("Container")) ? transform.parent : transform;
