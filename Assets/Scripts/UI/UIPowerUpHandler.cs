@@ -8,11 +8,10 @@ public class UIPowerUpHandler : MonoBehaviour
     private List<UIPowerUp> _UIPowerUps;
     [SerializeField] private GameObject _template;
 
-    void Start()
+    void Awake()
     {
         Instance = this;
         _UIPowerUps = new List<UIPowerUp>();
-
     }
 
     public bool RegisterPowerUp(PowerUpContract powerUpContract)
