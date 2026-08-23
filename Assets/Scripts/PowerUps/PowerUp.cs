@@ -49,10 +49,21 @@ public abstract class PowerUp : MonoBehaviour
         if (isInstantEffect)
         {
             ApplyEffect(player);
+
+            if (UIPowerUpHandler.Instance != null && !string.IsNullOrEmpty(powerUpName))
+            {
+                UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
+                    powerUpName = powerUpName, 
+                    image = icon, 
+                    color = theme, 
+                    duration = 3f,
+                    description = desc
+                });
+            }
         }
         else
         {
-            bool registered = UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
+            bool registered = UIPowerUpHandler.Instance != null && UIPowerUpHandler.Instance.RegisterPowerUp(new PowerUpContract() { 
                 powerUpName = powerUpName, 
                 image = icon, 
                 color = theme, 
@@ -80,12 +91,47 @@ public abstract class PowerUp : MonoBehaviour
 
         if (destroyOnPickup)
         {
-            Destroy(gameObject);
+            StartCoroutine(AnimatePickupAndDestroy());
         }
         else
         {
             gameObject.SetActive(false);
         }
+    }
+
+    private System.Collections.IEnumerator AnimatePickupAndDestroy()
+    {
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null) colliders[i].enabled = false;
+        }
+
+        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+        Vector3 startPos = transform.position;
+        Vector3 targetPos = startPos + Vector3.up * 1.2f;
+        Vector3 startScale = transform.localScale;
+        Vector3 targetScale = startScale * 1.35f;
+
+        float elapsed = 0f;
+        float duration = 0.25f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
+            if (sr != null)
+            {
+                Color c = sr.color;
+                c.a = Mathf.Lerp(1f, 0f, t);
+                sr.color = c;
+            }
+            yield return null;
+        }
+
+        Destroy(gameObject);
     }
 
     protected abstract void ApplyEffect(GameObject player);

@@ -87,7 +87,6 @@ public class UIPowerUpHandler : MonoBehaviour
 
     private bool IsValidPowerUp(string powerUpName)
     {
-        if (powerUpName == "ExtraTime") return false;
-        return true;
+        return !string.IsNullOrEmpty(powerUpName);
     }
 }

@@ -61,10 +61,10 @@ public class UIPowerUp : MonoBehaviour
             if (powerUpName != "Shield") _powerText.color = _theme;
         }
 
+        Transform rootTarget = (transform.parent != null && transform.parent.name.Contains("Container")) ? transform.parent : transform;
         if (_canvasGroup == null)
         {
             // Busca CanvasGroup en el contenedor padre (PowerUpContainer) o en sí mismo
-            Transform rootTarget = (transform.parent != null && transform.parent.name.Contains("Container")) ? transform.parent : transform;
             _canvasGroup = rootTarget.GetComponent<CanvasGroup>();
             if (_canvasGroup == null)
             {
@@ -74,6 +74,38 @@ public class UIPowerUp : MonoBehaviour
         if (_canvasGroup != null)
         {
             _canvasGroup.alpha = 1f;
+        }
+
+        if (_popAnimationCoroutine != null) StopCoroutine(_popAnimationCoroutine);
+        _popAnimationCoroutine = StartCoroutine(AnimatePopIn(rootTarget));
+    }
+
+    private Coroutine _popAnimationCoroutine;
+
+    private System.Collections.IEnumerator AnimatePopIn(Transform target)
+    {
+        if (target == null) yield break;
+
+        float elapsed = 0f;
+        float duration = 0.35f;
+        target.localScale = Vector3.zero;
+
+        while (elapsed < duration)
+        {
+            if (target == null) yield break;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            // EaseOutBack formula for juicy punch bounce
+            float c1 = 1.70158f;
+            float c3 = c1 + 1f;
+            float scale = 1f + c3 * Mathf.Pow(t - 1f, 3) + c1 * Mathf.Pow(t - 1f, 2);
+            target.localScale = Vector3.one * Mathf.Max(0f, scale);
+            yield return null;
+        }
+
+        if (target != null)
+        {
+            target.localScale = Vector3.one;
         }
     }
 

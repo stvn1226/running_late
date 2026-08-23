@@ -49,11 +49,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Toast
   powerUpName: Toast
   icon: {fileID: 21300000, guid: e3a3cdc0ca104f944bc3c894a8dfe317, type: 3}
-  theme: {r: 0.93725497, g: 0.82745105, b: 0.62352943, a: 0}
-  desc: Restore your toast
+  theme: {r: 0.95, g: 0.75, b: 0.45, a: 1}
+  desc: Toast restored!
   destroyOnPickup: 1
   showDebugInfo: 1
-  activeTime: 0
+  activeTime: 3
   isInstantEffect: 1
   pickupEffect: {fileID: 0}
   effectDuration: 1
