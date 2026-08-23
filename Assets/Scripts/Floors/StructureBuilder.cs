@@ -148,7 +148,7 @@ public class StructureBuilder : MonoBehaviour
             if (currentObstacles.Length > 0)
             {
                 float varyObstacleSpawnX = Random.Range(-3f, 4f);
-                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * floorH));
+                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * floorH));
                 GameObject obstacle = Instantiate(currentObstacles[Random.Range(0, currentObstacles.Length)], obstaclePosition, Quaternion.identity, transform);
             }
         }
@@ -158,7 +158,7 @@ public class StructureBuilder : MonoBehaviour
         { 
             if (currentPowerUps.Length > 0)
             {
-                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * floorH) + 2f);
+                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * floorH) + 2f);
                 GameObject powerUp = Instantiate(currentPowerUps[Random.Range(0, currentPowerUps.Length)], powerUpPosition, Quaternion.identity, transform);
             }
         }
