@@ -1,7 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Collections;
-using Unity.VisualScripting;
 using System.Linq;
 
 public class UIPowerUpHandler : MonoBehaviour
