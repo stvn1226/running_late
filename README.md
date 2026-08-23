@@ -1,11 +1,11 @@
 # Running Late - Project Architecture & Documentation
 
 ## 🏃 Project Overview
-**Running Late** is a fast-paced Unity 2D platformer (with isometric visuals) where the player must navigate through procedural urban environments, overcoming obstacles and using power-ups to reach the goal before time runs out.
+**Running Late** is a fast-paced Unity 2D platformer (with stylized anime/isometric visuals) where the player navigates procedural urban environments, overcomes hazards, collects power-ups, and reaches the school before time runs out.
+
+---
 
 ## 📊 Scene Architecture & Class Relationships
-
-This diagram illustrates how systems interact and where potential tight coupling exists.
 
 ```mermaid
 graph TD
@@ -15,6 +15,8 @@ graph TD
         SM[SpawnManager]
         AM[AudioManager]
         CBM[CableManager]
+        UPH[UIPowerUpHandler]
+        ANM[AnalyticsManager]
     end
 
     subgraph PlayerSystem ["Player Cluster"]
@@ -22,24 +24,30 @@ graph TD
         PS[PlayerStates]
         PM[PlayerMovement]
         Physics[PlayerPhysics]
+        PVFX[PlayerVFX]
         Modules[Action Modules]
         
         PCM --> PS
         PCM --> PM
         PCM --> Physics
+        PCM --> PVFX
         PM --> PS
         Physics --> PS
         Modules --> PS
     end
 
     subgraph LevelGen ["Generation Engine"]
-        SG[StructureGenerator]
-        SB[StructureBuilder]
-        Cable[Cable Entity]
-        
-        LS --> SG
-        SG --> SB
-        SB --> Cable
+        LS --> SG[StructureGenerator]
+        SG --> SB[StructureBuilder]
+        SB --> FP[FloorPlan ScriptableObject]
+        SB --> BTS[BuildingThemeSet]
+        SB --> Cable[Cable Entity]
+    end
+
+    subgraph PowerUpSystem ["Power-Up Cluster"]
+        PU[PowerUp Base] --> PS
+        PU --> UPH
+        UPH --> UPU[UIPowerUp Container]
     end
 
     %% Key Dependencies
@@ -48,14 +56,7 @@ graph TD
     Cable -- "Triggers States" --> PS
     PS -- "FastFall State" --> CBM
     LS -- "Reload Control" --> LM
-    
-    %% Circular Warning
-    LS -. "CIRCULAR" .-> SM
-    SM -. "CIRCULAR" .-> LS
 ```
-
-> [!WARNING]
-> **Circular Dependency Detected**: `LevelStarter` and `SpawnManager` depend on each other for coordinates and lifecycle events. This can lead to initialization race conditions.
 
 ---
 
@@ -65,88 +66,69 @@ graph TD
 | :--- | :--- | :--- |
 | **LevelStarter** | `StructureGenerator`, `SpawnManager`, `LevelManager` | Global level lifecycle, Seed management, Module layout. |
 | **SpawnManager** | `LevelStarter`, `PlayerControllerModular` | Player instantiation, Countdown sequence, Respawn logic. |
-| **PlayerController** | `PlayerStates`, `PlayerMovement`, `ActionModules` | Mapping Input System to State changes and Physics calls. |
-| **CableManager** | `Cable`, `PlayerStates` | Global cable physics state (Trigger vs Solid) and coordination. |
-| **PlayerStates** | `PlayerConfig` | Centralized "Source of Truth" for all player variables and timers. |
+| **PlayerControllerModular** | `PlayerStates`, `PlayerMovement`, `ActionModules`, `PlayerVFX` | Input dispatching to physics, animation states, and VFX triggers. |
+| **StructureBuilder** | `FloorPlan`, `BuildingThemeSet`, `FloorAssetPicker` | Procedural building construction, facade randomization, and depth sorting. |
+| **FloorPlan (SO)** | `BuildingThemeSet`, `PowerUps`, `ColorMaterials` | Centralized single-source-of-truth for building sizes, themes, and spawn rates. |
+| **UIPowerUpHandler** | `UIPowerUp`, `PowerUpContract` | Power-up HUD queue, cooldown timers, and priority resolution. |
+| **CableManager** | `Cable`, `PlayerStates` | Global cable physics state (Trigger vs Solid) and slide coordination. |
+| **PlayerStates** | `PlayerConfig` | Centralized data container for all active player variables and timers. |
 
 ---
 
 ## 🛠️ System Architecture
 
-The project follows a modular and manager-based architecture, utilizing Unity's modern **Input System** and **ScriptableObjects** for flexible configuration.
-
 ### 1. Player System (`Assets/Scripts/Player`)
-The player is the most complex system, divided into specialized components to avoid "God Classes":
-- **`PlayerControllerModular`**: The central hub that coordinates input and component communication.
-- **`PlayerStateManager`**: Manages complex states like sliding, wall-running, and rolling.
-- **`PlayerStates`**: A data container for all active player states and timers.
-- **`PlayerMovement` & `PlayerPhysics`**: Handle the core locomotion and collision logic.
-- **`PlayerJump`, `PlayerDive`, `PlayerWallClimb`, `PlayerKick`**: Modular action components that implement specific mechanics.
-- **`PlayerConfig` (ScriptableObject)**: Centralizes all tuning parameters (speeds, forces, timings).
+Modular, decoupled architecture to avoid "God Classes":
+- **`PlayerControllerModular`**: Central coordinator for input, actions, and camera target.
+- **`PlayerStateManager`**: Evaluates active states (Grounded, WallRunning, Sliding, Rolling).
+- **`PlayerStates`**: Centralized runtime data container for all player states, power-up flags, and timers.
+- **`PlayerMovement` & `PlayerPhysics`**: Core locomotion, horizontal forces, and collision physics.
+- **`PlayerJump`, `PlayerDive`, `PlayerWallClimb`, `PlayerKick`**: Specialized action modules.
+- **`PlayerVFX`**: Manages dust and trail particle systems in world space without lifecycle leaks.
+- **`PlayerConfig` (ScriptableObject)**: Centralizes physics and movement tuning.
 
-### 2. UI System (`Assets/Scripts/UI`)
-Uses a hierarchical panel system:
-- **`UIManager`**: A singleton that manages transitions between `PauseMenu`, `VictoryPanel`, and `DefeatPanel`.
-- **`MainMenuPanel` & `MainMenuController`**: Handle the multi-step flow of the main menu (Play -> Seed Selection -> Start).
-- **`HUD / UIPowerUp`**: Real-time feedback for active power-ups and game progress.
+### 2. Procedural Level & Facade Generation (`Assets/Scripts/Floors` & `Modules`)
+- **Centralized `FloorPlan` Architecture**: Single source of truth for both `SingleDecker` and `DoubleDecker` building modes (`SlimBuildingConfig.asset`, `MediumBuildingConfig.asset`, `WideBuildingConfig.asset`).
+- **`BuildingThemeSet`**: ScriptableObject bundles defining Ground, Mid-Floor, and Roof prefabs for distinct visual sets (Set 1 to Set 5 for Slim and Medium buildings).
+- **Progressive Depth Sorting**: Decremental `sortingOrder -= floorIndex` across SpriteRenderers and Tilemaps for clean isometric layering.
+- **Anti-Repeat Logic (`BuildingPoolConfig`)**: Prevents identical adjacent building facades.
 
-### 3. Procedural Level Generation (`Assets/Scripts/Floors` & `Modules`)
-- **`StructureGenerator` & `StructureBuilder`**: Create the level layout based on procedural rules.
-- **`FloorPlan` & `ModulePlan`**: Define the blueprint for how level segments (modules) are assembled.
-- **`CableManager`**: Manages the dynamic "cables" the player can slide on.
+### 3. Power-Up System (`Assets/Scripts/PowerUps` & `UI`)
+- **Base `PowerUp`**: Handles trigger collection, float-and-fade pickup visual effects, and sound playback.
+- **Active Power-Ups (8 Total)**:
+  - `DoubleJump`: Grants an extra mid-air jump.
+  - `Shield` (Gum): Bubble shield absorbing one hit.
+  - `ExtraSpeed` (Headphones): Boosts max running speed.
+  - `Invincibility`: Temporary complete damage immunity.
+  - `ExtraHeight`: Super jump boost.
+  - `AirFloat`: Slow-fall gliding while holding jump.
+  - `Toast` (Heal): Restores toast/life immediately.
+  - `ExtraTime`: Adds +10 seconds to the level timer.
+- **UI Feedback (`UIPowerUpHandler` & `UIPowerUp`)**:
+  - Elastic pop-in animation (*EaseOutBack*) when appearing or refreshing.
+  - High-contrast styling (`#1E2438` bold text, 88% card opacity) ensuring crystal-clear legibility against any background.
+- **Testing Sandbox (`Assets/Scenes/Testing/PowerUpTesting.unity`)**:
+  - Independent flat testing track with `PowerUpTester.cs` (keys `1..8`, `R` for instant testing and on-screen debug GUI).
 
 ### 4. Obstacle & Hazard System (`Assets/Scripts/Obstacles`)
-Environmental challenges are separated by type:
-- **`Animals`**: AI-driven hazards (Dogs, Cats, Pigeons) with specialized behaviors.
-- **`Vehicles`**: Physics-based obstacles, some interactive (kickable).
-- **`Barriers`**: Static or simple kinetic obstacles.
-- **`IWarningIndicator`**: Interface for hazard proximity alerts.
+- **`Animals`**: AI-driven dynamic hazards (Dogs, Cats, Pigeons).
+- **`Vehicles`**: Physics-based obstacles, some interactively kickable.
+- **`Barriers`**: Static kinetic obstacles.
+- **`ObstacleWarningManager`**: Proximity hazard alerts.
 
-### 5. Power-Up System (`Assets/Scripts/PowerUps`)
-A flexible, inheritance-based system described in its own [README](file:///Volumes/DiscoAccesoRapido/UnityExternalJobs/unbreakable/running_late/Assets/Scripts/PowerUps/README.md):
-- **`PowerUp`**: Abstract base handling collection and common logic.
-- **Timed Effects**: `DoubleJump`, `ExtraSpeed`, `Invincibility`, `Shield`.
-- **Instant Effects**: `ExtraTime`, `ScoreBoost`.
-- **Templates**: Includes `.txt` templates for rapid creation of new power-up types.
-
-### 6. Analytics & Data Layer (`Assets/Scripts/Analytics` & `SavedData`)
-A decoupled tracking and persistence system:
-- **`AnalyticsManager`**: Swappable providers (`Unity`, `GameAnalytics`, `Custom`).
-- **`AnalyticsPersistence`**: Handles session buffering and recovery.
-- **`LevelSaveData`**: Manages serialized state for level progress and player settings.
-
-### 7. Management & Utilities (`Assets/Scripts/Utils` & `Audio`)
-- **`AudioManager`**: Singleton for SFX and Music collection management.
-- **`LevelManager`**: Handles scene reloading, replaying with seeds, and level flow.
-- **`GameLogger`**: Centralized custom logging for cleaner debugging across systems.
+### 5. Analytics & Steam Integration (`Assets/Scripts/Analytics` & `Plugins/Steamworks`)
+- **`AnalyticsManager`**: Event tracking via `GameAnalytics` (level progress, actions, UI events).
+- **`SteamManager`**: Facepunch.Steamworks integration with App ID `4724080`.
 
 ---
 
-## 🕹️ Core Mechanics & Operations
+## 📁 Key Directory Structure
 
-1. **Input Pipeline**: `PlayerInputActions` -> `PlayerControllerModular` -> Specific Sub-Components.
-2. **State Logic**: `PlayerStateManager` evaluates active states (Grounded, WallRunning, etc.) every frame.
-3. **Physics/Locomotion**: Forces applied via `Rigidbody2D` using parameters from `PlayerConfig`.
-4. **Data-Driven Flow**: Logic is decoupled from data; changing a ScriptableObject in the `Configs/` folder updates behavior without code changes.
-
----
-
-## 📐 Design Patterns Used
-
-- **Singleton Pattern**: Global managers (`UIManager`, `AudioManager`, `LevelManager`, `AnalyticsManager`).
-- **Modular Component Pattern**: Functionality split into specialized, decoupled components.
-- **Inheritance-Based Systems**: Used for Power-Ups and Obstacles for shared behaviors.
-- **Observer Pattern**: Events and local callbacks for decoupled communication.
-- **Provider/Interface Pattern**: Swappable backends (Analytics) and standardized behaviors (`IWarningIndicator`).
-
----
-
-## 📁 Project Structure (Top-Level)
-
-The project follows a strict separation of concerns at the folder level:
-- **`Assets/Scripts/`**: All C# source code, organized by system.
-- **`Assets/Configs/`**: Centralized **ScriptableObject** instances (`.asset`) for all system tuning.
-- **`Assets/Prefabs/`**: Component-ready objects (Managers, Modules, Player, Obstacles).
-- **`Assets/Resources/`**: Runtime-loadable assets (currently minimal, keeping modularity).
-- **`Assets/Imported/`**: Third-party assets (Feel, Sirenix, BayatGames, etc.), kept separate from core code.
-- **`Packages/`**: Modular dependencies like `Linework` (Outline system) and `Sidekick`.
+- **`Assets/Scripts/`**: All C# source code organized by domain (`Player`, `Floors`, `PowerUps`, `UI`, `Utils`).
+- **`Assets/Prefabs/`**: Production-ready prefabs (`Player`, `Power-Ups`, `Floors`, `Modules`, `UI`).
+- **`Assets/Scenes/`**:
+  - `ModularLevel.unity`: Main procedural gameplay level.
+  - `MainMenu.unity`: Menu and seed selector.
+  - `Testing/PowerUpTesting.unity`: Standalone sandbox for mechanics & power-ups.
+- **`Assets/Sprites/`**: Artwork, UI textures, and facade sprite collections.
+- **`docs/`**: Integration guides (`TODO.md`, `steamworks_integration.md`).

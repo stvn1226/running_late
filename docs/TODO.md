@@ -1,70 +1,60 @@
-# Running Late — TODO de lanzamiento
+# Running Late — Roadmap & Lista de Tareas
 
-Última actualización: Julio 2026
-
----
-
-## ✅ Analytics (GameAnalytics)
-
-- [x] Arquitectura de analytics creada (`IAnalyticsProvider`, `AnalyticsManager`, `AnalyticsConfig`)
-- [x] `GameAnalyticsProvider` implementado y conectado
-- [x] SDK instalado vía OpenUPM en `manifest.json`
-- [x] Claves configuradas por plataforma (Windows, Mac, WebGL)
-- [x] Prefab de GameAnalytics en `MainMenu.unity`
-- [x] Eventos de progresión: `TrackLevelStart`, `TrackLevelComplete`, `TrackLevelFail`
-- [x] Parámetros enriquecidos: `seed`, `level_type` (DualPath/SingleSidewalk), `completion_time`, `best_time`
-- [x] Eventos de acción del jugador: jump, slide, wallrun, kick, stomp
-- [x] Eventos de UI: pause, resume
-- [x] Verificado que llegan eventos al dashboard de GameAnalytics ✅
+Última actualización: Agosto 2026
 
 ---
 
-## 🔧 Steam / Facepunch.Steamworks
+## 🎯 Tareas Activas / Por Hacer
 
-- [x] Guía de integración documentada en `docs/steamworks_integration.md`
-- [x] DLLs de Facepunch.Steamworks descargados
-- [x] **DLLs copiados al proyecto Unity** → `Assets/Plugins/Steamworks/`
-- [x] **Configurar los DLLs en Unity** (por plataforma: Posix=Mac/Linux/Editor, Win32=x86, Win64=x64)
-- [x] `SteamManager.cs` creado en `Assets/Scripts/Steam/`
-- [x] GameObject `SteamManager` agregado a la escena con el script asignado
-- [x] **Script Execution Order** configurado (`SteamManager` = -100, antes que `AnalyticsManager`)
-- [x] **Steam App ID** — `4724080` configurado
-- [x] `steam_appid.txt` en la raíz del proyecto
-- [x] `APP_ID = 4724080` en `SteamManager.cs`
-- [x] `GameAnalytics.SetCustomId()` activado
-- [ ] **🔴 BLOQUEADO — `libsteam_api.dylib` y `steam_api64.dll` (librerías nativas de Valve)**
-  - Requieren acceso a la cuenta de Steamworks Partner
-  - No disponible actualmente — solo se proporcionó el App ID
-  - Quien tenga acceso a la cuenta debe descargar el **Steamworks SDK** y copiar:
-    - `sdk/redistributable_bin/osx/libsteam_api.dylib` → `Assets/Plugins/Steamworks/`
-    - `sdk/redistributable_bin/win64/steam_api64.dll` → `Assets/Plugins/x86_64/`
-  - Ver instrucciones completas en `docs/steamworks_integration.md`
+### 1. 🕹️ Tutorial / Overlay Interactivo de Controles (Siguiente Prioridad)
+- [ ] Overlay interactivo antes del countdown inicial del nivel.
+- [ ] Minijuego / preview rápido para probar las teclas y controles principales.
+- [ ] Mostrar solo la primera vez que se juega (guardado en `PlayerPrefs`).
+- [ ] Opción para skippear en cualquier momento.
+- [ ] Enviar evento de analytic a GameAnalytics al completar o skippear.
 
----
+### 2. 🏢 Orden y Ajuste de Fachadas de Edificios Medianos (`Medium`)
+- [ ] Confirmar el orden exacto de los sprites para los 5 sets de edificios medianos:
+  - Set 1: Cine 1
+  - Set 2: Cine 2
+  - Set 3: Depato
+  - Set 4: Police / Koban
+  - Set 5: Tea House
+- [ ] Ajustar `FloorAssetPicker` / prefabs según la distribución aprobada.
 
-## 🐛 Bugs resueltos en esta sesión
+### 3. ✨ Efectos Visuales Adicionales para Power-Ups & Partículas
+- [ ] Añadir auras / partículas dedicadas en el jugador mientras un power-up esté activo (ej. estela de velocidad, chicle alrededor, etc.).
+- [ ] Pulido fino de partículas en saltos, caídas y pickups.
 
-- [x] `LevelSavingParams` — Error de `ScriptableObject` creado con `new` (3 archivos corregidos)
-- [x] Conflicto de GUID con `ExternalDependencyManager` duplicado
-- [x] Nombres inválidos en Design Events de GA (`_` → `:`)
-- [x] Delegación de eventos hacia los providers corregida en `AnalyticsManager`
-- [x] Error de tipo `TimeRecord` → `float` en `AnalyticsManager`
+### 4. 🏢 Fachadas de Edificios Anchos (`Wide`) — *En espera de sprites*
+- [ ] Crear los sets modulares de `BuildingThemeSet` para edificios anchos (`Wide`) cuando los assets estén disponibles.
+
+### 5. 🛣️ Alineación Grid de Carretera / Aceras — *Postergado*
+- [ ] Unificar el ancho de las piezas de carretera plana (16.0) con las de rampas (19.06 / 3.38).
 
 ---
 
-## 📋 Próximos pasos inmediatos (en orden)
+## ✅ Tareas Completadas Recientemente
 
-1. **Copiar los DLLs** de Facepunch de donde los descargaste a `Assets/Plugins/Steamworks/`
-2. **Configurar cada DLL** en el Inspector de Unity según la tabla de la guía
-3. **Conseguir el App ID** de Steam (esto requiere registrarse en Steamworks Partner)
-4. Cuando tengas el App ID: seguir la guía paso a paso
-
----
-
-## 📝 Pendiente / Futuro
-
-- [ ] Logros de Steam (definirlos en el panel de Steamworks)
-- [ ] Build para Windows y test de analytics en esa plataforma
-- [ ] Agregar plataforma Android en GameAnalytics si se lanza en móvil
-- [ ] Relleno de nubes en niveles (aviso de `Cannot generate clouds`)
-- [ ] Renombrar el juego "Running Late - Editor" en GA dashboard a "Running Late - Mac"
+- [x] **Centralización de Configuración de Edificios en `FloorPlan`**:
+  - `allowedThemes`, `colorMaterials`, `powerUps`, `roofObstaclePrefabs`, `obstacleRate`, `powerUpRate` ahora viven en ScriptableObjects (`SlimBuildingConfig.asset`, `MediumBuildingConfig.asset`, `WideBuildingConfig.asset`).
+  - SingleDecker y DoubleDecker comparten configuración sin duplicar datos en prefabs.
+- [x] **Anti-Repeat en SingleDecker**: Asignado `BuildingPoolConfig.asset` a todos los módulos de SingleDecker (`Brick`, `Grass`, `Ground`).
+- [x] **Escena de Pruebas Standalone (`PowerUpTesting.unity`)**:
+  - Pista de pruebas plana continua desacoplada de generadores procedurales.
+  - Script `PowerUpTester.cs` con atajos numéricos `1..8`, `R` para reset y panel GUI en pantalla.
+- [x] **UI de Power-Ups de Alto Contraste y Animación Pop-In**:
+  - Animación elástica *EaseOutBack* al aparecer o refrescar tarjeta.
+  - Textos en Navy Oscuro (`#1E2438`) y cápsula con opacidad del 88% para máxima legibilidad.
+  - Los 8 power-ups ahora se registran y muestran correctamente en la UI.
+- [x] **Efecto de Recolección en el Mundo (*Float & Fade*)**:
+  - Al recoger un power-up, se eleva suavemente y se desvanece antes de destruirse.
+- [x] **Corrección de Error de Curvas de Partículas**:
+  - Unificados los modos de curva de `VelocityModule` a `minMaxState: 3` en `RunDust` y `LandDust`.
+- [x] **Punto de Detección de la Escuela (`School.prefab`)**:
+  - `victoryDelay` optimizado a `0.1s` para disparo inmediato al llegar a la meta.
+- [x] **Sorting Order Progresivo en Pisos**:
+  - Implementado `sortingOrder -= floorIndex` para layering isométrico natural.
+- [x] **Integración de Analytics y SteamWorks**:
+  - GameAnalytics con claves por plataforma y eventos de progresión/acciones.
+  - Facepunch.Steamworks con App ID `4724080`.
