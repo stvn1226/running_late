@@ -32,32 +32,45 @@ public class StructureBuilder : MonoBehaviour
 
     public void ConstructStructure(string excludeThemeId = null)
     {
-        int floorsCt = 0;
-        floorsCt = Random.Range(config.minFloors, config.maxFloors + 1);
-        Material chosenColor = colorMaterials.Length > 0 ? colorMaterials[Random.Range(0, colorMaterials.Length)] : null;
+        int minF = config != null ? config.minFloors : 2;
+        int maxF = config != null ? config.maxFloors : 2;
+        int floorsCt = Random.Range(minF, maxF + 1);
+
+        // 1. Color Materials: prefer config, fallback to local
+        Material[] curColors = (config != null && config.colorMaterials != null && config.colorMaterials.Length > 0)
+            ? config.colorMaterials
+            : colorMaterials;
+        Material chosenColor = (curColors != null && curColors.Length > 0)
+            ? curColors[Random.Range(0, curColors.Length)]
+            : null;
+
+        // 2. Themes: prefer config, fallback to local
+        BuildingThemeSet[] curThemes = (config != null && config.allowedThemes != null && config.allowedThemes.Length > 0)
+            ? config.allowedThemes
+            : allowedThemes;
 
         GameLogger.Log("WallRunWorkflow", $"[BUILD START] Constructing building with {floorsCt} floors at {transform.position}");
 
         BuildingThemeSet activeTheme = null;
-        if (allowedThemes != null && allowedThemes.Length > 0)
+        if (curThemes != null && curThemes.Length > 0)
         {
             System.Collections.Generic.List<BuildingThemeSet> validThemes = new System.Collections.Generic.List<BuildingThemeSet>();
-            for (int i = 0; i < allowedThemes.Length; i++)
+            for (int i = 0; i < curThemes.Length; i++)
             {
-                if (allowedThemes[i] == null) continue;
-                if (!string.IsNullOrEmpty(excludeThemeId) && allowedThemes[i].themeId == excludeThemeId)
+                if (curThemes[i] == null) continue;
+                if (!string.IsNullOrEmpty(excludeThemeId) && curThemes[i].themeId == excludeThemeId)
                 {
                     continue;
                 }
-                validThemes.Add(allowedThemes[i]);
+                validThemes.Add(curThemes[i]);
             }
 
             // Fallback si todos fueron filtrados
             if (validThemes.Count == 0)
             {
-                for (int i = 0; i < allowedThemes.Length; i++)
+                for (int i = 0; i < curThemes.Length; i++)
                 {
-                    if (allowedThemes[i] != null) validThemes.Add(allowedThemes[i]);
+                    if (curThemes[i] != null) validThemes.Add(curThemes[i]);
                 }
             }
 
@@ -68,10 +81,22 @@ public class StructureBuilder : MonoBehaviour
         }
         ActiveTheme = activeTheme;
 
+        // 3. Floor prefabs (from activeTheme or local)
         GameObject[] currentGrounds = (activeTheme != null && activeTheme.groundPrefabs != null && activeTheme.groundPrefabs.Length > 0) ? activeTheme.groundPrefabs : groundPrefabs;
         GameObject[] currentFloors = (activeTheme != null && activeTheme.floorPrefabs != null && activeTheme.floorPrefabs.Length > 0) ? activeTheme.floorPrefabs : floorPrefabs;
         GameObject[] currentRoofs = (activeTheme != null && activeTheme.roofPrefabs != null && activeTheme.roofPrefabs.Length > 0) ? activeTheme.roofPrefabs : roofPrefabs;
-        GameObject[] currentObstacles = (activeTheme != null && activeTheme.roofObstaclePrefabs != null && activeTheme.roofObstaclePrefabs.Length > 0) ? activeTheme.roofObstaclePrefabs : roofObstaclePrefabs;
+
+        // 4. Obstacles & PowerUps: theme > config > local
+        GameObject[] currentObstacles = (activeTheme != null && activeTheme.roofObstaclePrefabs != null && activeTheme.roofObstaclePrefabs.Length > 0)
+            ? activeTheme.roofObstaclePrefabs
+            : ((config != null && config.roofObstaclePrefabs != null && config.roofObstaclePrefabs.Length > 0) ? config.roofObstaclePrefabs : roofObstaclePrefabs);
+
+        GameObject[] currentPowerUps = (config != null && config.powerUps != null && config.powerUps.Length > 0)
+            ? config.powerUps
+            : powerUps;
+
+        int curObstacleRate = (config != null && config.obstacleRate >= 0) ? config.obstacleRate : obstacleRate;
+        int curPowerUpRate = (config != null && config.powerUpRate >= 0) ? config.powerUpRate : powerUpRate;
 
         float floorH = config != null ? config.floorHeight : 3f;
 
@@ -118,7 +143,7 @@ public class StructureBuilder : MonoBehaviour
         else return;
 
         int obstacleChance = Random.Range(0, 100);
-        if (obstacleChance < obstacleRate) // % chance to spawn rooftop obstacle
+        if (obstacleChance < curObstacleRate) // % chance to spawn rooftop obstacle
         { 
             if (currentObstacles.Length > 0)
             {
@@ -129,12 +154,12 @@ public class StructureBuilder : MonoBehaviour
         }
 
         int powerUpChance = Random.Range(0, 100);
-        if (powerUpChance < powerUpRate) // % chance to spawn rooftop power-up
+        if (powerUpChance < curPowerUpRate) // % chance to spawn rooftop power-up
         { 
-            if (powerUps.Length > 0)
+            if (currentPowerUps.Length > 0)
             {
                 Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + (((floorsCt > 0 ? floorsCt : 2) - 1) * floorH) + 2f);
-                GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)], powerUpPosition, Quaternion.identity, transform);
+                GameObject powerUp = Instantiate(currentPowerUps[Random.Range(0, currentPowerUps.Length)], powerUpPosition, Quaternion.identity, transform);
             }
         }
         

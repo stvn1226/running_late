@@ -14,10 +14,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FloorPlan
   minFloors: 3
   maxFloors: 8
-  floorWidth: 14.55
-  useCustomFloorHeights: 0
-  groundHeight: 3.38
-  midFloorHeight: 7.8
-  roofHeight: 7.7
   floorHeight: 4.275
+  floorWidth: 14.55
   minDistanceBetweenBuildings: 2
+  allowedThemes:
+  - {fileID: 11400000, guid: 1d3e83c1c8d24947806360015e29d805, type: 2}
+  - {fileID: 11400000, guid: a0684c45b9bd475299f840754f7ad856, type: 2}
+  - {fileID: 11400000, guid: eeb66f09adde4d829bbb03c514918306, type: 2}
+  - {fileID: 11400000, guid: 62811857df5b4673a2b4d588fcf0d18d, type: 2}
+  - {fileID: 11400000, guid: 9a7d91fef65b4ed2805bb8dae716fc27, type: 2}
+  roofObstaclePrefabs:
+  - {fileID: 6039526676700403722, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
+  - {fileID: 6039526676700403722, guid: e2f0c521994ca91438efd3692b353b70, type: 3}
+  powerUps:
+  - {fileID: 8943735487304261459, guid: 9c3b3ebafd783a9469ab37899efbae27, type: 3}
+  - {fileID: 2853134598769386666, guid: 59e2c078fa7168b4c83565c482cae160, type: 3}
+  - {fileID: 1716252876083588926, guid: 45cf707b9a3e8c740abfe62eb84da25b, type: 3}
+  - {fileID: 6489068543304015604, guid: 1294db306f54dea48a1e5e78ee288153, type: 3}
+  - {fileID: 8922830654579607508, guid: 1a3f7096cb7ca8d42ab2c3af488c8010, type: 3}
+  - {fileID: 6260974862635884504, guid: 6a7072c34bb9d8d44937a01317651505, type: 3}
+  - {fileID: 2585599738997182456, guid: fa6dbfb12be22b344ae610b0f020334e, type: 3}
+  - {fileID: 1716252876083588926, guid: 56b9771cf9418244ea05b76035a7c7ac, type: 3}
+  obstacleRate: 20
+  powerUpRate: 25
+  colorMaterials:
+  - {fileID: 2100000, guid: 35dcbaba11cf3ca4fba568eb26c1bc98, type: 2}
