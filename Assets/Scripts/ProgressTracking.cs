@@ -67,7 +67,8 @@ public class ProgressTracking : MonoBehaviour
         
         if (!isInitialized)
         {
-            Debug.LogError("ProgressTracking: Failed to initialize after max retries. Required objects not found in scene.");
+            GameLogger.LogVerbose("PROGRESS", "ProgressTracking: Required modular objects not found, disabling tracker for this scene.");
+            gameObject.SetActive(false);
         }
     }
 

@@ -67,6 +67,16 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
         }
         
         ApplyMenuCameraSettings();
+
+        // Fallback for testing scenes where Player is already present
+        if (playerTransform == null)
+        {
+            GameObject existingPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (existingPlayer != null)
+            {
+                OnPlayerSpawned(existingPlayer);
+            }
+        }
     }
 
     private void OnEnable()
