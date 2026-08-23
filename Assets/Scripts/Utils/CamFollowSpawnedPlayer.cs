@@ -139,7 +139,18 @@ public class CamFollowSpawnedPlayer : MonoBehaviour
     {
         if (player == null) return;
     
-        playerTransform = player.GetComponent<PlayerControllerModular>().camTarget;
+        PlayerControllerModular pcm = player.GetComponent<PlayerControllerModular>();
+        if (pcm == null) pcm = player.GetComponentInChildren<PlayerControllerModular>();
+        if (pcm == null) pcm = player.GetComponentInParent<PlayerControllerModular>();
+
+        if (pcm != null && pcm.camTarget != null)
+        {
+            playerTransform = pcm.camTarget;
+        }
+        else
+        {
+            playerTransform = player.transform;
+        }
     
         GameLogger.Log("CAMERA", $"Player spawned at {playerTransform.position}");
     
