@@ -99,7 +99,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b642159fa6a47ea9481ea624b5847e3, type: 3}
+  m_Script: {fileID: 11500000, guid: 0e40c4c6d5d0d4e7f9c6ed5ea5f0e02d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UI.GamePanels::ControlsTutorialOverlay
   forceShowForTesting: 0
@@ -2009,6 +2009,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1000000062}
   - component: {fileID: 1000000063}
+  - component: {fileID: 10000000641}
   - component: {fileID: 1000000064}
   m_Layer: 5
   m_Name: SkipButton
@@ -2268,6 +2269,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1000000072}
   - component: {fileID: 1000000073}
+  - component: {fileID: 10000000741}
   - component: {fileID: 1000000074}
   m_Layer: 5
   m_Name: StartButton
