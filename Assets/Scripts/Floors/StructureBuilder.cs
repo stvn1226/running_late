@@ -124,8 +124,8 @@ public class StructureBuilder : MonoBehaviour
                 FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
                 if (floorPicker != null) floorPicker.RandomizeBaseSprite();
                 floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, floorIndex);
-                else SortTilemap(floor, floorIndex);
+                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, 1);
+                else SortTilemap(floor, 1);
             }
         }
 
@@ -137,8 +137,8 @@ public class StructureBuilder : MonoBehaviour
             FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
             if (roofPicker != null) roofPicker.RandomizeBaseSprite();
             roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, roofIndex);
-            else SortTilemap(roof, roofIndex);
+            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, 1);
+            else SortTilemap(roof, 1);
         }
         else return;
 
@@ -167,12 +167,12 @@ public class StructureBuilder : MonoBehaviour
         SetupBuildingCollider(floorsCt);
     }
 
-    private void SortTilemap(GameObject toUse, int floorIndex)
+    private void SortTilemap(GameObject toUse, int orderOffset)
     {
         TilemapRenderer[] renderers = toUse.GetComponentsInChildren<TilemapRenderer>();
         foreach (var r in renderers)
         {
-            if (r != null) r.sortingOrder -= floorIndex;
+            if (r != null) r.sortingOrder += orderOffset;
         }
 
         TilemapRenderer mainRenderer = toUse.GetComponentInChildren<TilemapRenderer>();
@@ -185,12 +185,12 @@ public class StructureBuilder : MonoBehaviour
         }
     }
 
-    private void SortSprite(GameObject toUse, int floorIndex)
+    private void SortSprite(GameObject toUse, int orderOffset)
     {
         SpriteRenderer[] renderers = toUse.GetComponentsInChildren<SpriteRenderer>();
         foreach (var r in renderers)
         {
-            if (r != null) r.sortingOrder -= floorIndex;
+            if (r != null) r.sortingOrder += orderOffset;
         }
 
         FloorAssetPicker picker = toUse.GetComponentInChildren<FloorAssetPicker>();
