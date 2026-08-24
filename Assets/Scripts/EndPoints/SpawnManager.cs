@@ -101,7 +101,25 @@ public class SpawnManager : MonoBehaviour
         FindHomeSpawnPoint();
         SpawnPlayerAtHome();
         
-        if (useCountdown && StartCountdownController.Instance != null)
+        if (UI.GamePanels.ControlsTutorialOverlay.Instance != null && UI.GamePanels.ControlsTutorialOverlay.ShouldShowTutorial())
+        {
+            DisablePlayerInput();
+            Time.timeScale = 0f;
+            UI.GamePanels.ControlsTutorialOverlay.Instance.ShowTutorial(() =>
+            {
+                if (useCountdown && StartCountdownController.Instance != null)
+                {
+                    StartCoroutine(StartCountdownSequence());
+                }
+                else
+                {
+                    Time.timeScale = 1f;
+                    ApplyInitialVelocity();
+                    EnablePlayerInput();
+                }
+            });
+        }
+        else if (useCountdown && StartCountdownController.Instance != null)
         {
             DisablePlayerInput();
             Time.timeScale = 0f;
