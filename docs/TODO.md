@@ -36,6 +36,10 @@
 
 ## ✅ Tareas Completadas Recientemente
 
+- [x] **Trilogía de Features Steamworks & Mobile (`feature/steamworks-features`)**:
+  - **Sistema Unificado de Logros (`AchievementsManager.cs` & `AchievementNotificationUI.cs`)**: Desbloqueo en Steam (`Achievement.Trigger()`), guardado local (`PlayerPrefs`), tracking analítico y banner emergente en pantalla.
+  - **Steam Rich Presence (`SteamRichPresence.cs`)**: Estado dinámico de amigos en tiempo real ("En el Menú", "Corriendo tarde: Seed #X", "Completó en 00:XX").
+  - **Steam Leaderboards Bridge (`SteamLeaderboardBridge.cs`)**: Subida asíncrona de récords por milisegundos a tablas mundiales y consulta de ranking global/amigos.
 - [x] **Centralización de Configuración de Edificios en `FloorPlan`**:
   - `allowedThemes`, `colorMaterials`, `powerUps`, `roofObstaclePrefabs`, `obstacleRate`, `powerUpRate` ahora viven en ScriptableObjects (`SlimBuildingConfig.asset`, `MediumBuildingConfig.asset`, `WideBuildingConfig.asset`).
   - SingleDecker y DoubleDecker comparten configuración sin duplicar datos en prefabs.

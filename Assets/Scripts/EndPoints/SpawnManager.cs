@@ -101,6 +101,10 @@ public class SpawnManager : MonoBehaviour
         FindHomeSpawnPoint();
         SpawnPlayerAtHome();
         
+        int currentSeed = LevelStarter.Instance != null ? LevelStarter.Instance.GetCurrentSeed() : 0;
+        Steam.SteamRichPresence.Instance?.SetPlayingLevel(currentSeed);
+        Achievements.AchievementsManager.Instance?.ResetRunCounters();
+
         if (UI.GamePanels.ControlsTutorialOverlay.Instance != null && UI.GamePanels.ControlsTutorialOverlay.ShouldShowTutorial())
         {
             DisablePlayerInput();

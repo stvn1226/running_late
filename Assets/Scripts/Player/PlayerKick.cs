@@ -80,6 +80,7 @@ public class PlayerKick : MonoBehaviour
             hitboxActive = true;
             if (config.kickDebug) GameLogger.Log("KICK", $"Hitbox ENABLED (NTime: {playerAnimator.GetKickNormalizedTime():F2})");
             TrackKickAnalytics();
+            Achievements.AchievementsManager.Instance?.ReportKickPerformed();
         }
     }
 

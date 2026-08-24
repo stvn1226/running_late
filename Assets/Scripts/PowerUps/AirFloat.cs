@@ -8,6 +8,7 @@ public class AirFloat : PowerUp
         if (playerJump != null)
         {
             playerJump.InvokeAirFloat(activeTime);
+            Achievements.AchievementsManager.Instance?.ReportAirFloatUsed();
         }
     }
 }

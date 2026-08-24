@@ -49,6 +49,7 @@ public abstract class PowerUp : MonoBehaviour
         if (isInstantEffect)
         {
             ApplyEffect(player);
+            Achievements.AchievementsManager.Instance?.ReportPowerUpCollected();
 
             if (UIPowerUpHandler.Instance != null && !string.IsNullOrEmpty(powerUpName))
             {
@@ -74,6 +75,7 @@ public abstract class PowerUp : MonoBehaviour
             if (registered)
             {
                 ApplyEffect(player);
+                Achievements.AchievementsManager.Instance?.ReportPowerUpCollected();
             }
             else
             {

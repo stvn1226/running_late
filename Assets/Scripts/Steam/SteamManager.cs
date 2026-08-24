@@ -1,5 +1,6 @@
 using UnityEngine;
 using Steamworks;
+using Steam;
 
 /// <summary>
 /// Manages the Steam SDK lifecycle using Facepunch Steamworks.
@@ -35,6 +36,16 @@ public class SteamManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // Ensure sub-systems are present on this persistent manager
+        if (GetComponent<SteamRichPresence>() == null)
+            gameObject.AddComponent<SteamRichPresence>();
+
+        if (GetComponent<SteamLeaderboardBridge>() == null)
+            gameObject.AddComponent<SteamLeaderboardBridge>();
+
+        if (FindObjectOfType<Achievements.AchievementsManager>() == null)
+            gameObject.AddComponent<Achievements.AchievementsManager>();
 
         InitializeSteam();
     }
