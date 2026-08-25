@@ -102,7 +102,7 @@ namespace Achievements
             // 3. Track in Analytics
             if (AnalyticsManager.Instance != null)
             {
-                AnalyticsManager.Instance.TrackDesignEvent($"achievement:{achievementId}");
+                AnalyticsManager.Instance.TrackEvent($"achievement_{achievementId}");
             }
 
             // 4. Dispatch event for in-game notification UI banner

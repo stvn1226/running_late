@@ -59,7 +59,7 @@ namespace Steam
                     var result = await leaderboard.Value.SubmitScoreAsync(timeInMilliseconds);
                     if (result.HasValue)
                     {
-                        GameLogger.Log("STEAM", $"Score submitted to Steam Leaderboard '{leaderboardName}': {timeSeconds:F2}s (New best: {result.Value.ScoreChanged})");
+                        GameLogger.Log("STEAM", $"Score submitted to Steam Leaderboard '{leaderboardName}': {timeSeconds:F2}s (Rank: #{result.Value.NewGlobalRank})");
                         return true;
                     }
                 }
