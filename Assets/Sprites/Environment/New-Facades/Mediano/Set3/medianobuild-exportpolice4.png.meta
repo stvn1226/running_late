@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 99cd255d3c9efe540982bcc91114001a
+guid: 6ae7bcfe76f5c1c4b9f512adada1cf37
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1085951526391817203
-    second: medianobuild-exportpolice2_0
+      213: 559740602474432314
+    second: medianobuild-exportpolice4_0
+  - first:
+      213: 7231881249233830705
+    second: medianobuild-exportpolice4_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,10 +52,10 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 0
-  alignment: 0
-  spritePivot: {x: 0.5, y: 0.5}
+  alignment: 9
+  spritePivot: {x: 0.52, y: 0.51887596}
   spritePixelsToUnits: 165
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteBorder: {x: 793, y: 430, z: 611, w: 347}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -113,23 +116,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: medianobuild-exportpolice2_0
+      name: medianobuild-exportpolice4_0
       rect:
         serializedVersion: 2
-        x: 533
-        y: 429
-        width: 3726
-        height: 1003
+        x: 617
+        y: 495
+        width: 24
+        height: 527
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d0c5f1227dcede0f0800000000000000
-      internalID: -1085951526391817203
+      spriteID: a370ad0cc1994c700800000000000000
+      internalID: 559740602474432314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medianobuild-exportpolice4_1
+      rect:
+        serializedVersion: 2
+        x: 673
+        y: 424
+        width: 3708
+        height: 989
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13304661eadcc5460800000000000000
+      internalID: 7231881249233830705
       vertices: []
       indices: 
       edges: []
@@ -139,7 +164,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 0
+    internalID: 1537655665
     vertices: []
     indices: 
     edges: []
@@ -148,7 +173,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      medianobuild-exportpolice2_0: -1085951526391817203
+      medianobuild-exportpolice4_0: 559740602474432314
+      medianobuild-exportpolice4_1: 7231881249233830705
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
