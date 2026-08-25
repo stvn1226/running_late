@@ -6,12 +6,12 @@
 
 ## 🎯 Tareas Activas / Por Hacer
 
-### 1. 🕹️ Tutorial / Overlay Interactivo de Controles (Siguiente Prioridad)
-- [ ] Overlay interactivo antes del countdown inicial del nivel.
-- [ ] Minijuego / preview rápido para probar las teclas y controles principales.
-- [ ] Mostrar solo la primera vez que se juega (guardado en `PlayerPrefs`).
-- [ ] Opción para skippear en cualquier momento.
-- [ ] Enviar evento de analytic a GameAnalytics al completar o skippear.
+### 1. 🕹️ Tutorial / Overlay Interactivo de Controles
+- [x] Construido el overlay visual utilizando el arte dedicado en capas de `Assets/Sprites/ControlsOverlay/` (`Controller Front/` y `Keyboard and Mouse/`).
+- [x] Detección y cambio dinámico entre Mando y Teclado en tiempo real según la entrada activa.
+- [x] Validación y retroalimentación interactiva (los botones se iluminan y validan las 4 acciones: Moverse, Saltar, Deslizarse, Patear).
+- [x] Muestra solo en el primer inicio (persistencia en `PlayerPrefs`) y botón para omitir (`SALTAR [ESC]`).
+- [x] Enlace con `AnalyticsManager.TrackEvent("tutorial_completed")`.
 
 ### 2. 🏢 Orden y Ajuste de Fachadas de Edificios Medianos (`Medium`)
 - [x] Configurados y vinculados los 6 sets de edificios medianos en `DoubleDecker` y `MediumBuildingConfig.asset`:
