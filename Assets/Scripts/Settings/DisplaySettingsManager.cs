@@ -55,7 +55,8 @@ public class DisplaySettingsManager : MonoBehaviour
     {
         int vSyncCount = PlayerPrefs.GetInt(VSYNC_KEY, 0);
         int targetFrameRate = PlayerPrefs.GetInt(FRAMERATE_KEY, 60);
-        int fullscreenModeIndex = PlayerPrefs.GetInt(FULLSCREEN_MODE_KEY, 0);
+        // Default to FullScreenWindow (Borderless) for maximum stability across all monitor refresh rates
+        int fullscreenModeIndex = PlayerPrefs.GetInt(FULLSCREEN_MODE_KEY, (int)FullScreenMode.FullScreenWindow);
         int resolutionIndex = PlayerPrefs.GetInt(RESOLUTION_INDEX_KEY, -1);
         
         SetVSync(vSyncCount);

@@ -54,6 +54,12 @@ public class SteamManager : MonoBehaviour
     {
         try
         {
+            if (SteamClient.IsValid)
+            {
+                IsInitialized = true;
+                return;
+            }
+
             SteamClient.Init(APP_ID);
 
             IsInitialized = true;
@@ -64,24 +70,42 @@ public class SteamManager : MonoBehaviour
             // SetCustomId must be called before GA initializes — guaranteed by Script Execution Order.
             GameAnalyticsSDK.GameAnalytics.SetCustomId(SteamClient.SteamId.ToString());
             GameLogger.Log("STEAM", $"SteamID sent to GameAnalytics: {SteamClient.SteamId}");
+            
+            Application.quitting += ShutdownSteam;
         }
         catch (System.Exception e)
         {
-            // Steam is not running, or the App ID is wrong.
-            // The game will continue normally without Steam features.
-            // This is expected on itch.io builds and WebGL.
+            // Steam is not running, or another process has the lock, or wrong App ID.
+            // The game will continue normally without crashing in offline/standalone mode.
             IsInitialized = false;
-            GameLogger.LogWarning("STEAM", $"Steam init failed (Steam not running or wrong App ID): {e.Message}");
+            GameLogger.LogWarning("STEAM", $"Steam init skipped (running in offline/standalone mode): {e.Message}");
         }
     }
 
     private void OnDestroy()
     {
+        ShutdownSteam();
+    }
+
+    private void OnApplicationQuit()
+    {
+        ShutdownSteam();
+    }
+
+    private void ShutdownSteam()
+    {
         if (IsInitialized)
         {
-            SteamClient.Shutdown();
-            IsInitialized = false;
-            GameLogger.Log("STEAM", "Steam shut down.");
+            try
+            {
+                SteamClient.Shutdown();
+                IsInitialized = false;
+                GameLogger.Log("STEAM", "Steam safely shut down.");
+            }
+            catch (System.Exception e)
+            {
+                GameLogger.LogWarning("STEAM", $"Error during Steam shutdown: {e.Message}");
+            }
         }
     }
 
@@ -89,7 +113,14 @@ public class SteamManager : MonoBehaviour
     {
         if (IsInitialized)
         {
-            SteamClient.RunCallbacks();
+            try
+            {
+                SteamClient.RunCallbacks();
+            }
+            catch (System.Exception e)
+            {
+                GameLogger.LogWarning("STEAM", $"Error in SteamClient callbacks: {e.Message}");
+            }
         }
     }
 
