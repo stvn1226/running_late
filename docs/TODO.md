@@ -14,13 +14,14 @@
 - [ ] Enviar evento de analytic a GameAnalytics al completar o skippear.
 
 ### 2. 🏢 Orden y Ajuste de Fachadas de Edificios Medianos (`Medium`)
-- [ ] Confirmar el orden exacto de los sprites para los 5 sets de edificios medianos:
+- [x] Configurados y vinculados los 6 sets de edificios medianos en `DoubleDecker` y `MediumBuildingConfig.asset`:
   - Set 1: Cine 1
   - Set 2: Cine 2
-  - Set 3: Depato
-  - Set 4: Police / Koban
-  - Set 5: Tea House
-- [ ] Ajustar `FloorAssetPicker` / prefabs según la distribución aprobada.
+  - Set 3: Police / Koban
+  - Set 4: Tea House (Variación A)
+  - Set 5: Tea House (Variación B)
+  - Set 6: Depato / Tienda Departamental
+- [x] Actualizado `FloorAssetPicker` en todos los prefabs con los sprites de alta resolución y sus pivotes centrados.
 
 ### 3. ✨ Efectos Visuales Adicionales para Power-Ups & Partículas
 - [ ] Añadir auras / partículas dedicadas en el jugador mientras un power-up esté activo (ej. estela de velocidad, chicle alrededor, etc.).
