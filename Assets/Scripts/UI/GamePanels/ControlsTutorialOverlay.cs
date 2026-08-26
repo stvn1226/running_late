@@ -55,6 +55,18 @@ namespace UI.GamePanels
         [Tooltip("Top controller view containing L1, R1, L2, R2")]
         [SerializeField] private GameObject baseTopObject;   // Base2 (Top)
 
+        [Header("CanvasGroups for Instant Alpha Toggle (assign in Inspector)")]
+        [Tooltip("CanvasGroup on the Base (Front) object — add the component in the Inspector.")]
+        [SerializeField] private CanvasGroup baseFrontCanvasGroup;
+        [Tooltip("CanvasGroup on the Base2 (Top) object — add the component in the Inspector.")]
+        [SerializeField] private CanvasGroup baseTopCanvasGroup;
+        [Tooltip("CanvasGroup on the KeyboardContainer — add the component in the Inspector.")]
+        [SerializeField] private CanvasGroup keyboardCanvasGroup;
+
+        [Header("Virtual QWERTY Keyboard (optional)")]
+        [Tooltip("VirtualKeyboardOverlay placed on the VirtualCanvasGroup. When assigned, replaces loose key images for keyboard highlighting.")]
+        [SerializeField] private VirtualKeyboardOverlay virtualKeyboard;
+
         [Header("Controller Front Artwork Layers (Base)")]
         [SerializeField] private Image controllerBaseImage;
         [SerializeField] private Image controllerStick1Image;    // Palanca 1 (Move)
@@ -254,6 +266,9 @@ namespace UI.GamePanels
 
             if (controllerContainer != null) controllerContainer.SetActive(isGamepad);
             if (keyboardContainer != null) keyboardContainer.SetActive(!isGamepad);
+
+            // CanvasGroup-based instant alpha toggle (if assigned)
+            SetCanvasGroupVisible(keyboardCanvasGroup, !isGamepad);
         }
 
         #region Step-By-Step Outline & Visual Management
@@ -279,8 +294,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keyMoveLeftImage);
-                        AddOutlineToImage(keyMoveRightImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "a", "d");
+                        else { AddOutlineToImage(keyMoveLeftImage); AddOutlineToImage(keyMoveRightImage); }
                     }
                     break;
 
@@ -293,8 +308,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keySpaceImage);
-                        AddOutlineToImage(keyMoveUpImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "space", "w");
+                        else { AddOutlineToImage(keySpaceImage); AddOutlineToImage(keyMoveUpImage); }
                     }
                     break;
 
@@ -307,8 +322,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keySlideImage);
-                        AddOutlineToImage(keyCtrlImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "s", "ctrl");
+                        else { AddOutlineToImage(keySlideImage); AddOutlineToImage(keyCtrlImage); }
                     }
                     break;
 
@@ -321,9 +336,9 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keyKickImage);
-                        AddOutlineToImage(keyKickAltImage);
-                        AddOutlineToImage(mouseLeftClickImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "f", "q");
+                        else { AddOutlineToImage(keyKickImage); AddOutlineToImage(keyKickAltImage); }
+                        AddOutlineToImage(mouseLeftClickImage); // mouse image always shown separately
                     }
                     break;
 
@@ -336,7 +351,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keyShiftImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "shift");
+                        else AddOutlineToImage(keyShiftImage);
                     }
                     break;
 
@@ -349,7 +365,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keyDropDownImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "c");
+                        else AddOutlineToImage(keyDropDownImage);
                     }
                     break;
 
@@ -362,7 +379,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keyAirDodgeImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "v");
+                        else AddOutlineToImage(keyAirDodgeImage);
                     }
                     break;
 
@@ -375,7 +393,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        AddOutlineToImage(keyDiveImage);
+                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "b");
+                        else AddOutlineToImage(keyDiveImage);
                     }
                     break;
 
@@ -386,14 +405,25 @@ namespace UI.GamePanels
                     break;
             }
 
-            // Update Bases (Front vs Top)
+            // Update Bases (Front vs Top) — SetActive + optional CanvasGroup alpha
             if (baseFrontObject != null) baseFrontObject.SetActive(!useTopBase);
-            if (baseTopObject != null) baseTopObject.SetActive(useTopBase);
+            if (baseTopObject != null)   baseTopObject.SetActive(useTopBase);
+            SetCanvasGroupVisible(baseFrontCanvasGroup, !useTopBase);
+            SetCanvasGroupVisible(baseTopCanvasGroup,   useTopBase);
 
             if (deviceStatusText != null)
             {
                 deviceStatusText.text = actionText;
             }
+        }
+
+        /// <summary>Helper: instantly sets a CanvasGroup's alpha and interaction flags.</summary>
+        private static void SetCanvasGroupVisible(CanvasGroup cg, bool visible)
+        {
+            if (cg == null) return;
+            cg.alpha = visible ? 1f : 0f;
+            cg.blocksRaycasts = visible;
+            cg.interactable = visible;
         }
 
         private void AddOutlineToImage(Image img)
@@ -423,6 +453,9 @@ namespace UI.GamePanels
                 }
             }
             currentlyOutlinedImages.Clear();
+
+            // Also clear the QWERTY virtual keyboard if assigned
+            virtualKeyboard?.ClearHighlights();
         }
 
         private void AdvanceStep(TutorialStep completedStep)
