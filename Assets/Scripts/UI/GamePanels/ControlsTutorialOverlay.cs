@@ -46,6 +46,9 @@ namespace UI.GamePanels
         [SerializeField] private Image keyKickImage;       // F
         [SerializeField] private Image keySpaceImage;      // Barra espaciadora (Jump)
 
+        [Header("Animated Player Preview in UI")]
+        [SerializeField] private UIPlayerPreview playerPreview;
+
         [Header("Action Badges & Checkmarks")]
         [SerializeField] private GameObject badgeMoveCheck;
         [SerializeField] private GameObject badgeJumpCheck;
@@ -205,6 +208,11 @@ namespace UI.GamePanels
                     movePressed = true;
             }
 
+            if (playerPreview != null)
+            {
+                playerPreview.PlayMove(movePressed);
+            }
+
             if (movePressed)
             {
                 if (!testedMove) { testedMove = true; TriggerActionFeedback("MOVE"); }
@@ -223,10 +231,22 @@ namespace UI.GamePanels
 
             // 2. JUMP (Space or Button A / Cross)
             bool jumpPressed = false;
-            if (Keyboard.current != null && (Keyboard.current.spaceKey.isPressed || Keyboard.current.wKey.isPressed))
-                jumpPressed = true;
-            if (Gamepad.current != null && (Gamepad.current.buttonSouth.isPressed || Gamepad.current.leftStick.y.ReadValue() > 0.5f))
-                jumpPressed = true;
+            bool jumpJustPressed = false;
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame) jumpJustPressed = true;
+                if (Keyboard.current.spaceKey.isPressed || Keyboard.current.wKey.isPressed) jumpPressed = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.buttonSouth.wasPressedThisFrame) jumpJustPressed = true;
+                if (Gamepad.current.buttonSouth.isPressed || Gamepad.current.leftStick.y.ReadValue() > 0.5f) jumpPressed = true;
+            }
+
+            if (jumpJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerJump();
+            }
 
             if (jumpPressed)
             {
@@ -242,10 +262,22 @@ namespace UI.GamePanels
 
             // 3. SLIDE (S or Stick Down / DPad Down / Button B)
             bool slidePressed = false;
-            if (Keyboard.current != null && (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed))
-                slidePressed = true;
-            if (Gamepad.current != null && (Gamepad.current.leftStick.y.ReadValue() < -0.4f || Gamepad.current.dpad.down.isPressed || Gamepad.current.buttonEast.isPressed))
-                slidePressed = true;
+            bool slideJustPressed = false;
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame) slideJustPressed = true;
+                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) slidePressed = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.buttonEast.wasPressedThisFrame || Gamepad.current.dpad.down.wasPressedThisFrame) slideJustPressed = true;
+                if (Gamepad.current.leftStick.y.ReadValue() < -0.4f || Gamepad.current.dpad.down.isPressed || Gamepad.current.buttonEast.isPressed) slidePressed = true;
+            }
+
+            if (slideJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerSlide();
+            }
 
             if (slidePressed)
             {
@@ -261,12 +293,27 @@ namespace UI.GamePanels
 
             // 4. KICK (F or Button X / Square / Left Click)
             bool kickPressed = false;
-            if (Keyboard.current != null && Keyboard.current.fKey.isPressed)
-                kickPressed = true;
-            if (Mouse.current != null && Mouse.current.leftButton.isPressed)
-                kickPressed = true;
-            if (Gamepad.current != null && (Gamepad.current.buttonWest.isPressed || Gamepad.current.rightTrigger.isPressed))
-                kickPressed = true;
+            bool kickJustPressed = false;
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.fKey.wasPressedThisFrame) kickJustPressed = true;
+                if (Keyboard.current.fKey.isPressed) kickPressed = true;
+            }
+            if (Mouse.current != null)
+            {
+                if (Mouse.current.leftButton.wasPressedThisFrame) kickJustPressed = true;
+                if (Mouse.current.leftButton.isPressed) kickPressed = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.buttonWest.wasPressedThisFrame || Gamepad.current.rightTrigger.wasPressedThisFrame) kickJustPressed = true;
+                if (Gamepad.current.buttonWest.isPressed || Gamepad.current.rightTrigger.isPressed) kickPressed = true;
+            }
+
+            if (kickJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerKick();
+            }
 
             if (kickPressed)
             {
