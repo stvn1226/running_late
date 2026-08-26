@@ -146,7 +146,13 @@ namespace UI.GamePanels
             }
         }
 
-        public bool ShouldShowTutorial()
+        public static bool ShouldShowTutorial()
+        {
+            if (Instance != null && Instance.forceShowForTesting) return true;
+            return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;
+        }
+
+        public bool ShouldShowTutorialInstance()
         {
             if (forceShowForTesting) return true;
             return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;

@@ -81,6 +81,11 @@ namespace UI.GamePanels
             ResetTransform();
         }
 
+        public void SetMoving(bool isMoving)
+        {
+            PlayMove(isMoving);
+        }
+
         public void PlayMove(bool isMoving)
         {
             if (currentState == UIPlayerState.Jump || 
