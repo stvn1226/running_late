@@ -51,9 +51,9 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000000001}
   m_Enabled: 1
-  m_Alpha: 0
-  m_Interactable: 0
-  m_BlocksRaycasts: 0
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
 --- !u!114 &1000000004
 MonoBehaviour:
@@ -84,15 +84,13 @@ MonoBehaviour:
   keySlideImage: {fileID: 10000000234}
   keyKickImage: {fileID: 10000000244}
   keySpaceImage: {fileID: 10000000254}
-  badgeMoveCheck: {fileID: 10000000411}
-  badgeJumpCheck: {fileID: 10000000421}
-  badgeSlideCheck: {fileID: 10000000431}
-  badgeKickCheck: {fileID: 10000000441}
+  badgeMoveCheck: {fileID: 0}
+  badgeJumpCheck: {fileID: 0}
+  badgeSlideCheck: {fileID: 0}
+  badgeKickCheck: {fileID: 0}
   startLevelButton: {fileID: 10000000704}
   skipButton: {fileID: 10000000604}
   startButtonText: {fileID: 100000007051}
-
-# ─── Dark Blur Background ──────────────────────────────────────────
 --- !u!1 &10000000051
 GameObject:
   m_ObjectHideFlags: 0
@@ -168,8 +166,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Controller Visual Container ───────────────────────────────────
 --- !u!1 &10000000101
 GameObject:
   m_ObjectHideFlags: 0
@@ -206,13 +202,11 @@ RectTransform:
   - {fileID: 10000000162}
   m_Father: {fileID: 1000000002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 30}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -404.5, y: -335}
   m_SizeDelta: {x: 809, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
-
-# ─── Controller Base Layer ───
 --- !u!1 &10000000111
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,8 +282,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Controller Stick 1 Layer ───
 --- !u!1 &10000000121
 GameObject:
   m_ObjectHideFlags: 0
@@ -322,10 +314,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 10000000102}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 99.2, y: -28.5}
+  m_SizeDelta: {x: 110, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &10000000123
 CanvasRenderer:
@@ -365,8 +357,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Controller Dpad Layer ───
 --- !u!1 &10000000131
 GameObject:
   m_ObjectHideFlags: 0
@@ -399,10 +389,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 10000000102}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -98.1, y: -29.1}
+  m_SizeDelta: {x: 110, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &10000000133
 CanvasRenderer:
@@ -442,8 +432,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Controller A Layer (Jump) ───
 --- !u!1 &10000000141
 GameObject:
   m_ObjectHideFlags: 0
@@ -476,10 +464,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 10000000102}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 160.19, y: 51.1}
+  m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &10000000143
 CanvasRenderer:
@@ -519,8 +507,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Controller B Layer (Slide) ───
 --- !u!1 &10000000151
 GameObject:
   m_ObjectHideFlags: 0
@@ -553,10 +539,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 10000000102}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 205.3, y: 98.11}
+  m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &10000000153
 CanvasRenderer:
@@ -596,8 +582,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Controller X Layer (Kick) ───
 --- !u!1 &10000000161
 GameObject:
   m_ObjectHideFlags: 0
@@ -630,10 +614,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 10000000102}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 112.1, y: 97.7}
+  m_SizeDelta: {x: 55, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &10000000163
 CanvasRenderer:
@@ -673,8 +657,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Keyboard Visual Container ─────────────────────────────────────
 --- !u!1 &10000000201
 GameObject:
   m_ObjectHideFlags: 0
@@ -710,13 +692,11 @@ RectTransform:
   - {fileID: 10000000252}
   m_Father: {fileID: 1000000002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 30}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -404, y: -326}
   m_SizeDelta: {x: 700, y: 350}
   m_Pivot: {x: 0.5, y: 0.5}
-
-# ─── Key A (Move Left) ───
 --- !u!1 &10000000211
 GameObject:
   m_ObjectHideFlags: 0
@@ -792,8 +772,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Key D (Move Right) ───
 --- !u!1 &10000000221
 GameObject:
   m_ObjectHideFlags: 0
@@ -869,8 +847,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Key S (Slide) ───
 --- !u!1 &10000000231
 GameObject:
   m_ObjectHideFlags: 0
@@ -946,8 +922,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Key F (Kick) ───
 --- !u!1 &10000000241
 GameObject:
   m_ObjectHideFlags: 0
@@ -1023,8 +997,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Spacebar (Jump) ───
 --- !u!1 &10000000251
 GameObject:
   m_ObjectHideFlags: 0
@@ -1100,8 +1072,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
-# ─── Device Status Header ──────────────────────────────────────────
 --- !u!1 &10000000301
 GameObject:
   m_ObjectHideFlags: 0
@@ -1167,16 +1137,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "PRUEBA TUS CONTROLES PARA EMPEZAR"
+  m_text: PRUEBA TUS CONTROLES PARA EMPEZAR
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7c77a57df426d4f09acad8f28e6946c2, type: 2}
+  m_sharedMaterial: {fileID: 6893454921446266975, guid: 7c77a57df426d4f09acad8f28e6946c2, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294963954
   m_fontColor: {r: 0.95, g: 0.95, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1202,15 +1172,16 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 0
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -1238,8 +1209,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
-
-# ─── Skip Button ───────────────────────────────────────────────────
 --- !u!1 &10000000601
 GameObject:
   m_ObjectHideFlags: 0
@@ -1361,7 +1330,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
 --- !u!1 &10000000605
 GameObject:
   m_ObjectHideFlags: 0
@@ -1427,7 +1395,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "SALTAR [ESC]"
+  m_text: 'SALTAR [ESC]'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1436,7 +1404,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4280427046
+    rgba: 4282396198
   m_fontColor: {r: 0.15, g: 0.18, b: 0.25, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1465,12 +1433,13 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 0
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -1498,8 +1467,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
-
-# ─── Start Level Button ───────────────────────────────────────────
 --- !u!1 &10000000701
 GameObject:
   m_ObjectHideFlags: 0
@@ -1531,7 +1498,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 10000000705}
+  - {fileID: 100000007051}
   m_Father: {fileID: 1000000002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
@@ -1621,7 +1588,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
-
 --- !u!1 &10000000705
 GameObject:
   m_ObjectHideFlags: 0
@@ -1687,7 +1653,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "¡EMPEZAR NIVEL!"
+  m_text: "\xA1EMPEZAR NIVEL!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1725,12 +1691,13 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 0
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
