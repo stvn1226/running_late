@@ -41,7 +41,7 @@ namespace UI.GamePanels
         {
             ClearHighlights();
             TryBuildMap(); // lazy build — VirtualKeyboardPanel might not be ready at Start
-            SetVisible(true);
+            ShowKeyboardPanel();
 
             foreach (var key in keyNames)
             {
@@ -72,6 +72,7 @@ namespace UI.GamePanels
                 img.color = Color.white;
             }
             currentlyHighlighted.Clear();
+            HideKeyboardPanel();
         }
 
         /// <summary>Shows or hides the keyboard via CanvasGroup alpha (never blocks raycasts).</summary>
@@ -81,6 +82,45 @@ namespace UI.GamePanels
             canvasGroup.alpha = visible ? 1f : 0f;
             canvasGroup.blocksRaycasts = false;
             canvasGroup.interactable = false;
+        }
+
+        // ── VirtualKeyboardPanel visibility (display-only mode) ───────────
+
+        /// <summary>
+        /// Shows the VirtualKeyboardPanel in display-only mode (alpha=1, non-interactive).
+        /// Does nothing if the panel is already open for actual text input.
+        /// </summary>
+        private void ShowKeyboardPanel()
+        {
+            var panel = GetVirtualKeyboardPanel();
+            if (panel == null) return;
+            if (panel.IsOpen) return; // don't interfere with real keyboard usage
+
+            var cg = panel.GetComponent<CanvasGroup>();
+            if (cg == null) return;
+            cg.alpha = 1f;
+            cg.blocksRaycasts = false; // display-only: never steal input
+            cg.interactable = false;
+        }
+
+        /// <summary>Hides the VirtualKeyboardPanel if we were the ones showing it.</summary>
+        private void HideKeyboardPanel()
+        {
+            var panel = GetVirtualKeyboardPanel();
+            if (panel == null) return;
+            if (panel.IsOpen) return; // don't hide it if real keyboard is open
+
+            var cg = panel.GetComponent<CanvasGroup>();
+            if (cg == null) return;
+            cg.alpha = 0f;
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+        }
+
+        private VirtualKeyboardPanel GetVirtualKeyboardPanel()
+        {
+            if (VirtualKeyboardPanel.Instance != null) return VirtualKeyboardPanel.Instance;
+            return FindObjectOfType<VirtualKeyboardPanel>(true);
         }
 
         // ── Key Map ───────────────────────────────────────────────────────

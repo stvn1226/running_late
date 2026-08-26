@@ -285,7 +285,7 @@ namespace UI.GamePanels
             switch (step)
             {
                 case TutorialStep.Move:
-                    actionText = isGamepad ? "1. MOVERSE: Usa PALANCA IZQUIERDA o FLECHAS" : "1. MOVERSE: Presiona teclas [A] y [D]";
+                    actionText = isGamepad ? "1. MOVE: Use LEFT STICK or D-PAD" : "1. MOVE: Press [A] and [D]";
                     useTopBase = false;
                     if (isGamepad)
                     {
@@ -300,7 +300,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Jump:
-                    actionText = isGamepad ? "2. SALTAR: Presiona el botón [A]" : "2. SALTAR: Presiona [BARRA ESPACIADORA] o [W]";
+                    actionText = isGamepad ? "2. JUMP: Press button [A]" : "2. JUMP: Press [SPACE] or [W]";
                     useTopBase = false;
                     if (isGamepad)
                     {
@@ -314,7 +314,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Slide:
-                    actionText = isGamepad ? "3. DESLIZARSE: Presiona [B] o gatillo [LT]" : "3. DESLIZARSE: Presiona tecla [S] o [CTRL]";
+                    actionText = isGamepad ? "3. SLIDE: Press [B] or trigger [LT]" : "3. SLIDE: Press [S] or [CTRL]";
                     useTopBase = false;
                     if (isGamepad)
                     {
@@ -328,7 +328,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Kick:
-                    actionText = isGamepad ? "4. PATEAR: Presiona botón [X]" : "4. PATEAR: Presiona [F], [Q] o [CLIC IZQ]";
+                    actionText = isGamepad ? "4. KICK: Press button [X]" : "4. KICK: Press [F], [Q] or [LEFT CLICK]";
                     useTopBase = false;
                     if (isGamepad)
                     {
@@ -343,7 +343,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.WallRun:
-                    actionText = isGamepad ? "5. CORRER POR PARED: Mantén presionado [RT]" : "5. CORRER POR PARED: Mantén presionado [SHIFT]";
+                    actionText = isGamepad ? "5. WALL RUN: Hold [RT]" : "5. WALL RUN: Hold [SHIFT]";
                     useTopBase = true; // Top View (Base2)
                     if (isGamepad)
                     {
@@ -357,7 +357,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.DropDown:
-                    actionText = isGamepad ? "6. BAJAR PLATAFORMA: Presiona botón [LB]" : "6. BAJAR PLATAFORMA: Presiona tecla [C]";
+                    actionText = isGamepad ? "6. DROP DOWN: Press button [LB]" : "6. DROP DOWN: Press [C]";
                     useTopBase = true; // Top View (Base2)
                     if (isGamepad)
                     {
@@ -371,7 +371,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.AirDodge:
-                    actionText = isGamepad ? "7. ESQUIVE EN AIRE: Presiona botón [RB]" : "7. ESQUIVE EN AIRE: Presiona tecla [V]";
+                    actionText = isGamepad ? "7. AIR DODGE: Press button [RB]" : "7. AIR DODGE: Press [V]";
                     useTopBase = true; // Top View (Base2)
                     if (isGamepad)
                     {
@@ -385,7 +385,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Dive:
-                    actionText = isGamepad ? "8. PICADO AL SUELO: Presiona botón [Y]" : "8. PICADO AL SUELO: Presiona tecla [B]";
+                    actionText = isGamepad ? "8. DIVE: Press button [Y]" : "8. DIVE: Press [B]";
                     useTopBase = false; // Front View (Base)
                     if (isGamepad)
                     {
@@ -399,7 +399,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Completed:
-                    actionText = "¡LISTO! TODOS LOS CONTROLES DOMINADOS";
+                    actionText = "DONE! ALL CONTROLS MASTERED";
                     useTopBase = false;
                     if (startLevelButton != null) startLevelButton.gameObject.SetActive(true);
                     break;
