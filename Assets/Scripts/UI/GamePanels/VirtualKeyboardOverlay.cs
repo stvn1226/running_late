@@ -19,6 +19,7 @@ namespace UI.GamePanels
         private CanvasGroup canvasGroup;
         private readonly Dictionary<string, Image> keyImageMap = new Dictionary<string, Image>();
         private readonly List<Image> currentlyHighlighted = new List<Image>();
+        private bool _mapBuilt = false;
 
         private void Awake()
         {
@@ -27,7 +28,7 @@ namespace UI.GamePanels
 
         private void Start()
         {
-            BuildKeyMap();
+            TryBuildMap();
         }
 
         // ── Public API ────────────────────────────────────────────────────
@@ -39,6 +40,7 @@ namespace UI.GamePanels
         public void HighlightKeys(Material outlineMat, params string[] keyNames)
         {
             ClearHighlights();
+            TryBuildMap(); // lazy build — VirtualKeyboardPanel might not be ready at Start
             SetVisible(true);
 
             foreach (var key in keyNames)
@@ -83,12 +85,33 @@ namespace UI.GamePanels
 
         // ── Key Map ───────────────────────────────────────────────────────
 
+        /// <summary>Returns the root Transform to search for keys. Priority: explicit field → VirtualKeyboardPanel singleton → null.</summary>
+        private Transform GetKeyboardRoot()
+        {
+            if (keyboardRoot != null) return keyboardRoot;
+            if (VirtualKeyboardPanel.Instance != null) return VirtualKeyboardPanel.Instance.transform;
+            // Last resort (editor / scene not fully loaded)
+            var found = FindObjectOfType<VirtualKeyboardPanel>(true);
+            return found != null ? found.transform : null;
+        }
+
+        private void TryBuildMap()
+        {
+            if (_mapBuilt) return;
+            BuildKeyMap();
+        }
+
         private void BuildKeyMap()
         {
             keyImageMap.Clear();
-            Transform root = keyboardRoot != null ? keyboardRoot : transform;
+            Transform root = GetKeyboardRoot();
+            if (root == null)
+            {
+                Debug.LogWarning("[VirtualKeyboardOverlay] No keyboard root found. Assign keyboardRoot or ensure VirtualKeyboardPanel is in the scene.");
+                return;
+            }
 
-            // Walk every VirtualKeyboardButton; their GameObject name is "Key-X"
+            // Pass 1: VirtualKeyboardButton components (most reliable)
             var buttons = root.GetComponentsInChildren<VirtualKeyboardButton>(true);
             foreach (var btn in buttons)
             {
@@ -98,31 +121,32 @@ namespace UI.GamePanels
                 string keyPart = goName.Substring(4).ToLowerInvariant();
                 if (keyImageMap.ContainsKey(keyPart)) continue;
 
-                // Prefer the Image directly on the button GO; fallback to first child Image
                 Image img = btn.GetComponent<Image>() ?? btn.GetComponentInChildren<Image>(true);
                 if (img != null)
                     keyImageMap[keyPart] = img;
             }
 
-            // Fallback: plain Images whose parent GameObject starts with "Key-"
+            // Pass 2: plain GameObjects named "Key-X" (fallback if no VirtualKeyboardButton)
             if (keyImageMap.Count == 0)
             {
-                foreach (var img in root.GetComponentsInChildren<Image>(true))
+                foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
                 {
-                    string gn = img.transform.parent != null
-                        ? img.transform.parent.name
-                        : img.gameObject.name;
+                    string gn = t.name;
                     if (!gn.StartsWith("Key-")) continue;
                     string kp = gn.Substring(4).ToLowerInvariant();
-                    if (!keyImageMap.ContainsKey(kp))
-                        keyImageMap[kp] = img;
+                    if (keyImageMap.ContainsKey(kp)) continue;
+                    Image img = t.GetComponent<Image>() ?? t.GetComponentInChildren<Image>(true);
+                    if (img != null) keyImageMap[kp] = img;
                 }
             }
+
+            if (keyImageMap.Count > 0) _mapBuilt = true;
         }
 
         private Image FindKeyImage(string normalizedKey)
         {
-            Transform root = keyboardRoot != null ? keyboardRoot : transform;
+            Transform root = GetKeyboardRoot();
+            if (root == null) return null;
             string targetName = "key-" + normalizedKey;
 
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
@@ -153,6 +177,7 @@ namespace UI.GamePanels
         [ContextMenu("Debug: Rebuild Key Map and Print")]
         private void EditorRebuildMap()
         {
+            _mapBuilt = false;
             BuildKeyMap();
             Debug.Log($"[VirtualKeyboardOverlay] {keyImageMap.Count} keys mapped:");
             foreach (var kv in keyImageMap)
