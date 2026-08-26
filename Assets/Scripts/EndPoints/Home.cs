@@ -77,6 +77,7 @@ public class Home : MonoBehaviour
             GameObject launchedDoor = Instantiate(doorToLaunch, doorLaunchPoint.position, doorLaunchPoint.rotation);
             launchedDoor.GetComponent<Rigidbody2D>()?.AddForce(doorLaunchPoint.right * 50f, ForceMode2D.Impulse);
             launchedDoor.GetComponent<Rigidbody2D>()?.AddTorque(-20f, ForceMode2D.Impulse);
+            Destroy(launchedDoor, 4f);
             Debug.Log("Door launched at position: " + doorLaunchPoint.position);
        }
     }
