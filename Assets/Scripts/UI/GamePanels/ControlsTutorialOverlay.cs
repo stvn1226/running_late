@@ -63,9 +63,9 @@ namespace UI.GamePanels
         [Tooltip("CanvasGroup on the KeyboardContainer — add the component in the Inspector.")]
         [SerializeField] private CanvasGroup keyboardCanvasGroup;
 
-        [Header("Virtual QWERTY Keyboard (optional)")]
-        [Tooltip("VirtualKeyboardOverlay placed on the VirtualCanvasGroup. When assigned, replaces loose key images for keyboard highlighting.")]
-        [SerializeField] private VirtualKeyboardOverlay virtualKeyboard;
+        [Header("Visual QWERTY Keyboard Display (optional)")]
+        [Tooltip("KeyboardDisplay component placed on any empty GameObject. Right-click it → Build QWERTY Layout, then position freely. When assigned, replaces loose key images for keyboard highlighting.")]
+        [SerializeField] private KeyboardDisplay keyboardDisplay;
 
         [Header("Controller Front Artwork Layers (Base)")]
         [SerializeField] private Image controllerBaseImage;
@@ -297,7 +297,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "a", "d");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "a", "d");
                         else { AddOutlineToImage(keyMoveLeftImage); AddOutlineToImage(keyMoveRightImage); }
                     }
                     break;
@@ -311,7 +311,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "space", "w");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "space", "w");
                         else { AddOutlineToImage(keySpaceImage); AddOutlineToImage(keyMoveUpImage); }
                     }
                     break;
@@ -325,7 +325,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "s", "ctrl");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "s", "ctrl");
                         else { AddOutlineToImage(keySlideImage); AddOutlineToImage(keyCtrlImage); }
                     }
                     break;
@@ -339,7 +339,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "f", "q");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "f", "q");
                         else { AddOutlineToImage(keyKickImage); AddOutlineToImage(keyKickAltImage); }
                         AddOutlineToImage(mouseLeftClickImage); // mouse image always shown separately
                     }
@@ -354,7 +354,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "shift");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "shift");
                         else AddOutlineToImage(keyShiftImage);
                     }
                     break;
@@ -368,7 +368,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "c");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "c");
                         else AddOutlineToImage(keyDropDownImage);
                     }
                     break;
@@ -382,7 +382,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "v");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "v");
                         else AddOutlineToImage(keyAirDodgeImage);
                     }
                     break;
@@ -396,7 +396,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (virtualKeyboard != null) virtualKeyboard.HighlightKeys(outlineMaterial, "b");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "b");
                         else AddOutlineToImage(keyDiveImage);
                     }
                     break;
@@ -457,8 +457,8 @@ namespace UI.GamePanels
             }
             currentlyOutlinedImages.Clear();
 
-            // Also clear the QWERTY virtual keyboard if assigned
-            virtualKeyboard?.ClearHighlights();
+            // Also clear the QWERTY visual keyboard if assigned
+            keyboardDisplay?.ClearHighlights();
         }
 
         private void AdvanceStep(TutorialStep completedStep)
