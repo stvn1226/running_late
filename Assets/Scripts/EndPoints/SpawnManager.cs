@@ -105,11 +105,15 @@ public class SpawnManager : MonoBehaviour
         Steam.SteamRichPresence.Instance?.SetPlayingLevel(currentSeed);
         Achievements.AchievementsManager.Instance?.ResetRunCounters();
 
-        if (UI.GamePanels.ControlsTutorialOverlay.Instance != null && UI.GamePanels.ControlsTutorialOverlay.ShouldShowTutorial())
+        var tutorial = UI.GamePanels.ControlsTutorialOverlay.Instance != null 
+            ? UI.GamePanels.ControlsTutorialOverlay.Instance 
+            : FindObjectOfType<UI.GamePanels.ControlsTutorialOverlay>(true);
+
+        if (tutorial != null && UI.GamePanels.ControlsTutorialOverlay.ShouldShowTutorial())
         {
             DisablePlayerInput();
             Time.timeScale = 0f;
-            UI.GamePanels.ControlsTutorialOverlay.Instance.ShowTutorial(() =>
+            tutorial.ShowTutorial(() =>
             {
                 if (useCountdown && StartCountdownController.Instance != null)
                 {

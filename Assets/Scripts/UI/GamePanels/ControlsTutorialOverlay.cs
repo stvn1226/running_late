@@ -123,7 +123,8 @@ namespace UI.GamePanels
 
         public static bool ShouldShowTutorial()
         {
-            if (Instance != null && Instance.forceShowForTesting) return true;
+            var instance = Instance != null ? Instance : FindObjectOfType<ControlsTutorialOverlay>(true);
+            if (instance != null && instance.forceShowForTesting) return true;
             return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;
         }
 
