@@ -10,7 +10,7 @@ namespace UI.GamePanels
     /// <summary>
     /// Interactive Controls Tutorial Overlay displaying the dedicated layered artwork from Assets/Sprites/ControlsOverlay.
     /// Dynamically toggles between Controller diagram and Keyboard diagram.
-    /// Highlights buttons/sticks in real-time as the player tests actions.
+    /// Highlights buttons/sticks in real-time as the player tests actions and triggers animated UI character moves.
     /// </summary>
     public class ControlsTutorialOverlay : MonoBehaviour
     {
@@ -34,17 +34,36 @@ namespace UI.GamePanels
         [Header("Controller Artwork Layers (Assets/Sprites/ControlsOverlay/Controller Front)")]
         [SerializeField] private Image controllerBaseImage;
         [SerializeField] private Image controllerStick1Image; // Palanca 1 (Move)
+        [SerializeField] private Image controllerStick2Image; // Palanca 2 (Camera)
         [SerializeField] private Image controllerDpadImage;   // Flechas (Move)
         [SerializeField] private Image controllerButtonAImage; // A (Jump)
         [SerializeField] private Image controllerButtonBImage; // B (Slide)
         [SerializeField] private Image controllerButtonXImage; // X (Kick)
+        [SerializeField] private Image controllerButtonYImage; // Y (Dive)
+        [SerializeField] private Image controllerSelectImage;  // Select (Reset)
+        [SerializeField] private Image controllerStartImage;   // Start (Pause)
+
+        [Header("Controller Artwork Layers (Assets/Sprites/ControlsOverlay/Controller Top)")]
+        [SerializeField] private Image controllerL1Image;      // L1 (Drop Down)
+        [SerializeField] private Image controllerR1Image;      // R1 (Air Dodge)
+        [SerializeField] private Image controllerL2Image;      // L2 (Crouch/Slide)
+        [SerializeField] private Image controllerR2Image;      // R2 (Wall Run)
 
         [Header("Keyboard Artwork Layers (Assets/Sprites/ControlsOverlay/Keyboard and Mouse)")]
         [SerializeField] private Image keyMoveLeftImage;   // A
         [SerializeField] private Image keyMoveRightImage;  // D
+        [SerializeField] private Image keyMoveUpImage;     // W
         [SerializeField] private Image keySlideImage;      // S
-        [SerializeField] private Image keyKickImage;       // F
         [SerializeField] private Image keySpaceImage;      // Barra espaciadora (Jump)
+        [SerializeField] private Image keyKickImage;       // F
+        [SerializeField] private Image keyKickAltImage;    // Q
+        [SerializeField] private Image keyShiftImage;      // Shift (Wall Run)
+        [SerializeField] private Image keyCtrlImage;       // Ctrl (Crouch/Slide)
+        [SerializeField] private Image keyDropDownImage;   // C (Drop Down)
+        [SerializeField] private Image keyAirDodgeImage;   // V (Air Dodge)
+        [SerializeField] private Image keyDiveImage;       // B (Dive)
+        [SerializeField] private Image mouseLeftClickImage;// Click Izquierdo (Kick)
+        [SerializeField] private Image mouseRightClickImage;// Click Derecho
 
         [Header("Animated Player Preview in UI")]
         [SerializeField] private UIPlayerPreview playerPreview;
@@ -103,31 +122,9 @@ namespace UI.GamePanels
             }
         }
 
-        private void Start()
+        public bool ShouldShowTutorial()
         {
-            if (ControllerTypeDetector.Instance != null)
-            {
-                ControllerTypeDetector.Instance.OnControllerChanged += HandleControllerChanged;
-                SetDevice(ControllerTypeDetector.Instance.CurrentControllerType);
-            }
-            else
-            {
-                SetDevice(ControllerType.Keyboard);
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (ControllerTypeDetector.Instance != null)
-            {
-                ControllerTypeDetector.Instance.OnControllerChanged -= HandleControllerChanged;
-            }
-        }
-
-        public static bool ShouldShowTutorial()
-        {
-            var instance = Instance != null ? Instance : FindObjectOfType<ControlsTutorialOverlay>(true);
-            if (instance != null && instance.forceShowForTesting) return true;
+            if (forceShowForTesting) return true;
             return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;
         }
 
@@ -135,44 +132,95 @@ namespace UI.GamePanels
         {
             onCompleteCallback = onComplete;
             isShowing = true;
-            gameObject.SetActive(true);
 
-            // Reset action states
+            ResetTestedState();
+            DetectInitialDevice();
+            StartCoroutine(FadeRoutine(1f, true));
+        }
+
+        public void HideTutorial()
+        {
+            if (!isShowing) return;
+            isShowing = false;
+
+            PlayerPrefs.SetInt(TUTORIAL_DONE_PREF, 1);
+            PlayerPrefs.Save();
+
+            StartCoroutine(FadeRoutine(0f, false, () =>
+            {
+                onCompleteCallback?.Invoke();
+                onCompleteCallback = null;
+            }));
+        }
+
+        private void ResetTestedState()
+        {
             testedMove = false;
             testedJump = false;
             testedSlide = false;
             testedKick = false;
 
-            UpdateBadgeChecks();
-            ResetLayerColors();
+            if (badgeMoveCheck != null) badgeMoveCheck.SetActive(false);
+            if (badgeJumpCheck != null) badgeJumpCheck.SetActive(false);
+            if (badgeSlideCheck != null) badgeSlideCheck.SetActive(false);
+            if (badgeKickCheck != null) badgeKickCheck.SetActive(false);
 
             if (startLevelButton != null) startLevelButton.gameObject.SetActive(false);
-
-            StartCoroutine(FadeRoutine(1f));
-            GameLogger.Log("TUTORIAL", "Interactive Controls Overlay displayed.");
+            if (skipButton != null) skipButton.gameObject.SetActive(true);
         }
 
         private void Update()
         {
             if (!isShowing) return;
 
+            UpdateDeviceDetection();
             CheckLiveInputs();
 
-            // ESC or B to skip
+            // ESC or Start / Select button to skip or confirm
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 OnSkipClicked();
             }
-            else if (Gamepad.current != null && Gamepad.current.startButton.wasPressedThisFrame)
+            else if (Gamepad.current != null && (Gamepad.current.startButton.wasPressedThisFrame || Gamepad.current.selectButton.wasPressedThisFrame))
             {
-                if (AllActionsTested()) OnStartClicked();
+                if (AreAllTested()) OnStartClicked();
                 else OnSkipClicked();
             }
         }
 
-        private void HandleControllerChanged(ControllerType newType)
+        private void DetectInitialDevice()
         {
-            SetDevice(newType);
+            if (Gamepad.current != null && Gamepad.current.added)
+            {
+                SetDevice(ControllerType.Xbox);
+            }
+            else
+            {
+                SetDevice(ControllerType.Keyboard);
+            }
+        }
+
+        private void UpdateDeviceDetection()
+        {
+            if (Gamepad.current != null)
+            {
+                bool gamepadActivity =
+                    Gamepad.current.wasUpdatedThisFrame &&
+                    (Gamepad.current.allControls.Count > 0);
+
+                if (gamepadActivity && currentDevice == ControllerType.Keyboard)
+                {
+                    SetDevice(ControllerType.Xbox);
+                }
+            }
+
+            if (Keyboard.current != null && Keyboard.current.wasUpdatedThisFrame)
+            {
+                if (currentDevice != ControllerType.Keyboard)
+                {
+                    SetDevice(ControllerType.Keyboard);
+                }
+            }
         }
 
         private void SetDevice(ControllerType type)
@@ -191,8 +239,6 @@ namespace UI.GamePanels
 
         private void CheckLiveInputs()
         {
-            bool isGamepad = currentDevice != ControllerType.Keyboard;
-
             // 1. MOVE (A/D or Stick Left/Right / DPad)
             bool movePressed = false;
             if (Keyboard.current != null)
@@ -229,7 +275,7 @@ namespace UI.GamePanels
                 HighlightLayer(keyMoveRightImage, false, testedMove);
             }
 
-            // 2. JUMP (Space or Button A / Cross)
+            // 2. JUMP (Space, W, or Button A / South / East)
             bool jumpPressed = false;
             bool jumpJustPressed = false;
             if (Keyboard.current != null)
@@ -239,8 +285,8 @@ namespace UI.GamePanels
             }
             if (Gamepad.current != null)
             {
-                if (Gamepad.current.buttonSouth.wasPressedThisFrame) jumpJustPressed = true;
-                if (Gamepad.current.buttonSouth.isPressed || Gamepad.current.leftStick.y.ReadValue() > 0.5f) jumpPressed = true;
+                if (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.buttonEast.wasPressedThisFrame) jumpJustPressed = true;
+                if (Gamepad.current.buttonSouth.isPressed || Gamepad.current.buttonEast.isPressed || Gamepad.current.leftStick.y.ReadValue() > 0.5f) jumpPressed = true;
             }
 
             if (jumpJustPressed && playerPreview != null)
@@ -253,25 +299,27 @@ namespace UI.GamePanels
                 if (!testedJump) { testedJump = true; TriggerActionFeedback("JUMP"); }
                 HighlightLayer(controllerButtonAImage, true);
                 HighlightLayer(keySpaceImage, true);
+                HighlightLayer(keyMoveUpImage, true);
             }
             else
             {
                 HighlightLayer(controllerButtonAImage, false, testedJump);
                 HighlightLayer(keySpaceImage, false, testedJump);
+                HighlightLayer(keyMoveUpImage, false, testedJump);
             }
 
-            // 3. SLIDE (S or Stick Down / DPad Down / Button B)
+            // 3. SLIDE / CROUCH (S, Ctrl, Stick Down, DPad Down, Button B, LT)
             bool slidePressed = false;
             bool slideJustPressed = false;
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame) slideJustPressed = true;
-                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) slidePressed = true;
+                if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.leftCtrlKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame) slideJustPressed = true;
+                if (Keyboard.current.sKey.isPressed || Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.downArrowKey.isPressed) slidePressed = true;
             }
             if (Gamepad.current != null)
             {
-                if (Gamepad.current.buttonEast.wasPressedThisFrame || Gamepad.current.dpad.down.wasPressedThisFrame) slideJustPressed = true;
-                if (Gamepad.current.leftStick.y.ReadValue() < -0.4f || Gamepad.current.dpad.down.isPressed || Gamepad.current.buttonEast.isPressed) slidePressed = true;
+                if (Gamepad.current.buttonEast.wasPressedThisFrame || Gamepad.current.leftTrigger.wasPressedThisFrame || Gamepad.current.dpad.down.wasPressedThisFrame) slideJustPressed = true;
+                if (Gamepad.current.leftStick.y.ReadValue() < -0.4f || Gamepad.current.dpad.down.isPressed || Gamepad.current.buttonEast.isPressed || Gamepad.current.leftTrigger.ReadValue() > 0.3f) slidePressed = true;
             }
 
             if (slideJustPressed && playerPreview != null)
@@ -283,21 +331,25 @@ namespace UI.GamePanels
             {
                 if (!testedSlide) { testedSlide = true; TriggerActionFeedback("SLIDE"); }
                 HighlightLayer(controllerButtonBImage, true);
+                HighlightLayer(controllerL2Image, true);
                 HighlightLayer(keySlideImage, true);
+                HighlightLayer(keyCtrlImage, true);
             }
             else
             {
                 HighlightLayer(controllerButtonBImage, false, testedSlide);
+                HighlightLayer(controllerL2Image, false, testedSlide);
                 HighlightLayer(keySlideImage, false, testedSlide);
+                HighlightLayer(keyCtrlImage, false, testedSlide);
             }
 
-            // 4. KICK (F or Button X / Square / Left Click)
+            // 4. KICK (F, Q, Left Click, Button X)
             bool kickPressed = false;
             bool kickJustPressed = false;
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.fKey.wasPressedThisFrame) kickJustPressed = true;
-                if (Keyboard.current.fKey.isPressed) kickPressed = true;
+                if (Keyboard.current.fKey.wasPressedThisFrame || Keyboard.current.qKey.wasPressedThisFrame) kickJustPressed = true;
+                if (Keyboard.current.fKey.isPressed || Keyboard.current.qKey.isPressed) kickPressed = true;
             }
             if (Mouse.current != null)
             {
@@ -306,8 +358,8 @@ namespace UI.GamePanels
             }
             if (Gamepad.current != null)
             {
-                if (Gamepad.current.buttonWest.wasPressedThisFrame || Gamepad.current.rightTrigger.wasPressedThisFrame) kickJustPressed = true;
-                if (Gamepad.current.buttonWest.isPressed || Gamepad.current.rightTrigger.isPressed) kickPressed = true;
+                if (Gamepad.current.buttonWest.wasPressedThisFrame) kickJustPressed = true;
+                if (Gamepad.current.buttonWest.isPressed) kickPressed = true;
             }
 
             if (kickJustPressed && playerPreview != null)
@@ -320,121 +372,230 @@ namespace UI.GamePanels
                 if (!testedKick) { testedKick = true; TriggerActionFeedback("KICK"); }
                 HighlightLayer(controllerButtonXImage, true);
                 HighlightLayer(keyKickImage, true);
+                HighlightLayer(keyKickAltImage, true);
+                HighlightLayer(mouseLeftClickImage, true);
             }
             else
             {
                 HighlightLayer(controllerButtonXImage, false, testedKick);
                 HighlightLayer(keyKickImage, false, testedKick);
+                HighlightLayer(keyKickAltImage, false, testedKick);
+                HighlightLayer(mouseLeftClickImage, false, testedKick);
             }
 
-            UpdateBadgeChecks();
-
-            if (AllActionsTested() && startLevelButton != null && !startLevelButton.gameObject.activeSelf)
+            // 5. WALL RUN (Left Shift, RT / R2)
+            bool wallRunPressed = false;
+            bool wallRunJustPressed = false;
+            if (Keyboard.current != null)
             {
-                startLevelButton.gameObject.SetActive(true);
-                StartCoroutine(PunchScale(startLevelButton.transform));
+                if (Keyboard.current.leftShiftKey.wasPressedThisFrame) wallRunJustPressed = true;
+                if (Keyboard.current.leftShiftKey.isPressed) wallRunPressed = true;
             }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.rightTrigger.wasPressedThisFrame) wallRunJustPressed = true;
+                if (Gamepad.current.rightTrigger.ReadValue() > 0.3f) wallRunPressed = true;
+            }
+
+            if (wallRunJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerWallRun();
+            }
+
+            if (wallRunPressed)
+            {
+                HighlightLayer(controllerR2Image, true);
+                HighlightLayer(keyShiftImage, true);
+            }
+            else
+            {
+                HighlightLayer(controllerR2Image, false);
+                HighlightLayer(keyShiftImage, false);
+            }
+
+            // 6. AIR DODGE (V, RB / R1)
+            bool airDodgePressed = false;
+            bool airDodgeJustPressed = false;
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.vKey.wasPressedThisFrame) airDodgeJustPressed = true;
+                if (Keyboard.current.vKey.isPressed) airDodgePressed = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.rightShoulder.wasPressedThisFrame) airDodgeJustPressed = true;
+                if (Gamepad.current.rightShoulder.isPressed) airDodgePressed = true;
+            }
+
+            if (airDodgeJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerAirDodge();
+            }
+
+            if (airDodgePressed)
+            {
+                HighlightLayer(controllerR1Image, true);
+                HighlightLayer(keyAirDodgeImage, true);
+            }
+            else
+            {
+                HighlightLayer(controllerR1Image, false);
+                HighlightLayer(keyAirDodgeImage, false);
+            }
+
+            // 7. DIVE (B, Y / Button North)
+            bool divePressed = false;
+            bool diveJustPressed = false;
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.bKey.wasPressedThisFrame) diveJustPressed = true;
+                if (Keyboard.current.bKey.isPressed) divePressed = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.buttonNorth.wasPressedThisFrame) diveJustPressed = true;
+                if (Gamepad.current.buttonNorth.isPressed) divePressed = true;
+            }
+
+            if (diveJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerDive();
+            }
+
+            if (divePressed)
+            {
+                HighlightLayer(controllerButtonYImage, true);
+                HighlightLayer(keyDiveImage, true);
+            }
+            else
+            {
+                HighlightLayer(controllerButtonYImage, false);
+                HighlightLayer(keyDiveImage, false);
+            }
+
+            // 8. DROP DOWN (C, LB / L1)
+            bool dropDownPressed = false;
+            bool dropDownJustPressed = false;
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.cKey.wasPressedThisFrame) dropDownJustPressed = true;
+                if (Keyboard.current.cKey.isPressed) dropDownPressed = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.leftShoulder.wasPressedThisFrame) dropDownJustPressed = true;
+                if (Gamepad.current.leftShoulder.isPressed) dropDownPressed = true;
+            }
+
+            if (dropDownJustPressed && playerPreview != null)
+            {
+                playerPreview.TriggerDropDown();
+            }
+
+            if (dropDownPressed)
+            {
+                HighlightLayer(controllerL1Image, true);
+                HighlightLayer(keyDropDownImage, true);
+            }
+            else
+            {
+                HighlightLayer(controllerL1Image, false);
+                HighlightLayer(keyDropDownImage, false);
+            }
+
+            // 9. PAN CAMERA (Right Stick, Mouse Right)
+            if (Gamepad.current != null && Gamepad.current.rightStick.ReadValue().sqrMagnitude > 0.1f)
+            {
+                HighlightLayer(controllerStick2Image, true);
+            }
+            else
+            {
+                HighlightLayer(controllerStick2Image, false);
+            }
+
+            if (Mouse.current != null && Mouse.current.rightButton.isPressed)
+            {
+                HighlightLayer(mouseRightClickImage, true);
+            }
+            else
+            {
+                HighlightLayer(mouseRightClickImage, false);
+            }
+
+            // 10. SELECT / RESET & START / PAUSE
+            if (Gamepad.current != null && Gamepad.current.selectButton.isPressed)
+                HighlightLayer(controllerSelectImage, true);
+            else
+                HighlightLayer(controllerSelectImage, false);
+
+            if (Gamepad.current != null && Gamepad.current.startButton.isPressed)
+                HighlightLayer(controllerStartImage, true);
+            else
+                HighlightLayer(controllerStartImage, false);
         }
 
-        private bool AllActionsTested()
-        {
-            return testedMove && testedJump && testedSlide && testedKick;
-        }
-
-        private void HighlightLayer(Image img, bool active, bool alreadyTested = false)
+        private void HighlightLayer(Image img, bool active, bool permanentTested = false)
         {
             if (img == null) return;
-            if (active) img.color = highlightColor;
-            else if (alreadyTested) img.color = activeLayerColor;
-            else img.color = normalLayerColor;
+
+            if (active)
+            {
+                img.color = activeLayerColor;
+            }
+            else if (permanentTested)
+            {
+                img.color = highlightColor;
+            }
+            else
+            {
+                img.color = normalLayerColor;
+            }
         }
 
         private void TriggerActionFeedback(string actionName)
         {
-            GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
-            GameLogger.Log("TUTORIAL", $"Action validated: {actionName}");
-        }
+            if (actionName == "MOVE" && badgeMoveCheck != null) badgeMoveCheck.SetActive(true);
+            if (actionName == "JUMP" && badgeJumpCheck != null) badgeJumpCheck.SetActive(true);
+            if (actionName == "SLIDE" && badgeSlideCheck != null) badgeSlideCheck.SetActive(true);
+            if (actionName == "KICK" && badgeKickCheck != null) badgeKickCheck.SetActive(true);
 
-        private void UpdateBadgeChecks()
-        {
-            if (badgeMoveCheck != null) badgeMoveCheck.SetActive(testedMove);
-            if (badgeJumpCheck != null) badgeJumpCheck.SetActive(testedJump);
-            if (badgeSlideCheck != null) badgeSlideCheck.SetActive(testedSlide);
-            if (badgeKickCheck != null) badgeKickCheck.SetActive(testedKick);
-        }
-
-        private void ResetLayerColors()
-        {
-            HighlightLayer(controllerStick1Image, false);
-            HighlightLayer(controllerDpadImage, false);
-            HighlightLayer(controllerButtonAImage, false);
-            HighlightLayer(controllerButtonBImage, false);
-            HighlightLayer(controllerButtonXImage, false);
-
-            HighlightLayer(keyMoveLeftImage, false);
-            HighlightLayer(keyMoveRightImage, false);
-            HighlightLayer(keySlideImage, false);
-            HighlightLayer(keyKickImage, false);
-            HighlightLayer(keySpaceImage, false);
-        }
-
-        private IEnumerator PunchScale(Transform tr)
-        {
-            Vector3 original = tr.localScale;
-            tr.localScale = original * 1.25f;
-            float elapsed = 0f;
-            while (elapsed < 0.2f)
+            if (AreAllTested())
             {
-                elapsed += Time.unscaledDeltaTime;
-                tr.localScale = Vector3.Lerp(original * 1.25f, original, elapsed / 0.2f);
-                yield return null;
+                if (startLevelButton != null) startLevelButton.gameObject.SetActive(true);
             }
-            tr.localScale = original;
+        }
+
+        private bool AreAllTested()
+        {
+            return testedMove && testedJump && testedSlide && testedKick;
         }
 
         private void OnStartClicked()
         {
-            CompleteTutorial();
+            HideTutorial();
         }
 
         private void OnSkipClicked()
         {
-            CompleteTutorial();
+            HideTutorial();
         }
 
-        private void CompleteTutorial()
-        {
-            if (!isShowing) return;
-            isShowing = false;
-
-            PlayerPrefs.SetInt(TUTORIAL_DONE_PREF, 1);
-            PlayerPrefs.Save();
-
-            if (AnalyticsManager.Instance != null)
-            {
-                AnalyticsManager.Instance.TrackEvent("tutorial_completed");
-            }
-
-            StartCoroutine(FadeRoutine(0f, () =>
-            {
-                gameObject.SetActive(false);
-                onCompleteCallback?.Invoke();
-            }));
-        }
-
-        private IEnumerator FadeRoutine(float targetAlpha, Action onDone = null)
+        private IEnumerator FadeRoutine(float targetAlpha, bool enableInteraction, Action onEnd = null)
         {
             if (mainCanvasGroup == null)
             {
-                onDone?.Invoke();
+                onEnd?.Invoke();
                 yield break;
             }
 
-            mainCanvasGroup.blocksRaycasts = targetAlpha > 0.5f;
-            mainCanvasGroup.interactable = targetAlpha > 0.5f;
-
             float startAlpha = mainCanvasGroup.alpha;
             float elapsed = 0f;
+
+            if (enableInteraction)
+            {
+                mainCanvasGroup.blocksRaycasts = true;
+                mainCanvasGroup.interactable = true;
+            }
 
             while (elapsed < fadeDuration)
             {
@@ -444,7 +605,14 @@ namespace UI.GamePanels
             }
 
             mainCanvasGroup.alpha = targetAlpha;
-            onDone?.Invoke();
+
+            if (!enableInteraction)
+            {
+                mainCanvasGroup.blocksRaycasts = false;
+                mainCanvasGroup.interactable = false;
+            }
+
+            onEnd?.Invoke();
         }
     }
 }

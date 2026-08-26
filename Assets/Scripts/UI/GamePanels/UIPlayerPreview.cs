@@ -10,13 +10,17 @@ namespace UI.GamePanels
         Sprint,
         Jump,
         Slide,
-        Kick
+        Kick,
+        WallRun,
+        AirDodge,
+        Dive,
+        DropDown
     }
 
     /// <summary>
     /// UI-based animated Player character preview for the Controls Tutorial Overlay.
     /// Operates completely independently of Time.timeScale (uses unscaled time).
-    /// Reacts to live player inputs to show on-screen visual demonstrations of moves.
+    /// Reacts to live player inputs to show on-screen visual demonstrations of all game mechanics.
     /// </summary>
     public class UIPlayerPreview : MonoBehaviour
     {
@@ -28,6 +32,8 @@ namespace UI.GamePanels
         [Header("Animation Frame Rates (FPS)")]
         [SerializeField] private float sprintFPS = 12f;
         [SerializeField] private float kickFPS = 14f;
+        [SerializeField] private float rollFPS = 14f;
+        [SerializeField] private float wallRunFPS = 12f;
         [SerializeField] private float idleFPS = 6f;
 
         [Header("Sprite Sequences")]
@@ -38,6 +44,9 @@ namespace UI.GamePanels
         [SerializeField] private Sprite[] jumpFallSprites;
         [SerializeField] private Sprite[] slideSprites;
         [SerializeField] private Sprite[] kickSprites;
+        [SerializeField] private Sprite[] wallRunSprites;
+        [SerializeField] private Sprite[] rollSprites;
+        [SerializeField] private Sprite[] diveSprites;
 
         private UIPlayerState currentState = UIPlayerState.Idle;
         private Coroutine activeActionRoutine;
@@ -74,7 +83,12 @@ namespace UI.GamePanels
 
         public void PlayMove(bool isMoving)
         {
-            if (currentState == UIPlayerState.Jump || currentState == UIPlayerState.Slide || currentState == UIPlayerState.Kick)
+            if (currentState == UIPlayerState.Jump || 
+                currentState == UIPlayerState.Slide || 
+                currentState == UIPlayerState.Kick ||
+                currentState == UIPlayerState.WallRun ||
+                currentState == UIPlayerState.AirDodge ||
+                currentState == UIPlayerState.Dive)
             {
                 return; // Let current active action finish
             }
@@ -98,6 +112,30 @@ namespace UI.GamePanels
         {
             if (activeActionRoutine != null) StopCoroutine(activeActionRoutine);
             activeActionRoutine = StartCoroutine(KickRoutine());
+        }
+
+        public void TriggerWallRun()
+        {
+            if (activeActionRoutine != null) StopCoroutine(activeActionRoutine);
+            activeActionRoutine = StartCoroutine(WallRunRoutine());
+        }
+
+        public void TriggerAirDodge()
+        {
+            if (activeActionRoutine != null) StopCoroutine(activeActionRoutine);
+            activeActionRoutine = StartCoroutine(AirDodgeRoutine());
+        }
+
+        public void TriggerDive()
+        {
+            if (activeActionRoutine != null) StopCoroutine(activeActionRoutine);
+            activeActionRoutine = StartCoroutine(DiveRoutine());
+        }
+
+        public void TriggerDropDown()
+        {
+            if (activeActionRoutine != null) StopCoroutine(activeActionRoutine);
+            activeActionRoutine = StartCoroutine(DropDownRoutine());
         }
 
         private void PlayIdleOrSprint(bool isSprinting)
@@ -148,7 +186,6 @@ namespace UI.GamePanels
         {
             currentState = UIPlayerState.Jump;
 
-            // 1. Rise phase
             if (jumpRiseSprites != null && jumpRiseSprites.Length > 0) SetSprite(jumpRiseSprites[0]);
             float jumpHeight = 70f;
             float jumpDuration = 0.5f;
@@ -159,7 +196,6 @@ namespace UI.GamePanels
                 elapsed += Time.unscaledDeltaTime;
                 float t = elapsed / jumpDuration;
 
-                // Parabolic arc: 4 * t * (1 - t)
                 float currentY = baseAnchoredPosition.y + Mathf.Sin(t * Mathf.PI) * jumpHeight;
                 characterTransform.anchoredPosition = new Vector2(baseAnchoredPosition.x, currentY);
 
@@ -221,7 +257,6 @@ namespace UI.GamePanels
                 for (int i = 0; i < kickSprites.Length; i++)
                 {
                     SetSprite(kickSprites[i]);
-                    // Punch forward on impact frame
                     if (i == 1 && characterTransform != null)
                     {
                         characterTransform.anchoredPosition = baseAnchoredPosition + new Vector2(18f, 0f);
@@ -232,6 +267,103 @@ namespace UI.GamePanels
             else
             {
                 yield return new WaitForSecondsRealtime(0.3f);
+            }
+
+            ResetTransform();
+            PlayIdleOrSprint(false);
+        }
+
+        private IEnumerator WallRunRoutine()
+        {
+            currentState = UIPlayerState.WallRun;
+
+            if (wallRunSprites != null && wallRunSprites.Length > 0)
+            {
+                float frameDuration = 1f / Mathf.Max(wallRunFPS, 1f);
+                for (int i = 0; i < wallRunSprites.Length; i++)
+                {
+                    SetSprite(wallRunSprites[i]);
+                    if (characterTransform != null)
+                    {
+                        characterTransform.anchoredPosition = baseAnchoredPosition + new Vector2(10f, 15f + i * 4f);
+                    }
+                    yield return new WaitForSecondsRealtime(frameDuration);
+                }
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(0.4f);
+            }
+
+            ResetTransform();
+            PlayIdleOrSprint(false);
+        }
+
+        private IEnumerator AirDodgeRoutine()
+        {
+            currentState = UIPlayerState.AirDodge;
+
+            if (rollSprites != null && rollSprites.Length > 0)
+            {
+                float frameDuration = 1f / Mathf.Max(rollFPS, 1f);
+                for (int i = 0; i < rollSprites.Length; i++)
+                {
+                    SetSprite(rollSprites[i]);
+                    if (characterTransform != null)
+                    {
+                        characterTransform.anchoredPosition = baseAnchoredPosition + new Vector2(30f * ((float)i / rollSprites.Length), 20f);
+                    }
+                    yield return new WaitForSecondsRealtime(frameDuration);
+                }
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(0.35f);
+            }
+
+            ResetTransform();
+            PlayIdleOrSprint(false);
+        }
+
+        private IEnumerator DiveRoutine()
+        {
+            currentState = UIPlayerState.Dive;
+
+            if (diveSprites != null && diveSprites.Length > 0) SetSprite(diveSprites[0]);
+
+            float diveDuration = 0.35f;
+            float elapsed = 0f;
+
+            // Start up high then slam down
+            while (elapsed < diveDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = elapsed / diveDuration;
+                float currentY = baseAnchoredPosition.y + (1f - t) * 50f;
+                characterTransform.anchoredPosition = new Vector2(baseAnchoredPosition.x + t * 15f, currentY);
+                yield return null;
+            }
+
+            ResetTransform();
+            PlayIdleOrSprint(false);
+        }
+
+        private IEnumerator DropDownRoutine()
+        {
+            currentState = UIPlayerState.DropDown;
+
+            if (jumpFallSprites != null && jumpFallSprites.Length > 0) SetSprite(jumpFallSprites[0]);
+
+            float duration = 0.3f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = elapsed / duration;
+                float currentY = baseAnchoredPosition.y - t * 25f;
+                characterTransform.anchoredPosition = new Vector2(baseAnchoredPosition.x, currentY);
+                yield return null;
             }
 
             ResetTransform();
