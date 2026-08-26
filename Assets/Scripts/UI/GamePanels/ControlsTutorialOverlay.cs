@@ -215,7 +215,10 @@ namespace UI.GamePanels
             {
                 OnSkipClicked();
             }
-            else if (Gamepad.current != null && (Gamepad.current.startButton.wasPressedThisFrame || Gamepad.current.selectButton.wasPressedThisFrame))
+            else if (Gamepad.current != null && (
+                Gamepad.current.startButton.wasPressedThisFrame  ||
+                Gamepad.current.selectButton.wasPressedThisFrame ||
+                Gamepad.current.buttonEast.wasPressedThisFrame))  // B button = skip
             {
                 if (currentStep == TutorialStep.Completed) OnStartClicked();
                 else OnSkipClicked();
