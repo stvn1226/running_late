@@ -156,6 +156,63 @@ namespace UI.GamePanels
             {
                 skipButton.onClick.AddListener(OnSkipClicked);
             }
+
+            // Auto-fill any keyboard Image fields that were not assigned in the Inspector
+            AutoLinkKeyboardImages();
+        }
+
+        /// <summary>
+        /// Searches KeyboardContainer children by name and fills any unassigned keyboard Image fields.
+        /// Also callable from the Inspector context menu to populate all references at edit time.
+        /// Name convention expected in the prefab:
+        ///   Key_A, Key_D, Key_W, Key_S, Key_Space, Key_F, Key_Q,
+        ///   Key_Shift, Key_Ctrl, Key_C, Key_V, Key_B, Mouse_Left, Mouse_Right
+        /// </summary>
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("CONTEXT/ControlsTutorialOverlay/Auto-Link Keyboard Keys")]
+        private static void MenuAutoLink(UnityEditor.MenuCommand cmd)
+        {
+            ((ControlsTutorialOverlay)cmd.context).AutoLinkKeyboardImages();
+            UnityEditor.EditorUtility.SetDirty(cmd.context);
+        }
+#endif
+        [ContextMenu("Auto-Link Keyboard Keys")]
+        private void AutoLinkKeyboardImages()
+        {
+            if (keyboardContainer == null) return;
+
+            // Map: child GameObject name → the field to fill (only if currently null)
+            TryLink("Key_A",     ref keyMoveLeftImage);
+            TryLink("Key_D",     ref keyMoveRightImage);
+            TryLink("Key_W",     ref keyMoveUpImage);
+            TryLink("Key_S",     ref keySlideImage);
+            TryLink("Key_Space", ref keySpaceImage);
+            TryLink("Key_F",     ref keyKickImage);
+            TryLink("Key_Q",     ref keyKickAltImage);
+            TryLink("Key_Shift", ref keyShiftImage);
+            TryLink("Key_Ctrl",  ref keyCtrlImage);
+            TryLink("Key_C",     ref keyDropDownImage);
+            TryLink("Key_V",     ref keyAirDodgeImage);
+            TryLink("Key_B",     ref keyDiveImage);
+            TryLink("Mouse_Left",  ref mouseLeftClickImage);
+            TryLink("Mouse_Right", ref mouseRightClickImage);
+        }
+
+        /// <summary>Finds a child of keyboardContainer by name and assigns its Image to the ref field if still null.</summary>
+        private void TryLink(string childName, ref Image field)
+        {
+            if (field != null) return; // already assigned — don't overwrite
+            Transform found = keyboardContainer.transform.Find(childName);
+            if (found == null)
+            {
+                // Deep search (in case it’s nested)
+                foreach (Transform t in keyboardContainer.transform.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t.name == childName) { found = t; break; }
+                }
+            }
+            if (found != null)
+                field = found.GetComponent<Image>();
         }
 
         public static bool ShouldShowTutorial()
