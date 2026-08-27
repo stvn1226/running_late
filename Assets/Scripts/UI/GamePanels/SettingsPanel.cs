@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using UI.GamePanels;
 
 public class SettingsPanel : BaseMainMenuPanel
 {
