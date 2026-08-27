@@ -509,6 +509,22 @@ namespace UI.GamePanels
             {
                 deviceStatusText.text = actionText;
             }
+
+            // Trigger preview demonstration for this step
+            if (playerPreview != null)
+            {
+                switch (step)
+                {
+                    case TutorialStep.Move:     playerPreview.PlayMove(true); break;
+                    case TutorialStep.Jump:     playerPreview.TriggerJump(); break;
+                    case TutorialStep.Slide:    playerPreview.TriggerSlide(); break;
+                    case TutorialStep.Kick:     playerPreview.TriggerKick(); break;
+                    case TutorialStep.WallRun:  playerPreview.TriggerWallRun(); break;
+                    case TutorialStep.DropDown: playerPreview.TriggerDropDown(); break;
+                    case TutorialStep.AirDodge: playerPreview.TriggerAirDodge(); break;
+                    case TutorialStep.Dive:     playerPreview.TriggerDive(); break;
+                }
+            }
         }
 
         /// <summary>Helper: instantly sets a CanvasGroup's alpha and interaction flags.</summary>
