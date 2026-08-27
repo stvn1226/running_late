@@ -143,8 +143,9 @@ Shader "UI/Outline"
                     return originalColor;
                 }
 
-                // Sample in a 16-point circle around the pixel to find maximum surrounding alpha
+                // Sample in a 16-point circle around the pixel to find min and max surrounding alpha
                 float2 pixelOffset = _MainTex_TexelSize.xy * _OutlineWidth;
+                float minSampledAlpha = 1.0;
                 float maxSampledAlpha = 0.0;
 
                 [unroll]
@@ -152,6 +153,7 @@ Shader "UI/Outline"
                 {
                     float2 sampleUV = IN.texcoord + directions[i] * pixelOffset;
                     fixed4 sampleColor = (tex2D(_MainTex, sampleUV) + _TextureSampleAdd);
+                    minSampledAlpha = min(minSampledAlpha, sampleColor.a);
                     maxSampledAlpha = max(maxSampledAlpha, sampleColor.a);
                 }
 
@@ -162,24 +164,32 @@ Shader "UI/Outline"
                     pulseFactor = lerp(_PulseMin, 1.0, 0.5 + 0.5 * sin(_Time.y * _PulseSpeed * 3.14159));
                 }
 
+                fixed4 outlineCol = fixed4(_OutlineColor.rgb * _OutlineGlow, _OutlineColor.a * pulseFactor);
+
                 fixed4 finalColor;
-                if (originalColor.a >= 0.99)
+                if (originalColor.a > 0.05)
                 {
-                    // 100% pure untouched original sprite inside - ZERO tinting
-                    finalColor = originalColor;
-                }
-                else if (originalColor.a > 0.01)
-                {
-                    // Anti-aliased edge: preserve original sprite colors with smooth border transition
-                    float outerAlpha = saturate(maxSampledAlpha - originalColor.a) * _OutlineColor.a * pulseFactor;
-                    finalColor.rgb = originalColor.rgb;
-                    finalColor.a = max(originalColor.a, outerAlpha);
+                    // Pixel is inside the sprite.
+                    // If minSampledAlpha is low, this pixel is on the perimeter edge -> draw glowing outline ring!
+                    float borderFactor = saturate(1.0 - minSampledAlpha);
+                    
+                    if (borderFactor > 0.01)
+                    {
+                        // Draw crisp outline ring along the round contour
+                        finalColor.rgb = lerp(originalColor.rgb, outlineCol.rgb, borderFactor * outlineCol.a);
+                        finalColor.a = originalColor.a;
+                    }
+                    else
+                    {
+                        // Deep interior: untouched original sprite art with zero tinting
+                        finalColor = originalColor;
+                    }
                 }
                 else
                 {
-                    // Pure outer border outline around the sprite
-                    float outerAlpha = maxSampledAlpha * _OutlineColor.a * pulseFactor;
-                    finalColor = fixed4(_OutlineColor.rgb * _OutlineGlow, outerAlpha);
+                    // Pixel is outside the sprite: draw outer halo if quad space allows
+                    float outerAlpha = saturate(maxSampledAlpha - originalColor.a) * outlineCol.a;
+                    finalColor = fixed4(outlineCol.rgb, outerAlpha);
                 }
 
                 #ifdef UNITY_UI_CLIP_RECT
