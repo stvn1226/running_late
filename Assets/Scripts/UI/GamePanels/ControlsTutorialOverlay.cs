@@ -119,11 +119,6 @@ namespace UI.GamePanels
         [SerializeField] private Button skipButton;
         [SerializeField] private TextMeshProUGUI startButtonText;
 
-        // Colors
-        private readonly Color normalColor  = new Color(1f, 1f, 1f, 1f);
-        private readonly Color pressedColor = new Color(1f, 1f, 1f, 0.35f);
-        private readonly Color completedColor = new Color(0.35f, 0.95f, 0.45f, 1f);
-
         // Sequence State
         private TutorialStep currentStep = TutorialStep.Move;
         private HashSet<TutorialStep> completedSteps = new HashSet<TutorialStep>();
@@ -133,7 +128,6 @@ namespace UI.GamePanels
         private bool isShowing = false;
         private ControllerType currentDevice = ControllerType.Keyboard;
         private List<Image> currentlyOutlinedImages = new List<Image>();
-        private List<Image> pressedImages = new List<Image>();
 
         public static bool IsShowingTutorial => Instance != null && Instance.isShowing;
 
@@ -534,7 +528,6 @@ namespace UI.GamePanels
             {
                 img.material = outlineMaterial;
             }
-            img.color = normalColor; // 100% full opacity with outline
 
             if (!currentlyOutlinedImages.Contains(img))
             {
@@ -542,17 +535,12 @@ namespace UI.GamePanels
             }
         }
 
-        /// <summary>Removes outline and lowers alpha to 0.35 when pressed.</summary>
+        /// <summary>Removes outline material from an Image when pressed.</summary>
         private void RemoveOutlineToImage(Image img)
         {
             if (img == null) return;
             img.material = null;
-            img.color = pressedColor; // lower alpha because button was pressed!
             currentlyOutlinedImages.Remove(img);
-            if (!pressedImages.Contains(img))
-            {
-                pressedImages.Add(img);
-            }
         }
 
         /// <summary>Removes highlight from a key on the visual keyboard AND/OR its fallback loose Image.</summary>
@@ -603,19 +591,9 @@ namespace UI.GamePanels
                 if (img != null)
                 {
                     img.material = null;
-                    img.color = normalColor;
-                }
-            }
-            foreach (var img in pressedImages)
-            {
-                if (img != null)
-                {
-                    img.material = null;
-                    img.color = normalColor;
                 }
             }
             currentlyOutlinedImages.Clear();
-            pressedImages.Clear();
 
             // Also clear the QWERTY visual keyboard if assigned
             keyboardDisplay?.ClearHighlights();

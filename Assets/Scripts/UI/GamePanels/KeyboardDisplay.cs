@@ -56,7 +56,7 @@ namespace UI.GamePanels
         // ── Public API ────────────────────────────────────────────────────
 
         /// <summary>
-        /// Applies outlineMat to the Image of each named key.
+        /// Injects outlineMat directly into the Image of each named key.
         /// Key names are case-insensitive: "a", "SPACE", "Shift", "ctrl", etc.
         /// </summary>
         public void HighlightKeys(Material outlineMat, params string[] keyNames)
@@ -67,13 +67,12 @@ namespace UI.GamePanels
             {
                 if (!_keyMap.TryGetValue(key, out Image img) || img == null) continue;
                 if (outlineMat != null) img.material = outlineMat;
-                img.color = Color.white;
-                _highlighted.Add(img);
+                if (!_highlighted.Contains(img)) _highlighted.Add(img);
             }
         }
 
         /// <summary>
-        /// Removes the outline from a key and lowers its alpha when pressed by the player.
+        /// Removes the outline material from a key when pressed by the player.
         /// </summary>
         public void RemoveKeyHighlight(string key)
         {
@@ -82,31 +81,21 @@ namespace UI.GamePanels
             if (_highlighted.Remove(img))
             {
                 img.material = null;
-                img.color = new Color(keyNormalColor.r, keyNormalColor.g, keyNormalColor.b, 0.35f);
-                if (!_pressed.Contains(img)) _pressed.Add(img);
             }
         }
 
-        /// <summary>Number of keys currently highlighted.</summary>
+        /// <summary>Number of keys currently highlighted with outline material.</summary>
         public int RemainingHighlightCount => _highlighted.Count;
 
-        /// <summary>Removes all highlight outlines and resets all key colours to normal full opacity.</summary>
+        /// <summary>Removes all outline materials from all keys.</summary>
         public void ClearHighlights()
         {
             foreach (var img in _highlighted)
             {
                 if (img == null) continue;
                 img.material = null;
-                img.color    = keyNormalColor;
-            }
-            foreach (var img in _pressed)
-            {
-                if (img == null) continue;
-                img.material = null;
-                img.color    = keyNormalColor;
             }
             _highlighted.Clear();
-            _pressed.Clear();
         }
 
         // ── Layout Builder ────────────────────────────────────────────────
