@@ -106,9 +106,10 @@ public class StructureBuilder : MonoBehaviour
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
             FloorAssetPicker groundPicker = ground.GetComponentInChildren<FloorAssetPicker>();
             if (groundPicker != null) groundPicker.RandomizeBaseSprite();
-            ground.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
+            SpriteRenderer groundSr = ground.GetComponentInChildren<SpriteRenderer>();
+            if (groundSr != null && chosenColor != null) groundSr.material = chosenColor;
             ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
-            if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, 0);
+            if (groundSr != null && groundSr.enabled) SortSprite(ground, 0);
             else SortTilemap(ground, 0);
         }
         else return;
@@ -123,8 +124,9 @@ public class StructureBuilder : MonoBehaviour
                 GameObject floor = Instantiate(currentFloors[Random.Range(0, currentFloors.Length)], floorPosition, Quaternion.identity, transform);
                 FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
                 if (floorPicker != null) floorPicker.RandomizeBaseSprite();
-                floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, -floorIndex);
+                SpriteRenderer floorSr = floor.GetComponentInChildren<SpriteRenderer>();
+                if (floorSr != null && chosenColor != null) floorSr.material = chosenColor;
+                if (floorSr != null && floorSr.enabled) SortSprite(floor, -floorIndex);
                 else SortTilemap(floor, -floorIndex);
             }
         }
@@ -136,8 +138,9 @@ public class StructureBuilder : MonoBehaviour
             GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (roofIndex * floorH)), Quaternion.identity, transform);
             FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
             if (roofPicker != null) roofPicker.RandomizeBaseSprite();
-            roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, -roofIndex);
+            SpriteRenderer roofSr = roof.GetComponentInChildren<SpriteRenderer>();
+            if (roofSr != null && chosenColor != null) roofSr.material = chosenColor;
+            if (roofSr != null && roofSr.enabled) SortSprite(roof, -roofIndex);
             else SortTilemap(roof, -roofIndex);
         }
         else return;

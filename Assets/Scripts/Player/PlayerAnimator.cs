@@ -197,7 +197,7 @@ public class PlayerAnimator : MonoBehaviour
         {
             // Check if the kick animation has actually finished
             float nTime = GetKickNormalizedTime();
-            if (nTime >= 0.95f)
+            if (Time.frameCount > states.kickStartFrame + 1 && (Time.time - states.kickStartTime) > 0.05f && nTime >= 0.95f)
             {
                 // Animation done — end the state and fall through to normal locomotion
                 states.EndKick("animDone-animator");

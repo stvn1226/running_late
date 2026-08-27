@@ -35,6 +35,7 @@ public class SettingsPanel : BaseMainMenuPanel
     [Header("Buttons")]
     [SerializeField] private Button backButton;
     [SerializeField] private Button resetButton;
+    [SerializeField] private Button viewControlsTutorialButton;
     
     [Header("Scroll View")]
     [SerializeField] private ScrollRect scrollRect;
@@ -455,6 +456,16 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             resetButton.onClick.AddListener(OnResetClicked);
         }
+
+        if (viewControlsTutorialButton != null)
+        {
+            viewControlsTutorialButton.onClick.AddListener(OnViewControlsTutorialClicked);
+        }
+    }
+
+    public void OnViewControlsTutorialClicked()
+    {
+        ControlsTutorialOverlay.ShowTutorialExplicit();
     }
     
     protected override void OnShow()

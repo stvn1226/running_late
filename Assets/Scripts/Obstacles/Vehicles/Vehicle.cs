@@ -131,19 +131,33 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
         //    return;
         //}
         
-        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
+        PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
+        bool isPlayer = collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) || 
+                        playerStates != null || 
+                        (collision.attachedRigidbody != null && collision.attachedRigidbody.CompareTag(TagUtils.PLAYER_TAG));
+        
+        if (isPlayer)
         {
             GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player collision detected");
+
+            // Air dodge passes cleanly through vehicles
+            if (playerStates != null && playerStates.isAirDodging)
+            {
+                GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player is AIR DODGING - ignoring vehicle collision");
+                return;
+            }
             
             Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
             
             if (playerRb != null)
             {
                 float velocityY = playerRb.linearVelocity.y;
+                bool isDiving = playerStates != null && playerStates.isDiving;
+                bool isGrounded = playerStates != null && playerStates.isGrounded;
                 
-                bool isStomp = velocityY < 0f;
+                bool isStomp = isDiving || (velocityY < 0f && !isGrounded);
 
-                GameLogger.Log("VEHICLE", $"[{gameObject.name}] VelY={velocityY:F2}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
+                GameLogger.Log("VEHICLE", $"[{gameObject.name}] VelY={velocityY:F2}, Diving={isDiving}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
 
                 if (isStomp)
                 {
@@ -151,8 +165,6 @@ public abstract class Vehicle : MonoBehaviour, IWarningIndicator
                 }
                 else
                 {
-                    PlayerStates playerStates = collision.GetComponentInParent<PlayerStates>();
-                    
                     if (playerStates != null && playerStates.isInvincible && !playerStates.isShielded)
                     {
                         GameLogger.Log("VEHICLE", $"[{gameObject.name}] Player is INVULNERABLE - ignoring damage (no stomp)");

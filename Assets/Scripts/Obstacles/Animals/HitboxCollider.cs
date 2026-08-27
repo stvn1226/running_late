@@ -27,29 +27,44 @@ public class HitboxCollider : MonoBehaviour
             return;
         }
 
-        if (collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG))
+        PlayerStates playerStatesCheck = collision.GetComponentInParent<PlayerStates>();
+        Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
+
+        bool isKickTrigger = collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG);
+        bool isPlayerKickState = playerStatesCheck != null && playerStatesCheck.isKicking;
+
+        if (isKickTrigger || isPlayerKickState)
         {
-            GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerKick trigger.");
+            GameLogger.Log($"[{parent.gameObject.name}] Hit by PlayerKick (trigger={isKickTrigger}, state={isPlayerKickState}).");
             parent.TriggerStagger();
             parent.wasHit = true;
             return;
         }
 
-        if (collision.gameObject.CompareTag(TagUtils.PLAYER_TAG))
+        bool isPlayer = collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) || 
+                        playerStatesCheck != null || 
+                        (collision.attachedRigidbody != null && collision.attachedRigidbody.CompareTag(TagUtils.PLAYER_TAG));
+
+        if (isPlayer)
         {
             GameLogger.Log($"[{parent.gameObject.name}] Player collision detected");
-            
-            Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
+
+            // If player is air dodging, smoothly phase through without taking damage
+            if (playerStatesCheck != null && playerStatesCheck.isAirDodging)
+            {
+                GameLogger.Log($"[{parent.gameObject.name}] Player is AIR DODGING - ignoring collision");
+                return;
+            }
             
             if (playerRb != null)
             {
                 float velocityY = playerRb.linearVelocity.y;
-                PlayerStates playerStatesCheck = collision.GetComponentInParent<PlayerStates>();
                 bool isGrounded = playerStatesCheck != null && playerStatesCheck.isGrounded;
+                bool isDiving = playerStatesCheck != null && playerStatesCheck.isDiving;
                 
-                bool isStomp = velocityY < 0f && !isGrounded;
+                bool isStomp = isDiving || (velocityY < 0f && !isGrounded);
 
-                GameLogger.Log($"[{parent.gameObject.name}] VelY={velocityY:F2}, Grounded={isGrounded}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
+                GameLogger.Log($"[{parent.gameObject.name}] VelY={velocityY:F2}, Grounded={isGrounded}, Diving={isDiving}, Result={(isStomp ? "STOMP" : "DAMAGE")}");
 
                 if (isStomp)
                 {

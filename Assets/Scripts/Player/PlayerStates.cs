@@ -112,6 +112,8 @@ public class PlayerStates : MonoBehaviour
     public float kickTimer;
     public float kickStartTime;
     public int kickStartFrame;
+    public float kickBufferTimer = 0f;
+    public const float KICK_BUFFER_DURATION = 0.2f;
 
     [Header("Stagger States")]
     public float staggerTimer;
@@ -435,16 +437,20 @@ public class PlayerStates : MonoBehaviour
             {
                 EndRoll();
             }
+        if (kickBufferTimer > 0f)
+        {
+            kickBufferTimer -= Time.deltaTime;
         }
 
         if (isKicking)
         {
             kickTimer -= Time.deltaTime;
             // Primary exit: animation-driven (PlayerKick.Update checks nTime >= 0.95f)
-            // Safety backstop: if animation detection fails, force-exit after 3x the configured duration
-            if (kickTimer <= -(config.kickDuration * 2f))
+            // Safety backstop: if animation detection fails, force-exit after duration
+            float maxAllowedDuration = config != null ? config.kickDuration : 0.35f;
+            if (kickTimer <= -maxAllowedDuration)
             {
-                GameLogger.LogWarning("KICK", "SAFETY EXIT: kick state exceeded max duration, force clearing");
+                if (config != null && config.kickDebug) GameLogger.LogWarning("KICK", "SAFETY EXIT: kick state exceeded max duration, force clearing");
                 EndKick("safetyTimeout");
             }
         }
@@ -539,11 +545,18 @@ public class PlayerStates : MonoBehaviour
             
             kickPressed = true;
             isKicking = true;
+            kickBufferTimer = 0f;
             kickTimer = kickDuration;
             kickStartTime = Time.time;
             kickStartFrame = Time.frameCount;
 
-            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
+            if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
+        }
+        else
+        {
+            // Buffer input so rapid spam triggers the next kick seamlessly
+            kickBufferTimer = KICK_BUFFER_DURATION;
+            if (config != null && config.kickDebug) GameLogger.Log("KICK", "STATE: Kick buffered while kicking");
         }
     }
 
@@ -553,7 +566,13 @@ public class PlayerStates : MonoBehaviour
         {
             isKicking = false;
             kickTimer = 0f;
-            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
+            if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
+
+            if (kickBufferTimer > 0f)
+            {
+                kickBufferTimer = 0f;
+                SetKickPressed(config != null ? config.kickDuration : 0.3f);
+            }
         }
     }
 

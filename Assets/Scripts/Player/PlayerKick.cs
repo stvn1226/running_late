@@ -42,7 +42,8 @@ public class PlayerKick : MonoBehaviour
                 else if (!shouldBeActive && hitboxActive) DisableHitbox();
 
                 // Animation finished (reached >= 95% without looping)
-                if (nTime >= 0.95f)
+                // Only check completion after startup to avoid reading previous clip's residual normalizedTime
+                if (Time.frameCount > states.kickStartFrame + 1 && (Time.time - states.kickStartTime) > 0.05f && nTime >= 0.95f)
                 {
                     DisableHitbox();
                     states.EndKick("animFinished");
@@ -50,9 +51,8 @@ public class PlayerKick : MonoBehaviour
             }
             else
             {
-                // SAFETY: We only interrupt if it's NOT the same frame the kick started
-                // This allows the animator (in LateUpdate) to catch up with the state change (in Update)
-                if (Time.frameCount > states.kickStartFrame)
+                // SAFETY: Give animator at least 2 frames to catch up with state change
+                if (Time.frameCount > states.kickStartFrame + 2 && (Time.time - states.kickStartTime) > 0.06f)
                 {
                     GameLogger.LogWarning("KICK", $"INTERRUPTED: Animator mismatch after startup frame. State isKicking=true but Animator is {playerAnimator.GetCurrentStateName()} (Frame: {Time.frameCount} > {states.kickStartFrame})");
                     DisableHitbox();

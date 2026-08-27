@@ -260,6 +260,25 @@ namespace UI.GamePanels
             return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;
         }
 
+        /// <summary>
+        /// Explicitly opens the tutorial at any time (e.g. from Settings or Pause menu), regardless of PlayerPrefs.
+        /// </summary>
+        public static void ShowTutorialExplicit(Action onComplete = null)
+        {
+            if (Instance != null)
+            {
+                Instance.ShowTutorial(onComplete);
+            }
+            else
+            {
+                ControlsTutorialOverlay overlay = FindFirstObjectByType<ControlsTutorialOverlay>(FindObjectsInactive.Include);
+                if (overlay != null)
+                {
+                    overlay.ShowTutorial(onComplete);
+                }
+            }
+        }
+
         public void ShowTutorial(Action onComplete)
         {
             onCompleteCallback = onComplete;
