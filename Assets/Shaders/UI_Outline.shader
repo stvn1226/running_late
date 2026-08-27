@@ -84,6 +84,7 @@ Shader "UI/Outline"
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float4 _MainTex_TexelSize;
+            fixed4 _TextureSampleAdd;
             fixed4 _Color;
             fixed4 _OutlineColor;
             float _OutlineWidth;
