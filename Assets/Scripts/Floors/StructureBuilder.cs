@@ -124,8 +124,8 @@ public class StructureBuilder : MonoBehaviour
                 FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
                 if (floorPicker != null) floorPicker.RandomizeBaseSprite();
                 floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, 1);
-                else SortTilemap(floor, 1);
+                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, -1);
+                else SortTilemap(floor, -1);
             }
         }
 
@@ -137,8 +137,8 @@ public class StructureBuilder : MonoBehaviour
             FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
             if (roofPicker != null) roofPicker.RandomizeBaseSprite();
             roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, 1);
-            else SortTilemap(roof, 1);
+            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, -1);
+            else SortTilemap(roof, -1);
         }
         else return;
 
