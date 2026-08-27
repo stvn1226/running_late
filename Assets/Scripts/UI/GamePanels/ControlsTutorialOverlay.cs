@@ -120,8 +120,8 @@ namespace UI.GamePanels
         [SerializeField] private TextMeshProUGUI startButtonText;
 
         // Colors
-        private readonly Color normalLayerColor = new Color(1f, 1f, 1f, 0.45f);
-        private readonly Color activeLayerColor = new Color(1f, 1f, 1f, 1f);
+        private readonly Color normalLayerColor = Color.white;
+        private readonly Color activeLayerColor = Color.white;
         private readonly Color completedColor   = new Color(0.35f, 0.95f, 0.45f, 1f);
 
         // Sequence State
@@ -133,6 +133,8 @@ namespace UI.GamePanels
         private bool isShowing = false;
         private ControllerType currentDevice = ControllerType.Keyboard;
         private List<Image> currentlyOutlinedImages = new List<Image>();
+
+        public static bool IsShowingTutorial => Instance != null && Instance.isShowing;
 
         private void Awake()
         {
