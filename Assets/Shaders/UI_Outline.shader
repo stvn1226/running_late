@@ -155,9 +155,6 @@ Shader "UI/Outline"
                     maxSampledAlpha = max(maxSampledAlpha, sampleColor.a);
                 }
 
-                // Calculate outline factor (where outer alpha exists but inner alpha is transparent)
-                float outlineFactor = saturate(maxSampledAlpha - originalColor.a);
-
                 // Optional pulsation
                 float pulseFactor = 1.0;
                 if (_PulseSpeed > 0.001)
@@ -165,13 +162,25 @@ Shader "UI/Outline"
                     pulseFactor = lerp(_PulseMin, 1.0, 0.5 + 0.5 * sin(_Time.y * _PulseSpeed * 3.14159));
                 }
 
-                fixed4 outCol = _OutlineColor * _OutlineGlow;
-                outCol.a = _OutlineColor.a * pulseFactor;
-
-                // Composite: inner sprite rendered crisply on top of the outer glow outline
                 fixed4 finalColor;
-                finalColor.rgb = lerp(outCol.rgb, originalColor.rgb, originalColor.a);
-                finalColor.a = max(originalColor.a, outlineFactor * outCol.a);
+                if (originalColor.a >= 0.99)
+                {
+                    // 100% pure untouched original sprite inside - ZERO tinting
+                    finalColor = originalColor;
+                }
+                else if (originalColor.a > 0.01)
+                {
+                    // Anti-aliased edge: preserve original sprite colors with smooth border transition
+                    float outerAlpha = saturate(maxSampledAlpha - originalColor.a) * _OutlineColor.a * pulseFactor;
+                    finalColor.rgb = originalColor.rgb;
+                    finalColor.a = max(originalColor.a, outerAlpha);
+                }
+                else
+                {
+                    // Pure outer border outline around the sprite
+                    float outerAlpha = maxSampledAlpha * _OutlineColor.a * pulseFactor;
+                    finalColor = fixed4(_OutlineColor.rgb * _OutlineGlow, outerAlpha);
+                }
 
                 #ifdef UNITY_UI_CLIP_RECT
                 finalColor.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
