@@ -118,14 +118,14 @@ public class StructureBuilder : MonoBehaviour
             GameLogger.LogVerbose("BUILDING", $"Constructing {floorsCt} floors for building at {transform.position}");
             for (int i = 0; i < floorsCt - 2; i++) //Construct all floors EXCEPT the ground floor and roof
             {
-                int floorIndex = i + 1; // Floor 2 is index 1, Floor 3 is index 2, etc.
+                int floorIndex = i + 1; // Floor 2 is index 1 (-1), Floor 3 is index 2 (-2), etc.
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + (floorIndex * floorH));
                 GameObject floor = Instantiate(currentFloors[Random.Range(0, currentFloors.Length)], floorPosition, Quaternion.identity, transform);
                 FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
                 if (floorPicker != null) floorPicker.RandomizeBaseSprite();
                 floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, -1);
-                else SortTilemap(floor, -1);
+                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, -floorIndex);
+                else SortTilemap(floor, -floorIndex);
             }
         }
 
@@ -137,8 +137,8 @@ public class StructureBuilder : MonoBehaviour
             FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
             if (roofPicker != null) roofPicker.RandomizeBaseSprite();
             roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, -1);
-            else SortTilemap(roof, -1);
+            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, -roofIndex);
+            else SortTilemap(roof, -roofIndex);
         }
         else return;
 
