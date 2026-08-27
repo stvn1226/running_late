@@ -71,6 +71,23 @@ namespace UI.GamePanels
             }
         }
 
+        /// <summary>
+        /// Removes the highlight from a specific key (e.g. after it was pressed by the player).
+        /// </summary>
+        public void RemoveKeyHighlight(string key)
+        {
+            EnsureKeyMap();
+            if (!_keyMap.TryGetValue(key, out Image img) || img == null) return;
+            if (_highlighted.Remove(img))
+            {
+                img.material = null;
+                img.color = keyNormalColor;
+            }
+        }
+
+        /// <summary>Number of keys currently highlighted.</summary>
+        public int RemainingHighlightCount => _highlighted.Count;
+
         /// <summary>Removes all highlight outlines and resets key colours.</summary>
         public void ClearHighlights()
         {

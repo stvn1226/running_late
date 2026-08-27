@@ -32,6 +32,10 @@ namespace UI.GamePanels
             Completed = 8
         }
 
+        [Header("Tutorial Progression Rules")]
+        [Tooltip("If FALSE (default): pressing at least ONE valid input advances to the next step. If TRUE: ALL displayed inputs for the step must be pressed before advancing.")]
+        [SerializeField] private bool requireAllKeysPerStep = false;
+
         [Header("Testing & Debug")]
         [Tooltip("Force show tutorial on start even if already completed.")]
         [SerializeField] private bool forceShowForTesting = false;
@@ -411,6 +415,7 @@ namespace UI.GamePanels
                     if (isGamepad)
                     {
                         AddOutlineToImage(controllerButtonBImage);
+                        AddOutlineToImage(controllerL2Image);
                     }
                     else
                     {
@@ -534,6 +539,56 @@ namespace UI.GamePanels
             }
         }
 
+        /// <summary>Removes outline and restores normal color for an individual Image.</summary>
+        private void RemoveOutlineToImage(Image img)
+        {
+            if (img == null) return;
+            img.material = null;
+            img.color = normalLayerColor;
+            currentlyOutlinedImages.Remove(img);
+        }
+
+        /// <summary>Removes highlight from a key on the visual keyboard AND/OR its fallback loose Image.</summary>
+        private void RemoveKeyHighlight(string keyName, Image fallbackImage)
+        {
+            if (keyboardDisplay != null)
+            {
+                keyboardDisplay.RemoveKeyHighlight(keyName);
+            }
+            if (fallbackImage != null)
+            {
+                RemoveOutlineToImage(fallbackImage);
+            }
+        }
+
+        /// <summary>Returns true if there are still active outlines in the current step.</summary>
+        private bool HasRemainingOutlines()
+        {
+            if (currentlyOutlinedImages.Count > 0) return true;
+            if (keyboardDisplay != null && keyboardDisplay.RemainingHighlightCount > 0) return true;
+            return false;
+        }
+
+        /// <summary>Handles step progression when a valid key/button is pressed.</summary>
+        private void OnStepInputPressed(TutorialStep step)
+        {
+            if (currentStep != step) return;
+
+            if (requireAllKeysPerStep)
+            {
+                // Only advance once all highlighted keys/buttons for this step are pressed
+                if (!HasRemainingOutlines())
+                {
+                    AdvanceStep(step);
+                }
+            }
+            else
+            {
+                // Advance immediately upon pressing at least one valid input
+                AdvanceStep(step);
+            }
+        }
+
         private void ClearAllOutlines()
         {
             foreach (var img in currentlyOutlinedImages)
@@ -586,15 +641,39 @@ namespace UI.GamePanels
             bool movePressed = false;
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.aKey.isPressed || Keyboard.current.dKey.isPressed ||
-                    Keyboard.current.leftArrowKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+                if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
+                {
                     movePressed = true;
+                    if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame)
+                    {
+                        RemoveKeyHighlight("a", keyMoveLeftImage);
+                        OnStepInputPressed(TutorialStep.Move);
+                    }
+                }
+                if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+                {
+                    movePressed = true;
+                    if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame)
+                    {
+                        RemoveKeyHighlight("d", keyMoveRightImage);
+                        OnStepInputPressed(TutorialStep.Move);
+                    }
+                }
             }
             if (Gamepad.current != null)
             {
-                if (Mathf.Abs(Gamepad.current.leftStick.x.ReadValue()) > 0.3f ||
-                    Gamepad.current.dpad.left.isPressed || Gamepad.current.dpad.right.isPressed)
+                if (Mathf.Abs(Gamepad.current.leftStick.x.ReadValue()) > 0.3f)
+                {
                     movePressed = true;
+                    RemoveOutlineToImage(controllerStick1Image);
+                    OnStepInputPressed(TutorialStep.Move);
+                }
+                if (Gamepad.current.dpad.left.isPressed || Gamepad.current.dpad.right.isPressed)
+                {
+                    movePressed = true;
+                    RemoveOutlineToImage(controllerDpadImage);
+                    OnStepInputPressed(TutorialStep.Move);
+                }
             }
 
             if (playerPreview != null)
@@ -602,132 +681,147 @@ namespace UI.GamePanels
                 playerPreview.SetMoving(movePressed);
             }
 
-            if (movePressed && currentStep == TutorialStep.Move)
-            {
-                AdvanceStep(TutorialStep.Move);
-            }
-
             // 2. JUMP (Space, W, or Button A)
-            bool jumpJustPressed = false;
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame) jumpJustPressed = true;
+                if (Keyboard.current.spaceKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("space", keySpaceImage);
+                    if (playerPreview != null) playerPreview.TriggerJump();
+                    OnStepInputPressed(TutorialStep.Jump);
+                }
+                if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("w", keyMoveUpImage);
+                    if (playerPreview != null) playerPreview.TriggerJump();
+                    OnStepInputPressed(TutorialStep.Jump);
+                }
             }
             if (Gamepad.current != null)
             {
-                if (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.leftStick.y.ReadValue() > 0.6f) jumpJustPressed = true;
-            }
-
-            if (jumpJustPressed)
-            {
-                if (playerPreview != null) playerPreview.TriggerJump();
-                if (currentStep == TutorialStep.Jump) AdvanceStep(TutorialStep.Jump);
+                if (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.leftStick.y.ReadValue() > 0.6f)
+                {
+                    RemoveOutlineToImage(controllerButtonAImage);
+                    if (playerPreview != null) playerPreview.TriggerJump();
+                    OnStepInputPressed(TutorialStep.Jump);
+                }
             }
 
             // 3. SLIDE (S, Left Ctrl, or Button B / LT)
-            bool slideJustPressed = false;
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.leftCtrlKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame) slideJustPressed = true;
+                if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("s", keySlideImage);
+                    if (playerPreview != null) playerPreview.TriggerSlide();
+                    OnStepInputPressed(TutorialStep.Slide);
+                }
+                if (Keyboard.current.leftCtrlKey.wasPressedThisFrame || Keyboard.current.rightCtrlKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("ctrl", keyCtrlImage);
+                    if (playerPreview != null) playerPreview.TriggerSlide();
+                    OnStepInputPressed(TutorialStep.Slide);
+                }
             }
             if (Gamepad.current != null)
             {
-                if (Gamepad.current.buttonEast.wasPressedThisFrame || Gamepad.current.leftTrigger.wasPressedThisFrame || Gamepad.current.leftTrigger.ReadValue() > 0.4f) slideJustPressed = true;
-            }
-
-            if (slideJustPressed)
-            {
-                if (playerPreview != null) playerPreview.TriggerSlide();
-                if (currentStep == TutorialStep.Slide) AdvanceStep(TutorialStep.Slide);
+                if (Gamepad.current.buttonEast.wasPressedThisFrame)
+                {
+                    RemoveOutlineToImage(controllerButtonBImage);
+                    if (playerPreview != null) playerPreview.TriggerSlide();
+                    OnStepInputPressed(TutorialStep.Slide);
+                }
+                if (Gamepad.current.leftTrigger.wasPressedThisFrame || Gamepad.current.leftTrigger.ReadValue() > 0.4f)
+                {
+                    RemoveOutlineToImage(controllerL2Image);
+                    if (playerPreview != null) playerPreview.TriggerSlide();
+                    OnStepInputPressed(TutorialStep.Slide);
+                }
             }
 
             // 4. KICK (F, Q, Left Click, Button X)
-            bool kickJustPressed = false;
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.fKey.wasPressedThisFrame || Keyboard.current.qKey.wasPressedThisFrame) kickJustPressed = true;
+                if (Keyboard.current.fKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("f", keyKickImage);
+                    if (playerPreview != null) playerPreview.TriggerKick();
+                    OnStepInputPressed(TutorialStep.Kick);
+                }
+                if (Keyboard.current.qKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("q", keyKickAltImage);
+                    if (playerPreview != null) playerPreview.TriggerKick();
+                    OnStepInputPressed(TutorialStep.Kick);
+                }
             }
-            if (Mouse.current != null)
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame) kickJustPressed = true;
-            }
-            if (Gamepad.current != null)
-            {
-                if (Gamepad.current.buttonWest.wasPressedThisFrame) kickJustPressed = true;
-            }
-
-            if (kickJustPressed)
-            {
+                RemoveOutlineToImage(mouseLeftClickImage);
                 if (playerPreview != null) playerPreview.TriggerKick();
-                if (currentStep == TutorialStep.Kick) AdvanceStep(TutorialStep.Kick);
+                OnStepInputPressed(TutorialStep.Kick);
+            }
+            if (Gamepad.current != null && Gamepad.current.buttonWest.wasPressedThisFrame)
+            {
+                RemoveOutlineToImage(controllerButtonXImage);
+                if (playerPreview != null) playerPreview.TriggerKick();
+                OnStepInputPressed(TutorialStep.Kick);
             }
 
             // 5. WALL RUN (Left Shift, RT / R2)
-            bool wallRunJustPressed = false;
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && (Keyboard.current.leftShiftKey.wasPressedThisFrame || Keyboard.current.rightShiftKey.wasPressedThisFrame))
             {
-                if (Keyboard.current.leftShiftKey.wasPressedThisFrame) wallRunJustPressed = true;
-            }
-            if (Gamepad.current != null)
-            {
-                if (Gamepad.current.rightTrigger.wasPressedThisFrame || Gamepad.current.rightTrigger.ReadValue() > 0.3f) wallRunJustPressed = true;
-            }
-
-            if (wallRunJustPressed)
-            {
+                RemoveKeyHighlight("shift", keyShiftImage);
                 if (playerPreview != null) playerPreview.TriggerWallRun();
-                if (currentStep == TutorialStep.WallRun) AdvanceStep(TutorialStep.WallRun);
+                OnStepInputPressed(TutorialStep.WallRun);
+            }
+            if (Gamepad.current != null && (Gamepad.current.rightTrigger.wasPressedThisFrame || Gamepad.current.rightTrigger.ReadValue() > 0.3f))
+            {
+                RemoveOutlineToImage(controllerR2Image);
+                if (playerPreview != null) playerPreview.TriggerWallRun();
+                OnStepInputPressed(TutorialStep.WallRun);
             }
 
             // 6. DROP DOWN (C, LB / L1)
-            bool dropDownJustPressed = false;
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
             {
-                if (Keyboard.current.cKey.wasPressedThisFrame) dropDownJustPressed = true;
-            }
-            if (Gamepad.current != null)
-            {
-                if (Gamepad.current.leftShoulder.wasPressedThisFrame) dropDownJustPressed = true;
-            }
-
-            if (dropDownJustPressed)
-            {
+                RemoveKeyHighlight("c", keyDropDownImage);
                 if (playerPreview != null) playerPreview.TriggerDropDown();
-                if (currentStep == TutorialStep.DropDown) AdvanceStep(TutorialStep.DropDown);
+                OnStepInputPressed(TutorialStep.DropDown);
+            }
+            if (Gamepad.current != null && Gamepad.current.leftShoulder.wasPressedThisFrame)
+            {
+                RemoveOutlineToImage(controllerL1Image);
+                if (playerPreview != null) playerPreview.TriggerDropDown();
+                OnStepInputPressed(TutorialStep.DropDown);
             }
 
             // 7. AIR DODGE (V, RB / R1)
-            bool airDodgeJustPressed = false;
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && Keyboard.current.vKey.wasPressedThisFrame)
             {
-                if (Keyboard.current.vKey.wasPressedThisFrame) airDodgeJustPressed = true;
-            }
-            if (Gamepad.current != null)
-            {
-                if (Gamepad.current.rightShoulder.wasPressedThisFrame) airDodgeJustPressed = true;
-            }
-
-            if (airDodgeJustPressed)
-            {
+                RemoveKeyHighlight("v", keyAirDodgeImage);
                 if (playerPreview != null) playerPreview.TriggerAirDodge();
-                if (currentStep == TutorialStep.AirDodge) AdvanceStep(TutorialStep.AirDodge);
+                OnStepInputPressed(TutorialStep.AirDodge);
+            }
+            if (Gamepad.current != null && Gamepad.current.rightShoulder.wasPressedThisFrame)
+            {
+                RemoveOutlineToImage(controllerR1Image);
+                if (playerPreview != null) playerPreview.TriggerAirDodge();
+                OnStepInputPressed(TutorialStep.AirDodge);
             }
 
             // 8. DIVE (B, Y / Button North)
-            bool diveJustPressed = false;
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
             {
-                if (Keyboard.current.bKey.wasPressedThisFrame) diveJustPressed = true;
-            }
-            if (Gamepad.current != null)
-            {
-                if (Gamepad.current.buttonNorth.wasPressedThisFrame) diveJustPressed = true;
-            }
-
-            if (diveJustPressed)
-            {
+                RemoveKeyHighlight("b", keyDiveImage);
                 if (playerPreview != null) playerPreview.TriggerDive();
-                if (currentStep == TutorialStep.Dive) AdvanceStep(TutorialStep.Dive);
+                OnStepInputPressed(TutorialStep.Dive);
+            }
+            if (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame)
+            {
+                RemoveOutlineToImage(controllerButtonYImage);
+                if (playerPreview != null) playerPreview.TriggerDive();
+                OnStepInputPressed(TutorialStep.Dive);
             }
         }
 
