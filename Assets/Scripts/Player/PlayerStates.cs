@@ -437,6 +437,8 @@ public class PlayerStates : MonoBehaviour
             {
                 EndRoll();
             }
+        }
+
         if (kickBufferTimer > 0f)
         {
             kickBufferTimer -= Time.deltaTime;
