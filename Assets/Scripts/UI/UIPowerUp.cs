@@ -136,11 +136,11 @@ public class UIPowerUp : MonoBehaviour
             _timerCircle.fillAmount = fillAmount;
         }
 
-        // Alpha fade logic: hold 100% alpha during first 1/3, then fade out during remaining 2/3
+        // Alpha fade logic: hold 100% alpha during first 1/5 (20%), then fade out progressively during remaining 4/5 (80%)
         float targetAlpha = 1f;
-        if (progress > 0.333f)
+        if (progress > 0.2f)
         {
-            float fadeProgress = (progress - 0.333f) / 0.667f;
+            float fadeProgress = (progress - 0.2f) / 0.8f;
             targetAlpha = Mathf.Clamp01(1f - fadeProgress);
         }
 

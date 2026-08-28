@@ -92,12 +92,23 @@ public class CustomButtonEffects : MonoBehaviour,
         
         ApplyFont(effectProfile.normalFont, effectProfile.jpNormalFont);
         ApplyFontSize(baseFontSize, jpBaseFontSize);
-        ApplyTextColor(effectProfile.normalTextColor);
-        ApplyMaskState(effectProfile.showMaskOnNormal);
-        ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
+        if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
+        {
+            textAnimator.SetText(originalText);
+        }
+        else if (textComponent != null && !string.IsNullOrEmpty(originalText))
+        {
+            textComponent.text = originalText;
+        }
 
-        if (textAnimator != null) textAnimator.SetText(originalText);
-        if (jpTextAnimator != null) jpTextAnimator.SetText(jpOriginalText);
+        if (jpTextAnimator != null && jpTextAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(jpOriginalText))
+        {
+            jpTextAnimator.SetText(jpOriginalText);
+        }
+        else if (jpTextComponent != null && !string.IsNullOrEmpty(jpOriginalText))
+        {
+            jpTextComponent.text = jpOriginalText;
+        }
     }
     
     private void ApplyHighlightedState()
@@ -110,8 +121,15 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnHighlighted);
         ApplyBackgroundSprite(effectProfile.highlightedBackgroundSprite);
 
-        if (textAnimator != null) textAnimator.SetText($"<bounce>{originalText}</bounce>");
-        if (jpTextAnimator != null) jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
+        if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
+        {
+            textAnimator.SetText($"<bounce>{originalText}</bounce>");
+        }
+
+        if (jpTextAnimator != null && jpTextAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(jpOriginalText))
+        {
+            jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
+        }
     }
     
     private void ApplyFont(TMP_FontAsset font, TMP_FontAsset jpFont)
