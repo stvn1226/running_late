@@ -88,8 +88,8 @@ public class StructureBuilder : MonoBehaviour
             {
                 floorsCt = activeTheme.minFloorsOverride;
             }
-            else if (activeTheme.themeId == "Set1" || activeTheme.themeId == "Set3" ||
-                     (activeTheme.name != null && (activeTheme.name.Contains("Set1") || activeTheme.name.Contains("Set3"))))
+            else if (activeTheme.themeId == "Set1" || activeTheme.themeId == "Set2" || activeTheme.themeId == "Set3" ||
+                     (activeTheme.name != null && (activeTheme.name.Contains("Set1") || activeTheme.name.Contains("Set2") || activeTheme.name.Contains("Set3"))))
             {
                 if (floorsCt < 5)
                 {
