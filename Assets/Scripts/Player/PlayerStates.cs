@@ -145,6 +145,7 @@ public class PlayerStates : MonoBehaviour
     private Coroutine activeBlinkCoroutine;
     private Color originalSpriteColor;
     private PlayerVFX playerVFX;
+    [SerializeField] private ToastDrop toastDrop;
 
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
@@ -179,6 +180,18 @@ public class PlayerStates : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
         playerVFX = GetComponent<PlayerVFX>();
+        if (toastDrop == null)
+        {
+            ToastDrop[] drops = GetComponentsInChildren<ToastDrop>(true);
+            foreach (var d in drops)
+            {
+                if (d.gameObject != gameObject)
+                {
+                    toastDrop = d;
+                    break;
+                }
+            }
+        }
 
         if (spriteRenderer != null)
         {
@@ -657,7 +670,22 @@ public class PlayerStates : MonoBehaviour
         dropDownHeld = false;
         isDroppingDown = false;
         crouchHeld = false;
+        isCrouching = false;
         isSliding = false;
+        isRolling = false;
+        rollTimer = 0f;
+        isDiving = false;
+        diveTimer = 0f;
+        canDive = true;
+        isWallRunning = false;
+        isWallSliding = false;
+        isVaultingWall = false;
+
+        PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
+        if (playerPhysics != null)
+        {
+            playerPhysics.UpdateColliderSize();
+        }
 
         PlayerOneWayPlatform oneWayPlatform = GetComponentInChildren<PlayerOneWayPlatform>();
         if (oneWayPlatform != null)
@@ -669,6 +697,14 @@ public class PlayerStates : MonoBehaviour
         {
             hasToast = false;
             if (playerVFX != null) playerVFX.PlayToastBreak();
+        }
+
+        // Drop the physical toast object if assigned
+        if (toastDrop != null)
+        {
+            bool facingRight = spriteRenderer != null && !spriteRenderer.flipX;
+            toastDrop.Drop(facingRight);
+            toastDrop = null; // Cleared so it drops once per run/level
         }
 
         if (isKicking)

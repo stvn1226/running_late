@@ -91,9 +91,9 @@ public class StructureBuilder : MonoBehaviour
             else if (activeTheme.themeId == "Set1" || activeTheme.themeId == "Set3" ||
                      (activeTheme.name != null && (activeTheme.name.Contains("Set1") || activeTheme.name.Contains("Set3"))))
             {
-                if (floorsCt < 4)
+                if (floorsCt < 5)
                 {
-                    floorsCt = 4;
+                    floorsCt = 5;
                 }
             }
         }
@@ -179,7 +179,23 @@ public class StructureBuilder : MonoBehaviour
             if (currentPowerUps.Length > 0)
             {
                 Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * floorH) + 2f);
-                GameObject powerUp = Instantiate(currentPowerUps[Random.Range(0, currentPowerUps.Length)], powerUpPosition, Quaternion.identity, transform);
+                GameObject pickedPrefab = currentPowerUps[Random.Range(0, currentPowerUps.Length)];
+                GameObject powerUp = Instantiate(pickedPrefab, powerUpPosition, Quaternion.identity, transform);
+
+                Toast toastComp = powerUp.GetComponent<Toast>();
+                if (toastComp == null) toastComp = powerUp.GetComponentInChildren<Toast>();
+                if (toastComp != null)
+                {
+                    System.Collections.Generic.List<GameObject> alternatives = new System.Collections.Generic.List<GameObject>();
+                    foreach (var p in currentPowerUps)
+                    {
+                        if (p != null && p.GetComponent<Toast>() == null && p.GetComponentInChildren<Toast>() == null)
+                        {
+                            alternatives.Add(p);
+                        }
+                    }
+                    toastComp.alternativePowerUps = alternatives.ToArray();
+                }
             }
         }
         

@@ -1,6 +1,6 @@
 # Running Late — Roadmap & Lista de Tareas
 
-Última actualización: Agosto 2026
+Última actualización: 28 Agosto 2026
 
 ---
 
@@ -27,6 +27,10 @@
 
 ### 5. 🛣️ Alineación Grid de Carretera / Aceras — *Postergado*
 - [ ] Unificar el ancho de las piezas de carretera plana (16.0) con las de rampas (19.06 / 3.38).
+
+### 6. 🍞 Drop de Tostada al Recibir Daño
+- [ ] Cuando el jugador recibe un golpe, soltar/lanzar una tostada como objeto físico en la escena.
+
 
 ---
 
