@@ -742,7 +742,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 507323232098715266, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 121.43025
       objectReference: {fileID: 0}
     - target: {fileID: 507323232098715266, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -783,6 +783,10 @@ PrefabInstance:
     - target: {fileID: 2461808500441472560, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Transition
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2841711659371198462, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3228578124198124364, guid: aeeb6e23206be445e9b900cf58564932, type: 3}
       propertyPath: m_Transition
@@ -5145,10 +5149,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1506005876}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 253, y: -473.83}
-  m_SizeDelta: {x: 500, y: 415}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 215.01, y: 76}
+  m_SizeDelta: {x: 430.01, y: 430}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1034127457
 MonoBehaviour:
@@ -5180,10 +5184,10 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 0
-  m_Spacing: 10
+  m_ChildAlignment: 1
+  m_Spacing: 8
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
@@ -7539,6 +7543,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ControlsTutorialOverlay
       objectReference: {fileID: 0}
+    - target: {fileID: 1000000001, guid: 59f2a56082984f73bff77b5af8c92576, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1000000002, guid: 59f2a56082984f73bff77b5af8c92576, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -7622,18 +7630,6 @@ PrefabInstance:
     - target: {fileID: 1000000003, guid: 59f2a56082984f73bff77b5af8c92576, type: 3}
       propertyPath: m_Alpha
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1000000003, guid: 59f2a56082984f73bff77b5af8c92576, type: 3}
-      propertyPath: m_Interactable
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1000000003, guid: 59f2a56082984f73bff77b5af8c92576, type: 3}
-      propertyPath: m_BlocksRaycasts
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 10000000101, guid: 59f2a56082984f73bff77b5af8c92576, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

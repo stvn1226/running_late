@@ -64,8 +64,11 @@ public class UIPowerUp : MonoBehaviour
         Transform rootTarget = (transform.parent != null && transform.parent.name.Contains("Container")) ? transform.parent : transform;
         if (_canvasGroup == null)
         {
-            // Busca CanvasGroup en el contenedor padre (PowerUpContainer) o en sí mismo
             _canvasGroup = rootTarget.GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = GetComponentInParent<CanvasGroup>();
+            }
             if (_canvasGroup == null)
             {
                 _canvasGroup = rootTarget.gameObject.AddComponent<CanvasGroup>();
@@ -116,39 +119,38 @@ public class UIPowerUp : MonoBehaviour
 
     private void ProcessFill()
     {
-        if (_duration <= 0f) return;
-
-        _targetAlpha = 1f;
+        if (_duration <= 0f)
+        {
+            if (_canvasGroup != null) _canvasGroup.alpha = 1f;
+            return;
+        }
 
         _currentTime += Time.deltaTime;
+        float progress = Mathf.Clamp01(_currentTime / _duration);
 
-        if (_currentTime <= _duration)
+        // Update timer circle fill
+        float remainingTime = _duration - _currentTime;
+        float fillAmount = Mathf.Clamp01(remainingTime / _duration);
+        if (_timerCircle != null)
         {
-            float remainingTime = _duration - _currentTime;
-            float fillAmount = remainingTime / _duration;
-            if (_timerCircle != null)
-            {
-                _timerCircle.fillAmount = fillAmount;
-            }
+            _timerCircle.fillAmount = fillAmount;
         }
-        else
+
+        // Alpha fade logic: hold 100% alpha during first 1/3, then fade out during remaining 2/3
+        float targetAlpha = 1f;
+        if (progress > 0.333f)
         {
-            _targetAlpha = 0f;
+            float fadeProgress = (progress - 0.333f) / 0.667f;
+            targetAlpha = Mathf.Clamp01(1f - fadeProgress);
         }
 
         if (_canvasGroup != null)
         {
-            _canvasGroup.alpha = Mathf.Lerp(_canvasGroup.alpha, _targetAlpha, _fadeSpeed * Time.deltaTime);
-
-            if (_canvasGroup.alpha <= 0.05f && _targetAlpha == 0f)
-            {
-                if (_UIPowerUpHandler != null)
-                {
-                    _UIPowerUpHandler.UnregisterPowerUp(powerUpName);
-                }
-            }
+            _canvasGroup.alpha = targetAlpha;
         }
-        else if (_targetAlpha == 0f)
+
+        // Expired -> unregister and destroy card
+        if (_currentTime >= _duration)
         {
             if (_UIPowerUpHandler != null)
             {

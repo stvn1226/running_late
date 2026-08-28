@@ -4,8 +4,11 @@ using UnityEngine;
 public class BuildingThemeSet : ScriptableObject
 {
     [Header("Identity")]
-    [Tooltip("Identificador único del tema (e.g. 'cine', 'depato', 'police', 'tea'). Se usa para evitar repetir el mismo tipo de edificio consecutivamente.")]
+    [Tooltip("Unique theme identifier (e.g. 'Set1', 'Set3', 'police', 'tea'). Used to prevent repeating the same building theme consecutively.")]
     public string themeId;
+
+    [Tooltip("Minimum number of floors required for this specific theme. If > 0, overrides the building's floor count.")]
+    public int minFloorsOverride = 0;
 
     [Header("Structure Prefabs")]
     public GameObject[] groundPrefabs;

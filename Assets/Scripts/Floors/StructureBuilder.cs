@@ -12,7 +12,7 @@ public class StructureBuilder : MonoBehaviour
     public GameObject[] roofPrefabs;
 
     [Header("Thematic Sets (Optional)")]
-    [Tooltip("Si asignas sets aquí, el edificio elegirá uno al azar y usará solo sus piezas. Si está vacío, usará los de arriba.")]
+    [Tooltip("If you assign sets here, the building will pick one at random and only use its pieces. If empty, it uses default pieces above.")]
     public BuildingThemeSet[] allowedThemes;
 
     [Header("Rooftop Obstacles")]
@@ -27,7 +27,7 @@ public class StructureBuilder : MonoBehaviour
     
     private BoxCollider2D buildingCollider;
 
-    /// <summary>El BuildingThemeSet elegido al azar en la última llamada a ConstructStructure(). Null si usa los prefabs default.</summary>
+    /// <summary>The BuildingThemeSet chosen at random during the last ConstructStructure() call. Null if using default prefabs.</summary>
     public BuildingThemeSet ActiveTheme { get; private set; }
 
     public void ConstructStructure(string excludeThemeId = null)
@@ -65,7 +65,7 @@ public class StructureBuilder : MonoBehaviour
                 validThemes.Add(curThemes[i]);
             }
 
-            // Fallback si todos fueron filtrados
+            // Fallback if all themes were filtered out
             if (validThemes.Count == 0)
             {
                 for (int i = 0; i < curThemes.Length; i++)
@@ -80,6 +80,23 @@ public class StructureBuilder : MonoBehaviour
             }
         }
         ActiveTheme = activeTheme;
+
+        // Rule: If the chosen theme specifies a minimum floor requirement (e.g. Set1 Cinema, Set3 Police), enforce it
+        if (activeTheme != null)
+        {
+            if (activeTheme.minFloorsOverride > 0 && floorsCt < activeTheme.minFloorsOverride)
+            {
+                floorsCt = activeTheme.minFloorsOverride;
+            }
+            else if (activeTheme.themeId == "Set1" || activeTheme.themeId == "Set3" ||
+                     (activeTheme.name != null && (activeTheme.name.Contains("Set1") || activeTheme.name.Contains("Set3"))))
+            {
+                if (floorsCt < 4)
+                {
+                    floorsCt = 4;
+                }
+            }
+        }
 
         // 3. Floor prefabs (from activeTheme or local)
         GameObject[] currentGrounds = (activeTheme != null && activeTheme.groundPrefabs != null && activeTheme.groundPrefabs.Length > 0) ? activeTheme.groundPrefabs : groundPrefabs;
