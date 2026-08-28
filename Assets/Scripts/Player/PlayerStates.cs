@@ -654,6 +654,16 @@ public class PlayerStates : MonoBehaviour
     {
         isStaggered = true;
         staggerTimer = duration;
+        dropDownHeld = false;
+        isDroppingDown = false;
+        crouchHeld = false;
+        isSliding = false;
+
+        PlayerOneWayPlatform oneWayPlatform = GetComponentInChildren<PlayerOneWayPlatform>();
+        if (oneWayPlatform != null)
+        {
+            oneWayPlatform.ForceStop();
+        }
         
         if (hasToast)
         {

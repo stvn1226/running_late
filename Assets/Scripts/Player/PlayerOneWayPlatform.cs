@@ -47,8 +47,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
     {
         if (playerCollider == null || playerStates == null || playerRb == null) return;
 
-        // Only allow drop-through if NOT sliding on a cable
-        if (playerStates.dropDownHeld && !playerStates.isSlidingOnCable)
+        // Only allow drop-through if NOT sliding on a cable and NOT staggered
+        if (playerStates.dropDownHeld && !playerStates.isSlidingOnCable && !playerStates.isStaggered)
         {
             DropThrough();
         }
@@ -71,7 +71,7 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private void StopDropThrough()
     {
-        if (playerStates.isDroppingDown)
+        if (playerStates.isDroppingDown || ignoredPlatforms.Count > 0)
         {
             playerStates.isDroppingDown = false;
             GameLogger.Log("PLATFORM", "DropThrough ENDED - Restoring collisions");
@@ -94,8 +94,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
 
     private void IgnorePlatformsAhead()
     {
-        // Only look ahead if falling or moving down
-        if (playerRb.linearVelocity.y > 0.1f) return;
+        // Only skip looking ahead if jumping strongly upwards
+        if (playerRb.linearVelocity.y > 1.5f) return;
 
         Bounds lookAheadBounds = CalculateLookAheadBounds();
         Collider2D[] platforms = GetPlatformsInBounds(lookAheadBounds);
@@ -113,13 +113,16 @@ public class PlayerOneWayPlatform : MonoBehaviour
     {
         Vector2 velocity = playerRb.linearVelocity;
         
-        // Only look down
-        float lookAheadDistance = Mathf.Max(baseLookAhead, Mathf.Abs(velocity.y) * velocityLookAheadMultiplier);
-        Vector3 lookAheadOffset = Vector3.down * (lookAheadDistance * 0.5f);
+        // Look down and also look forward in the direction of horizontal movement
+        float lookAheadX = Mathf.Max(1.5f, Mathf.Abs(velocity.x) * 0.25f);
+        float lookAheadY = Mathf.Max(baseLookAhead, Mathf.Abs(velocity.y) * velocityLookAheadMultiplier);
+        
+        float dirX = Mathf.Abs(velocity.x) > 0.1f ? Mathf.Sign(velocity.x) : 1f;
+        Vector3 lookAheadOffset = new Vector3(dirX * (lookAheadX * 0.5f), -lookAheadY * 0.5f, 0f);
         
         Bounds bounds = playerCollider.bounds;
         bounds.center += lookAheadOffset;
-        bounds.size = new Vector3(bounds.size.x + 0.2f, lookAheadDistance, bounds.size.z);
+        bounds.size = new Vector3(bounds.size.x + lookAheadX, lookAheadY, bounds.size.z);
         
         return bounds;
     }
@@ -225,14 +228,45 @@ public class PlayerOneWayPlatform : MonoBehaviour
         }
     }
 
-    // Simple unconditional delay: wait a short fixed time, then restore regardless.
-    // No looping, no overlap checks — avoids frame-by-frame bound jitter causing random falls.
     private IEnumerator RestoreDelayedPlatforms()
     {
-        yield return new WaitForSeconds(0.1f);
+        float timeout = 0.5f;
+        float elapsed = 0f;
 
+        while (platformsToRestore.Count > 0 && elapsed < timeout)
+        {
+            for (int i = platformsToRestore.Count - 1; i >= 0; i--)
+            {
+                Collider2D platform = platformsToRestore[i];
+                if (platform == null)
+                {
+                    platformsToRestore.RemoveAt(i);
+                    continue;
+                }
+
+                // Restore only once the player is no longer overlapping or has fully fallen below the platform top
+                bool isStillOverlapping = playerCollider != null && playerCollider.bounds.Intersects(platform.bounds);
+                bool isPlayerBelow = playerCollider != null && playerCollider.bounds.max.y <= platform.bounds.max.y;
+
+                if (!isStillOverlapping || (isPlayerBelow && playerRb.linearVelocity.y <= 0f))
+                {
+                    RestorePlatformCollision(platform);
+                    platformsToRestore.RemoveAt(i);
+                }
+            }
+
+            if (platformsToRestore.Count == 0) break;
+
+            yield return new WaitForSeconds(0.05f);
+            elapsed += 0.05f;
+        }
+
+        // Final safety cleanup
         foreach (Collider2D platform in platformsToRestore)
-            RestorePlatformCollision(platform);
+        {
+            if (platform != null)
+                RestorePlatformCollision(platform);
+        }
 
         platformsToRestore.Clear();
         restoreCoroutine = null;
@@ -243,9 +277,45 @@ public class PlayerOneWayPlatform : MonoBehaviour
     public void ForceStop()
     {
         if (playerStates != null)
-            playerStates.SetDropDownReleased();
+        {
+            playerStates.dropDownHeld = false;
+            playerStates.isDroppingDown = false;
+        }
         
-        StopDropThrough();
+        if (restoreCoroutine != null)
+        {
+            StopCoroutine(restoreCoroutine);
+            restoreCoroutine = null;
+        }
+
+        foreach (Collider2D platform in ignoredPlatforms)
+        {
+            if (platform != null && playerCollider != null)
+            {
+                Physics2D.IgnoreCollision(playerCollider, platform, false);
+            }
+        }
+        ignoredPlatforms.Clear();
+
+        foreach (Collider2D platform in platformsToRestore)
+        {
+            if (platform != null && playerCollider != null)
+            {
+                Physics2D.IgnoreCollision(playerCollider, platform, false);
+            }
+        }
+        platformsToRestore.Clear();
+
+        if (playerCollider != null && playerCollider.enabled)
+        {
+            playerCollider.enabled = false;
+            playerCollider.enabled = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        ForceStop();
     }
 
 

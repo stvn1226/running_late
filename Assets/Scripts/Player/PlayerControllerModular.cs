@@ -154,6 +154,11 @@ public class PlayerControllerModular : MonoBehaviour
 
     private void Update()
     {
+        if (inputActions == null)
+        {
+            inputActions = new PlayerInputActions();
+        }
+
         if (!inputEnabled)
         {
             if (!IsMobileMode && inputActions.Gameplay.enabled)
