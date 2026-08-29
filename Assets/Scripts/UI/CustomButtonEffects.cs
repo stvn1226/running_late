@@ -62,6 +62,11 @@ public class CustomButtonEffects : MonoBehaviour,
     public void OnPointerExit(PointerEventData eventData)
     {
         ApplyNormalState();
+
+        if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == gameObject && !eventData.dragging)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
     
     public void OnSelect(BaseEventData eventData)
@@ -78,12 +83,27 @@ public class CustomButtonEffects : MonoBehaviour,
     public void OnPointerDown(PointerEventData eventData)
     {
         if (button != null && !button.interactable) return;
-        ApplyNormalState();
+        ApplyHighlightedState();
     }
     
     public void OnPointerUp(PointerEventData eventData)
     {
-        ApplyNormalState();
+        if (button != null && !button.interactable) return;
+
+        bool isPointerOver = eventData.hovered != null && eventData.hovered.Contains(gameObject);
+
+        if (isPointerOver)
+        {
+            ApplyHighlightedState();
+        }
+        else
+        {
+            ApplyNormalState();
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == gameObject)
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+        }
     }
     
     private void ApplyNormalState()
@@ -92,6 +112,10 @@ public class CustomButtonEffects : MonoBehaviour,
         
         ApplyFont(effectProfile.normalFont, effectProfile.jpNormalFont);
         ApplyFontSize(baseFontSize, jpBaseFontSize);
+        ApplyTextColor(effectProfile.normalTextColor);
+        ApplyMaskState(effectProfile.showMaskOnNormal);
+        ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
+
         if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
         {
             textAnimator.SetText(originalText);
