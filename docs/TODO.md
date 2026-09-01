@@ -1,12 +1,17 @@
 # Running Late — Roadmap & Lista de Tareas
 
-Última actualización: 28 Agosto 2026
+Última actualización: 31 Agosto 2026
 
 ---
 
 ## 🎯 Tareas Activas / Por Hacer
 
-### 1. 🕹️ Tutorial / Overlay Interactivo de Controles (En progreso - A medio camino)
+### 1. 🐱 Animales en Techo de Edificios Verdes Medianos Caían al Piso
+- [ ] En `StructureBuilder.cs`, la posición `Y` de spawn de obstáculos/power-ups en techos (`(floorsCt) * floorH`) asumía altura fija de 4.275, pero los techos de edificios verdes (Sets 4, 5, 6 - Tea Shop) tienen su collider `Cap` a `Y = 6.5`.
+- [ ] Esto hacía que gatos y palomas aparecieran *debajo* del collider `Cap` (dentro del ático del edificio), cayendo al vacío por gravedad debido a que `Cap` es una `OneWayPlatform`.
+- [ ] Solución: Calcular la altura real de spawn basándose en los `bounds.max.y` del collider `Cap` del techo instanciado para garantizar que siempre aparezcan sobre la superficie.
+
+### 2. 🕹️ Tutorial / Overlay Interactivo de Controles (En progreso - A medio camino)
 - [x] Construido el overlay visual utilizando el arte dedicado en capas de `Assets/Sprites/ControlsOverlay/` (`Controller Front/` y `Keyboard and Mouse/`).
 - [x] Detección y cambio dinámico entre Mando y Teclado en tiempo real según la entrada activa.
 - [x] Validación y retroalimentación interactiva (los botones se iluminan y validan las 4 acciones: Moverse, Saltar, Deslizarse, Patear).

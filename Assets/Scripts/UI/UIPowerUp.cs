@@ -21,6 +21,19 @@ public class UIPowerUp : MonoBehaviour
     private CanvasGroup _canvasGroup;
     [SerializeField] private float _fadeSpeed = 5f;
 
+    [Header("Fade Settings")]
+    [Tooltip("Normalized time [0..1] when the power-up card starts fading out. Default 0.75 means 100% visible for the first 75% of duration.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _fadeStartNormalized = 0.75f;
+
+    [Tooltip("Enable to use a custom curve for alpha over lifetime (0.0 to 1.0 progress).")]
+    [SerializeField] private bool _useCustomCurve = false;
+    [SerializeField] private AnimationCurve _fadeCurve = new AnimationCurve(
+        new Keyframe(0f, 1f),
+        new Keyframe(0.75f, 1f),
+        new Keyframe(1f, 0f)
+    );
+
     private static UIPowerUpHandler _UIPowerUpHandler;
 
     public void AssignHandler(UIPowerUpHandler handler)
@@ -136,12 +149,20 @@ public class UIPowerUp : MonoBehaviour
             _timerCircle.fillAmount = fillAmount;
         }
 
-        // Alpha fade logic: hold 100% alpha during first 1/5 (20%), then fade out progressively during remaining 4/5 (80%)
+        // Alpha fade logic: configurable threshold or custom curve
         float targetAlpha = 1f;
-        if (progress > 0.2f)
+        if (_useCustomCurve && _fadeCurve != null)
         {
-            float fadeProgress = (progress - 0.2f) / 0.8f;
-            targetAlpha = Mathf.Clamp01(1f - fadeProgress);
+            targetAlpha = Mathf.Clamp01(_fadeCurve.Evaluate(progress));
+        }
+        else
+        {
+            if (progress > _fadeStartNormalized)
+            {
+                float fadeRange = Mathf.Max(0.001f, 1f - _fadeStartNormalized);
+                float fadeProgress = (progress - _fadeStartNormalized) / fadeRange;
+                targetAlpha = Mathf.Clamp01(1f - fadeProgress);
+            }
         }
 
         if (_canvasGroup != null)

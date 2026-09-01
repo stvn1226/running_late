@@ -740,6 +740,7 @@ public class LevelStarter : MonoBehaviour
             $"tileZ={backgroundTile.transform.position.z:F3} " +
             $"backgroundParentChildCount_before={backgroundParent.childCount}");
 
+#if UNITY_EDITOR
         // [BackgroundAudit] — scan for background SpriteRenderers outside backgroundParent
         SpriteRenderer[] allSRs = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         int orphanCount = 0;
@@ -761,6 +762,7 @@ public class LevelStarter : MonoBehaviour
         }
         if (orphanCount == 0)
             GameLogger.Log("BackgroundAudit", "[OrphanBG] None found outside backgroundParent.");
+#endif
 
         float rangeWidth = endX - startX;
         int tileCount = Mathf.CeilToInt(rangeWidth / tileWidth);

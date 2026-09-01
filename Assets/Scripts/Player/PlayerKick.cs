@@ -33,17 +33,18 @@ public class PlayerKick : MonoBehaviour
 
         if (states.isKicking)
         {
-            if (playerAnimator.IsPlayingKick())
+            bool isActuallyInKick = playerAnimator.IsInKickState();
+            float nTime = playerAnimator.GetKickNormalizedTime();
+
+            if (isActuallyInKick)
             {
-                float nTime = playerAnimator.GetKickNormalizedTime();
                 bool shouldBeActive = nTime >= config.kickHitboxStartN && nTime <= config.kickHitboxEndN;
 
                 if (shouldBeActive && !hitboxActive) EnableHitbox();
                 else if (!shouldBeActive && hitboxActive) DisableHitbox();
 
-                // Animation finished (reached >= 95% without looping)
-                // Only check completion after startup to avoid reading previous clip's residual normalizedTime
-                if (Time.frameCount > states.kickStartFrame + 1 && (Time.time - states.kickStartTime) > 0.05f && nTime >= 0.95f)
+                // Animation finished (reached >= 95% of actual kick clip)
+                if (!playerAnimator.IsInTransition() && nTime >= 0.95f && (Time.time - states.kickStartTime) > 0.1f)
                 {
                     DisableHitbox();
                     states.EndKick("animFinished");
@@ -51,12 +52,15 @@ public class PlayerKick : MonoBehaviour
             }
             else
             {
-                // SAFETY: Give animator at least 2 frames to catch up with state change
-                if (Time.frameCount > states.kickStartFrame + 2 && (Time.time - states.kickStartTime) > 0.06f)
+                // Animator is transitioning into kick or hasn't switched clips yet
+                if (hitboxActive) DisableHitbox();
+
+                // Generous safety backstop (0.35s): only force exit if Animator completely failed to enter Kick state
+                if ((Time.time - states.kickStartTime) > 0.35f)
                 {
-                    GameLogger.LogWarning("KICK", $"INTERRUPTED: Animator mismatch after startup frame. State isKicking=true but Animator is {playerAnimator.GetCurrentStateName()} (Frame: {Time.frameCount} > {states.kickStartFrame})");
+                    GameLogger.LogWarning("KICK", $"INTERRUPTED: Animator failed to enter kick state within 0.35s (State is {playerAnimator.GetCurrentStateName()})");
                     DisableHitbox();
-                    states.EndKick("animMismatch");
+                    states.EndKick("animMismatchTimeout");
                 }
             }
         }

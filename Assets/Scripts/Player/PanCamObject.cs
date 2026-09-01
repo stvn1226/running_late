@@ -31,8 +31,10 @@ public class PanCamObject : MonoBehaviour
         inputActions.Gameplay.PanCamera.performed += OnPanInput;
         inputActions.Gameplay.PanCamera.canceled += OnPanInput;
         
+#if UNITY_EDITOR
         if (showDebug)
             Debug.Log("[PanCam] Successfully subscribed to PanCamera input");
+#endif
     }
 
     private void OnDisable()
@@ -55,8 +57,10 @@ public class PanCamObject : MonoBehaviour
             panInput = rawInput;
         }
         
+#if UNITY_EDITOR
         if (showDebug)
             Debug.Log($"[PanCam] Raw Input: {rawInput} | Pan Input: {panInput}");
+#endif
     }
 
     void Update()
@@ -82,10 +86,12 @@ public class PanCamObject : MonoBehaviour
         
         targetLocalPosition = normalizedInput * (config.panAmount * inputMagnitude);
         
+#if UNITY_EDITOR
         if (showDebug && panInput.magnitude > inputDeadzone)
         {
             Debug.Log($"[PanCam] Target: {targetLocalPosition} | X: {targetLocalPosition.x:F2} | Y: {targetLocalPosition.y:F2}");
         }
+#endif
     }
 
     private void ApplyMovement()
@@ -102,10 +108,12 @@ public class PanCamObject : MonoBehaviour
             smoothTime
         );
 
+#if UNITY_EDITOR
         if (showDebug && isPanning && Vector2.Distance(previousPos, transform.localPosition) > 0.01f)
         {
             Debug.Log($"[PanCam] LocalPos: {transform.localPosition} | X: {transform.localPosition.x:F2} | Y: {transform.localPosition.y:F2}");
         }
+#endif
 
         if (!isPanning && Vector2.Distance(transform.localPosition, Vector2.zero) < 0.01f)
         {

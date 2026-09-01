@@ -207,6 +207,7 @@ GameObject:
   - component: {fileID: 8330205135604187526}
   - component: {fileID: 8379349520252296546}
   - component: {fileID: 434114013059256206}
+  - component: {fileID: 7182810788064647637}
   m_Layer: 6
   m_Name: Toast
   m_TagString: Untagged
@@ -361,6 +362,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.5620193, y: 1.4756585}
   m_EdgeRadius: 0
+--- !u!114 &7182810788064647637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4282219327148794248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5e0b45862ab9429fba16b296e452a16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ToastDrop
+  launchForceX: 3
+  launchForceY: 5
+  randomSpread: 1.5
+  lifetime: 3
 --- !u!1 &4428378737645155119
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,7 +873,6 @@ GameObject:
   - component: {fileID: 4559617286583674113}
   - component: {fileID: 379714379640921349}
   - component: {fileID: -550871175569294737}
-  - component: {fileID: 8243602615823584120}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1115,7 +1131,7 @@ MonoBehaviour:
   isSlidingOnCable: 0
   currentCable: {fileID: 0}
   cableSlideSpeed: 0
-  toastDrop: {fileID: 8243602615823584120}
+  toastDrop: {fileID: 7182810788064647637}
 --- !u!114 &936994605630686359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1334,22 +1350,6 @@ MonoBehaviour:
   landDust: {fileID: 5833347570427645229}
   doubleJumpDust: {fileID: 8795462226402282818}
   toastBreak: {fileID: 5746394074635313460}
---- !u!114 &8243602615823584120
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7558522345653489904}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5e0b45862ab9429fba16b296e452a16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ToastDrop
-  launchForceX: 3
-  launchForceY: 5
-  randomSpread: 1.5
-  lifetime: 3
 --- !u!1 &7773303349957447473
 GameObject:
   m_ObjectHideFlags: 0

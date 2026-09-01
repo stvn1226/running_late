@@ -94,7 +94,7 @@ public class VictoryPanel : BaseMenuPanel
                 
                 if (isNewRecord)
                 {
-                    bestTimeText.text = $"<wave>{bestRecord.GetFormattedTime()} (NEW!)";
+                    bestTimeText.text = $"<wave>{bestRecord.GetFormattedTime()} (NEW!)</wave>";
                     bestTimeText.color = Color.yellow;
                 }
                 else
@@ -115,7 +115,15 @@ public class VictoryPanel : BaseMenuPanel
         if (titleText != null && victoryPhrases.Length > 0)
         {
             int randomIndex = Random.Range(0, victoryPhrases.Length);
-            titleText.text = victoryPhrases[randomIndex];
+            string phrase = victoryPhrases[randomIndex];
+            if (!string.IsNullOrEmpty(phrase))
+            {
+                if (phrase.StartsWith("<incr>") && !phrase.Contains("</incr>"))
+                {
+                    phrase += "</incr>";
+                }
+                titleText.text = phrase;
+            }
         }
     }
     

@@ -195,9 +195,10 @@ public class PlayerAnimator : MonoBehaviour
 
         if (states.isKicking)
         {
-            // Check if the kick animation has actually finished
+            // Check if the kick animation has actually finished playing
+            bool isActuallyInKick = IsInKickState();
             float nTime = GetKickNormalizedTime();
-            if (Time.frameCount > states.kickStartFrame + 1 && (Time.time - states.kickStartTime) > 0.05f && nTime >= 0.95f)
+            if (isActuallyInKick && (animator != null && !animator.IsInTransition(0)) && nTime >= 0.95f && (Time.time - states.kickStartTime) > 0.1f)
             {
                 // Animation done — end the state and fall through to normal locomotion
                 states.EndKick("animDone-animator");
@@ -375,6 +376,20 @@ public class PlayerAnimator : MonoBehaviour
         crossFadeDuration = Mathf.Max(0f, duration);
     }
 
+    public bool IsInKickState()
+    {
+        if (animator == null) return false;
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        return stateInfo.shortNameHash == AnimHash.KickA || 
+               stateInfo.shortNameHash == AnimHash.KickB || 
+               stateInfo.shortNameHash == AnimHash.KickC;
+    }
+
+    public bool IsInTransition()
+    {
+        return animator != null && animator.IsInTransition(0);
+    }
+
     public bool IsPlayingKick()
     {
         return currentStateHash == AnimHash.KickA || 
@@ -384,7 +399,7 @@ public class PlayerAnimator : MonoBehaviour
 
     public float GetKickNormalizedTime()
     {
-        if (!IsPlayingKick()) return 0f;
+        if (animator == null || !IsInKickState()) return 0f;
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
         return Mathf.Clamp01(stateInfo.normalizedTime);
     }
