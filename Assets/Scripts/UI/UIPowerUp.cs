@@ -22,15 +22,15 @@ public class UIPowerUp : MonoBehaviour
     [SerializeField] private float _fadeSpeed = 5f;
 
     [Header("Fade Settings")]
-    [Tooltip("Normalized time [0..1] when the power-up card starts fading out. Default 0.75 means 100% visible for the first 75% of duration.")]
+    [Tooltip("Normalized time [0..1] when the power-up card starts fading out. 0.85 means 100% visible for the first 85% of duration, fading fast during the remaining 15%.")]
     [Range(0f, 1f)]
-    [SerializeField] private float _fadeStartNormalized = 0.75f;
+    [SerializeField] private float _fadeStartNormalized = 0.85f;
 
     [Tooltip("Enable to use a custom curve for alpha over lifetime (0.0 to 1.0 progress).")]
     [SerializeField] private bool _useCustomCurve = false;
     [SerializeField] private AnimationCurve _fadeCurve = new AnimationCurve(
         new Keyframe(0f, 1f),
-        new Keyframe(0.75f, 1f),
+        new Keyframe(0.85f, 1f),
         new Keyframe(1f, 0f)
     );
 
