@@ -33,6 +33,8 @@ namespace UI.GamePanels
         }
 
         [Header("Tutorial Progression Rules")]
+        [Tooltip("Master switch to enable/disable the tutorial popup entirely.")]
+        [SerializeField] private bool enableTutorial = false;
         [Tooltip("If FALSE (default): pressing at least ONE valid input advances to the next step. If TRUE: ALL displayed inputs for the step must be pressed before advancing.")]
         [SerializeField] private bool requireAllKeysPerStep = false;
 
@@ -147,6 +149,12 @@ namespace UI.GamePanels
                 mainCanvasGroup.interactable = false;
             }
 
+            if (!enableTutorial)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             if (startLevelButton != null)
             {
                 startLevelButton.onClick.AddListener(OnStartClicked);
@@ -250,12 +258,13 @@ namespace UI.GamePanels
 
         public static bool ShouldShowTutorial()
         {
-            if (Instance != null && Instance.forceShowForTesting) return true;
-            return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;
+            if (Instance != null) return Instance.ShouldShowTutorialInstance();
+            return false;
         }
 
         public bool ShouldShowTutorialInstance()
         {
+            if (!enableTutorial) return false;
             if (forceShowForTesting) return true;
             return PlayerPrefs.GetInt(TUTORIAL_DONE_PREF, 0) == 0;
         }
@@ -276,11 +285,20 @@ namespace UI.GamePanels
                 {
                     overlay.ShowTutorial(onComplete);
                 }
+                else
+                {
+                    onComplete?.Invoke();
+                }
             }
         }
 
         public void ShowTutorial(Action onComplete)
         {
+            if (!enableTutorial)
+            {
+                onComplete?.Invoke();
+                return;
+            }
             onCompleteCallback = onComplete;
             isShowing = true;
 
