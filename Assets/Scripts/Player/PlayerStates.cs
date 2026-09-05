@@ -549,30 +549,24 @@ public class PlayerStates : MonoBehaviour
         jumpPressed = false;
     }
 
+    public int kickTriggerCount = 0;
+
     public void SetKickPressed(float kickDuration)
     {
-        if (!isKicking)
+        if (isRolling)
         {
-            if (isRolling)
-            {
-                EndRoll();
-            }
-            
-            kickPressed = true;
-            isKicking = true;
-            kickBufferTimer = 0f;
-            kickTimer = kickDuration;
-            kickStartTime = Time.time;
-            kickStartFrame = Time.frameCount;
+            EndRoll();
+        }
+        
+        kickPressed = true;
+        isKicking = true;
+        kickTriggerCount++;
+        kickBufferTimer = 0f;
+        kickTimer = kickDuration;
+        kickStartTime = Time.time;
+        kickStartFrame = Time.frameCount;
 
-            if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
-        }
-        else
-        {
-            // Buffer input so rapid spam triggers the next kick seamlessly
-            kickBufferTimer = KICK_BUFFER_DURATION;
-            if (config != null && config.kickDebug) GameLogger.Log("KICK", "STATE: Kick buffered while kicking");
-        }
+        if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE #{kickTriggerCount} - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
     }
 
     public void EndKick(string reason = "finished")
@@ -582,12 +576,6 @@ public class PlayerStates : MonoBehaviour
             isKicking = false;
             kickTimer = 0f;
             if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
-
-            if (kickBufferTimer > 0f)
-            {
-                kickBufferTimer = 0f;
-                SetKickPressed(config != null ? config.kickDuration : 0.3f);
-            }
         }
     }
 

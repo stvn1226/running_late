@@ -73,6 +73,7 @@ public class PlayerAnimator : MonoBehaviour
     private float lastAnimationChangeTime = 0f;
     private const float MIN_ANIMATION_CHANGE_INTERVAL = 0.05f;
     private int frameCounter = 0;
+    private int lastHandledKickCount = -1;
 
     private void Awake()
     {
@@ -87,7 +88,7 @@ public class PlayerAnimator : MonoBehaviour
         {
             frameCounter++;
             
-            bool isInLocomotion = (currentStateHash == AnimHash.Idle || currentStateHash == AnimHash.Run);
+            bool isInLocomotion = (currentStateHash == AnimHash.Idle || currentStateHash == AnimHash.Run) && !states.isKicking;
             
             if (isInLocomotion && frameCounter % (skipFramesInLocomotion + 1) != 0)
             {
@@ -100,6 +101,19 @@ public class PlayerAnimator : MonoBehaviour
 
     private void UpdateAnimation()
     {
+        // Immediate Kick Strike or Re-trigger (Spam)
+        if (states.isKicking && states.kickTriggerCount != lastHandledKickCount)
+        {
+            lastHandledKickCount = states.kickTriggerCount;
+            animator.Play(AnimHash.KickA, 0, 0f);
+            animator.Update(0f);
+            currentStateHash = AnimHash.KickA;
+            currentStateName = "Kick";
+            lastAnimationChangeTime = Time.time;
+            GameLogger.Log("ANIM", $"KICK ANIMATION RE-TRIGGER #{lastHandledKickCount} at Frame {Time.frameCount}");
+            return;
+        }
+
         int targetHash = DetermineTargetAnimation();
 
         if (targetHash != currentStateHash)
@@ -186,13 +200,6 @@ public class PlayerAnimator : MonoBehaviour
         if (states.isStaggered)
             return AnimHash.HitDamage;
 
-        if (states.isKicking && !wasKicking)
-        {
-            int kickVar = GetRandomKickVariation();
-            GameLogger.Log("ANIM", $"KICK ANIMATION START: variation={GetStateNameFromHash(kickVar)}, stateFrame={states.kickStartFrame}, animFrame={Time.frameCount}");
-            return kickVar;
-        }
-
         if (states.isKicking)
         {
             // Check if the kick animation has actually finished playing
@@ -205,7 +212,7 @@ public class PlayerAnimator : MonoBehaviour
             }
             else
             {
-                return currentStateHash; // Still playing — hold the kick animation
+                return AnimHash.KickA; // Still playing — hold the kick animation
             }
         }
 
