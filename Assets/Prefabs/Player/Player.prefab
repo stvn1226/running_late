@@ -225,7 +225,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.101, y: 0.351, z: 0}
-  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4400897620013463343}
@@ -378,6 +378,7 @@ MonoBehaviour:
   launchForceY: 5
   randomSpread: 1.5
   lifetime: 3
+  dropScale: 0.5
 --- !u!1 &4428378737645155119
 GameObject:
   m_ObjectHideFlags: 0
@@ -846,6 +847,7 @@ MonoBehaviour:
   states: {fileID: 6913775742238925164}
   kickBox: {fileID: 4371136031473598767}
   kickActivationDelay: 0.1
+  kickActiveDuration: 0.22
 --- !u!1 &7558522345653489904
 GameObject:
   m_ObjectHideFlags: 0
@@ -1132,6 +1134,7 @@ MonoBehaviour:
   currentCable: {fileID: 0}
   cableSlideSpeed: 0
   toastDrop: {fileID: 7182810788064647637}
+  kickTriggerCount: 0
 --- !u!114 &936994605630686359
 MonoBehaviour:
   m_ObjectHideFlags: 0

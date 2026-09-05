@@ -205,6 +205,14 @@ public class PlayerStates : MonoBehaviour
         allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());
     }
 
+    private void Start()
+    {
+        if (hasToast && toastDrop != null)
+        {
+            toastDrop.gameObject.SetActive(true);
+        }
+    }
+
     private void Update()
     {
         LogWallRunStates();
@@ -252,6 +260,10 @@ public class PlayerStates : MonoBehaviour
     public void InvokeToast()
     {
         hasToast = true;
+        if (toastDrop != null)
+        {
+            toastDrop.ResetToPlayer();
+        }
     }
 
     public void RemoveShield()
@@ -685,14 +697,13 @@ public class PlayerStates : MonoBehaviour
         {
             hasToast = false;
             if (playerVFX != null) playerVFX.PlayToastBreak();
-        }
 
-        // Drop the physical toast object if assigned
-        if (toastDrop != null)
-        {
-            bool facingRight = spriteRenderer != null && !spriteRenderer.flipX;
-            toastDrop.Drop(facingRight);
-            toastDrop = null; // Cleared so it drops once per run/level
+            // Drop the physical toast object with physics arc
+            if (toastDrop != null)
+            {
+                bool facingRight = spriteRenderer != null && !spriteRenderer.flipX;
+                toastDrop.Drop(facingRight);
+            }
         }
 
         if (isKicking)
