@@ -43,6 +43,10 @@ public class Dog : Animal
         mainCamera = GameReferences.Instance.MainCamera;
         CachePlayerTransform();
         animator = GetComponent<Animator>();
+        if (animator != null)
+        {
+            animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+        }
         
         if (rb != null)
         {
@@ -61,7 +65,7 @@ public class Dog : Animal
 
         Material picked = materials[Random.Range(0, materials.Length)];
         if (picked != null)
-            dogSpriteRenderer.material = picked;
+            dogSpriteRenderer.sharedMaterial = picked;
     }
 
     private void OnEnable()

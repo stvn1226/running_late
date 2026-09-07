@@ -54,6 +54,7 @@ public class PlayerAnimationDebugger : MonoBehaviour
 
     private void Update()
     {
+#if UNITY_EDITOR
         if (states == null || rb == null) return;
 
         UpdateStateMonitoring();
@@ -65,6 +66,7 @@ public class PlayerAnimationDebugger : MonoBehaviour
         {
             LogFrameState();
         }
+#endif
     }
 
     private void UpdateStateMonitoring()

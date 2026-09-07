@@ -92,7 +92,7 @@ public class Car : Vehicle
 
         Material picked = materials[Random.Range(0, materials.Length)];
         if (picked != null)
-            carSpriteRenderer.material = picked;
+            carSpriteRenderer.sharedMaterial = picked;
     }
 
     /// <summary>

@@ -3,6 +3,10 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
 
+/// <summary>
+/// Editor window tool to bulk-configure texture assets across platforms.
+/// Allows setting optimal resolutions, compression formats, and mipmap settings for 2D sprites.
+/// </summary>
 public class TextureOptimizerTool : EditorWindow
 {
     [System.Serializable]

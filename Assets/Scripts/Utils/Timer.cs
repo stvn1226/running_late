@@ -153,14 +153,42 @@ public class Timer : MonoBehaviour
             GameLogger.Log("TIMER", "Reset");
     }
     
+    /// <summary>
+    /// Updates the HUD display using TextMeshPro's SetText overloads.
+    /// This writes numeric primitives directly into TMP's internal character buffer,
+    /// avoiding heap string allocations (0 bytes GC alloc) on every frame.
+    /// </summary>
     private void UpdateDisplay()
     {
         if (timerText != null)
         {
-            timerText.text = FormatTime(elapsedTime);
+            int minutes = Mathf.FloorToInt(elapsedTime / 60f);
+            int seconds = Mathf.FloorToInt(elapsedTime % 60f);
+            int centiseconds = Mathf.FloorToInt((elapsedTime * 100f) % 100f);
+
+            switch (timeFormat.ToLower())
+            {
+                case "mm:ss":
+                    timerText.SetText("{0:00}:{1:00}", minutes, seconds);
+                    break;
+                case "ss.ff":
+                    timerText.SetText("{0:00}.{1:00}", seconds, centiseconds);
+                    break;
+                case "ss":
+                    timerText.SetText("{0:00}", seconds);
+                    break;
+                default:
+                    timerText.SetText("{0:00}:{1:00}.{2:00}", minutes, seconds, centiseconds);
+                    break;
+            }
         }
     }
     
+    /// <summary>
+    /// Formats a time value into a heap-allocated string.
+    /// Kept for one-off/infrequent operations (e.g. logging on stop or external queries)
+    /// where allocating a string does not hurt frame-by-frame performance.
+    /// </summary>
     private string FormatTime(float time)
     {
         int minutes = Mathf.FloorToInt(time / 60f);
