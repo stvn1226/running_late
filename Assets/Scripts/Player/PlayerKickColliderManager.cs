@@ -36,11 +36,11 @@ public class PlayerKickColliderManager : MonoBehaviour
 
         if (isKicking)
         {
-            // Fresh kick or re-trigger / spam detected
-            if (states.kickTriggerCount != lastHandledKickCount)
+            // New kick started (edge: not kicking last frame → kicking this frame)
+            if (!wasKicking)
             {
                 lastHandledKickCount = states.kickTriggerCount;
-                kickBox.enabled = false; // toggle off to reset overlap triggers
+                kickBox.enabled = false; // reset overlap triggers
                 kickActivationTimer = kickActivationDelay;
                 kickActiveTimer = kickActiveDuration;
 

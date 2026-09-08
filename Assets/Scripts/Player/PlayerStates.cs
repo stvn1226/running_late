@@ -207,9 +207,13 @@ public class PlayerStates : MonoBehaviour
 
     private void Start()
     {
-        if (hasToast && toastDrop != null)
+        // Always ensure Toast starts inactive. It is activated only when the
+        // player collects the Toast power-up at runtime (hasToast set to true
+        // by the power-up pickup). If hasToast is already true here (e.g. from
+        // a mid-game scene reload that preserved state), re-activate it.
+        if (toastDrop != null)
         {
-            toastDrop.gameObject.SetActive(true);
+            toastDrop.gameObject.SetActive(hasToast);
         }
     }
 
@@ -565,11 +569,20 @@ public class PlayerStates : MonoBehaviour
 
     public void SetKickPressed(float kickDuration)
     {
+        // Block new kick input while the current kick animation is still playing.
+        // The animation system (PlayerKick.cs) calls EndKick() when nTime >= 0.95f,
+        // so the next kick can only start after that point.
+        if (isKicking)
+        {
+            if (config != null && config.kickDebug) GameLogger.Log("KICK", "STATE: Kick ignored - previous kick still in progress");
+            return;
+        }
+
         if (isRolling)
         {
             EndRoll();
         }
-        
+
         kickPressed = true;
         isKicking = true;
         kickTriggerCount++;

@@ -101,17 +101,13 @@ public class PlayerAnimator : MonoBehaviour
 
     private void UpdateAnimation()
     {
-        // Immediate Kick Strike or Re-trigger (Spam)
+        // Sync lastHandledKickCount for debug/analytics.
+        // No mid-animation re-trigger: SetKickPressed blocks while isKicking is true,
+        // so kickTriggerCount only increments when a genuinely new kick starts.
         if (states.isKicking && states.kickTriggerCount != lastHandledKickCount)
         {
             lastHandledKickCount = states.kickTriggerCount;
-            animator.Play(AnimHash.KickA, 0, 0f);
-            animator.Update(0f);
-            currentStateHash = AnimHash.KickA;
-            currentStateName = "Kick";
-            lastAnimationChangeTime = Time.time;
-            GameLogger.Log("ANIM", $"KICK ANIMATION RE-TRIGGER #{lastHandledKickCount} at Frame {Time.frameCount}");
-            return;
+            GameLogger.Log("ANIM", $"KICK ANIMATION START #{lastHandledKickCount} at Frame {Time.frameCount}");
         }
 
         int targetHash = DetermineTargetAnimation();
