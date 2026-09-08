@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Utils;
 
 public class BuildingWallsTrigger : MonoBehaviour
@@ -40,27 +39,7 @@ public class BuildingWallsTrigger : MonoBehaviour
         GameLogger.LogVerbose("BUILDING", $"Configured PlatformEffector2D on {effector.gameObject.name} - ColliderMask set to Player only (layer 5). Vehicles excluded.");        
     }
 
-    private void OnEnable()
-    {
-        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
-        {
-            UIManager.Instance.inputActions.Gameplay.WallRun.performed += OnPlayerWallRun;
-            UIManager.Instance.inputActions.Gameplay.WallRun.canceled += OnPlayerStopWallRun;
-        }
-        else
-        {
-            GameLogger.LogWarning("BUILDING", $"Could not subscribe to input events - UIManager or inputActions null");
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (UIManager.Instance != null && UIManager.Instance.inputActions != null)
-        {
-            UIManager.Instance.inputActions.Gameplay.WallRun.performed -= OnPlayerWallRun;
-            UIManager.Instance.inputActions.Gameplay.WallRun.canceled -= OnPlayerStopWallRun;
-        }
-    }
+    // Dead legacy input subscriptions removed: Wall run states are handled directly by player sensors
 
     public void UpdateColliderDimensions(Vector2 size, Vector2 offset)
     {
@@ -91,30 +70,6 @@ public class BuildingWallsTrigger : MonoBehaviour
         {
             gameObject.layer = solid ? hardWallLayer : softWallLayer;
         }
-    }
-
-    private void OnPlayerWallRun(InputAction.CallbackContext context)
-    {
-        // Global toggle disabled to prevent "invisible walls"
-        /*
-        if (boxCollider != null)
-        {
-            GameLogger.LogVerbose("BUILDING", $"WALL RUN STARTED: {gameObject.name} collider set to SOLID");
-            boxCollider.isTrigger = false;
-        }
-        */
-    }
-
-    private void OnPlayerStopWallRun(InputAction.CallbackContext context)
-    {
-        // Global toggle disabled to prevent "invisible walls"
-        /*
-        if (boxCollider != null)
-        {
-            GameLogger.LogVerbose("BUILDING", $"WALL RUN STOPPED: {gameObject.name} collider set to TRIGGER");
-            boxCollider.isTrigger = true;
-        }
-        */
     }
     
     private void OnTriggerEnter2D(Collider2D other)

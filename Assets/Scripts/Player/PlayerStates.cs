@@ -862,9 +862,12 @@ public class PlayerStates : MonoBehaviour
             PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
             Collider2D activeWallCollider = playerPhysics != null ? playerPhysics.CurrentWallCollider : null;
 
-            BuildingDetector[] allBuildings = Object.FindObjectsByType<BuildingDetector>(FindObjectsSortMode.None);
-            foreach (var b in allBuildings)
+            var allBuildings = BuildingDetector.All;
+            for (int i = 0; i < allBuildings.Count; i++)
             {
+                var b = allBuildings[i];
+                if (b == null) continue;
+
                 // If it's between our anchors and NOT an anchor itself
                 if (b != startBuilding && b != endBuilding && 
                     b.transform.position.x >= minX && b.transform.position.x <= maxX)

@@ -455,6 +455,7 @@ public class PlayerControllerModular : MonoBehaviour
     
         PlayerPrefs.SetInt("RetrySeed", currentSeed);
         PlayerPrefs.SetInt("UseRetrySeed", 1);
+        PlayerPrefs.SetInt("RetryPathMode", (int)LevelStarter.Instance.GetPathMode());
     
         GameLogger.Log("PLAYER", $"Fast retry triggered for seed: {currentSeed}");
     

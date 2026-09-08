@@ -77,6 +77,8 @@ public class PauseMenuPanel : BaseMenuPanel
         int currentSeed = levelStarter.GetCurrentSeed();
         PlayerPrefs.SetInt("RetrySeed", currentSeed);
         PlayerPrefs.SetInt("UseRetrySeed", 1);
+        if (levelStarter != null)
+            PlayerPrefs.SetInt("RetryPathMode", (int)levelStarter.GetPathMode());
         
         UIManager.Instance.HideAllPanels();
         levelManager.ReplayLevel();

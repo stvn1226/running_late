@@ -121,6 +121,8 @@ public class DefeatPanel : BaseMenuPanel
     {
         PlayerPrefs.SetInt("RetrySeed", currentSeed);
         PlayerPrefs.SetInt("UseRetrySeed", 1);
+        if (LevelStarter.Instance != null)
+            PlayerPrefs.SetInt("RetryPathMode", (int)LevelStarter.Instance.GetPathMode());
         
         Time.timeScale = 1f;
         

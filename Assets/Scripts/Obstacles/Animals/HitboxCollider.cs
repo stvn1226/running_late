@@ -27,8 +27,20 @@ public class HitboxCollider : MonoBehaviour
             return;
         }
 
-        PlayerStates playerStatesCheck = collision.GetComponentInParent<PlayerStates>();
-        Rigidbody2D playerRb = collision.GetComponentInParent<Rigidbody2D>();
+        Rigidbody2D playerRb = collision.attachedRigidbody;
+        PlayerStates playerStatesCheck = null;
+        if (playerRb != null)
+        {
+            playerStatesCheck = playerRb.GetComponent<PlayerStates>();
+        }
+        else
+        {
+            playerStatesCheck = collision.GetComponentInParent<PlayerStates>();
+            if (playerStatesCheck != null)
+            {
+                playerRb = playerStatesCheck.GetComponent<Rigidbody2D>();
+            }
+        }
 
         bool isKickTrigger = collision.gameObject.CompareTag(TagUtils.PLAYERKICK_TAG);
         bool isPlayerKickState = playerStatesCheck != null && playerStatesCheck.isKicking;
@@ -43,7 +55,7 @@ public class HitboxCollider : MonoBehaviour
 
         bool isPlayer = collision.gameObject.CompareTag(TagUtils.PLAYER_TAG) || 
                         playerStatesCheck != null || 
-                        (collision.attachedRigidbody != null && collision.attachedRigidbody.CompareTag(TagUtils.PLAYER_TAG));
+                        (playerRb != null && playerRb.CompareTag(TagUtils.PLAYER_TAG));
 
         if (isPlayer)
         {
