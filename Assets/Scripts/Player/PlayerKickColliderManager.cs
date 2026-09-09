@@ -7,9 +7,12 @@ public class PlayerKickColliderManager : MonoBehaviour
     [SerializeField] private BoxCollider2D kickBox;
 
     [Header("Timing")]
-    [SerializeField] private float kickActivationDelay = 0.1f;
+    [SerializeField] private float kickActivationDelay = 0.06f;
+    [SerializeField] private float kickActiveDuration = 0.22f;
 
     private float kickActivationTimer = 0f;
+    private float kickActiveTimer = 0f;
+    private int lastHandledKickCount = -1;
     private bool wasKicking = false;
 
     private void Awake()
@@ -31,29 +34,51 @@ public class PlayerKickColliderManager : MonoBehaviour
 
         bool isKicking = states.isKicking;
 
-        if (isKicking && !wasKicking)
+        if (isKicking)
         {
-            kickActivationTimer = kickActivationDelay;
-            GameLogger.Log("KICK_COLL", $"Kick started - delay={kickActivationDelay:F2}s, isGrounded={states.isGrounded}");
-        }
-        else if (!isKicking && wasKicking)
-        {
-            kickBox.enabled = false;
-            kickActivationTimer = 0f;
-            GameLogger.Log("KICK_COLL", "Kick ended - collider DISABLED");
-        }
-
-        if (isKicking && kickActivationTimer > 0f)
-        {
-            kickActivationTimer -= Time.deltaTime;
-            
-            if (kickActivationTimer <= 0f)
+            // New kick started (edge: not kicking last frame → kicking this frame)
+            if (!wasKicking)
             {
-                kickBox.enabled = true;
-                GameLogger.Log("KICK_COLL", "Collider ENABLED after delay");
-                
+                lastHandledKickCount = states.kickTriggerCount;
+                kickBox.enabled = false; // reset overlap triggers
+                kickActivationTimer = kickActivationDelay;
+                kickActiveTimer = kickActiveDuration;
+
+                GameLogger.Log("KICK_COLL", $"Kick strike #{lastHandledKickCount} - delay={kickActivationDelay:F2}s, isGrounded={states.isGrounded}");
                 TrackKickAnalytics();
+                Achievements.AchievementsManager.Instance?.ReportKickPerformed();
             }
+
+            // Hitbox activation delay
+            if (kickActivationTimer > 0f)
+            {
+                kickActivationTimer -= Time.deltaTime;
+                if (kickActivationTimer <= 0f)
+                {
+                    kickBox.enabled = true;
+                    GameLogger.Log("KICK_COLL", $"Hitbox ENABLED #{lastHandledKickCount}");
+                }
+            }
+            // Active duration window
+            else if (kickActiveTimer > 0f)
+            {
+                kickActiveTimer -= Time.deltaTime;
+                if (kickActiveTimer <= 0f)
+                {
+                    kickBox.enabled = false;
+                    GameLogger.Log("KICK_COLL", "Hitbox active window expired - DISABLED");
+                }
+            }
+        }
+        else
+        {
+            if (kickBox.enabled)
+            {
+                kickBox.enabled = false;
+                GameLogger.Log("KICK_COLL", "Kick ended - collider DISABLED");
+            }
+            kickActivationTimer = 0f;
+            kickActiveTimer = 0f;
         }
 
         wasKicking = isKicking;

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58e1c6b840a14917b1897fa1871239ab, type: 3}
+  m_Name: DefaultModuleObstacleConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ModuleObstacleConfig
+  slimBuildingPrefabs:
+  - {fileID: 3927706109960210463, guid: bb6934f4d62afb0469d35850f4e22433, type: 3}
+  mediumBuildingPrefabs:
+  - {fileID: 3927706109960210463, guid: 2e6315ae1784a461898f26ebde190840, type: 3}
+  - {fileID: 3927706109960210463, guid: cb2d5d57318b0324092c8fbb41cfc2f9, type: 3}
+  wideBuildingPrefabs:
+  - {fileID: 3927706109960210463, guid: bf4253f9e2b96488bae7208f2a96efb5, type: 3}
+  - {fileID: 3927706109960210463, guid: 7b75e7cab8f62f944b0c19ed7c07496c, type: 3}
+  groundObstacles:
+  - {fileID: 9041243942261583109, guid: 1962d0fd9dc63a64ab8a7cc359bc4c8c, type: 3}
+  - {fileID: 9041243942261583109, guid: fc455f3084a0695488c15f2dc42493a9, type: 3}
+  - {fileID: 5814239028954185072, guid: 62e22b1772b30254d88c50e64ba4f1b0, type: 3}
+  - {fileID: 5814239028954185072, guid: 60fcf4feda5ecc64f864e13b8616a982, type: 3}
+  - {fileID: 6039526676700403722, guid: 19d79fc0fc7166949817cc36379990ed, type: 3}
+  flyingObstacles:
+  - {fileID: 9041243942261583109, guid: e43024f1f03d9ca4295a4e8626e56469, type: 3}

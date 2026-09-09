@@ -19,6 +19,10 @@ public class CableManager : MonoBehaviour
     public bool isFastFalling = false;
 
     private (bool, EdgeCollider2D) _cableDisableState = (false, null);
+    private List<EdgeCollider2D> _cableColliders = new List<EdgeCollider2D>();
+    private bool _hasAppliedCollidersState = false;
+    private bool _lastFastFalling = false;
+    private (bool, EdgeCollider2D) _lastCableDisableState = (false, null);
 
     private void Awake()
     {
@@ -33,6 +37,7 @@ public class CableManager : MonoBehaviour
         _cablesSet = false;
 
         _cablesList = new List<Rope>();
+        _cableColliders = new List<EdgeCollider2D>();
         _collidersSet = false;
     }
 
@@ -52,39 +57,72 @@ public class CableManager : MonoBehaviour
         if (_cablesSet == true && _collidersSet == false)
         {
             _collidersSet = true;
+            _cableColliders.Clear();
+
             foreach (Rope c in _cablesList)
             {
-                if (c.GetComponent<LineRenderer>().positionCount <= 0)
+                LineRenderer lr = c.GetComponent<LineRenderer>();
+                if (lr == null || lr.positionCount <= 0)
                 {
                     _collidersSet = false;
+                    _cableColliders.Clear();
                     break;
                 }
-                c.GetComponent<EdgeCollider2D>().SetPoints(MakeCollider(c));
+
+                EdgeCollider2D edgeCol = c.GetComponent<EdgeCollider2D>();
+                if (edgeCol != null)
+                {
+                    edgeCol.SetPoints(MakeCollider(c, lr));
+                    _cableColliders.Add(edgeCol);
+                }
+            }
+
+            if (_collidersSet)
+            {
+                ApplyColliderTriggerStates();
             }
         }
 
-        if (_cablesSet && _collidersSet && isFastFalling)
+        if (_cablesSet && _collidersSet)
         {
-            foreach (Rope c in _cablesList)
+            if (!_hasAppliedCollidersState || isFastFalling != _lastFastFalling || _cableDisableState != _lastCableDisableState)
             {
-                EdgeCollider2D cableCol = c.GetComponent<EdgeCollider2D>();
+                ApplyColliderTriggerStates();
+            }
+        }
+    }
+
+    private void ApplyColliderTriggerStates()
+    {
+        _lastFastFalling = isFastFalling;
+        _lastCableDisableState = _cableDisableState;
+        _hasAppliedCollidersState = true;
+
+        if (isFastFalling)
+        {
+            for (int i = 0; i < _cableColliders.Count; i++)
+            {
+                EdgeCollider2D cableCol = _cableColliders[i];
+                if (cableCol == null) continue;
+
                 if (_cableDisableState.Item1 && cableCol != _cableDisableState.Item2)
                 {
                     cableCol.isTrigger = true;
                 }
                 else
                 {
-                    // Only make it solid if we are actually intending to use it (isFastFalling)
-                    // AND it's the one we are not disabling.
                     cableCol.isTrigger = false;
                 }
             }
         }
         else
         {
-            foreach (Rope c in _cablesList)
+            for (int i = 0; i < _cableColliders.Count; i++)
             {
-                c.GetComponent<EdgeCollider2D>().isTrigger = true;
+                if (_cableColliders[i] != null)
+                {
+                    _cableColliders[i].isTrigger = true;
+                }
             }
         }
     }
@@ -159,12 +197,15 @@ public class CableManager : MonoBehaviour
         return newCable;
     }
 
-    private List<Vector2> MakeCollider(Rope thisCable)
+    private List<Vector2> MakeCollider(Rope thisCable, LineRenderer lr)
     {
         List<Vector2> positions = new List<Vector2>();
-        for (int i = 0; i <= thisCable.linePoints; i++)
+        if (lr != null)
         {
-            positions.Add(thisCable.GetComponent<LineRenderer>().GetPosition(i));
+            for (int i = 0; i <= thisCable.linePoints; i++)
+            {
+                positions.Add(lr.GetPosition(i));
+            }
         }
 
         return positions;

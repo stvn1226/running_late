@@ -62,6 +62,11 @@ public class CustomButtonEffects : MonoBehaviour,
     public void OnPointerExit(PointerEventData eventData)
     {
         ApplyNormalState();
+
+        if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == gameObject && !eventData.dragging)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
     
     public void OnSelect(BaseEventData eventData)
@@ -78,12 +83,27 @@ public class CustomButtonEffects : MonoBehaviour,
     public void OnPointerDown(PointerEventData eventData)
     {
         if (button != null && !button.interactable) return;
-        ApplyNormalState();
+        ApplyHighlightedState();
     }
     
     public void OnPointerUp(PointerEventData eventData)
     {
-        ApplyNormalState();
+        if (button != null && !button.interactable) return;
+
+        bool isPointerOver = eventData.hovered != null && eventData.hovered.Contains(gameObject);
+
+        if (isPointerOver)
+        {
+            ApplyHighlightedState();
+        }
+        else
+        {
+            ApplyNormalState();
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == gameObject)
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+        }
     }
     
     private void ApplyNormalState()
@@ -96,8 +116,23 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnNormal);
         ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
 
-        if (textAnimator != null) textAnimator.SetText(originalText);
-        if (jpTextAnimator != null) jpTextAnimator.SetText(jpOriginalText);
+        if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
+        {
+            textAnimator.SetText(originalText);
+        }
+        else if (textComponent != null && !string.IsNullOrEmpty(originalText))
+        {
+            textComponent.text = originalText;
+        }
+
+        if (jpTextAnimator != null && jpTextAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(jpOriginalText))
+        {
+            jpTextAnimator.SetText(jpOriginalText);
+        }
+        else if (jpTextComponent != null && !string.IsNullOrEmpty(jpOriginalText))
+        {
+            jpTextComponent.text = jpOriginalText;
+        }
     }
     
     private void ApplyHighlightedState()
@@ -110,8 +145,15 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnHighlighted);
         ApplyBackgroundSprite(effectProfile.highlightedBackgroundSprite);
 
-        if (textAnimator != null) textAnimator.SetText($"<bounce>{originalText}</bounce>");
-        if (jpTextAnimator != null) jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
+        if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
+        {
+            textAnimator.SetText($"<bounce>{originalText}</bounce>");
+        }
+
+        if (jpTextAnimator != null && jpTextAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(jpOriginalText))
+        {
+            jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
+        }
     }
     
     private void ApplyFont(TMP_FontAsset font, TMP_FontAsset jpFont)

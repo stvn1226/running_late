@@ -1,26 +1,27 @@
 # Running Late — Roadmap & Lista de Tareas
 
-Última actualización: Agosto 2026
+Última actualización: 31 Agosto 2026
 
 ---
 
 ## 🎯 Tareas Activas / Por Hacer
 
-### 1. 🕹️ Tutorial / Overlay Interactivo de Controles (Siguiente Prioridad)
-- [ ] Overlay interactivo antes del countdown inicial del nivel.
-- [ ] Minijuego / preview rápido para probar las teclas y controles principales.
-- [ ] Mostrar solo la primera vez que se juega (guardado en `PlayerPrefs`).
-- [ ] Opción para skippear en cualquier momento.
-- [ ] Enviar evento de analytic a GameAnalytics al completar o skippear.
+### 1. 🐱 Animales en Techo de Edificios Verdes Medianos Caían al Piso
+- [ ] En `StructureBuilder.cs`, la posición `Y` de spawn de obstáculos/power-ups en techos (`(floorsCt) * floorH`) asumía altura fija de 4.275, pero los techos de edificios verdes (Sets 4, 5, 6 - Tea Shop) tienen su collider `Cap` a `Y = 6.5`.
+- [ ] Esto hacía que gatos y palomas aparecieran *debajo* del collider `Cap` (dentro del ático del edificio), cayendo al vacío por gravedad debido a que `Cap` es una `OneWayPlatform`.
+- [ ] Solución: Calcular la altura real de spawn basándose en los `bounds.max.y` del collider `Cap` del techo instanciado para garantizar que siempre aparezcan sobre la superficie.
 
-### 2. 🏢 Orden y Ajuste de Fachadas de Edificios Medianos (`Medium`)
-- [ ] Confirmar el orden exacto de los sprites para los 5 sets de edificios medianos:
-  - Set 1: Cine 1
-  - Set 2: Cine 2
-  - Set 3: Depato
-  - Set 4: Police / Koban
-  - Set 5: Tea House
-- [ ] Ajustar `FloorAssetPicker` / prefabs según la distribución aprobada.
+### 2. 🕹️ Tutorial / Overlay Interactivo de Controles (En progreso - A medio camino)
+- [x] Construido el overlay visual utilizando el arte dedicado en capas de `Assets/Sprites/ControlsOverlay/` (`Controller Front/` y `Keyboard and Mouse/`).
+- [x] Detección y cambio dinámico entre Mando y Teclado en tiempo real según la entrada activa.
+- [x] Validación y retroalimentación interactiva (los botones se iluminan y validan las 4 acciones: Moverse, Saltar, Deslizarse, Patear).
+- [x] Muestra solo en el primer inicio (persistencia en `PlayerPrefs`) y botón para omitir (`SALTAR [ESC]`).
+- [x] Botón "Ver Tutorial de Controles" funcional en el panel de Ajustes (`SettingsPanel.cs`).
+- [ ] Pulido final de integración, animación y flujo de cierre del tutorial.
+
+### 2. 🌱 Verificación de Seeds Específicos
+- [ ] **Seed `2230417`:** Probar de inicio a fin para confirmar generación procedural, pendientes de carretera, aceras elevadas y fachadas de edificios conformes.
+- [ ] **Seed `1088325`:** Probar el punto específico de la acera elevada donde ocurría el error de *staggered + fall/dive* para comprobar que el fix de `PlayerOneWayPlatform` previene la caída accidental tras el knockback.
 
 ### 3. ✨ Efectos Visuales Adicionales para Power-Ups & Partículas
 - [ ] Añadir auras / partículas dedicadas en el jugador mientras un power-up esté activo (ej. estela de velocidad, chicle alrededor, etc.).
@@ -32,29 +33,26 @@
 ### 5. 🛣️ Alineación Grid de Carretera / Aceras — *Postergado*
 - [ ] Unificar el ancho de las piezas de carretera plana (16.0) con las de rampas (19.06 / 3.38).
 
+### 6. 🍞 Drop de Tostada al Recibir Daño
+- [ ] Cuando el jugador recibe un golpe, soltar/lanzar una tostada como objeto físico en la escena.
+
+
 ---
 
 ## ✅ Tareas Completadas Recientemente
 
-- [x] **Centralización de Configuración de Edificios en `FloorPlan`**:
-  - `allowedThemes`, `colorMaterials`, `powerUps`, `roofObstaclePrefabs`, `obstacleRate`, `powerUpRate` ahora viven en ScriptableObjects (`SlimBuildingConfig.asset`, `MediumBuildingConfig.asset`, `WideBuildingConfig.asset`).
-  - SingleDecker y DoubleDecker comparten configuración sin duplicar datos en prefabs.
-- [x] **Anti-Repeat en SingleDecker**: Asignado `BuildingPoolConfig.asset` a todos los módulos de SingleDecker (`Brick`, `Grass`, `Ground`).
-- [x] **Escena de Pruebas Standalone (`PowerUpTesting.unity`)**:
-  - Pista de pruebas plana continua desacoplada de generadores procedurales.
-  - Script `PowerUpTester.cs` con atajos numéricos `1..8`, `R` para reset y panel GUI en pantalla.
-- [x] **UI de Power-Ups de Alto Contraste y Animación Pop-In**:
-  - Animación elástica *EaseOutBack* al aparecer o refrescar tarjeta.
-  - Textos en Navy Oscuro (`#1E2438`) y cápsula con opacidad del 88% para máxima legibilidad.
-  - Los 8 power-ups ahora se registran y muestran correctamente en la UI.
-- [x] **Efecto de Recolección en el Mundo (*Float & Fade*)**:
-  - Al recoger un power-up, se eleva suavemente y se desvanece antes de destruirse.
-- [x] **Corrección de Error de Curvas de Partículas**:
-  - Unificados los modos de curva de `VelocityModule` a `minMaxState: 3` en `RunDust` y `LandDust`.
-- [x] **Punto de Detección de la Escuela (`School.prefab`)**:
-  - `victoryDelay` optimizado a `0.1s` para disparo inmediato al llegar a la meta.
-- [x] **Sorting Order Progresivo en Pisos**:
-  - Implementado `sortingOrder -= floorIndex` para layering isométrico natural.
-- [x] **Integración de Analytics y SteamWorks**:
-  - GameAnalytics con claves por plataforma y eventos de progresión/acciones.
-  - Facepunch.Steamworks con App ID `4724080`.
+- [x] **Corrección de Bug de Sidewalk / Descolgamiento al Recibir Golpe (`PlayerOneWayPlatform.cs` & `PlayerStates.cs`)**:
+  - `ForceStop()` y `OnDisable()` restauran de forma incondicional todas las colisiones ignoradas (`Physics2D.IgnoreCollision(..., false)`).
+  - `StartStagger()` limpia `dropDownHeld`, `isDroppingDown` y cancela el traspaso de plataformas para evitar caídas automáticas tras un knockback.
+- [x] **Sincronización Total de Sets Medianos (SingleDecker / DoubleDecker) — *Reporte de Elito Resuelto***:
+  - Sincronizados los 6 sets de edificios (`GroundFloor`, `MidFloor`, `Roof`), sprites actualizados y assets `SetX.asset` entre `DoubleDecker` y `SingleDecker`.
+  - Configurado `minFloorsOverride` y regla de 4 pisos mínimos en `StructureBuilder.cs` para Sets altos (Cine / Policía).
+  - Corregidas las pendientes de carretera (`RoadSlopeLeft_2x2.prefab` y `RoadSlopeRight_2x2.prefab`).
+- [x] **Auditoría de Compatibilidad AMD (Radeon / Ryzen / Steam Deck)**:
+  - Shaders validados (sin divisiones por cero ni registros no inicializados), plugins nativos x86_64 compatibles y URP 2D verificado.
+- [x] **UI de Power-Ups & Notificaciones**:
+  - Reducido tamaño de tarjeta, reposicionada pegada al timer y curva de desvanecimiento optimizada (1/5 sólido, 4/5 fade con `CanvasGroup`).
+- [x] **Trilogía de Features Steamworks & Mobile (`feature/steamworks-features`)**:
+  - **Sistema Unificado de Logros (`AchievementsManager.cs` & `AchievementNotificationUI.cs`)**: Desbloqueo en Steam, guardado local, tracking analítico y banner emergente.
+  - **Steam Rich Presence (`SteamRichPresence.cs`)**: Estado dinámico de amigos en tiempo real.
+  - **Steam Leaderboards Bridge (`SteamLeaderboardBridge.cs`)**: Subida asíncrona de récords por milisegundos a tablas mundiales.

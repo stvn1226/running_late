@@ -112,6 +112,8 @@ public class PlayerStates : MonoBehaviour
     public float kickTimer;
     public float kickStartTime;
     public int kickStartFrame;
+    public float kickBufferTimer = 0f;
+    public const float KICK_BUFFER_DURATION = 0.2f;
 
     [Header("Stagger States")]
     public float staggerTimer;
@@ -143,6 +145,7 @@ public class PlayerStates : MonoBehaviour
     private Coroutine activeBlinkCoroutine;
     private Color originalSpriteColor;
     private PlayerVFX playerVFX;
+    [SerializeField] private ToastDrop toastDrop;
 
     public System.Action OnGroundedChanged;
     public System.Action OnWallRunChanged;
@@ -177,6 +180,18 @@ public class PlayerStates : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         config = GetComponent<PlayerMovement>()?.config;
         playerVFX = GetComponent<PlayerVFX>();
+        if (toastDrop == null)
+        {
+            ToastDrop[] drops = GetComponentsInChildren<ToastDrop>(true);
+            foreach (var d in drops)
+            {
+                if (d.gameObject != gameObject)
+                {
+                    toastDrop = d;
+                    break;
+                }
+            }
+        }
 
         if (spriteRenderer != null)
         {
@@ -188,6 +203,18 @@ public class PlayerStates : MonoBehaviour
 
         allPlayerColliders.Clear();
         allPlayerColliders.AddRange(GetComponentsInChildren<Collider2D>());
+    }
+
+    private void Start()
+    {
+        // Always ensure Toast starts inactive. It is activated only when the
+        // player collects the Toast power-up at runtime (hasToast set to true
+        // by the power-up pickup). If hasToast is already true here (e.g. from
+        // a mid-game scene reload that preserved state), re-activate it.
+        if (toastDrop != null)
+        {
+            toastDrop.gameObject.SetActive(hasToast);
+        }
     }
 
     private void Update()
@@ -237,6 +264,10 @@ public class PlayerStates : MonoBehaviour
     public void InvokeToast()
     {
         hasToast = true;
+        if (toastDrop != null)
+        {
+            toastDrop.ResetToPlayer();
+        }
     }
 
     public void RemoveShield()
@@ -437,14 +468,20 @@ public class PlayerStates : MonoBehaviour
             }
         }
 
+        if (kickBufferTimer > 0f)
+        {
+            kickBufferTimer -= Time.deltaTime;
+        }
+
         if (isKicking)
         {
             kickTimer -= Time.deltaTime;
             // Primary exit: animation-driven (PlayerKick.Update checks nTime >= 0.95f)
-            // Safety backstop: if animation detection fails, force-exit after 3x the configured duration
-            if (kickTimer <= -(config.kickDuration * 2f))
+            // Safety backstop: if animation detection fails, force-exit after duration
+            float maxAllowedDuration = config != null ? config.kickDuration : 0.35f;
+            if (kickTimer <= -maxAllowedDuration)
             {
-                GameLogger.LogWarning("KICK", "SAFETY EXIT: kick state exceeded max duration, force clearing");
+                if (config != null && config.kickDebug) GameLogger.LogWarning("KICK", "SAFETY EXIT: kick state exceeded max duration, force clearing");
                 EndKick("safetyTimeout");
             }
         }
@@ -528,23 +565,33 @@ public class PlayerStates : MonoBehaviour
         jumpPressed = false;
     }
 
+    public int kickTriggerCount = 0;
+
     public void SetKickPressed(float kickDuration)
     {
-        if (!isKicking)
+        // Block new kick input while the current kick animation is still playing.
+        // The animation system (PlayerKick.cs) calls EndKick() when nTime >= 0.95f,
+        // so the next kick can only start after that point.
+        if (isKicking)
         {
-            if (isRolling)
-            {
-                EndRoll();
-            }
-            
-            kickPressed = true;
-            isKicking = true;
-            kickTimer = kickDuration;
-            kickStartTime = Time.time;
-            kickStartFrame = Time.frameCount;
-
-            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
+            if (config != null && config.kickDebug) GameLogger.Log("KICK", "STATE: Kick ignored - previous kick still in progress");
+            return;
         }
+
+        if (isRolling)
+        {
+            EndRoll();
+        }
+
+        kickPressed = true;
+        isKicking = true;
+        kickTriggerCount++;
+        kickBufferTimer = 0f;
+        kickTimer = kickDuration;
+        kickStartTime = Time.time;
+        kickStartFrame = Time.frameCount;
+
+        if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO TRUE #{kickTriggerCount} - Duration={kickDuration:F2}s, Frame={kickStartFrame}, isGrounded={isGrounded}");
     }
 
     public void EndKick(string reason = "finished")
@@ -553,7 +600,7 @@ public class PlayerStates : MonoBehaviour
         {
             isKicking = false;
             kickTimer = 0f;
-            if (config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
+            if (config != null && config.kickDebug) GameLogger.Log("KICK", $"STATE: isKicking SET TO FALSE - Reason: {reason}");
         }
     }
 
@@ -633,11 +680,43 @@ public class PlayerStates : MonoBehaviour
     {
         isStaggered = true;
         staggerTimer = duration;
+        dropDownHeld = false;
+        isDroppingDown = false;
+        crouchHeld = false;
+        isCrouching = false;
+        isSliding = false;
+        isRolling = false;
+        rollTimer = 0f;
+        isDiving = false;
+        diveTimer = 0f;
+        canDive = true;
+        isWallRunning = false;
+        isWallSliding = false;
+        isVaultingWall = false;
+
+        PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
+        if (playerPhysics != null)
+        {
+            playerPhysics.UpdateColliderSize();
+        }
+
+        PlayerOneWayPlatform oneWayPlatform = GetComponentInChildren<PlayerOneWayPlatform>();
+        if (oneWayPlatform != null)
+        {
+            oneWayPlatform.ForceStop();
+        }
         
         if (hasToast)
         {
             hasToast = false;
             if (playerVFX != null) playerVFX.PlayToastBreak();
+
+            // Drop the physical toast object with physics arc
+            if (toastDrop != null)
+            {
+                bool facingRight = spriteRenderer != null && !spriteRenderer.flipX;
+                toastDrop.Drop(facingRight);
+            }
         }
 
         if (isKicking)
@@ -796,9 +875,12 @@ public class PlayerStates : MonoBehaviour
             PlayerPhysics playerPhysics = GetComponent<PlayerPhysics>();
             Collider2D activeWallCollider = playerPhysics != null ? playerPhysics.CurrentWallCollider : null;
 
-            BuildingDetector[] allBuildings = Object.FindObjectsByType<BuildingDetector>(FindObjectsSortMode.None);
-            foreach (var b in allBuildings)
+            var allBuildings = BuildingDetector.All;
+            for (int i = 0; i < allBuildings.Count; i++)
             {
+                var b = allBuildings[i];
+                if (b == null) continue;
+
                 // If it's between our anchors and NOT an anchor itself
                 if (b != startBuilding && b != endBuilding && 
                     b.transform.position.x >= minX && b.transform.position.x <= maxX)

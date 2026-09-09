@@ -771,7 +771,7 @@ Transform:
   m_GameObject: {fileID: 1178152892166366487}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -10.7, y: 5.7, z: -1}
+  m_LocalPosition: {x: -11.6, y: 5.7, z: -1}
   m_LocalScale: {x: 2, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -944,7 +944,7 @@ Transform:
   m_GameObject: {fileID: 2197663328899875972}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10.7, y: 5.7, z: -1}
+  m_LocalPosition: {x: 11.73, y: 5.7, z: -1}
   m_LocalScale: {x: 2, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1158,7 +1158,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 2.3}
+  m_Offset: {x: 0.10518074, y: 2.2999997}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -1168,7 +1168,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 23.8, y: 5.8}
+  m_Size: {x: 24.491192, y: 5.8}
   m_EdgeRadius: 0
 --- !u!1 &4150711884619811579
 GameObject:
@@ -1237,7 +1237,7 @@ BoxCollider2D:
   m_UsedByEffector: 1
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 5.45}
+  m_Offset: {x: 0.064733505, y: 5.702507}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -1247,7 +1247,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 21.5, y: 0.5}
+  m_Size: {x: 23.533443, y: 0.25577402}
   m_EdgeRadius: 0
 --- !u!251 &4342886438287386747
 PlatformEffector2D:
@@ -1446,7 +1446,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: af1664136ebe8f54eaa3f2c7ea612ede, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 7ebb0820fe4a61940aef6f6fd36ca777, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1555,7 +1555,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FloorAssetPicker
   _base: {fileID: 5769929470713862406}
   _baseSprites:
-  - {fileID: 21300000, guid: c50fbfcc3ee28684a857c7935112af9b, type: 3}
+  - {fileID: 21300000, guid: 7ebb0820fe4a61940aef6f6fd36ca777, type: 3}
+  - {fileID: 21300000, guid: 999916c0097811749bfbd67098e66706, type: 3}
   - {fileID: 21300000, guid: 7ebb0820fe4a61940aef6f6fd36ca777, type: 3}
 --- !u!1 &7340943379528507076
 GameObject:
@@ -1625,7 +1626,7 @@ BoxCollider2D:
   m_UsedByEffector: 1
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -10.7, y: 2.8}
+  m_Offset: {x: -11, y: 2.8}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -1738,7 +1739,7 @@ BoxCollider2D:
   m_UsedByEffector: 1
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 10.7, y: 2.8}
+  m_Offset: {x: 11.1, y: 2.8}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}

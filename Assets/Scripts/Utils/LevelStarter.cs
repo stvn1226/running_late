@@ -211,9 +211,15 @@ public class LevelStarter : MonoBehaviour
         {
             int retrySeed = PlayerPrefs.GetInt("RetrySeed", 0);
             SetManualSeed(retrySeed);
+            // Restore the exact path mode so the replayed level is identical.
+            if (PlayerPrefs.HasKey("RetryPathMode"))
+            {
+                pathMode = (LevelPathMode)PlayerPrefs.GetInt("RetryPathMode");
+                PlayerPrefs.DeleteKey("RetryPathMode");
+            }
             PlayerPrefs.DeleteKey("UseRetrySeed");
             PlayerPrefs.DeleteKey("RetrySeed");
-            GameLogger.Log("LEVEL", $"Retry with same seed: {retrySeed}");
+            GameLogger.Log("LEVEL", $"Retry with same seed: {retrySeed}, pathMode: {pathMode}");
         }
         else if (PlayerPrefs.GetInt("UseNewLevelSeed", 0) == 1)
         {
@@ -347,7 +353,11 @@ public class LevelStarter : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(generationDelay);
 
+        // Single seed initialization for the entire level. All random decisions
+        // (numberOfModules, themes, blueprint) must draw from this one seed so
+        // that Retry with the same seed reproduces the exact same level.
         InitializeSeed();
+        numberOfModules = Random.Range(minModules, maxModules);
 
         if (AnalyticsManager.Instance != null)
         {
@@ -454,9 +464,9 @@ public class LevelStarter : MonoBehaviour
         ClearModules();
         ModuleBuilder.ResetStaticThemeTracking();
 
+        // numberOfModules and seed are set by the caller (GenerateLevelWithDelay)
+        // before entering here, so the RNG state is already deterministic.
         float roadBaseY = continuousRoadReference != null ? continuousRoadReference.position.y : 0f;
-        numberOfModules = Random.Range(minModules, maxModules);
-        InitializeSeed();
 
         FloorTheme selectedTheme = null;
         if (pathMode == LevelPathMode.SingleSidewalk && sidewalkThemes != null && sidewalkThemes.Count > 0)
@@ -740,6 +750,7 @@ public class LevelStarter : MonoBehaviour
             $"tileZ={backgroundTile.transform.position.z:F3} " +
             $"backgroundParentChildCount_before={backgroundParent.childCount}");
 
+#if UNITY_EDITOR
         // [BackgroundAudit] — scan for background SpriteRenderers outside backgroundParent
         SpriteRenderer[] allSRs = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         int orphanCount = 0;
@@ -761,6 +772,7 @@ public class LevelStarter : MonoBehaviour
         }
         if (orphanCount == 0)
             GameLogger.Log("BackgroundAudit", "[OrphanBG] None found outside backgroundParent.");
+#endif
 
         float rangeWidth = endX - startX;
         int tileCount = Mathf.CeilToInt(rangeWidth / tileWidth);
@@ -1051,6 +1063,7 @@ public class LevelStarter : MonoBehaviour
     public int GetLevelWidth() => newWidth;
     public int GetModuleCount() => numberOfModules;
     public int GetCurrentSeed() => currentSeed;
+    public LevelPathMode GetPathMode() => pathMode;
     public bool IsUsingManualSeed() => useManualSeed;
     public bool IsUsingModularGeneration() => useModularGeneration;
     public float GetLevelStartX() => levelStartX;

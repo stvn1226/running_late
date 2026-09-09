@@ -12,7 +12,7 @@ public class StructureBuilder : MonoBehaviour
     public GameObject[] roofPrefabs;
 
     [Header("Thematic Sets (Optional)")]
-    [Tooltip("Si asignas sets aquí, el edificio elegirá uno al azar y usará solo sus piezas. Si está vacío, usará los de arriba.")]
+    [Tooltip("If you assign sets here, the building will pick one at random and only use its pieces. If empty, it uses default pieces above.")]
     public BuildingThemeSet[] allowedThemes;
 
     [Header("Rooftop Obstacles")]
@@ -27,7 +27,7 @@ public class StructureBuilder : MonoBehaviour
     
     private BoxCollider2D buildingCollider;
 
-    /// <summary>El BuildingThemeSet elegido al azar en la última llamada a ConstructStructure(). Null si usa los prefabs default.</summary>
+    /// <summary>The BuildingThemeSet chosen at random during the last ConstructStructure() call. Null if using default prefabs.</summary>
     public BuildingThemeSet ActiveTheme { get; private set; }
 
     public void ConstructStructure(string excludeThemeId = null)
@@ -65,7 +65,7 @@ public class StructureBuilder : MonoBehaviour
                 validThemes.Add(curThemes[i]);
             }
 
-            // Fallback si todos fueron filtrados
+            // Fallback if all themes were filtered out
             if (validThemes.Count == 0)
             {
                 for (int i = 0; i < curThemes.Length; i++)
@@ -80,6 +80,23 @@ public class StructureBuilder : MonoBehaviour
             }
         }
         ActiveTheme = activeTheme;
+
+        // Rule: If the chosen theme specifies a minimum floor requirement (e.g. Set1 Cinema, Set3 Police), enforce it
+        if (activeTheme != null)
+        {
+            if (activeTheme.minFloorsOverride > 0 && floorsCt < activeTheme.minFloorsOverride)
+            {
+                floorsCt = activeTheme.minFloorsOverride;
+            }
+            else if (activeTheme.themeId == "Set1" || activeTheme.themeId == "Set2" || activeTheme.themeId == "Set3" ||
+                     (activeTheme.name != null && (activeTheme.name.Contains("Set1") || activeTheme.name.Contains("Set2") || activeTheme.name.Contains("Set3"))))
+            {
+                if (floorsCt < 5)
+                {
+                    floorsCt = 5;
+                }
+            }
+        }
 
         // 3. Floor prefabs (from activeTheme or local)
         GameObject[] currentGrounds = (activeTheme != null && activeTheme.groundPrefabs != null && activeTheme.groundPrefabs.Length > 0) ? activeTheme.groundPrefabs : groundPrefabs;
@@ -106,9 +123,10 @@ public class StructureBuilder : MonoBehaviour
             GameObject ground = Instantiate(pickedGroundPrefab, transform.position, Quaternion.identity, transform);
             FloorAssetPicker groundPicker = ground.GetComponentInChildren<FloorAssetPicker>();
             if (groundPicker != null) groundPicker.RandomizeBaseSprite();
-            ground.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
+            SpriteRenderer groundSr = ground.GetComponentInChildren<SpriteRenderer>();
+            if (groundSr != null && chosenColor != null) groundSr.sharedMaterial = chosenColor;
             ground.transform.position = new Vector3(transform.position.x, transform.position.y, 10f);
-            if (ground.GetComponentInChildren<SpriteRenderer>() != null && ground.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(ground, 0);
+            if (groundSr != null && groundSr.enabled) SortSprite(ground, 0);
             else SortTilemap(ground, 0);
         }
         else return;
@@ -118,16 +136,19 @@ public class StructureBuilder : MonoBehaviour
             GameLogger.LogVerbose("BUILDING", $"Constructing {floorsCt} floors for building at {transform.position}");
             for (int i = 0; i < floorsCt - 2; i++) //Construct all floors EXCEPT the ground floor and roof
             {
-                int floorIndex = i + 1; // Floor 2 is index 1, Floor 3 is index 2, etc.
+                int floorIndex = i + 1; // Floor 2 is index 1 (-1), Floor 3 is index 2 (-2), etc.
                 Vector2 floorPosition = new Vector2(transform.position.x, transform.position.y + (floorIndex * floorH));
                 GameObject floor = Instantiate(currentFloors[Random.Range(0, currentFloors.Length)], floorPosition, Quaternion.identity, transform);
                 FloorAssetPicker floorPicker = floor.GetComponentInChildren<FloorAssetPicker>();
                 if (floorPicker != null) floorPicker.RandomizeBaseSprite();
-                floor.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-                if (floor.GetComponentInChildren<SpriteRenderer>() != null && floor.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(floor, 1);
-                else SortTilemap(floor, 1);
+                SpriteRenderer floorSr = floor.GetComponentInChildren<SpriteRenderer>();
+                if (floorSr != null && chosenColor != null) floorSr.sharedMaterial = chosenColor;
+                if (floorSr != null && floorSr.enabled) SortSprite(floor, -floorIndex);
+                else SortTilemap(floor, -floorIndex);
             }
         }
+
+        float rooftopY = transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * floorH);
 
         if (currentRoofs.Length > 0)
         {
@@ -136,9 +157,21 @@ public class StructureBuilder : MonoBehaviour
             GameObject roof = Instantiate(pickedRoofPrefab, new Vector2(transform.position.x, transform.position.y + (roofIndex * floorH)), Quaternion.identity, transform);
             FloorAssetPicker roofPicker = roof.GetComponentInChildren<FloorAssetPicker>();
             if (roofPicker != null) roofPicker.RandomizeBaseSprite();
-            roof.GetComponentInChildren<SpriteRenderer>().material = chosenColor;
-            if (roof.GetComponentInChildren<SpriteRenderer>() != null && roof.GetComponentInChildren<SpriteRenderer>().enabled == true) SortSprite(roof, 1);
-            else SortTilemap(roof, 1);
+            SpriteRenderer roofSr = roof.GetComponentInChildren<SpriteRenderer>();
+            if (roofSr != null && chosenColor != null) roofSr.sharedMaterial = chosenColor;
+            if (roofSr != null && roofSr.enabled) SortSprite(roof, -roofIndex);
+            else SortTilemap(roof, -roofIndex);
+
+            // Determine true physical rooftop surface Y from the roof's Cap collider
+            Transform capTrans = roof.transform.Find("Cap");
+            if (capTrans != null)
+            {
+                BoxCollider2D capCol = capTrans.GetComponent<BoxCollider2D>();
+                if (capCol != null)
+                {
+                    rooftopY = capTrans.position.y + capCol.offset.y + (capCol.size.y / 2f);
+                }
+            }
         }
         else return;
 
@@ -148,7 +181,7 @@ public class StructureBuilder : MonoBehaviour
             if (currentObstacles.Length > 0)
             {
                 float varyObstacleSpawnX = Random.Range(-3f, 4f);
-                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * floorH));
+                Vector2 obstaclePosition = new Vector2(transform.position.x + varyObstacleSpawnX, rooftopY + 0.1f);
                 GameObject obstacle = Instantiate(currentObstacles[Random.Range(0, currentObstacles.Length)], obstaclePosition, Quaternion.identity, transform);
             }
         }
@@ -158,8 +191,24 @@ public class StructureBuilder : MonoBehaviour
         { 
             if (currentPowerUps.Length > 0)
             {
-                Vector2 powerUpPosition = new Vector2(transform.position.x, transform.position.y + ((floorsCt > 0 ? floorsCt : 2) * floorH) + 2f);
-                GameObject powerUp = Instantiate(currentPowerUps[Random.Range(0, currentPowerUps.Length)], powerUpPosition, Quaternion.identity, transform);
+                Vector2 powerUpPosition = new Vector2(transform.position.x, rooftopY + 1.5f);
+                GameObject pickedPrefab = currentPowerUps[Random.Range(0, currentPowerUps.Length)];
+                GameObject powerUp = Instantiate(pickedPrefab, powerUpPosition, Quaternion.identity, transform);
+
+                Toast toastComp = powerUp.GetComponent<Toast>();
+                if (toastComp == null) toastComp = powerUp.GetComponentInChildren<Toast>();
+                if (toastComp != null)
+                {
+                    System.Collections.Generic.List<GameObject> alternatives = new System.Collections.Generic.List<GameObject>();
+                    foreach (var p in currentPowerUps)
+                    {
+                        if (p != null && p.GetComponent<Toast>() == null && p.GetComponentInChildren<Toast>() == null)
+                        {
+                            alternatives.Add(p);
+                        }
+                    }
+                    toastComp.alternativePowerUps = alternatives.ToArray();
+                }
             }
         }
         

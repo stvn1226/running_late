@@ -3,6 +3,10 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
 
+/// <summary>
+/// Editor window tool to bulk-configure audio clips across target directories.
+/// Allows setting optimal load types (DecompressOnLoad vs Streaming), formats (Vorbis/ADPCM), and sample rates.
+/// </summary>
 public class AudioOptimizerTool : EditorWindow
 {
     [System.Serializable]

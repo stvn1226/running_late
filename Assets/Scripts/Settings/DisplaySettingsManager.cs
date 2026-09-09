@@ -13,6 +13,17 @@ public class DisplaySettingsManager : MonoBehaviour
     
     private List<Resolution> availableResolutions = new List<Resolution>();
     
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void EnsureRuntimeInstance()
+    {
+        if (instance == null)
+        {
+            GameObject go = new GameObject("DisplaySettingsManager");
+            instance = go.AddComponent<DisplaySettingsManager>();
+            DontDestroyOnLoad(go);
+        }
+    }
+
     private void Awake()
     {
         if (instance == null)
@@ -22,7 +33,7 @@ public class DisplaySettingsManager : MonoBehaviour
             InitializeResolutions();
             LoadSettings();
         }
-        else
+        else if (instance != this)
         {
             Destroy(gameObject);
         }
@@ -55,7 +66,8 @@ public class DisplaySettingsManager : MonoBehaviour
     {
         int vSyncCount = PlayerPrefs.GetInt(VSYNC_KEY, 0);
         int targetFrameRate = PlayerPrefs.GetInt(FRAMERATE_KEY, 60);
-        int fullscreenModeIndex = PlayerPrefs.GetInt(FULLSCREEN_MODE_KEY, 0);
+        // Default to FullScreenWindow (Borderless) for maximum stability across all monitor refresh rates
+        int fullscreenModeIndex = PlayerPrefs.GetInt(FULLSCREEN_MODE_KEY, (int)FullScreenMode.FullScreenWindow);
         int resolutionIndex = PlayerPrefs.GetInt(RESOLUTION_INDEX_KEY, -1);
         
         SetVSync(vSyncCount);

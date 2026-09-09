@@ -69,12 +69,12 @@ public class GhostTrail : MonoBehaviour
         
         if (enableTint)
         {
-            if (ghostMaterial != null) ghost.material = ghostMaterial;
+            if (ghostMaterial != null) ghost.sharedMaterial = ghostMaterial;
             ghost.color = ghostColor;
         }
         else
         {
-            ghost.material = targetRenderer.material;
+            ghost.sharedMaterial = targetRenderer.sharedMaterial;
             Color originalColor = targetRenderer.color;
             originalColor.a = ghostColor.a; // Use the alpha from ghostColor as starting alpha
             ghost.color = originalColor;

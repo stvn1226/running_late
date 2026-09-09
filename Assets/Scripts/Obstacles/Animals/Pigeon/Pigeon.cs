@@ -55,6 +55,10 @@ public class Pigeon : Animal
         mainCamera = GameReferences.Instance.MainCamera;
         CachePlayerTransform();
         animator = GetComponent<Animator>();
+        if (animator != null)
+        {
+            animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+        }
     }
 
     private void OnEnable()

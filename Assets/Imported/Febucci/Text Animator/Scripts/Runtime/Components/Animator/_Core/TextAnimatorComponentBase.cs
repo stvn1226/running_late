@@ -39,7 +39,7 @@ namespace Febucci.TextAnimatorForUnity
         {
             get
             {
-                if (initialized) return _wrapper;
+                if (initialized && _wrapper != null) return _wrapper;
 
                 TryInitializingOnce();
                 return _wrapper;
@@ -221,13 +221,14 @@ namespace Febucci.TextAnimatorForUnity
 
         public void TryInitializingOnce()
         {
-            if (initialized) return;
-
-            initialized = true;
+            if (initialized && _wrapper != null) return;
 
             AnimUtils.Initialize();
 
             generator = GetTextGenerator();
+            if (generator == null) return;
+
+            initialized = true;
             var parsers = GetExtraParsers();
 
             databaseEffects?.ForceBuildRefresh();
@@ -286,31 +287,31 @@ namespace Febucci.TextAnimatorForUnity
         /// <param name="text">Full text that you want to paste, including rich text tags.</param>
         /// <remarks>This method shows the text instantly. To control if it should be hidden instead, please see <see cref="SetText(string, bool)"/>. </remarks>
         public void SetText(string text)
-            => Wrapper.SetText(text);
+            => Wrapper?.SetText(text);
 
         /// <inheritdoc cref="ITextAnimatorProvider.SwapText"/>
         public void SwapText(string text)
-            => Wrapper.SwapText(text);
+            => Wrapper?.SwapText(text);
 
         /// <inheritdoc cref="ITextAnimatorProvider.SetText"/>
         public void SetText(string text, bool hideText)
-            => Wrapper.SetText(text, hideText ? ShowTextMode.Hidden : ShowTextMode.Shown);
+            => Wrapper?.SetText(text, hideText ? ShowTextMode.Hidden : ShowTextMode.Shown);
 
         /// <inheritdoc cref="ITextAnimatorProvider.AppendText"/>
         public void AppendText(string appendedText, bool hideText = false, bool skipOldText = true)
-            => Wrapper.AppendText(appendedText, hideText, skipOldText);
+            => Wrapper?.AppendText(appendedText, hideText, skipOldText);
 
         /// <inheritdoc cref="ITextAnimatorProvider.SetVisibilityChar"/>
         public void SetVisibilityChar(int index, bool isVisible, bool canPlayEffects = true)
-            => Wrapper.SetVisibilityChar(index, isVisible, canPlayEffects);
+            => Wrapper?.SetVisibilityChar(index, isVisible, canPlayEffects);
 
         /// <inheritdoc cref="ITextAnimatorProvider.SetVisibilityWord"/>
         public void SetVisibilityWord(int index, bool isVisible, bool canPlayEffects = true)
-            => Wrapper.SetVisibilityWord(index, isVisible, canPlayEffects);
+            => Wrapper?.SetVisibilityWord(index, isVisible, canPlayEffects);
 
         /// <inheritdoc cref="ITextAnimatorProvider.SetVisibilityEntireText"/>
         public void SetVisibilityEntireText(bool isVisible, bool canPlayEffects = true)
-            => Wrapper.SetVisibilityEntireText(isVisible, canPlayEffects);
+            => Wrapper?.SetVisibilityEntireText(isVisible, canPlayEffects);
 
         #endregion
 
@@ -369,7 +370,7 @@ namespace Febucci.TextAnimatorForUnity
             //called here as well since this method be called from outside
             TryInitializingOnce();
 
-            _wrapper.Animate(deltaTime);
+            _wrapper?.Animate(deltaTime);
         }
 
         #endregion
@@ -377,7 +378,7 @@ namespace Febucci.TextAnimatorForUnity
         /// <summary>
         /// Schedules that a mesh refresh is required as soon as possible, which will be applied before the next animation loop starts.
         /// </summary>
-        public void ScheduleMeshRefresh() => Wrapper.RequiresMeshUpdate = true;
+        public void ScheduleMeshRefresh() { if (Wrapper != null) Wrapper.RequiresMeshUpdate = true; }
 
         public void ForceDatabaseRefresh()
         {
@@ -394,8 +395,11 @@ namespace Febucci.TextAnimatorForUnity
 
         protected virtual void OnEnable() // things might have changed when disabled, e.g. autoSize etc.
         {
-            Wrapper.RequiresMeshUpdate = true;
-            Animate(0.0001f); // Small delta to initialize behavior effects correctly on first frame
+            if (Wrapper != null)
+            {
+                Wrapper.RequiresMeshUpdate = true;
+                Animate(0.0001f); // Small delta to initialize behavior effects correctly on first frame
+            }
         }
         #endregion
 

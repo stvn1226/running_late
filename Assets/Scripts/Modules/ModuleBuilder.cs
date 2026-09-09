@@ -24,6 +24,10 @@ public class ModuleBuilder : MonoBehaviour
     public int obstacleRate = 40;
     public int flyingObstacleRate = 20;
 
+    [Header("Centralized Pool Config (Fuente de Verdad)")]
+    [Tooltip("Config centralizada para edificios y obstáculos. Si está asignada y los arrays locales están vacíos, se usan los de la config.")]
+    public ModuleObstacleConfig obstaclePoolConfig;
+
     [Header("Generation Settings")]
     public bool autoGenerateOnStart = false;
     [Range(0, 100)]
@@ -234,7 +238,11 @@ public class ModuleBuilder : MonoBehaviour
             $"foundationInstantiated={foundationInstantiated} " +
             $"placementTrackerY_afterTerrain={placementTracker.position.y:F3}");
 
-        if (spawnObstacles && obstaclePrefabs != null && obstaclePrefabs.Length > 0 && obstacleSpawnPoint != null)
+        GameObject[] effectiveObstacles = (obstaclePrefabs != null && obstaclePrefabs.Length > 0)
+            ? obstaclePrefabs
+            : (obstaclePoolConfig != null ? obstaclePoolConfig.groundObstacles : null);
+
+        if (spawnObstacles && effectiveObstacles != null && effectiveObstacles.Length > 0 && obstacleSpawnPoint != null)
         {
             obstacleSpawnPoint.position = new Vector3(
                 obstacleSpawnPoint.position.x,
@@ -246,17 +254,10 @@ public class ModuleBuilder : MonoBehaviour
             int obstacleRoll = Random.Range(0, 100);
             if (obstacleRoll < currentObstacleRate)
             {
-                // TEMP: obstacle list on the prefab defines valid spawns — no name-based level filter.
-                // Filter by name (truck/car/etc.) and MaxObstacleLevel disabled while heights are being stabilized.
                 List<GameObject> filteredPrefabs = new List<GameObject>();
-                foreach (var p in obstaclePrefabs)
+                foreach (var p in effectiveObstacles)
                 {
                     if (p == null) continue;
-                    // string n = p.name.ToLower();
-                    // int level = 1;
-                    // if (n.Contains("truck") || n.Contains("camion") || n.Contains("van")) level = 3;
-                    // else if (n.Contains("car") || n.Contains("auto")) level = 2;
-                    // if (level <= maxObstacleLevel) filteredPrefabs.Add(p);
                     filteredPrefabs.Add(p);
                 }
 
@@ -394,7 +395,11 @@ public class ModuleBuilder : MonoBehaviour
 
     private void SpawnFlyingObstacles(int? explicitHeight = 0, DifficultyConfig diffConfig = null)
     {
-        if (flyingObstaclePrefabs == null || flyingObstaclePrefabs.Length == 0) return;
+        GameObject[] effectiveFlyingObstacles = (flyingObstaclePrefabs != null && flyingObstaclePrefabs.Length > 0)
+            ? flyingObstaclePrefabs
+            : (obstaclePoolConfig != null ? obstaclePoolConfig.flyingObstacles : null);
+
+        if (effectiveFlyingObstacles == null || effectiveFlyingObstacles.Length == 0) return;
 
         int currentFlyingRate = diffConfig != null ? diffConfig.flyingObstacleChance : flyingObstacleRate;
         float flyingObstacleRoll = Random.Range(0, 100);
@@ -405,7 +410,7 @@ public class ModuleBuilder : MonoBehaviour
             // so obstacles follow the terrain if block scale is adjusted.
             float blockHeight = moduleConfig != null ? moduleConfig.groundBlockHeight : 3f;
 
-            GameObject flyingObstaclePrefab = flyingObstaclePrefabs[Random.Range(0, flyingObstaclePrefabs.Length)];
+            GameObject flyingObstaclePrefab = effectiveFlyingObstacles[Random.Range(0, effectiveFlyingObstacles.Length)];
             
             // Apply obstacleZOffset to flying obstacles too
             Vector3 flyingPosition = new Vector3(transform.position.x, ((float)explicitHeight * blockHeight) + 50, transform.position.z + obstacleZOffset);

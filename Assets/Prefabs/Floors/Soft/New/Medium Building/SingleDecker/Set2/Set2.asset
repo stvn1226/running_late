@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ded49d2534d147b58d2f57c289c4e83, type: 3}
+  m_Name: Set2
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingThemeSet
+  themeId: Set2
+  groundPrefabs:
+  - {fileID: 6604129969402491093, guid: 9bb33652cb574fae960e31ea0c40a638, type: 3}
+  floorPrefabs:
+  - {fileID: 6604129969402491093, guid: a5238bb06e4a4d259cf87d818a9bb576, type: 3}
+  roofPrefabs:
+  - {fileID: 6604129969402491093, guid: f77c22ae41ac43ac92e2ecd67f651bd8, type: 3}
+  roofObstaclePrefabs: []

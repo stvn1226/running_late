@@ -68,12 +68,40 @@ public class Goal : MonoBehaviour
         }
 
         float completionTime = cachedTimer != null ? cachedTimer.ElapsedTime : 0f;
-    
+        string formattedTime = cachedTimer != null ? cachedTimer.GetFormattedTime() : "00:00.00";
         int currentSeed = LevelStarter.Instance != null ? LevelStarter.Instance.GetCurrentSeed() : 0;
     
         if (AnalyticsManager.Instance != null)
         {
             AnalyticsManager.Instance.TrackLevelComplete(currentSeed, completionTime, true);
+        }
+
+        // ─── Achievements ─────────────────────────────────────────────
+        if (Achievements.AchievementsManager.Instance != null)
+        {
+            Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_FIRST_WIN, "Primer Día de Clases", "Completa tu primer nivel");
+            
+            PlayerStates playerStates = FindObjectOfType<PlayerStates>();
+            if (playerStates != null && playerStates.hasToast)
+            {
+                Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_PERFECT_TOAST, "Desayuno Intacto", "Llega a la escuela sin perder la tostada");
+            }
+
+            if (completionTime > 0f && completionTime <= 45f)
+            {
+                Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_SPEED_DEMON, "Sonic Urbano", "Completa un nivel en menos de 45 segundos");
+            }
+        }
+
+        // ─── Steam Rich Presence & Leaderboard ────────────────────────
+        if (Steam.SteamRichPresence.Instance != null)
+        {
+            Steam.SteamRichPresence.Instance.SetLevelCompleted(currentSeed, formattedTime);
+        }
+
+        if (Steam.SteamLeaderboardBridge.Instance != null && completionTime > 0f)
+        {
+            _ = Steam.SteamLeaderboardBridge.Instance.SubmitTimeAsync(completionTime);
         }
 
         StopTimer();

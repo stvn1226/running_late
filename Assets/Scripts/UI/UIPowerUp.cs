@@ -21,6 +21,19 @@ public class UIPowerUp : MonoBehaviour
     private CanvasGroup _canvasGroup;
     [SerializeField] private float _fadeSpeed = 5f;
 
+    [Header("Fade Settings")]
+    [Tooltip("Normalized time [0..1] when the power-up card starts fading out. 0.85 means 100% visible for the first 85% of duration, fading fast during the remaining 15%.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _fadeStartNormalized = 0.85f;
+
+    [Tooltip("Enable to use a custom curve for alpha over lifetime (0.0 to 1.0 progress).")]
+    [SerializeField] private bool _useCustomCurve = false;
+    [SerializeField] private AnimationCurve _fadeCurve = new AnimationCurve(
+        new Keyframe(0f, 1f),
+        new Keyframe(0.85f, 1f),
+        new Keyframe(1f, 0f)
+    );
+
     private static UIPowerUpHandler _UIPowerUpHandler;
 
     public void AssignHandler(UIPowerUpHandler handler)
@@ -64,8 +77,11 @@ public class UIPowerUp : MonoBehaviour
         Transform rootTarget = (transform.parent != null && transform.parent.name.Contains("Container")) ? transform.parent : transform;
         if (_canvasGroup == null)
         {
-            // Busca CanvasGroup en el contenedor padre (PowerUpContainer) o en sí mismo
             _canvasGroup = rootTarget.GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = GetComponentInParent<CanvasGroup>();
+            }
             if (_canvasGroup == null)
             {
                 _canvasGroup = rootTarget.gameObject.AddComponent<CanvasGroup>();
@@ -116,39 +132,46 @@ public class UIPowerUp : MonoBehaviour
 
     private void ProcessFill()
     {
-        if (_duration <= 0f) return;
-
-        _targetAlpha = 1f;
+        if (_duration <= 0f)
+        {
+            if (_canvasGroup != null) _canvasGroup.alpha = 1f;
+            return;
+        }
 
         _currentTime += Time.deltaTime;
+        float progress = Mathf.Clamp01(_currentTime / _duration);
 
-        if (_currentTime <= _duration)
+        // Update timer circle fill
+        float remainingTime = _duration - _currentTime;
+        float fillAmount = Mathf.Clamp01(remainingTime / _duration);
+        if (_timerCircle != null)
         {
-            float remainingTime = _duration - _currentTime;
-            float fillAmount = remainingTime / _duration;
-            if (_timerCircle != null)
-            {
-                _timerCircle.fillAmount = fillAmount;
-            }
+            _timerCircle.fillAmount = fillAmount;
+        }
+
+        // Alpha fade logic: configurable threshold or custom curve
+        float targetAlpha = 1f;
+        if (_useCustomCurve && _fadeCurve != null)
+        {
+            targetAlpha = Mathf.Clamp01(_fadeCurve.Evaluate(progress));
         }
         else
         {
-            _targetAlpha = 0f;
+            if (progress > _fadeStartNormalized)
+            {
+                float fadeRange = Mathf.Max(0.001f, 1f - _fadeStartNormalized);
+                float fadeProgress = (progress - _fadeStartNormalized) / fadeRange;
+                targetAlpha = Mathf.Clamp01(1f - fadeProgress);
+            }
         }
 
         if (_canvasGroup != null)
         {
-            _canvasGroup.alpha = Mathf.Lerp(_canvasGroup.alpha, _targetAlpha, _fadeSpeed * Time.deltaTime);
-
-            if (_canvasGroup.alpha <= 0.05f && _targetAlpha == 0f)
-            {
-                if (_UIPowerUpHandler != null)
-                {
-                    _UIPowerUpHandler.UnregisterPowerUp(powerUpName);
-                }
-            }
+            _canvasGroup.alpha = targetAlpha;
         }
-        else if (_targetAlpha == 0f)
+
+        // Expired -> unregister and destroy card
+        if (_currentTime >= _duration)
         {
             if (_UIPowerUpHandler != null)
             {

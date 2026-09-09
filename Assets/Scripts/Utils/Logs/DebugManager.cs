@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 [System.Serializable]
 public class DebugSettings
@@ -54,121 +56,138 @@ public class DebugManager : MonoBehaviour
         }
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogPlayer(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enablePlayerDebug)
-            Debug.Log($"[PLAYER] {message}");
+            UnityEngine.Debug.Log($"[PLAYER] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogMovement(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableMovementDebug)
-            Debug.Log($"[MOVEMENT] {message}");
+            UnityEngine.Debug.Log($"[MOVEMENT] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogPhysics(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enablePhysicsDebug)
-            Debug.Log($"[PHYSICS] {message}");
+            UnityEngine.Debug.Log($"[PHYSICS] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogState(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableStateDebug)
-            Debug.Log($"[STATE] {message}");
+            UnityEngine.Debug.Log($"[STATE] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogInput(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableInputDebug)
-            Debug.Log($"[INPUT] {message}");
+            UnityEngine.Debug.Log($"[INPUT] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogLevel(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableLevelDebug)
-            Debug.Log($"[LEVEL] {message}");
+            UnityEngine.Debug.Log($"[LEVEL] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogTrigger(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableTriggerDebug)
-            Debug.Log($"[TRIGGER] {message}");
+            UnityEngine.Debug.Log($"[TRIGGER] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogCollision(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableCollisionDebug)
-            Debug.Log($"[COLLISION] {message}");
+            UnityEngine.Debug.Log($"[COLLISION] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogAudio(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableAudioDebug)
-            Debug.Log($"[AUDIO] {message}");
+            UnityEngine.Debug.Log($"[AUDIO] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogUI(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableUIDebug)
-            Debug.Log($"[UI] {message}");
+            UnityEngine.Debug.Log($"[UI] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogAnimation(object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableAnimationDebug)
-            Debug.Log($"[ANIMATION] {message}");
+            UnityEngine.Debug.Log($"[ANIMATION] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogWarning(string system, object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs)
-            Debug.LogWarning($"[{system.ToUpper()}] {message}");
+            UnityEngine.Debug.LogWarning($"[{system.ToUpper()}] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogError(string system, object message)
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs)
-            Debug.LogError($"[{system.ToUpper()}] {message}");
+            UnityEngine.Debug.LogError($"[{system.ToUpper()}] {message}");
+#endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogVerbose(string system, object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enableVerboseLogs)
-            Debug.Log($"[{system.ToUpper()}] [VERBOSE] {message}");
+            UnityEngine.Debug.Log($"[{system.ToUpper()}] [VERBOSE] {message}");
 #endif
     }
     
+    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
     public static void LogPerformance(string system, object message)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Settings.enableAllLogs && Settings.enablePerformanceLogs)
-            Debug.Log($"[{system.ToUpper()}] [PERF] {message}");
+            UnityEngine.Debug.Log($"[{system.ToUpper()}] [PERF] {message}");
 #endif
     }
     

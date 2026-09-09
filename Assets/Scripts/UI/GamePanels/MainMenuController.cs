@@ -40,6 +40,8 @@ public class MainMenuController : MonoBehaviour
         InitializePanels();
         ShowMainPanel();
         
+        Steam.SteamRichPresence.Instance?.SetInMenu();
+
         if (gameplayCanvas != null)
         {
             gameplayCanvas.gameObject.SetActive(false);

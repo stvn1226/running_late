@@ -101,11 +101,19 @@ public class SpawnManager : MonoBehaviour
         FindHomeSpawnPoint();
         SpawnPlayerAtHome();
         
-        if (UI.GamePanels.ControlsTutorialOverlay.Instance != null && UI.GamePanels.ControlsTutorialOverlay.ShouldShowTutorial())
+        int currentSeed = LevelStarter.Instance != null ? LevelStarter.Instance.GetCurrentSeed() : 0;
+        Steam.SteamRichPresence.Instance?.SetPlayingLevel(currentSeed);
+        Achievements.AchievementsManager.Instance?.ResetRunCounters();
+
+        var tutorial = UI.GamePanels.ControlsTutorialOverlay.Instance != null 
+            ? UI.GamePanels.ControlsTutorialOverlay.Instance 
+            : FindObjectOfType<UI.GamePanels.ControlsTutorialOverlay>(true);
+
+        if (tutorial != null && UI.GamePanels.ControlsTutorialOverlay.ShouldShowTutorial())
         {
             DisablePlayerInput();
             Time.timeScale = 0f;
-            UI.GamePanels.ControlsTutorialOverlay.Instance.ShowTutorial(() =>
+            tutorial.ShowTutorial(() =>
             {
                 if (useCountdown && StartCountdownController.Instance != null)
                 {

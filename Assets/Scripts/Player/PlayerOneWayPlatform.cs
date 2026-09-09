@@ -8,9 +8,11 @@ public class PlayerOneWayPlatform : MonoBehaviour
     public PlayerConfig config;
     
     [Header("Settings")]
-    [SerializeField] private float safetyDelay = 0.3f;
-    [SerializeField] private float baseLookAhead = 2f;
-    [SerializeField] private float velocityLookAheadMultiplier = 0.2f;
+    // How far horizontally (each side) we scan for platforms while dropping through.
+    // Should cover at least 1 full segment width at max run speed.
+    [SerializeField] private float horizontalScanRadius = 6f;
+    // How far below the player bottom we scan to pre-ignore platforms.
+    [SerializeField] private float verticalScanRadius = 3f;
     
     [Header("Debug")]
     [SerializeField] private bool showGizmos = true;
@@ -47,8 +49,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
     {
         if (playerCollider == null || playerStates == null || playerRb == null) return;
 
-        // Only allow drop-through if NOT sliding on a cable
-        if (playerStates.dropDownHeld && !playerStates.isSlidingOnCable)
+        // Only allow drop-through if NOT sliding on a cable and NOT staggered
+        if (playerStates.dropDownHeld && !playerStates.isSlidingOnCable && !playerStates.isStaggered)
         {
             DropThrough();
         }
@@ -65,72 +67,50 @@ public class PlayerOneWayPlatform : MonoBehaviour
             playerStates.isDroppingDown = true;
         }
 
-        IgnoreCurrentPlatforms();
-        IgnorePlatformsAhead();
+        // Scan broadly: the player's full body box + generous horizontal and vertical margins.
+        // This ensures that even at high run speed, segments ahead are already ignored
+        // before the player's body reaches them, preventing the upward push.
+        IgnoreAllPlatformsInScanZone();
+    }
+
+    private void IgnoreAllPlatformsInScanZone()
+    {
+        // Build a wide box: full player width + horizontal radius on each side,
+        // and from the player bottom downward by verticalScanRadius.
+        Bounds playerBounds = playerCollider.bounds;
+
+        float scanWidth  = playerBounds.size.x + horizontalScanRadius * 2f;
+        float scanHeight = playerBounds.size.y + verticalScanRadius;
+
+        // Center the box so that it covers the player body + scan zone below
+        Vector3 scanCenter = playerBounds.center;
+        scanCenter.y -= verticalScanRadius * 0.5f;
+
+        Vector2 scanSize = new Vector2(scanWidth, scanHeight);
+
+        LayerMask searchMask = platformLayerMask;
+        int oneWayLayer = LayerMask.NameToLayer("OneWayPlatform");
+        if (oneWayLayer != -1) searchMask |= (1 << oneWayLayer);
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(scanCenter, scanSize, 0f, searchMask);
+
+        foreach (Collider2D platform in hits)
+        {
+            if (ShouldIgnorePlatform(platform))
+            {
+                IgnorePlatform(platform);
+            }
+        }
     }
 
     private void StopDropThrough()
     {
-        if (playerStates.isDroppingDown)
+        if (playerStates.isDroppingDown || ignoredPlatforms.Count > 0)
         {
             playerStates.isDroppingDown = false;
             GameLogger.Log("PLATFORM", "DropThrough ENDED - Restoring collisions");
             RestoreAllCollisions();
         }
-    }
-
-    private void IgnoreCurrentPlatforms()
-    {
-        Collider2D[] platforms = GetPlatformsInBounds(playerCollider.bounds);
-        
-        foreach (Collider2D platform in platforms)
-        {
-            if (ShouldIgnorePlatform(platform))
-            {
-                IgnorePlatform(platform);
-            }
-        }
-    }
-
-    private void IgnorePlatformsAhead()
-    {
-        // Only look ahead if falling or moving down
-        if (playerRb.linearVelocity.y > 0.1f) return;
-
-        Bounds lookAheadBounds = CalculateLookAheadBounds();
-        Collider2D[] platforms = GetPlatformsInBounds(lookAheadBounds);
-        
-        foreach (Collider2D platform in platforms)
-        {
-            if (ShouldIgnorePlatform(platform))
-            {
-                IgnorePlatform(platform);
-            }
-        }
-    }
-
-    private Bounds CalculateLookAheadBounds()
-    {
-        Vector2 velocity = playerRb.linearVelocity;
-        
-        // Only look down
-        float lookAheadDistance = Mathf.Max(baseLookAhead, Mathf.Abs(velocity.y) * velocityLookAheadMultiplier);
-        Vector3 lookAheadOffset = Vector3.down * (lookAheadDistance * 0.5f);
-        
-        Bounds bounds = playerCollider.bounds;
-        bounds.center += lookAheadOffset;
-        bounds.size = new Vector3(bounds.size.x + 0.2f, lookAheadDistance, bounds.size.z);
-        
-        return bounds;
-    }
-
-    private Collider2D[] GetPlatformsInBounds(Bounds bounds)
-    {
-        LayerMask searchMask = platformLayerMask;
-        int oneWayLayer = LayerMask.NameToLayer("OneWayPlatform");
-        if (oneWayLayer != -1) searchMask |= (1 << oneWayLayer);
-
-        return Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0f, searchMask);
     }
 
     private bool ShouldIgnorePlatform(Collider2D platform)
@@ -139,21 +119,16 @@ public class PlayerOneWayPlatform : MonoBehaviour
         if (platform == playerCollider) return false;
         if (ignoredPlatforms.Contains(platform)) return false;
         
-        // PROTECTION: Never ignore the cable we are currently sliding on!
+        // Never ignore the cable we are currently sliding on
         if (playerStates.isSlidingOnCable && platform == playerStates.currentCable) return false;
 
         if (!IsPlatform(platform)) return false;
-        
-        // Only ignore if we are above it (one-way logic)
-        if (!IsPlayerAbove(platform)) return false;
         
         return true;
     }
 
     private bool IsPlatform(Collider2D collider)
     {
-        // Bug 1 fix: Do NOT accept every PlatformEffector2D blindly — that catches cars too.
-        // Only accept colliders that are explicitly on the platform layer OR tagged as OneWayPlatform.
         int layer = collider.gameObject.layer;
         if ((platformLayerMask.value & (1 << layer)) != 0)
             return true;
@@ -168,16 +143,6 @@ public class PlayerOneWayPlatform : MonoBehaviour
         return collider.CompareTag("OneWayPlatform");
     }
 
-    private bool IsPlayerAbove(Collider2D platform)
-    {
-        float playerBottom = playerCollider.bounds.min.y;
-        float platformTop = platform.bounds.max.y;
-        
-        // Use a generous buffer (4 units) so that slopes are covered:
-        // a player at the base of a tall slope still passes this check.
-        return playerBottom >= platformTop - 4.0f;
-    }
-
     private void IgnorePlatform(Collider2D platform)
     {
         Physics2D.IgnoreCollision(playerCollider, platform, true);
@@ -190,6 +155,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
         {
             if (platform == null) continue;
 
+            // Only restore immediately if the player is not overlapping the platform.
+            // If still overlapping, queue it for deferred restore to avoid physics pushback.
             bool isOverlapping = playerCollider.bounds.Intersects(platform.bounds);
 
             if (isOverlapping)
@@ -215,8 +182,8 @@ public class PlayerOneWayPlatform : MonoBehaviour
         {
             Physics2D.IgnoreCollision(playerCollider, platform, false);
             
-            // CRITICAL: Unity does not recalculate contacts if IgnoreCollision is set to false
-            // while the objects are already overlapping. We must force a recalculation!
+            // Force Unity to recalculate contacts after re-enabling collision.
+            // Without this, overlapping objects do not generate new contacts.
             if (playerCollider.enabled)
             {
                 playerCollider.enabled = false;
@@ -225,14 +192,45 @@ public class PlayerOneWayPlatform : MonoBehaviour
         }
     }
 
-    // Simple unconditional delay: wait a short fixed time, then restore regardless.
-    // No looping, no overlap checks — avoids frame-by-frame bound jitter causing random falls.
+    // Wait until the player has fully passed below the platform surface before restoring.
+    // This eliminates the upward pushback from Unity's physics solver.
     private IEnumerator RestoreDelayedPlatforms()
     {
-        yield return new WaitForSeconds(0.1f);
+        float timeout = 0.8f;
+        float elapsed = 0f;
 
+        while (platformsToRestore.Count > 0 && elapsed < timeout)
+        {
+            for (int i = platformsToRestore.Count - 1; i >= 0; i--)
+            {
+                Collider2D platform = platformsToRestore[i];
+                if (platform == null)
+                {
+                    platformsToRestore.RemoveAt(i);
+                    continue;
+                }
+
+                bool isOverlapping = playerCollider != null && playerCollider.bounds.Intersects(platform.bounds);
+
+                if (!isOverlapping)
+                {
+                    RestorePlatformCollision(platform);
+                    platformsToRestore.RemoveAt(i);
+                }
+            }
+
+            if (platformsToRestore.Count == 0) break;
+
+            yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
+        }
+
+        // Timeout safety: restore everything remaining
         foreach (Collider2D platform in platformsToRestore)
-            RestorePlatformCollision(platform);
+        {
+            if (platform != null)
+                RestorePlatformCollision(platform);
+        }
 
         platformsToRestore.Clear();
         restoreCoroutine = null;
@@ -243,34 +241,69 @@ public class PlayerOneWayPlatform : MonoBehaviour
     public void ForceStop()
     {
         if (playerStates != null)
-            playerStates.SetDropDownReleased();
+        {
+            playerStates.dropDownHeld = false;
+            playerStates.isDroppingDown = false;
+        }
         
-        StopDropThrough();
+        if (restoreCoroutine != null)
+        {
+            StopCoroutine(restoreCoroutine);
+            restoreCoroutine = null;
+        }
+
+        foreach (Collider2D platform in ignoredPlatforms)
+        {
+            if (platform != null && playerCollider != null)
+            {
+                Physics2D.IgnoreCollision(playerCollider, platform, false);
+            }
+        }
+        ignoredPlatforms.Clear();
+
+        foreach (Collider2D platform in platformsToRestore)
+        {
+            if (platform != null && playerCollider != null)
+            {
+                Physics2D.IgnoreCollision(playerCollider, platform, false);
+            }
+        }
+        platformsToRestore.Clear();
+
+        if (playerCollider != null && playerCollider.enabled)
+        {
+            playerCollider.enabled = false;
+            playerCollider.enabled = true;
+        }
     }
 
-
+    private void OnDisable()
+    {
+        ForceStop();
+    }
 
     private void OnDrawGizmosSelected()
     {
-        if (!showGizmos || playerCollider == null || playerRb == null) return;
+        if (!showGizmos || playerCollider == null) return;
         
+        // Draw player collider bounds
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(playerCollider.bounds.center, playerCollider.bounds.size);
         
         if (playerStates != null && playerStates.isDroppingDown)
         {
-            Gizmos.color = Color.cyan;
-            Bounds lookAhead = CalculateLookAheadBounds();
-            Gizmos.DrawWireCube(lookAhead.center, lookAhead.size);
+            // Draw the scan zone
+            Bounds playerBounds = playerCollider.bounds;
+            float scanWidth  = playerBounds.size.x + horizontalScanRadius * 2f;
+            float scanHeight = playerBounds.size.y + verticalScanRadius;
+            Vector3 scanCenter = playerBounds.center;
+            scanCenter.y -= verticalScanRadius * 0.5f;
             
-            Vector2 velocity = playerRb.linearVelocity;
-            if (velocity.magnitude > 0.1f)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawLine(transform.position, (Vector2)transform.position + velocity.normalized * baseLookAhead);
-            }
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(scanCenter, new Vector3(scanWidth, scanHeight, 0.1f));
         }
         
+        // Highlight ignored platforms
         Gizmos.color = Color.red;
         foreach (Collider2D platform in ignoredPlatforms)
         {

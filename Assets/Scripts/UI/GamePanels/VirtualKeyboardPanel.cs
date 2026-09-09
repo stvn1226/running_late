@@ -93,12 +93,19 @@ public class VirtualKeyboardPanel : MonoBehaviour
 
     private void OnEnable()
     {
+        if (inputActions == null)
+        {
+            inputActions = new PlayerInputActions();
+        }
         inputActions.UI.Enable();
     }
 
     private void OnDisable()
     {
-        inputActions.UI.Disable();
+        if (inputActions != null)
+        {
+            inputActions.UI.Disable();
+        }
     }
 
     private void Update()

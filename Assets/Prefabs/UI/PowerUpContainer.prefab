@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1518522311841728063}
   - component: {fileID: 7027928231282291348}
   - component: {fileID: 8463127511404833420}
+  - component: {fileID: 8975431431404167532}
   m_Layer: 5
   m_Name: PowerUpContainer
   m_TagString: Untagged
@@ -29,11 +30,10 @@ RectTransform:
   m_GameObject: {fileID: 949269550229956772}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7766746947377065732}
-  - {fileID: 8515292538903687037}
   - {fileID: 6613582902321954458}
   - {fileID: 5108654127586306174}
   m_Father: {fileID: 0}
@@ -41,7 +41,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -1520, y: -990}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4676884098297473360
 CanvasRenderer:
@@ -80,7 +80,7 @@ MonoBehaviour:
   m_FillClockwise: 0
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 5.23
+  m_PixelsPerUnitMultiplier: 4.8
 --- !u!114 &7027928231282291348
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,7 +88,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 949269550229956772}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
   m_Name: 
@@ -108,13 +108,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
-  m_MinWidth: 500
-  m_MinHeight: 130
+  m_MinWidth: 400
+  m_MinHeight: 90
   m_PreferredWidth: -1
-  m_PreferredHeight: -1
+  m_PreferredHeight: 90
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!225 &8975431431404167532
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949269550229956772}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3528918712444728709
 GameObject:
   m_ObjectHideFlags: 0
@@ -142,15 +154,15 @@ RectTransform:
   m_GameObject: {fileID: 3528918712444728709}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_LocalScale: {x: 0.8000001, y: 0.8000001, z: 0.8000001}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 8224285769701051685}
+  m_Father: {fileID: 7766746947377065732}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 70.999985, y: 0}
-  m_SizeDelta: {x: 90, y: 90}
+  m_AnchoredPosition: {x: 40, y: 0}
+  m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4757387915650622914
 CanvasRenderer:
@@ -202,6 +214,7 @@ GameObject:
   - component: {fileID: 1203235094007916352}
   - component: {fileID: 4968398450044477892}
   - component: {fileID: 632996207533516492}
+  - component: {fileID: 2505460547470395610}
   m_Layer: 5
   m_Name: PowerUpCD
   m_TagString: Untagged
@@ -220,13 +233,14 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
-  m_Children: []
+  m_Children:
+  - {fileID: 8515292538903687037}
   m_Father: {fileID: 8224285769701051685}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 71, y: 0}
-  m_SizeDelta: {x: 90, y: 90}
+  m_AnchoredPosition: {x: 45.4, y: 0}
+  m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1203235094007916352
 CanvasRenderer:
@@ -282,6 +296,18 @@ MonoBehaviour:
   _powerIcon: {fileID: 1586823046201444893}
   _powerText: {fileID: 2987821986828619806}
   _fadeSpeed: 5
+--- !u!225 &2505460547470395610
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5381820642324328392}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &6435611652595295533
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,10 +340,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 8224285769701051685}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 65.11055, y: 0}
-  m_SizeDelta: {x: 344.0107, y: 100}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -172.25134, y: 0.53759766}
+  m_SizeDelta: {x: 285.3723, y: -27.9527}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2811124111197122684
 CanvasRenderer:
@@ -376,12 +402,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
+  m_fontSize: 25
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 30
+  m_fontSizeMax: 25
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 4096

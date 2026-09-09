@@ -16,11 +16,19 @@ public class UINavigationFeedback : MonoBehaviour
 
     private void Awake()
     {
-        _inputActions = new PlayerInputActions();
+        if (_inputActions == null)
+        {
+            _inputActions = new PlayerInputActions();
+        }
     }
 
     private void OnEnable()
     {
+        if (_inputActions == null)
+        {
+            _inputActions = new PlayerInputActions();
+        }
+
         _inputActions.UI.Enable();
         _inputActions.UI.Submit.performed += OnSubmit;
         _inputActions.UI.Click.performed += OnClick;
@@ -28,14 +36,17 @@ public class UINavigationFeedback : MonoBehaviour
 
     private void OnDisable()
     {
-        _inputActions.UI.Submit.performed -= OnSubmit;
-        _inputActions.UI.Click.performed -= OnClick;
-        _inputActions.UI.Disable();
+        if (_inputActions != null)
+        {
+            _inputActions.UI.Submit.performed -= OnSubmit;
+            _inputActions.UI.Click.performed -= OnClick;
+            _inputActions.UI.Disable();
+        }
     }
 
     private void OnDestroy()
     {
-        _inputActions.Dispose();
+        _inputActions?.Dispose();
     }
 
     private void Update()

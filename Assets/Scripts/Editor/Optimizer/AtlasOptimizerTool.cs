@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+/// <summary>
+/// Editor window tool to inspect and optimize existing SpriteAtlas assets.
+/// Provides platform compression profiles for PC, Android, iOS, and WebGL.
+/// </summary>
 public class AtlasOptimizerTool : EditorWindow
 {
     [System.Serializable]

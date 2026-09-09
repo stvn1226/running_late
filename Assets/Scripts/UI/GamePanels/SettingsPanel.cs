@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using UI.GamePanels;
 
 public class SettingsPanel : BaseMainMenuPanel
 {
@@ -35,6 +36,7 @@ public class SettingsPanel : BaseMainMenuPanel
     [Header("Buttons")]
     [SerializeField] private Button backButton;
     [SerializeField] private Button resetButton;
+    [SerializeField] private Button viewControlsTutorialButton;
     
     [Header("Scroll View")]
     [SerializeField] private ScrollRect scrollRect;
@@ -82,8 +84,6 @@ public class SettingsPanel : BaseMainMenuPanel
     
     private void SetupScrollNavigation()
     {
-        Debug.Log("=== SETUP SCROLL NAVIGATION ===");
-    
         AddScrollListener(masterVolumeSlider, "MasterVolumeSlider");
         AddScrollListener(masterMuteToggle, "MasterMuteToggle");
         AddScrollListener(musicVolumeSlider, "MusicVolumeSlider");
@@ -96,21 +96,19 @@ public class SettingsPanel : BaseMainMenuPanel
         AddScrollListener(fullscreenModeDropdown, "FullscreenDropdown");
         AddScrollListener(resolutionDropdown, "ResolutionDropdown");
         AddScrollListener(vibrationToggle, "VibrationToggle");
-        AddScrollListener(backButton, "BackButton");
-        AddScrollListener(resetButton, "ResetButton");
+        // Fixed footer buttons (BackButton, ResetButton) are kept static so they never shift during interaction
     }
 
     private void AddScrollListener(Selectable selectable, string debugName)
     {
-        if (selectable == null) return;
-    
-        RectTransform rect = selectable.GetComponent<RectTransform>();
-        if (rect != null && scrollRect != null)
+        if (selectable == null || scrollRect == null || scrollRect.content == null) return;
+        
+        // Only elements inside the scrollable Content should participate in auto-scroll
+        if (!selectable.transform.IsChildOf(scrollRect.content))
         {
-            float absY = GetAbsoluteYPositionInContent(rect, scrollRect.content);
-            Debug.Log($"  {debugName}: AbsY = {absY:F1}");
+            return;
         }
-    
+
         EventTrigger trigger = selectable.gameObject.GetComponent<EventTrigger>();
         if (trigger == null)
         {
@@ -119,7 +117,12 @@ public class SettingsPanel : BaseMainMenuPanel
     
         EventTrigger.Entry entry = new EventTrigger.Entry();
         entry.eventID = EventTriggerType.Select;
-        entry.callback.AddListener((data) => { ScrollToSelectable(selectable); });
+        entry.callback.AddListener((data) => { 
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == selectable.gameObject)
+            {
+                ScrollToSelectable(selectable); 
+            }
+        });
         trigger.triggers.Add(entry);
     }
     
@@ -454,6 +457,16 @@ public class SettingsPanel : BaseMainMenuPanel
         {
             resetButton.onClick.AddListener(OnResetClicked);
         }
+
+        if (viewControlsTutorialButton != null)
+        {
+            viewControlsTutorialButton.onClick.AddListener(OnViewControlsTutorialClicked);
+        }
+    }
+
+    public void OnViewControlsTutorialClicked()
+    {
+        ControlsTutorialOverlay.ShowTutorialExplicit();
     }
     
     protected override void OnShow()

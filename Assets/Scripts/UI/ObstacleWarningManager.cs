@@ -104,6 +104,23 @@ public class ObstacleWarningManager : MonoBehaviour
     {
         if (mainCamera == null || canvasRectTransform == null)
             return;
+
+        // Do not show obstacle warnings while controls tutorial is active
+        if (UI.GamePanels.ControlsTutorialOverlay.IsShowingTutorial)
+        {
+            if (indicatorPool != null)
+            {
+                for (int i = 0; i < indicatorPool.Count; i++)
+                {
+                    if (indicatorPool[i] != null && indicatorPool[i].isActive)
+                    {
+                        indicatorPool[i].gameObject.SetActive(false);
+                        indicatorPool[i].isActive = false;
+                    }
+                }
+            }
+            return;
+        }
         
         FindObstaclesInRange();
         UpdateIndicators();
