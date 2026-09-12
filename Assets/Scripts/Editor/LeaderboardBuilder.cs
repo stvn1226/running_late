@@ -74,8 +74,8 @@ namespace EditorTools
             // Name label  (expand)
             TextMeshProUGUI nameLbl   = MakeLabel(root.transform, "NameLabel",   font, layer, 400f, 48f, TextAlignmentOptions.MidlineLeft);
             nameLbl.text  = "PlayerName";
-            nameLbl.fontSize = 20f;
-            nameLbl.flexibleWidth = 1f;
+            LayoutElement nameLE = nameLbl.gameObject.AddComponent<LayoutElement>();
+            nameLE.flexibleWidth = 1f;
 
             // Time label  (120px wide)
             TextMeshProUGUI timeLbl   = MakeLabel(root.transform, "TimeLabel",   font, layer, 120f, 48f, TextAlignmentOptions.MidlineRight);
