@@ -13,6 +13,7 @@ public class MainMenuPanel : BaseMainMenuPanel
     [SerializeField] private Button playButton;
     [SerializeField] private Button creditsButton;
     [SerializeField] private Button settingsButton;
+    [SerializeField] private Button leaderboardButton;
     [SerializeField] private Button quitButton;
     
     [Header("Step 2 - Play Options")]
@@ -66,7 +67,12 @@ public class MainMenuPanel : BaseMainMenuPanel
         {
             settingsButton.onClick.AddListener(OnSettingsClicked);
         }
-        
+
+        if (leaderboardButton != null)
+        {
+            leaderboardButton.onClick.AddListener(OnLeaderboardClicked);
+        }
+
         if (quitButton != null)
         {
             quitButton.onClick.AddListener(OnQuitClicked);
@@ -131,7 +137,10 @@ public class MainMenuPanel : BaseMainMenuPanel
         
         if (settingsButton != null)
             settingsButton.onClick.RemoveListener(OnSettingsClicked);
-        
+
+        if (leaderboardButton != null)
+            leaderboardButton.onClick.RemoveListener(OnLeaderboardClicked);
+
         if (quitButton != null)
             quitButton.onClick.RemoveListener(OnQuitClicked);
         
@@ -359,6 +368,16 @@ public class MainMenuPanel : BaseMainMenuPanel
         if (menuController != null)
         {
             menuController.ShowSettingsPanel();
+        }
+    }
+
+    private void OnLeaderboardClicked()
+    {
+        GameLogger.Log("MENU", "Leaderboard clicked");
+
+        if (menuController != null)
+        {
+            menuController.ShowLeaderboardPanel();
         }
     }
     

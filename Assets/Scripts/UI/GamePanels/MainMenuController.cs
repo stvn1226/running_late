@@ -14,6 +14,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private SavedLevelsPanel recentLevelsPanel;
     [SerializeField] private SavedLevelsPanel savedLevelsPanel;
     [SerializeField] private TextInputPanel textInputPanel;
+    [SerializeField] private LeaderboardPanel leaderboardPanel;
 
     [Header("Settings UI")]
     [SerializeField] private Toggle pathModeToggle;
@@ -117,6 +118,11 @@ public class MainMenuController : MonoBehaviour
         {
             textInputPanel.Initialize(this);
         }
+
+        if (leaderboardPanel != null)
+        {
+            leaderboardPanel.Initialize(this);
+        }
     }
 
     public void ShowMainPanel()
@@ -158,6 +164,11 @@ public class MainMenuController : MonoBehaviour
     public void ShowTextInputPanel()
     {
         SwitchToPanel(textInputPanel);
+    }
+
+    public void ShowLeaderboardPanel()
+    {
+        SwitchToPanel(leaderboardPanel);
     }
 
     private void SwitchToPanel(BaseMainMenuPanel targetPanel)
