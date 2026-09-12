@@ -7,11 +7,15 @@ namespace Utils
     {
         public float time;
         public int seed;
+        public string playerName;
+        public string levelName;
 
-        public TimeRecord(float time, int seed)
+        public TimeRecord(float time, int seed, string playerName = null, string levelName = null)
         {
             this.time = time;
             this.seed = seed;
+            this.playerName = playerName;
+            this.levelName = levelName;
         }
 
         public string GetFormattedTime()

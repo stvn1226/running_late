@@ -113,6 +113,9 @@ public class LeaderboardPanel : BaseMainMenuPanel
         var bridge = Steam.SteamLeaderboardBridge.Instance;
         if (bridge != null && SteamManager.IsInitialized)
         {
+            if (titleLabel != null)
+                titleLabel.SetText(global ? "Leaderboard Global" : "Leaderboard Amigos");
+
             Steam.LeaderboardEntryData[] entries = global
                 ? await bridge.GetTopGlobalScoresAsync(Steam.SteamLeaderboardBridge.DEFAULT_LEADERBOARD, maxRows)
                 : await bridge.GetFriendsScoresAsync(Steam.SteamLeaderboardBridge.DEFAULT_LEADERBOARD);
@@ -141,10 +144,22 @@ public class LeaderboardPanel : BaseMainMenuPanel
             var records = localMgr.GetTopRecords(maxRows);
             if (records != null && records.Count > 0)
             {
+                if (titleLabel != null)
+                    titleLabel.SetText("Mis Récords Locales");
+
                 for (int i = 0; i < records.Count; i++)
                 {
                     var rec = records[i];
-                    SpawnRow(i + 1, $"Seed #{rec.seed}", rec.time, false);
+                    string lvlName = !string.IsNullOrEmpty(rec.levelName)
+                        ? rec.levelName
+                        : Utils.LeaderboardManager.ResolveLevelName(rec.seed);
+
+                    string holder = !string.IsNullOrEmpty(rec.playerName)
+                        ? rec.playerName
+                        : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "Tú");
+
+                    string rowDisplay = $"{lvlName} ({holder})";
+                    SpawnRow(i + 1, rowDisplay, rec.time, true);
                 }
                 SetLoadingVisible(false);
                 SetEmptyVisible(false);

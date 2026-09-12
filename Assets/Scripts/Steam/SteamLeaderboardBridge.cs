@@ -22,18 +22,36 @@ namespace Steam
     /// </summary>
     public class SteamLeaderboardBridge : MonoBehaviour
     {
-        public static SteamLeaderboardBridge Instance { get; private set; }
+        private static SteamLeaderboardBridge _instance;
+        public static SteamLeaderboardBridge Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = FindFirstObjectByType<SteamLeaderboardBridge>();
+                    if (_instance == null && Application.isPlaying)
+                    {
+                        GameObject go = new GameObject("SteamLeaderboardBridge");
+                        _instance = go.AddComponent<SteamLeaderboardBridge>();
+                        DontDestroyOnLoad(go);
+                    }
+                }
+                return _instance;
+            }
+            private set => _instance = value;
+        }
 
         public const string DEFAULT_LEADERBOARD = "GlobalBestTimes";
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (_instance != null && _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
-            Instance = this;
+            _instance = this;
             DontDestroyOnLoad(gameObject);
         }
 

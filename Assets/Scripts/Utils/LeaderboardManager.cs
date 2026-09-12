@@ -24,14 +24,46 @@ namespace Utils
             
             LoadLeaderboard();
         }
+
+        public static string ResolveLevelName(int seed)
+        {
+            if (SavedLevelsList.instance != null)
+            {
+                var saved = SavedLevelsList.instance.GetSavedLevels()?.Find(l => l.savedLevelSeed == seed);
+                if (saved != null && !string.IsNullOrEmpty(saved.savedLevelName) && saved.savedLevelName != seed.ToString())
+                {
+                    return saved.savedLevelName;
+                }
+            }
+
+            string key = $"SavedLevel_{seed}_Name";
+            if (PlayerPrefs.HasKey(key))
+            {
+                string name = PlayerPrefs.GetString(key);
+                if (!string.IsNullOrEmpty(name) && name != seed.ToString())
+                {
+                    return name;
+                }
+            }
+
+            return $"Nivel {seed}";
+        }
         
-        public void SaveTime(int seed, float time)
+        public void SaveTime(int seed, float time, string playerName = null, string levelName = null)
         {
             if (leaderboardData == null)
             {
                 GameLogger.LogError("LEADERBOARD", "LeaderboardData is null! Cannot save time.");
                 return;
             }
+
+            string resolvedPlayer = !string.IsNullOrEmpty(playerName)
+                ? playerName
+                : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "Tú");
+
+            string resolvedLevelName = !string.IsNullOrEmpty(levelName)
+                ? levelName
+                : ResolveLevelName(seed);
 
             TimeRecord existingRecord = leaderboardData.records.Find(r => r.seed == seed);
             
@@ -40,14 +72,16 @@ namespace Utils
                 if (time < existingRecord.time)
                 {
                     existingRecord.time = time;
-                    GameLogger.Log("LEADERBOARD", $"New best time for seed {seed}: {existingRecord.GetFormattedTime()}");
+                    existingRecord.playerName = resolvedPlayer;
+                    existingRecord.levelName = resolvedLevelName;
+                    GameLogger.Log("LEADERBOARD", $"New best time for seed {seed} ({resolvedLevelName}): {existingRecord.GetFormattedTime()}");
                 }
             }
             else
             {
-                TimeRecord newRecord = new TimeRecord(time, seed);
+                TimeRecord newRecord = new TimeRecord(time, seed, resolvedPlayer, resolvedLevelName);
                 leaderboardData.records.Add(newRecord);
-                GameLogger.Log("LEADERBOARD", $"First time for seed {seed}: {newRecord.GetFormattedTime()}");
+                GameLogger.Log("LEADERBOARD", $"First time for seed {seed} ({resolvedLevelName}): {newRecord.GetFormattedTime()}");
             }
             
             SaveLeaderboard();
