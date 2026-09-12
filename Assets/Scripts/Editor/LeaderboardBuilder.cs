@@ -207,7 +207,7 @@ namespace EditorTools
             loadRT.anchorMax = new Vector2(1f, 0.82f);
             loadRT.offsetMin = loadRT.offsetMax = Vector2.zero;
             TextMeshProUGUI loadLbl = MakeLabel(loadingGO.transform, "LoadingLabel", font, layer, 400f, 60f, TextAlignmentOptions.Center);
-            loadLbl.text = "Cargando…";
+            loadLbl.text = "Loading...";
             loadLbl.fontSize = 24f;
             loadLbl.color = new Color(1f,1f,1f,0.6f);
             RectTransform loadLblRT = loadLbl.GetComponent<RectTransform>();
@@ -218,7 +218,7 @@ namespace EditorTools
 
             // ── Empty label ────────────────────────────────────────────────────
             TextMeshProUGUI emptyLbl = MakeLabel(root.transform, "EmptyLabel", font, layer, 400f, 60f, TextAlignmentOptions.Center);
-            emptyLbl.text = "Sin registros todavía";
+            emptyLbl.text = "No records yet";
             emptyLbl.fontSize = 22f;
             emptyLbl.color = new Color(1f,1f,1f,0.5f);
             RectTransform emptyRT = emptyLbl.GetComponent<RectTransform>();
@@ -228,7 +228,7 @@ namespace EditorTools
             emptyLbl.gameObject.SetActive(false);
 
             // ── Back button ────────────────────────────────────────────────────
-            Button backBtn = MakeButton(root.transform, "BackButton", "← Volver", font, layer, 160f, 50f);
+            Button backBtn = MakeButton(root.transform, "BackButton", "← Back", font, layer, 160f, 50f);
             RectTransform backRT = backBtn.GetComponent<RectTransform>();
             backRT.anchorMin = new Vector2(0.5f, 0f);
             backRT.anchorMax = new Vector2(0.5f, 0f);

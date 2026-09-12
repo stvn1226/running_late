@@ -39,7 +39,7 @@ namespace Steam
             if (!SteamManager.IsInitialized) return;
             try
             {
-                SteamFriends.SetRichPresence("status", "En el Menú Principal");
+                SteamFriends.SetRichPresence("status", "In Main Menu");
                 SteamFriends.SetRichPresence("steam_display", "#Status_Menu");
                 GameLogger.Log("STEAM", "Rich Presence updated: Main Menu");
             }
@@ -57,7 +57,7 @@ namespace Steam
             if (!SteamManager.IsInitialized) return;
             try
             {
-                SteamFriends.SetRichPresence("status", $"Corriendo tarde (Seed #{seed})");
+                SteamFriends.SetRichPresence("status", $"Running Late (Seed #{seed})");
                 SteamFriends.SetRichPresence("seed", seed.ToString());
                 SteamFriends.SetRichPresence("steam_display", "#Status_Playing");
                 GameLogger.Log("STEAM", $"Rich Presence updated: Playing Seed {seed}");
@@ -76,7 +76,7 @@ namespace Steam
             if (!SteamManager.IsInitialized) return;
             try
             {
-                SteamFriends.SetRichPresence("status", $"¡Llegó a tiempo en {timeFormatted}! (Seed #{seed})");
+                SteamFriends.SetRichPresence("status", $"Arrived on time in {timeFormatted}! (Seed #{seed})");
                 SteamFriends.SetRichPresence("steam_display", "#Status_Won");
                 GameLogger.Log("STEAM", $"Rich Presence updated: Won Seed {seed} in {timeFormatted}");
             }

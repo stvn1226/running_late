@@ -46,7 +46,7 @@ namespace Utils
                 }
             }
 
-            return $"Nivel {seed}";
+            return $"Level {seed}";
         }
         
         public void SaveTime(int seed, float time, string playerName = null, string levelName = null)
@@ -59,7 +59,7 @@ namespace Utils
 
             string resolvedPlayer = !string.IsNullOrEmpty(playerName)
                 ? playerName
-                : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "Tú");
+                : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "You");
 
             string resolvedLevelName = !string.IsNullOrEmpty(levelName)
                 ? levelName

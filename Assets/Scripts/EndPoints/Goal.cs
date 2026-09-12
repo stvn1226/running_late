@@ -79,17 +79,17 @@ public class Goal : MonoBehaviour
         // ─── Achievements ─────────────────────────────────────────────
         if (Achievements.AchievementsManager.Instance != null)
         {
-            Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_FIRST_WIN, "Primer Día de Clases", "Completa tu primer nivel");
+            Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_FIRST_WIN, "First Day of School", "Complete your first level");
             
             PlayerStates playerStates = FindObjectOfType<PlayerStates>();
             if (playerStates != null && playerStates.hasToast)
             {
-                Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_PERFECT_TOAST, "Desayuno Intacto", "Llega a la escuela sin perder la tostada");
+                Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_PERFECT_TOAST, "Breakfast Intact", "Reach school without losing the toast");
             }
 
             if (completionTime > 0f && completionTime <= 45f)
             {
-                Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_SPEED_DEMON, "Sonic Urbano", "Completa un nivel en menos de 45 segundos");
+                Achievements.AchievementsManager.Instance.Unlock(Achievements.AchievementsManager.ACH_SPEED_DEMON, "Urban Speed Demon", "Complete a level in under 45 seconds");
             }
         }
 

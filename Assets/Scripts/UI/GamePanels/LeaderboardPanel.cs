@@ -7,13 +7,7 @@ using TMPro;
 
 /// <summary>
 /// Main Leaderboard panel shown from the Main Menu.
-/// 
-/// HOW TO WIRE IN THE INSPECTOR:
-/// ─────────────────────────────────────────────────────────────────
-/// 1. Add this script to the LeaderboardPanel root GameObject.
-///    Set panelRoot (inherited from BaseMainMenuPanel) to the root.
-///
-/// 2. Assign:
+/// Assign:
 ///    · rowPrefab       → a prefab that has LeaderboardRowUI on it
 ///    · rowContainer    → the parent transform where rows spawn
 ///    · tabGlobal       → "Global" tab Button
@@ -23,13 +17,6 @@ using TMPro;
 ///    · emptyLabel      → (optional) TMP text shown when there are no entries
 ///    · titleLabel      → (optional) title text (e.g. "Leaderboard")
 ///
-/// 3. In MainMenuController, add:
-///    [SerializeField] private LeaderboardPanel leaderboardPanel;
-///    and call leaderboardPanel.Initialize(this) in InitializePanels().
-///
-/// 4. In MainMenuPanel add a "Leaderboard" button that calls
-///    menuController.ShowLeaderboardPanel().
-/// ─────────────────────────────────────────────────────────────────
 /// </summary>
 public class LeaderboardPanel : BaseMainMenuPanel
 {
@@ -43,19 +30,17 @@ public class LeaderboardPanel : BaseMainMenuPanel
     [SerializeField] private Button backButton;
 
     [Header("State UI (optional)")]
-    [SerializeField] private GameObject loadingOverlay;   // shown while fetching
-    [SerializeField] private TextMeshProUGUI emptyLabel;  // shown when no entries
+    [SerializeField] private GameObject loadingOverlay;
+    [SerializeField] private TextMeshProUGUI emptyLabel;
     [SerializeField] private TextMeshProUGUI titleLabel;
 
     [Header("Settings")]
     [SerializeField] private int maxRows = 10;
 
-    // ─── Runtime ─────────────────────────────────────────────
     private readonly List<LeaderboardRowUI> _rowPool = new();
     private bool _isFetching = false;
     private bool _showingGlobal = true;
 
-    // ─── BaseMainMenuPanel ────────────────────────────────────
     protected override void SetupPanel()
     {
         if (tabGlobal != null)
@@ -65,10 +50,17 @@ public class LeaderboardPanel : BaseMainMenuPanel
             tabFriends.onClick.AddListener(() => SwitchTab(false));
 
         if (backButton != null)
+        {
             backButton.onClick.AddListener(OnBackClicked);
+            var backLbl = backButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (backLbl != null) backLbl.SetText("← Back");
+        }
 
         if (titleLabel != null)
             titleLabel.SetText("Leaderboard");
+
+        if (emptyLabel != null)
+            emptyLabel.SetText("No records yet");
     }
 
     private void OnDestroy()
@@ -114,7 +106,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
         if (bridge != null && SteamManager.IsInitialized)
         {
             if (titleLabel != null)
-                titleLabel.SetText(global ? "Leaderboard Global" : "Leaderboard Amigos");
+                titleLabel.SetText(global ? "Global Leaderboard" : "Friends Leaderboard");
 
             Steam.LeaderboardEntryData[] entries = global
                 ? await bridge.GetTopGlobalScoresAsync(Steam.SteamLeaderboardBridge.DEFAULT_LEADERBOARD, maxRows)
@@ -145,7 +137,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
             if (records != null && records.Count > 0)
             {
                 if (titleLabel != null)
-                    titleLabel.SetText("Mis Récords Locales");
+                    titleLabel.SetText("Local Best Times");
 
                 for (int i = 0; i < records.Count; i++)
                 {
@@ -156,7 +148,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
                     string holder = !string.IsNullOrEmpty(rec.playerName)
                         ? rec.playerName
-                        : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "Tú");
+                        : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "You");
 
                     string rowDisplay = $"{lvlName} ({holder})";
                     SpawnRow(i + 1, rowDisplay, rec.time, true);

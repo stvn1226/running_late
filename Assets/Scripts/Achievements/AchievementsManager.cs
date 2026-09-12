@@ -50,7 +50,7 @@ namespace Achievements
             runPowerUpsCollected++;
             if (runPowerUpsCollected >= 5)
             {
-                Unlock(ACH_POWER_COLLECTOR, "Coleccionista Urbano", "Recoge 5 power-ups en una sola partida");
+                Unlock(ACH_POWER_COLLECTOR, "Urban Collector", "Collect 5 power-ups in a single run");
             }
         }
 
@@ -59,13 +59,13 @@ namespace Achievements
             runKicksPerformed++;
             if (runKicksPerformed >= 5)
             {
-                Unlock(ACH_KICK_MASTER, "Rompedor de Obstáculos", "Patea 5 obstáculos en una sola partida");
+                Unlock(ACH_KICK_MASTER, "Obstacle Breaker", "Kick 5 obstacles in a single run");
             }
         }
 
         public void ReportAirFloatUsed()
         {
-            Unlock(ACH_AIR_GLIDER, "Volador Urbano", "Planea en el aire usando el Paraguas");
+            Unlock(ACH_AIR_GLIDER, "Urban Flyer", "Glide through the air using the umbrella");
         }
 
         /// <summary>
