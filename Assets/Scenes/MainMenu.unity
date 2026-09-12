@@ -1239,9 +1239,17 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 160231301056735701, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: showLeaderboard
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 160231301056735701, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: leaderboardButton
       value: 
       objectReference: {fileID: 1145673817}
+    - target: {fileID: 160231301056735701, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
+      propertyPath: leaderboardContainer
+      value: 
+      objectReference: {fileID: 1521014438}
     - target: {fileID: 280322278542458577, guid: 896fbb62748954e75a0dfdcc94453c90, type: 3}
       propertyPath: m_Camera
       value: 
