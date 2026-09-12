@@ -14,6 +14,8 @@ public class MainMenuPanel : BaseMainMenuPanel
     [SerializeField] private Button creditsButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button leaderboardButton;
+    [SerializeField] private GameObject leaderboardContainer;
+    [SerializeField] private bool showLeaderboard = true;
     [SerializeField] private Button quitButton;
     
     [Header("Step 2 - Play Options")]
@@ -77,6 +79,16 @@ public class MainMenuPanel : BaseMainMenuPanel
         {
             quitButton.onClick.AddListener(OnQuitClicked);
         }
+
+        if (leaderboardContainer == null && leaderboardButton != null && leaderboardButton.transform.parent != null)
+        {
+            if (leaderboardButton.transform.parent.name.ToLower().Contains("leaderboard"))
+            {
+                leaderboardContainer = leaderboardButton.transform.parent.gameObject;
+            }
+        }
+
+        ApplyLeaderboardState();
     }
     
     private void SetupStep2Buttons()
@@ -210,6 +222,8 @@ public class MainMenuPanel : BaseMainMenuPanel
         {
             EventSystem.current.SetSelectedGameObject(playButton.gameObject);
         }
+
+        ApplyLeaderboardState();
         
         GameLogger.Log("MENU", "Showing Step 1 - Main Menu");
     }
@@ -390,4 +404,86 @@ public class MainMenuPanel : BaseMainMenuPanel
             menuController.QuitGame();
         }
     }
+
+    /// <summary>
+    /// Programmatically enable or disable the Leaderboard button and automatically re-link UI navigation.
+    /// </summary>
+    public void SetLeaderboardActive(bool active)
+    {
+        showLeaderboard = active;
+        ApplyLeaderboardState();
+    }
+
+    private void ApplyLeaderboardState()
+    {
+        GameObject containerToToggle = leaderboardContainer != null 
+            ? leaderboardContainer 
+            : (leaderboardButton != null ? leaderboardButton.gameObject : null);
+
+        if (containerToToggle != null)
+        {
+            containerToToggle.SetActive(showLeaderboard);
+        }
+
+        UpdateStep1Navigation();
+    }
+
+    /// <summary>
+    /// Dynamically links gamepad/keyboard navigation between Play, Leaderboard, and Options (Settings).
+    /// If Leaderboard is disabled or inactive, Play and Options link directly.
+    /// </summary>
+    public void UpdateStep1Navigation()
+    {
+        if (playButton == null || settingsButton == null) return;
+
+        bool isLeaderboardActive = showLeaderboard 
+            && leaderboardButton != null 
+            && leaderboardButton.gameObject.activeInHierarchy;
+
+        if (isLeaderboardActive)
+        {
+            // Play -> Leaderboard
+            Navigation playNav = playButton.navigation;
+            playNav.mode = Navigation.Mode.Explicit;
+            playNav.selectOnDown = leaderboardButton;
+            playButton.navigation = playNav;
+
+            // Leaderboard -> Play (Up) and Options/Settings (Down)
+            Navigation lbNav = leaderboardButton.navigation;
+            lbNav.mode = Navigation.Mode.Explicit;
+            lbNav.selectOnUp = playButton;
+            lbNav.selectOnDown = settingsButton;
+            leaderboardButton.navigation = lbNav;
+
+            // Options/Settings -> Leaderboard (Up)
+            Navigation settingsNav = settingsButton.navigation;
+            settingsNav.mode = Navigation.Mode.Explicit;
+            settingsNav.selectOnUp = leaderboardButton;
+            settingsButton.navigation = settingsNav;
+        }
+        else
+        {
+            // Play -> Options/Settings directly
+            Navigation playNav = playButton.navigation;
+            playNav.mode = Navigation.Mode.Explicit;
+            playNav.selectOnDown = settingsButton;
+            playButton.navigation = playNav;
+
+            // Options/Settings -> Play directly
+            Navigation settingsNav = settingsButton.navigation;
+            settingsNav.mode = Navigation.Mode.Explicit;
+            settingsNav.selectOnUp = playButton;
+            settingsButton.navigation = settingsNav;
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (Application.isPlaying)
+        {
+            ApplyLeaderboardState();
+        }
+    }
+#endif
 }

@@ -326,6 +326,11 @@ namespace EditorTools
                 {
                     SerializedObject soPanel = new SerializedObject(menuPanel);
                     soPanel.FindProperty("leaderboardButton").objectReferenceValue = leaderboardBtn;
+                    if (leaderboardBtn.transform.parent != null && 
+                        leaderboardBtn.transform.parent.name.ToLower().Contains("leaderboard"))
+                    {
+                        soPanel.FindProperty("leaderboardContainer").objectReferenceValue = leaderboardBtn.transform.parent.gameObject;
+                    }
                     soPanel.ApplyModifiedProperties();
                     Debug.Log($"[LeaderboardBuilder] leaderboardButton wired → {leaderboardBtn.name}");
                 }
@@ -350,6 +355,29 @@ namespace EditorTools
             WireIntoScene();
         }
 
+        [MenuItem("Tools/Leaderboard/Toggle Leaderboard Feature (Enable-Disable)")]
+        public static void ToggleLeaderboardActive()
+        {
+            MainMenuPanel menuPanel = Object.FindFirstObjectByType<MainMenuPanel>();
+            if (menuPanel != null)
+            {
+                SerializedObject so = new SerializedObject(menuPanel);
+                SerializedProperty prop = so.FindProperty("showLeaderboard");
+                if (prop != null)
+                {
+                    prop.boolValue = !prop.boolValue;
+                    so.ApplyModifiedProperties();
+                    menuPanel.UpdateStep1Navigation();
+                    Debug.Log($"[LeaderboardBuilder] showLeaderboard is now: {prop.boolValue}");
+                    EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[LeaderboardBuilder] MainMenuPanel not found in active scene.");
+            }
+        }
+
         // ── Helpers ────────────────────────────────────────────────────────────
         private static int UiLayer() { int l = LayerMask.NameToLayer("UI"); return l >= 0 ? l : 5; }
 
@@ -372,7 +400,7 @@ namespace EditorTools
             tmp.alignment = align;
             tmp.color = Color.white;
             tmp.fontSize = 20f;
-            tmp.enableWordWrapping = false;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
             tmp.overflowMode = TextOverflowModes.Ellipsis;
             return tmp;
         }
