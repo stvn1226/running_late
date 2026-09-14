@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 021f63a1d5989fe428bfd21c0b12fa76
+guid: 783739d20c052ed49a2483c07da6e48e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3259777018213663157
-    second: medianobuild-export2mall03_0
+      213: 6235076298297381516
+    second: medianobuild-export2clinica04_0
+  - first:
+      213: 1944275060046023162
+    second: medianobuild-export2clinica04_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -50,7 +53,7 @@ TextureImporter:
   spriteExtrude: 1
   spriteMeshType: 0
   alignment: 9
-  spritePivot: {x: 0.5, y: 0.5}
+  spritePivot: {x: 0.525, y: 0.268}
   spritePixelsToUnits: 170
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
@@ -113,13 +116,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: medianobuild-export2mall03_0
+      name: medianobuild-export2clinica04_0
       rect:
         serializedVersion: 2
-        x: 521
-        y: 573
-        width: 5946
-        height: 994
+        x: 3933
+        y: 3568
+        width: 476
+        height: 115
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +131,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5b18b915ded0d3d20800000000000000
-      internalID: 3259777018213663157
+      spriteID: c821973cbd0778650800000000000000
+      internalID: 6235076298297381516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medianobuild-export2clinica04_1
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 543
+        width: 7446
+        height: 3023
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af9c1bbadd37bfa10800000000000000
+      internalID: 1944275060046023162
       vertices: []
       indices: 
       edges: []
@@ -148,7 +173,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      medianobuild-export2mall03_0: 3259777018213663157
+      medianobuild-export2clinica04_0: 6235076298297381516
+      medianobuild-export2clinica04_1: 1944275060046023162
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
