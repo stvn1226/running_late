@@ -16,7 +16,7 @@ public class ParallaxController : MonoBehaviour
         startPos = transform.position;
     }
 
-    void LateUpdate()
+    void Update()
     {
         Vector2 distance = new Vector2(cam.transform.position.x * parallaxEffect, cam.transform.position.y * parallaxEffect);
         transform.position = startPos + distance;

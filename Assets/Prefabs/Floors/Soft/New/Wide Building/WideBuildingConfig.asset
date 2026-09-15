@@ -17,7 +17,10 @@ MonoBehaviour:
   floorHeight: 4.275
   floorWidth: 21.825
   minDistanceBetweenBuildings: 2
-  allowedThemes: []
+  allowedThemes:
+  - {fileID: 11400000, guid: e2c016fef59f34fe593a556297ccb752, type: 2}
+  - {fileID: 11400000, guid: ac4fe3ad45b8f4e0997ce8792b5e12ea, type: 2}
+  - {fileID: 11400000, guid: 0f79cacba47834aa48f881978e1225a2, type: 2}
   roofObstaclePrefabs:
   - {fileID: 6039526676700403722, guid: bc98c32f03e548c46853c27412140cc8, type: 3}
   - {fileID: 6039526676700403722, guid: e2f0c521994ca91438efd3692b353b70, type: 3}
