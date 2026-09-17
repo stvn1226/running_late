@@ -14,6 +14,8 @@ namespace Steam
         public string PlayerName;
         public float TimeSeconds;
         public int GlobalRank;
+        public int Seed;
+        public int PathMode; // 0 = DualPath, 1 = SingleSidewalk
     }
 
     /// <summary>
@@ -58,7 +60,7 @@ namespace Steam
         /// <summary>
         /// Submits a level completion time to Steam Leaderboards.
         /// </summary>
-        public async Task<bool> SubmitTimeAsync(float timeSeconds, string leaderboardName = DEFAULT_LEADERBOARD)
+        public async Task<bool> SubmitTimeAsync(float timeSeconds, int seed = 0, int pathMode = 0, string leaderboardName = DEFAULT_LEADERBOARD)
         {
 #if !UNITY_ANDROID && !UNITY_IOS
             if (!SteamManager.IsInitialized) return false;
@@ -74,10 +76,11 @@ namespace Steam
 
                 if (leaderboard.HasValue)
                 {
-                    var result = await leaderboard.Value.SubmitScoreAsync(timeInMilliseconds);
+                    int[] details = seed != 0 ? new int[] { seed, pathMode } : null;
+                    var result = await leaderboard.Value.SubmitScoreAsync(timeInMilliseconds, details);
                     if (result.HasValue)
                     {
-                        GameLogger.Log("STEAM", $"Score submitted to Steam Leaderboard '{leaderboardName}': {timeSeconds:F2}s (Rank: #{result.Value.NewGlobalRank})");
+                        GameLogger.Log("STEAM", $"Score submitted to Steam Leaderboard '{leaderboardName}': {timeSeconds:F2}s (Rank: #{result.Value.NewGlobalRank}) Seed: {seed} PathMode: {pathMode}");
                         return true;
                     }
                 }
@@ -110,11 +113,15 @@ namespace Steam
                         LeaderboardEntryData[] results = new LeaderboardEntryData[entries.Length];
                         for (int i = 0; i < entries.Length; i++)
                         {
+                            int entrySeed = (entries[i].Details != null && entries[i].Details.Length > 0) ? entries[i].Details[0] : 0;
+                            int entryPathMode = (entries[i].Details != null && entries[i].Details.Length > 1) ? entries[i].Details[1] : 0;
                             results[i] = new LeaderboardEntryData
                             {
                                 PlayerName = entries[i].User.Name,
                                 TimeSeconds = entries[i].Score / 1000f,
-                                GlobalRank = entries[i].GlobalRank
+                                GlobalRank = entries[i].GlobalRank,
+                                Seed = entrySeed,
+                                PathMode = entryPathMode
                             };
                         }
                         return results;
@@ -149,11 +156,15 @@ namespace Steam
                         LeaderboardEntryData[] results = new LeaderboardEntryData[entries.Length];
                         for (int i = 0; i < entries.Length; i++)
                         {
+                            int entrySeed = (entries[i].Details != null && entries[i].Details.Length > 0) ? entries[i].Details[0] : 0;
+                            int entryPathMode = (entries[i].Details != null && entries[i].Details.Length > 1) ? entries[i].Details[1] : 0;
                             results[i] = new LeaderboardEntryData
                             {
                                 PlayerName = entries[i].User.Name,
                                 TimeSeconds = entries[i].Score / 1000f,
-                                GlobalRank = entries[i].GlobalRank
+                                GlobalRank = entries[i].GlobalRank,
+                                Seed = entrySeed,
+                                PathMode = entryPathMode
                             };
                         }
                         return results;

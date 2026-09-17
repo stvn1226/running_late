@@ -49,7 +49,7 @@ namespace Utils
             return $"Level {seed}";
         }
         
-        public void SaveTime(int seed, float time, string playerName = null, string levelName = null)
+        public void SaveTime(int seed, float time, string playerName = null, string levelName = null, int pathMode = 0)
         {
             if (leaderboardData == null)
             {
@@ -74,14 +74,15 @@ namespace Utils
                     existingRecord.time = time;
                     existingRecord.playerName = resolvedPlayer;
                     existingRecord.levelName = resolvedLevelName;
-                    GameLogger.Log("LEADERBOARD", $"New best time for seed {seed} ({resolvedLevelName}): {existingRecord.GetFormattedTime()}");
+                    existingRecord.pathMode = pathMode;
+                    GameLogger.Log("LEADERBOARD", $"New best time for seed {seed} ({resolvedLevelName}, pathMode {pathMode}): {existingRecord.GetFormattedTime()}");
                 }
             }
             else
             {
-                TimeRecord newRecord = new TimeRecord(time, seed, resolvedPlayer, resolvedLevelName);
+                TimeRecord newRecord = new TimeRecord(time, seed, resolvedPlayer, resolvedLevelName, pathMode);
                 leaderboardData.records.Add(newRecord);
-                GameLogger.Log("LEADERBOARD", $"First time for seed {seed} ({resolvedLevelName}): {newRecord.GetFormattedTime()}");
+                GameLogger.Log("LEADERBOARD", $"First time for seed {seed} ({resolvedLevelName}, pathMode {pathMode}): {newRecord.GetFormattedTime()}");
             }
             
             SaveLeaderboard();

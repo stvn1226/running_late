@@ -406,7 +406,7 @@ public class MainMenuPanel : BaseMainMenuPanel
     }
 
     /// <summary>
-    /// Programmatically enable or disable the Leaderboard button and automatically re-link UI navigation.
+    /// Programmatically enable or disable the Leaderboard button.
     /// </summary>
     public void SetLeaderboardActive(bool active)
     {
@@ -423,57 +423,6 @@ public class MainMenuPanel : BaseMainMenuPanel
         if (containerToToggle != null)
         {
             containerToToggle.SetActive(showLeaderboard);
-        }
-
-        UpdateStep1Navigation();
-    }
-
-    /// <summary>
-    /// Dynamically links gamepad/keyboard navigation between Play, Leaderboard, and Options (Settings).
-    /// If Leaderboard is disabled or inactive, Play and Options link directly.
-    /// </summary>
-    public void UpdateStep1Navigation()
-    {
-        if (playButton == null || settingsButton == null) return;
-
-        bool isLeaderboardActive = showLeaderboard 
-            && leaderboardButton != null 
-            && leaderboardButton.gameObject.activeInHierarchy;
-
-        if (isLeaderboardActive)
-        {
-            // Play -> Leaderboard
-            Navigation playNav = playButton.navigation;
-            playNav.mode = Navigation.Mode.Explicit;
-            playNav.selectOnDown = leaderboardButton;
-            playButton.navigation = playNav;
-
-            // Leaderboard -> Play (Up) and Options/Settings (Down)
-            Navigation lbNav = leaderboardButton.navigation;
-            lbNav.mode = Navigation.Mode.Explicit;
-            lbNav.selectOnUp = playButton;
-            lbNav.selectOnDown = settingsButton;
-            leaderboardButton.navigation = lbNav;
-
-            // Options/Settings -> Leaderboard (Up)
-            Navigation settingsNav = settingsButton.navigation;
-            settingsNav.mode = Navigation.Mode.Explicit;
-            settingsNav.selectOnUp = leaderboardButton;
-            settingsButton.navigation = settingsNav;
-        }
-        else
-        {
-            // Play -> Options/Settings directly
-            Navigation playNav = playButton.navigation;
-            playNav.mode = Navigation.Mode.Explicit;
-            playNav.selectOnDown = settingsButton;
-            playButton.navigation = playNav;
-
-            // Options/Settings -> Play directly
-            Navigation settingsNav = settingsButton.navigation;
-            settingsNav.mode = Navigation.Mode.Explicit;
-            settingsNav.selectOnUp = playButton;
-            settingsButton.navigation = settingsNav;
         }
     }
 

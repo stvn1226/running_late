@@ -101,7 +101,8 @@ public class Goal : MonoBehaviour
 
         if (Steam.SteamLeaderboardBridge.Instance != null && completionTime > 0f)
         {
-            _ = Steam.SteamLeaderboardBridge.Instance.SubmitTimeAsync(completionTime);
+            int currentPathMode = LevelStarter.Instance != null ? (int)LevelStarter.Instance.GetPathMode() : 0;
+            _ = Steam.SteamLeaderboardBridge.Instance.SubmitTimeAsync(completionTime, currentSeed, currentPathMode);
         }
 
         StopTimer();

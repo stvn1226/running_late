@@ -7,16 +7,8 @@ using TMPro;
 
 /// <summary>
 /// Main Leaderboard panel shown from the Main Menu.
-/// Assign:
-///    · rowPrefab       → a prefab that has LeaderboardRowUI on it
-///    · rowContainer    → the parent transform where rows spawn
-///    · tabGlobal       → "Global" tab Button
-///    · tabFriends      → "Friends" tab Button
-///    · backButton      → Back button
-///    · loadingOverlay  → (optional) a CanvasGroup or GameObject shown while fetching
-///    · emptyLabel      → (optional) TMP text shown when there are no entries
-///    · titleLabel      → (optional) title text (e.g. "Leaderboard")
-///
+/// Displays Rank, Jugador, Tiempo, Seed, and Play Button.
+/// Launches the level with its exact Seed and PathMode (DualPath / SingleSidewalk).
 /// </summary>
 public class LeaderboardPanel : BaseMainMenuPanel
 {
@@ -40,6 +32,14 @@ public class LeaderboardPanel : BaseMainMenuPanel
     private readonly List<LeaderboardRowUI> _rowPool = new();
     private bool _isFetching = false;
     private bool _showingGlobal = true;
+
+    private void Awake()
+    {
+        if (menuController == null)
+        {
+            menuController = GetComponentInParent<MainMenuController>() ?? Object.FindFirstObjectByType<MainMenuController>();
+        }
+    }
 
     protected override void SetupPanel()
     {
@@ -118,7 +118,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
                 foreach (var e in entries)
                 {
                     bool isLocal = e.PlayerName == localName;
-                    SpawnRow(e.GlobalRank, e.PlayerName, e.TimeSeconds, isLocal);
+                    SpawnRow(e.GlobalRank, e.PlayerName, e.TimeSeconds, e.Seed, e.PathMode, isLocal);
                 }
 
                 SetLoadingVisible(false);
@@ -142,16 +142,11 @@ public class LeaderboardPanel : BaseMainMenuPanel
                 for (int i = 0; i < records.Count; i++)
                 {
                     var rec = records[i];
-                    string lvlName = !string.IsNullOrEmpty(rec.levelName)
-                        ? rec.levelName
-                        : Utils.LeaderboardManager.ResolveLevelName(rec.seed);
-
                     string holder = !string.IsNullOrEmpty(rec.playerName)
                         ? rec.playerName
                         : (SteamManager.IsInitialized ? SteamManager.GetPlayerName() : "You");
 
-                    string rowDisplay = $"{lvlName} ({holder})";
-                    SpawnRow(i + 1, rowDisplay, rec.time, true);
+                    SpawnRow(i + 1, holder, rec.time, rec.seed, rec.pathMode, true);
                 }
                 SetLoadingVisible(false);
                 SetEmptyVisible(false);
@@ -167,13 +162,67 @@ public class LeaderboardPanel : BaseMainMenuPanel
     }
 
     // ─── Row Pool ─────────────────────────────────────────────
-    private void SpawnRow(int rank, string playerName, float timeSeconds, bool isLocal)
+    private void SpawnRow(int rank, string playerName, float timeSeconds, int seed, int pathMode, bool isLocal)
     {
         if (rowPrefab == null || rowContainer == null) return;
 
         LeaderboardRowUI row = Instantiate(rowPrefab, rowContainer);
-        row.SetData(rank, playerName, timeSeconds, isLocal);
+        row.SetData(rank, playerName, timeSeconds, seed, pathMode, isLocal, OnPlayWithSeedClicked);
         _rowPool.Add(row);
+    }
+
+    private int ResolvePathMode(int seed, int fallbackPathMode = 0)
+    {
+        if (SavedLevelsList.instance != null)
+        {
+            var match = SavedLevelsList.instance.GetSavedLevels()?.Find(l => l.savedLevelSeed == seed);
+            if (match != null) return match.pathMode;
+        }
+        if (RecentLevelsList.instance != null)
+        {
+            var match = RecentLevelsList.instance.GetRecentLevels()?.Find(l => l.savedLevelSeed == seed);
+            if (match != null) return match.pathMode;
+        }
+        return fallbackPathMode;
+    }
+
+    private void OnPlayWithSeedClicked(int seed, int pathMode)
+    {
+        if (seed == 0)
+        {
+            GameLogger.LogWarning("LEADERBOARD", "Cannot launch game from leaderboard: Seed is 0");
+            return;
+        }
+
+        int finalPathMode = ResolvePathMode(seed, pathMode);
+        GameLogger.Log("LEADERBOARD", $"Play clicked for seed {seed}, pathMode {finalPathMode} ({(finalPathMode == 0 ? "DualPath" : "SingleSidewalk")})");
+
+        AudioManager.Instance?.Play(AudioManager.SoundType.OptionSelect);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+
+        PlayerPrefs.SetInt("UseNewLevelSeed", 1);
+        PlayerPrefs.SetInt("NewLevelSeed", seed);
+        PlayerPrefs.SetInt("NewLevelPathMode", finalPathMode);
+        PlayerPrefs.SetInt("PathMode", finalPathMode);
+        PlayerPrefs.Save();
+
+        if (menuController == null)
+        {
+            menuController = GetComponentInParent<MainMenuController>() ?? Object.FindFirstObjectByType<MainMenuController>();
+        }
+
+        if (menuController != null && menuController.gameObject.activeInHierarchy)
+        {
+            menuController.StartGame();
+        }
+        else if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.LoadGameplay();
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("ModularLevel");
+        }
     }
 
     private void ClearRows()

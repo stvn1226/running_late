@@ -9,13 +9,15 @@ namespace Utils
         public int seed;
         public string playerName;
         public string levelName;
+        public int pathMode; // 0 = DualPath (Double Decker), 1 = SingleSidewalk (Single Decker)
 
-        public TimeRecord(float time, int seed, string playerName = null, string levelName = null)
+        public TimeRecord(float time, int seed, string playerName = null, string levelName = null, int pathMode = 0)
         {
             this.time = time;
             this.seed = seed;
             this.playerName = playerName;
             this.levelName = levelName;
+            this.pathMode = pathMode;
         }
 
         public string GetFormattedTime()

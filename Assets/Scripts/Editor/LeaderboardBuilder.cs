@@ -25,14 +25,27 @@ namespace EditorTools
         private const string ROW_PREFAB_PATH   = "Assets/Prefabs/UI/LeaderboardRowUI.prefab";
         private const string PANEL_PREFAB_PATH = "Assets/Prefabs/UI/LeaderboardPanel.prefab";
 
-        // ── Fonts ──────────────────────────────────────────────────────────────
+        // ── Fonts & Sprites ───────────────────────────────────────────────────
         private static TMP_FontAsset LoadFont()
         {
-            TMP_FontAsset f = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Roboto-Bold SDF.asset");
+            TMP_FontAsset f = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                "Assets/Sprites/Art/UI/Font/Might Makes Right/Might Makes Right BB SDF.asset");
+            if (f == null)
+                f = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Roboto-Bold SDF.asset");
             if (f == null)
                 f = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
                     "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
             return f;
+        }
+
+        private static Sprite LoadPlayIcon()
+        {
+            return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Art/UI/Icons/Ico3.png");
+        }
+
+        private static Sprite LoadRowBg()
+        {
+            return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Art/UI/Buttons/EmptyLabel.png");
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -44,43 +57,64 @@ namespace EditorTools
             EnsureDir(ROW_PREFAB_PATH);
             int layer = UiLayer();
             TMP_FontAsset font = LoadFont();
+            Sprite playIcon = LoadPlayIcon();
+            Sprite rowBg = LoadRowBg();
 
             // Root
             GameObject root = new GameObject("LeaderboardRowUI");
             root.layer = layer;
             RectTransform rootRT = root.AddComponent<RectTransform>();
-            rootRT.sizeDelta = new Vector2(600f, 48f);
+            rootRT.sizeDelta = new Vector2(650f, 44f);
 
-            // Background image (for local-player highlight)
+            // Background image (EmptyLabel or highlight)
             Image bg = root.AddComponent<Image>();
-            bg.color = new Color(1f, 1f, 1f, 0f);     // transparent by default
+            if (rowBg != null)
+            {
+                bg.sprite = rowBg;
+                bg.type = Image.Type.Sliced;
+                bg.color = new Color(0.2f, 0.2f, 0.3f, 0.35f);
+            }
+            else
+            {
+                bg.color = new Color(1f, 1f, 1f, 0f);
+            }
 
             // Horizontal layout
             HorizontalLayoutGroup hlg = root.AddComponent<HorizontalLayoutGroup>();
             hlg.childAlignment = TextAnchor.MiddleLeft;
-            hlg.spacing = 12f;
-            hlg.padding = new RectOffset(12, 12, 0, 0);
+            hlg.spacing = 10f;
+            hlg.padding = new RectOffset(10, 10, 0, 0);
             hlg.childControlWidth  = false;
             hlg.childControlHeight = true;
             hlg.childForceExpandWidth  = false;
             hlg.childForceExpandHeight = false;
 
-            // Rank label  (60px wide)
-            TextMeshProUGUI rankLbl   = MakeLabel(root.transform, "RankLabel",   font, layer, 60f, 48f, TextAlignmentOptions.MidlineLeft);
-            rankLbl.text  = "#1";
-            rankLbl.fontSize = 22f;
+            // 1. Rank label (45px)
+            TextMeshProUGUI rankLbl = MakeLabel(root.transform, "RankLabel", font, layer, 45f, 44f, TextAlignmentOptions.MidlineLeft);
+            rankLbl.text = "#1";
+            rankLbl.fontSize = 20f;
             rankLbl.fontStyle = FontStyles.Bold;
 
-            // Name label  (expand)
-            TextMeshProUGUI nameLbl   = MakeLabel(root.transform, "NameLabel",   font, layer, 400f, 48f, TextAlignmentOptions.MidlineLeft);
-            nameLbl.text  = "PlayerName";
+            // 2. Player Name label (expandable)
+            TextMeshProUGUI nameLbl = MakeLabel(root.transform, "NameLabel", font, layer, 180f, 44f, TextAlignmentOptions.MidlineLeft);
+            nameLbl.text = "PlayerName";
+            nameLbl.fontSize = 19f;
             LayoutElement nameLE = nameLbl.gameObject.AddComponent<LayoutElement>();
             nameLE.flexibleWidth = 1f;
 
-            // Time label  (120px wide)
-            TextMeshProUGUI timeLbl   = MakeLabel(root.transform, "TimeLabel",   font, layer, 120f, 48f, TextAlignmentOptions.MidlineRight);
-            timeLbl.text  = "00:00.00";
-            timeLbl.fontSize = 20f;
+            // 3. Time label (95px)
+            TextMeshProUGUI timeLbl = MakeLabel(root.transform, "TimeLabel", font, layer, 95f, 44f, TextAlignmentOptions.MidlineRight);
+            timeLbl.text = "00:00.00";
+            timeLbl.fontSize = 19f;
+
+            // 4. Seed label (90px)
+            TextMeshProUGUI seedLbl = MakeLabel(root.transform, "SeedLabel", font, layer, 90f, 44f, TextAlignmentOptions.MidlineRight);
+            seedLbl.text = "123456";
+            seedLbl.fontSize = 17f;
+            seedLbl.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+
+            // 5. Play button (34px x 34px)
+            Button playBtn = MakeIconButton(root.transform, "PlayButton", playIcon, layer, 34f, 34f);
 
             // Wire component
             LeaderboardRowUI rowComp = root.AddComponent<LeaderboardRowUI>();
@@ -88,7 +122,11 @@ namespace EditorTools
             so.FindProperty("rankLabel").objectReferenceValue       = rankLbl;
             so.FindProperty("playerNameLabel").objectReferenceValue = nameLbl;
             so.FindProperty("timeLabel").objectReferenceValue       = timeLbl;
+            so.FindProperty("seedLabel").objectReferenceValue       = seedLbl;
+            so.FindProperty("playButton").objectReferenceValue      = playBtn;
             so.FindProperty("rowBackground").objectReferenceValue   = bg;
+            so.FindProperty("localPlayerColor").colorValue          = new Color(1f, 0.85f, 0.2f, 0.35f);
+            so.FindProperty("defaultColor").colorValue              = new Color(0.15f, 0.15f, 0.25f, 0.35f);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // Save prefab
@@ -367,7 +405,6 @@ namespace EditorTools
                 {
                     prop.boolValue = !prop.boolValue;
                     so.ApplyModifiedProperties();
-                    menuPanel.UpdateStep1Navigation();
                     Debug.Log($"[LeaderboardBuilder] showLeaderboard is now: {prop.boolValue}");
                     EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
                 }
@@ -426,6 +463,30 @@ namespace EditorTools
             lblRT.anchorMax = Vector2.one;
             lblRT.offsetMin = lblRT.offsetMax = Vector2.zero;
 
+            return btn;
+        }
+
+        private static Button MakeIconButton(Transform parent, string name, Sprite icon, int layer, float w, float h)
+        {
+            GameObject go = new GameObject(name);
+            go.layer = layer;
+            RectTransform rt = go.AddComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            rt.sizeDelta = new Vector2(w, h);
+            Image img = go.AddComponent<Image>();
+            if (icon != null)
+            {
+                img.sprite = icon;
+                img.color = Color.white;
+                img.preserveAspect = true;
+            }
+            else
+            {
+                img.color = new Color(0.2f, 0.8f, 0.3f, 1f);
+            }
+            img.raycastTarget = true;
+            Button btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
             return btn;
         }
     }

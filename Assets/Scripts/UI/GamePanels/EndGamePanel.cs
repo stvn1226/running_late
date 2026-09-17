@@ -103,7 +103,8 @@ public class EndGamePanel : BaseMenuPanel
             
             if (isVictoryPanel && LeaderboardManager.Instance != null)
             {
-                LeaderboardManager.Instance.SaveTime(currentSeed, completionTime);
+                int currentPathMode = levelStarter != null ? (int)levelStarter.GetPathMode() : 0;
+                LeaderboardManager.Instance.SaveTime(currentSeed, completionTime, pathMode: currentPathMode);
                 
                 TimeRecord bestRecord = LeaderboardManager.Instance.GetBestTime(currentSeed);
                 
