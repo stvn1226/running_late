@@ -173,6 +173,8 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
     private int ResolvePathMode(int seed, int fallbackPathMode = 0)
     {
+        if (fallbackPathMode != 0) return fallbackPathMode;
+
         if (SavedLevelsList.instance != null)
         {
             var match = SavedLevelsList.instance.GetSavedLevels()?.Find(l => l.savedLevelSeed == seed);

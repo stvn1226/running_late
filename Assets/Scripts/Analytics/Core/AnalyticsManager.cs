@@ -168,7 +168,8 @@ public class AnalyticsManager : MonoBehaviour
 
         if (victory && LeaderboardManager.Instance != null)
         {
-            LeaderboardManager.Instance.SaveTime(seed, time);
+            int pathMode = _currentLevelType == "SingleSidewalk" ? 1 : 0;
+            LeaderboardManager.Instance.SaveTime(seed, time, pathMode: pathMode);
         }
     }
     

@@ -77,6 +77,10 @@ namespace Utils
                     existingRecord.pathMode = pathMode;
                     GameLogger.Log("LEADERBOARD", $"New best time for seed {seed} ({resolvedLevelName}, pathMode {pathMode}): {existingRecord.GetFormattedTime()}");
                 }
+                else if (Mathf.Approximately(time, existingRecord.time) && existingRecord.pathMode != pathMode)
+                {
+                    existingRecord.pathMode = pathMode;
+                }
             }
             else
             {
