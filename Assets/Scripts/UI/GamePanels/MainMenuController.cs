@@ -15,6 +15,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private SavedLevelsPanel savedLevelsPanel;
     [SerializeField] private TextInputPanel textInputPanel;
     [SerializeField] private LeaderboardPanel leaderboardPanel;
+    public LeaderboardPanel LeaderboardPanel => leaderboardPanel;
 
     [Header("Settings UI")]
     [SerializeField] private Toggle pathModeToggle;

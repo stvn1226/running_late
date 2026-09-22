@@ -243,11 +243,11 @@ namespace UI.GamePanels
                 gamepadPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Xbox/xbox_button_color_b.png")
             });
 
-            // 3. Kick: F / Gamepad X
+            // 3. Kick: Q / Gamepad X
             promptEntries.Add(new ControlPromptEntry
             {
                 actionName = "Kick",
-                keyboardPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Keyboard & Mouse/keyboard_f.png"),
+                keyboardPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Keyboard & Mouse/keyboard_q.png"),
                 gamepadPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Xbox/xbox_button_color_x.png")
             });
 

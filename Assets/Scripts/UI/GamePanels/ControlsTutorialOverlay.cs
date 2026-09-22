@@ -203,7 +203,7 @@ namespace UI.GamePanels
             LinkKeyImage("Key_Ctrl",    "CTRL",    ref keyCtrlImage);
             LinkKeyImage("Key_C",       "C",       ref keyDropDownImage);
             LinkKeyImage("Key_V",       "V",       ref keyAirDodgeImage);
-            LinkKeyImage("Key_B",       "B",       ref keyDiveImage);
+            LinkKeyImage("Key_E",       "E",       ref keyDiveImage);
             LinkKeyImage("Mouse_Left",  null,      ref mouseLeftClickImage);
             LinkKeyImage("Mouse_Right", null,      ref mouseRightClickImage);
 
@@ -430,7 +430,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Jump:
-                    actionText = isGamepad ? "2. JUMP: Press button [A]" : "2. JUMP: Press [SPACE] or [W]";
+                    actionText = isGamepad ? "2. JUMP: Press button [A]" : "2. JUMP: Press [SPACE]";
                     useTopBase = false;
                     if (isGamepad)
                     {
@@ -438,17 +438,16 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "space", "w");
-                        else { AddOutlineToImage(keySpaceImage); AddOutlineToImage(keyMoveUpImage); }
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "space");
+                        else AddOutlineToImage(keySpaceImage);
                     }
                     break;
 
                 case TutorialStep.Slide:
-                    actionText = isGamepad ? "3. SLIDE: Press [B] or trigger [LT]" : "3. SLIDE: Press [S] or [CTRL]";
+                    actionText = isGamepad ? "3. SLIDE: Press trigger [LT]" : "3. SLIDE: Press [S] or [CTRL]";
                     useTopBase = false;
                     if (isGamepad)
                     {
-                        AddOutlineToImage(controllerButtonBImage);
                         AddOutlineToImage(controllerL2Image);
                     }
                     else
@@ -459,7 +458,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Kick:
-                    actionText = isGamepad ? "4. KICK: Press button [X]" : "4. KICK: Press [F], [Q] or [LEFT CLICK]";
+                    actionText = isGamepad ? "4. KICK: Press button [X]" : "4. KICK: Press [Q]";
                     useTopBase = false;
                     if (isGamepad)
                     {
@@ -467,9 +466,8 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "f", "q");
-                        else { AddOutlineToImage(keyKickImage); AddOutlineToImage(keyKickAltImage); }
-                        AddOutlineToImage(mouseLeftClickImage); // mouse image always shown separately
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "q");
+                        else AddOutlineToImage(keyKickAltImage != null ? keyKickAltImage : keyKickImage);
                     }
                     break;
 
@@ -516,7 +514,7 @@ namespace UI.GamePanels
                     break;
 
                 case TutorialStep.Dive:
-                    actionText = isGamepad ? "8. DIVE: Press button [Y]" : "8. DIVE: Press [B]";
+                    actionText = isGamepad ? "8. DIVE: Press button [Y]" : "8. DIVE: Press [E]";
                     useTopBase = false; // Front View (Base)
                     if (isGamepad)
                     {
@@ -524,7 +522,7 @@ namespace UI.GamePanels
                     }
                     else
                     {
-                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "b");
+                        if (keyboardDisplay != null) keyboardDisplay.HighlightKeys(outlineMaterial, "e");
                         else AddOutlineToImage(keyDiveImage);
                     }
                     break;
@@ -786,18 +784,18 @@ namespace UI.GamePanels
                 }
             }
 
-            // 4. KICK (F, Q, Left Click, Button X)
+            // 4. KICK (Q, Button X)
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.fKey.wasPressedThisFrame)
+                if (Keyboard.current.qKey.wasPressedThisFrame)
                 {
-                    RemoveKeyHighlight("f", keyKickImage);
+                    RemoveKeyHighlight("q", keyKickAltImage != null ? keyKickAltImage : keyKickImage);
                     if (playerPreview != null) playerPreview.TriggerKick();
                     OnStepInputPressed(TutorialStep.Kick);
                 }
-                if (Keyboard.current.qKey.wasPressedThisFrame)
+                else if (Keyboard.current.fKey.wasPressedThisFrame)
                 {
-                    RemoveKeyHighlight("q", keyKickAltImage);
+                    RemoveKeyHighlight("f", keyKickImage);
                     if (playerPreview != null) playerPreview.TriggerKick();
                     OnStepInputPressed(TutorialStep.Kick);
                 }
@@ -857,12 +855,21 @@ namespace UI.GamePanels
                 OnStepInputPressed(TutorialStep.AirDodge);
             }
 
-            // 8. DIVE (B, Y / Button North)
-            if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
+            // 8. DIVE (E, Y / Button North)
+            if (Keyboard.current != null)
             {
-                RemoveKeyHighlight("b", keyDiveImage);
-                if (playerPreview != null) playerPreview.TriggerDive();
-                OnStepInputPressed(TutorialStep.Dive);
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("e", keyDiveImage);
+                    if (playerPreview != null) playerPreview.TriggerDive();
+                    OnStepInputPressed(TutorialStep.Dive);
+                }
+                else if (Keyboard.current.bKey.wasPressedThisFrame)
+                {
+                    RemoveKeyHighlight("b", keyDiveImage);
+                    if (playerPreview != null) playerPreview.TriggerDive();
+                    OnStepInputPressed(TutorialStep.Dive);
+                }
             }
             if (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame)
             {

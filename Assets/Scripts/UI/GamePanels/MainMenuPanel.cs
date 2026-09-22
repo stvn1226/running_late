@@ -17,6 +17,13 @@ public class MainMenuPanel : BaseMainMenuPanel
     [SerializeField] private GameObject leaderboardContainer;
     [SerializeField] private bool showLeaderboard = true;
     [SerializeField] private Button quitButton;
+
+    [Header("Embedded Leaderboard")]
+    [SerializeField] private LeaderboardPanel embeddedLeaderboard;
+
+    [Header("Loading Feedback")]
+    [Tooltip("Optional: assign a fullscreen black Image/CanvasGroup to show while the level loads")]
+    [SerializeField] private GameObject loadingScreen;
     
     [Header("Step 2 - Play Options")]
     [SerializeField] private Button playButtonStep2;
@@ -78,6 +85,15 @@ public class MainMenuPanel : BaseMainMenuPanel
         if (quitButton != null)
         {
             quitButton.onClick.AddListener(OnQuitClicked);
+        }
+
+        if (embeddedLeaderboard == null && menuController != null)
+        {
+            embeddedLeaderboard = menuController.LeaderboardPanel;
+        }
+        if (embeddedLeaderboard == null)
+        {
+            embeddedLeaderboard = Object.FindFirstObjectByType<LeaderboardPanel>(FindObjectsInactive.Include);
         }
 
         if (leaderboardContainer == null && leaderboardButton != null && leaderboardButton.transform.parent != null)
@@ -224,6 +240,20 @@ public class MainMenuPanel : BaseMainMenuPanel
         }
 
         ApplyLeaderboardState();
+
+        if (embeddedLeaderboard != null && showLeaderboard)
+        {
+            // Register ALL step-1 buttons so they all navigate LEFT into the leaderboard.
+            embeddedLeaderboard.RegisterMenuButtons(new Selectable[]
+            {
+                playButton,
+                creditsButton,
+                settingsButton,
+                quitButton,
+            });
+            embeddedLeaderboard.ShowEmbedded(playButton);
+        }
+
         
         GameLogger.Log("MENU", "Showing Step 1 - Main Menu");
     }
@@ -246,8 +276,22 @@ public class MainMenuPanel : BaseMainMenuPanel
         {
             EventSystem.current.SetSelectedGameObject(playButtonStep2.gameObject);
         }
+
+        if (embeddedLeaderboard != null)
+        {
+            embeddedLeaderboard.HideEmbedded();
+        }
         
         GameLogger.Log("MENU", "Showing Step 2 - Play Options");
+    }
+
+    protected override void OnHide()
+    {
+        base.OnHide();
+        if (embeddedLeaderboard != null)
+        {
+            embeddedLeaderboard.HideEmbedded();
+        }
     }
     
     public bool IsInStep2()
@@ -304,6 +348,12 @@ public class MainMenuPanel : BaseMainMenuPanel
         GameLogger.Log("MENU", "Play Step 2 clicked - Starting game with configuration");
         
         ApplySeedConfiguration();
+
+        // Loading feedback — disable input and show overlay before scene load.
+        if (loadingScreen != null)
+            loadingScreen.SetActive(true);
+        if (EventSystem.current != null)
+            EventSystem.current.enabled = false;
         
         if (menuController != null)
         {
@@ -416,13 +466,26 @@ public class MainMenuPanel : BaseMainMenuPanel
 
     private void ApplyLeaderboardState()
     {
+        // Old standalone button is hidden because it is replaced by embedded scrollable leaderboard
         GameObject containerToToggle = leaderboardContainer != null 
             ? leaderboardContainer 
             : (leaderboardButton != null ? leaderboardButton.gameObject : null);
 
         if (containerToToggle != null)
         {
-            containerToToggle.SetActive(showLeaderboard);
+            containerToToggle.SetActive(false);
+        }
+
+        if (embeddedLeaderboard != null)
+        {
+            if (showLeaderboard && !isInStep2 && isVisible)
+            {
+                embeddedLeaderboard.ShowEmbedded(playButton);
+            }
+            else
+            {
+                embeddedLeaderboard.HideEmbedded();
+            }
         }
     }
 

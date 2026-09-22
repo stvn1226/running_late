@@ -26,6 +26,16 @@ public class LeaderboardRowUI : MonoBehaviour
     private int _pathMode;
     private System.Action<int, int> _onPlayClicked;
 
+    public Selectable PrimarySelectable
+    {
+        get
+        {
+            if (playButton != null && playButton.gameObject.activeInHierarchy && playButton.interactable)
+                return playButton;
+            return GetComponent<Selectable>() ?? GetComponentInChildren<Selectable>();
+        }
+    }
+
     private void Awake()
     {
         // Safe binding if not assigned in inspector
@@ -96,8 +106,8 @@ public class LeaderboardRowUI : MonoBehaviour
             }
         }
 
-        if (rowBackground != null)
-            rowBackground.color = isLocalPlayer ? localPlayerColor : defaultColor;
+        // Row background visual is controlled via sprite in the Inspector.
+        // No code-side color override — leave it to the prefab.
     }
 
     /// <summary>

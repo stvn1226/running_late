@@ -207,13 +207,11 @@ public class PlayerStates : MonoBehaviour
 
     private void Start()
     {
-        // Always ensure Toast starts inactive. It is activated only when the
-        // player collects the Toast power-up at runtime (hasToast set to true
-        // by the power-up pickup). If hasToast is already true here (e.g. from
-        // a mid-game scene reload that preserved state), re-activate it.
+        // Always ensure the physical Toast object starts inactive.
+        // It should NOT appear until the player is hit and loses it.
         if (toastDrop != null)
         {
-            toastDrop.gameObject.SetActive(hasToast);
+            toastDrop.gameObject.SetActive(false);
         }
     }
 
@@ -676,7 +674,7 @@ public class PlayerStates : MonoBehaviour
     }
 
 
-    public void StartStagger(float duration)
+    public void StartStagger(float duration, Vector2 knockbackVelocity = default)
     {
         isStaggered = true;
         staggerTimer = duration;
@@ -711,11 +709,11 @@ public class PlayerStates : MonoBehaviour
             hasToast = false;
             if (playerVFX != null) playerVFX.PlayToastBreak();
 
-            // Drop the physical toast object with physics arc
+            // Drop the physical toast object matching the player's knockback velocity
             if (toastDrop != null)
             {
                 bool facingRight = spriteRenderer != null && !spriteRenderer.flipX;
-                toastDrop.Drop(facingRight);
+                toastDrop.Drop(knockbackVelocity, facingRight);
             }
         }
 

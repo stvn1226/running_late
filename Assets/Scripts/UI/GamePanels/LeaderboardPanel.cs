@@ -20,6 +20,18 @@ public class LeaderboardPanel : BaseMainMenuPanel
     [SerializeField] private Button tabGlobal;
     [SerializeField] private Button tabFriends;
     [SerializeField] private Button backButton;
+    [Tooltip("Text label inside TabGlobal button")]
+    [SerializeField] private TextMeshProUGUI tabGlobalLabel;
+    [Tooltip("Text label inside TabFriends button")]
+    [SerializeField] private TextMeshProUGUI tabFriendsLabel;
+    [SerializeField] private Color tabSelectedColor   = Color.white;
+    [SerializeField] private Color tabDeselectedColor = new Color(0.1f, 0.1f, 0.1f, 1f);
+
+    [Header("Tab Sprites (optional - auto-detected from TabGlobal)")]
+    [SerializeField] private Sprite tabActiveSprite;
+    [SerializeField] private Sprite tabInactiveSprite;
+    private Image _tabGlobalImage;
+    private Image _tabFriendsImage;
 
     [Header("State UI (optional)")]
     [SerializeField] private GameObject loadingOverlay;
@@ -29,7 +41,14 @@ public class LeaderboardPanel : BaseMainMenuPanel
     [Header("Settings")]
     [SerializeField] private int maxRows = 10;
 
+    [Header("Embedded Mode")]
+    [SerializeField] private bool isEmbedded = false;
+    [SerializeField] private ScrollRect scrollRect;
+    private Selectable _sideControlsTarget;
+
     private readonly List<LeaderboardRowUI> _rowPool = new();
+    // All Step-1 menu buttons that should navigate LEFT into the leaderboard.
+    private readonly List<Selectable> _menuButtons = new();
     private bool _isFetching = false;
     private bool _showingGlobal = true;
 
@@ -39,21 +58,51 @@ public class LeaderboardPanel : BaseMainMenuPanel
         {
             menuController = GetComponentInParent<MainMenuController>() ?? Object.FindFirstObjectByType<MainMenuController>();
         }
+
+        if (scrollRect == null)
+        {
+            scrollRect = GetComponentInChildren<ScrollRect>(true);
+        }
+        if (scrollRect != null && scrollRect.GetComponent<AutoScrollToSelection>() == null)
+        {
+            scrollRect.gameObject.AddComponent<AutoScrollToSelection>();
+        }
+
+        InitTabVisuals();
     }
 
     protected override void SetupPanel()
     {
         if (tabGlobal != null)
-            tabGlobal.onClick.AddListener(() => SwitchTab(true));
+        {
+            tabGlobal.onClick.AddListener(() => SwitchTab(true, forceRefresh: true));
+            var triggerGlobal = tabGlobal.GetComponent<TabHighlightTrigger>() ?? tabGlobal.gameObject.AddComponent<TabHighlightTrigger>();
+            triggerGlobal.onHighlight = () => SwitchTab(true, forceRefresh: false);
+
+            // Auto-find label if not assigned
+            if (tabGlobalLabel == null)
+                tabGlobalLabel = tabGlobal.GetComponentInChildren<TextMeshProUGUI>();
+        }
 
         if (tabFriends != null)
-            tabFriends.onClick.AddListener(() => SwitchTab(false));
+        {
+            tabFriends.onClick.AddListener(() => SwitchTab(false, forceRefresh: true));
+            var triggerFriends = tabFriends.GetComponent<TabHighlightTrigger>() ?? tabFriends.gameObject.AddComponent<TabHighlightTrigger>();
+            triggerFriends.onHighlight = () => SwitchTab(false, forceRefresh: false);
+
+            if (tabFriendsLabel == null)
+                tabFriendsLabel = tabFriends.GetComponentInChildren<TextMeshProUGUI>();
+        }
 
         if (backButton != null)
         {
             backButton.onClick.AddListener(OnBackClicked);
             var backLbl = backButton.GetComponentInChildren<TextMeshProUGUI>();
             if (backLbl != null) backLbl.SetText("← Back");
+
+            // If panel is embedded from the start (Inspector), hide immediately.
+            if (isEmbedded)
+                backButton.gameObject.SetActive(false);
         }
 
         if (titleLabel != null)
@@ -61,6 +110,18 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
         if (emptyLabel != null)
             emptyLabel.SetText("No records yet");
+
+        if (scrollRect == null)
+        {
+            scrollRect = GetComponentInChildren<ScrollRect>(true);
+        }
+        if (scrollRect != null && scrollRect.GetComponent<AutoScrollToSelection>() == null)
+        {
+            scrollRect.gameObject.AddComponent<AutoScrollToSelection>();
+        }
+
+        // Apply initial tab visual state (Global is active by default)
+        RefreshTabVisuals(isGlobalActive: true);
     }
 
     private void OnDestroy()
@@ -73,6 +134,11 @@ public class LeaderboardPanel : BaseMainMenuPanel
     protected override void OnShow()
     {
         _showingGlobal = true;
+        if (backButton != null && !isEmbedded)
+        {
+            backButton.gameObject.SetActive(true);
+        }
+        RefreshTabVisuals(true);
         // Kick off a fresh fetch every time the panel opens.
         _ = FetchAndPopulateAsync(_showingGlobal);
     }
@@ -84,11 +150,82 @@ public class LeaderboardPanel : BaseMainMenuPanel
     }
 
     // ─── Tab Logic ────────────────────────────────────────────
-    private void SwitchTab(bool global)
+    private void InitTabVisuals()
+    {
+        if (tabGlobal != null && _tabGlobalImage == null)
+            _tabGlobalImage = tabGlobal.image != null ? tabGlobal.image : tabGlobal.GetComponent<Image>();
+
+        if (tabFriends != null && _tabFriendsImage == null)
+            _tabFriendsImage = tabFriends.image != null ? tabFriends.image : tabFriends.GetComponent<Image>();
+
+        // Auto-detect sprites from TabGlobal button if unassigned
+        if (tabActiveSprite == null && tabGlobal != null)
+        {
+            if (tabGlobal.spriteState.highlightedSprite != null)
+                tabActiveSprite = tabGlobal.spriteState.highlightedSprite;
+            else if (tabGlobal.spriteState.selectedSprite != null)
+                tabActiveSprite = tabGlobal.spriteState.selectedSprite;
+        }
+
+        if (tabInactiveSprite == null && _tabGlobalImage != null && _tabGlobalImage.sprite != null)
+        {
+            tabInactiveSprite = _tabGlobalImage.sprite;
+        }
+
+        // If TabFriends doesn't have SpriteSwap configured but TabGlobal does, sync state
+        if (tabFriends != null && tabGlobal != null)
+        {
+            if (tabGlobal.transition == Selectable.Transition.SpriteSwap &&
+                tabFriends.transition != Selectable.Transition.SpriteSwap)
+            {
+                tabFriends.transition = Selectable.Transition.SpriteSwap;
+                tabFriends.spriteState = tabGlobal.spriteState;
+            }
+        }
+    }
+
+    private void SwitchTab(bool global, bool forceRefresh = false)
     {
         if (_isFetching) return;
+        if (!forceRefresh && global == _showingGlobal) return;
         _showingGlobal = global;
+        RefreshTabVisuals(global);
         _ = FetchAndPopulateAsync(global);
+    }
+
+    private void RefreshTabColors(bool isGlobalActive)
+    {
+        RefreshTabVisuals(isGlobalActive);
+    }
+
+    private void RefreshTabVisuals(bool isGlobalActive)
+    {
+        InitTabVisuals();
+
+        // 1. Text colors
+        if (tabGlobalLabel  != null) tabGlobalLabel.color  = isGlobalActive  ? tabSelectedColor : tabDeselectedColor;
+        if (tabFriendsLabel != null) tabFriendsLabel.color = !isGlobalActive ? tabSelectedColor : tabDeselectedColor;
+
+        // 2. Button sprites (active tab shows highlighted sprite, inactive shows normal sprite)
+        if (_tabGlobalImage != null)
+        {
+            Sprite target = isGlobalActive ? tabActiveSprite : tabInactiveSprite;
+            if (target != null)
+            {
+                _tabGlobalImage.sprite = target;
+                _tabGlobalImage.overrideSprite = null;
+            }
+        }
+
+        if (_tabFriendsImage != null)
+        {
+            Sprite target = !isGlobalActive ? tabActiveSprite : tabInactiveSprite;
+            if (target != null)
+            {
+                _tabFriendsImage.sprite = target;
+                _tabFriendsImage.overrideSprite = null;
+            }
+        }
     }
 
     // ─── Data Fetch ───────────────────────────────────────────
@@ -123,6 +260,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
                 SetLoadingVisible(false);
                 SetEmptyVisible(false);
+                LinkNavigation(_sideControlsTarget);
                 _isFetching = false;
                 return;
             }
@@ -150,6 +288,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
                 }
                 SetLoadingVisible(false);
                 SetEmptyVisible(false);
+                LinkNavigation(_sideControlsTarget);
                 _isFetching = false;
                 return;
             }
@@ -158,6 +297,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
         // ── Nothing to show ──────────────────────────────────
         SetLoadingVisible(false);
         SetEmptyVisible(true);
+        LinkNavigation(_sideControlsTarget);
         _isFetching = false;
     }
 
@@ -208,6 +348,13 @@ public class LeaderboardPanel : BaseMainMenuPanel
         PlayerPrefs.SetInt("PathMode", finalPathMode);
         PlayerPrefs.Save();
 
+        // ── Loading feedback ──────────────────────────────────
+        // Reuse the panel's loading overlay as a visual loading screen.
+        // Disable EventSystem input so the player can't double-trigger.
+        SetLoadingVisible(true);
+        if (EventSystem.current != null)
+            EventSystem.current.enabled = false;
+
         if (menuController == null)
         {
             menuController = GetComponentInParent<MainMenuController>() ?? Object.FindFirstObjectByType<MainMenuController>();
@@ -235,6 +382,18 @@ public class LeaderboardPanel : BaseMainMenuPanel
                 Destroy(row.gameObject);
         }
         _rowPool.Clear();
+
+        if (scrollRect != null)
+        {
+            var autoScroll = scrollRect.GetComponent<AutoScrollToSelection>();
+            if (autoScroll != null)
+                autoScroll.ResetScroll();
+            else if (scrollRect.content != null)
+            {
+                scrollRect.content.anchoredPosition = new Vector2(scrollRect.content.anchoredPosition.x, 0f);
+                scrollRect.velocity = Vector2.zero;
+            }
+        }
     }
 
     // ─── State Helpers ────────────────────────────────────────
@@ -255,5 +414,167 @@ public class LeaderboardPanel : BaseMainMenuPanel
     {
         if (menuController != null)
             menuController.ShowMainPanel();
+    }
+
+    // ─── Embedded Mode ────────────────────────────────────────
+    public void ShowEmbedded(Selectable returnTarget)
+    {
+        isEmbedded = true;
+        _sideControlsTarget = returnTarget;
+
+        if (panelRoot != null)
+        {
+            panelRoot.SetActive(true);
+            isVisible = true;
+        }
+        else
+        {
+            gameObject.SetActive(true);
+            isVisible = true;
+        }
+
+        if (backButton != null)
+        {
+            backButton.gameObject.SetActive(false);
+        }
+
+        _showingGlobal = true;
+        RefreshTabVisuals(true);
+        _ = FetchAndPopulateAsync(_showingGlobal);
+    }
+
+    public void HideEmbedded()
+    {
+        if (panelRoot != null)
+        {
+            panelRoot.SetActive(false);
+            isVisible = false;
+        }
+        else
+        {
+            gameObject.SetActive(false);
+            isVisible = false;
+        }
+    }
+
+    public void RegisterMenuButtons(IEnumerable<Selectable> buttons)
+    {
+        _menuButtons.Clear();
+        foreach (var b in buttons)
+        {
+            if (b != null) _menuButtons.Add(b);
+        }
+    }
+
+    public void LinkNavigation(Selectable sideTarget)
+    {
+        if (sideTarget != null)
+        {
+            _sideControlsTarget = sideTarget;
+        }
+
+        Selectable returnTarget = _sideControlsTarget;
+        if (returnTarget == null) return;
+
+        // Determine first selectable in leaderboard
+        Selectable firstRowSelectable = (_rowPool.Count > 0 && _rowPool[0] != null && _rowPool[0].PrimarySelectable != null)
+            ? _rowPool[0].PrimarySelectable
+            : null;
+
+        Selectable firstInLeaderboard = firstRowSelectable != null
+            ? firstRowSelectable
+            : (tabGlobal != null ? (Selectable)tabGlobal : returnTarget);
+
+        // 1. From ALL menu-side buttons: Left goes into Leaderboard
+        // The primary returnTarget is still used for the row→right path.
+        var allSideButtons = new System.Collections.Generic.HashSet<Selectable> { returnTarget };
+        foreach (var b in _menuButtons)
+            if (b != null) allSideButtons.Add(b);
+
+        foreach (var btn in allSideButtons)
+        {
+            Navigation sideNav = btn.navigation;
+            sideNav.mode = Navigation.Mode.Explicit;
+            sideNav.selectOnLeft = firstInLeaderboard;
+            btn.navigation = sideNav;
+        }
+
+        // 2. Link leaderboard rows
+        for (int i = 0; i < _rowPool.Count; i++)
+        {
+            if (_rowPool[i] == null) continue;
+            Selectable rowSel = _rowPool[i].PrimarySelectable;
+            if (rowSel == null) continue;
+
+            Navigation nav = rowSel.navigation;
+            nav.mode = Navigation.Mode.Explicit;
+
+            // Right always returns to side controls (Play button)
+            nav.selectOnRight = returnTarget;
+
+            // Up goes to previous row or tabGlobal if first row
+            if (i > 0 && _rowPool[i - 1] != null && _rowPool[i - 1].PrimarySelectable != null)
+            {
+                nav.selectOnUp = _rowPool[i - 1].PrimarySelectable;
+            }
+            else
+            {
+                nav.selectOnUp = tabGlobal != null ? (Selectable)tabGlobal : null;
+            }
+
+            // Down goes to next row, or stays on current row if at bottom
+            if (i < _rowPool.Count - 1 && _rowPool[i + 1] != null && _rowPool[i + 1].PrimarySelectable != null)
+            {
+                nav.selectOnDown = _rowPool[i + 1].PrimarySelectable;
+            }
+            else
+            {
+                nav.selectOnDown = rowSel; // Stays on bottom element
+            }
+
+            nav.selectOnLeft = null;
+            rowSel.navigation = nav;
+        }
+
+        // 3. Tab buttons navigation
+        if (tabGlobal != null)
+        {
+            Navigation nav = tabGlobal.navigation;
+            nav.mode = Navigation.Mode.Explicit;
+            nav.selectOnRight = tabFriends != null ? (Selectable)tabFriends : returnTarget;
+            nav.selectOnLeft = null;
+            nav.selectOnDown = firstRowSelectable;
+            nav.selectOnUp = null;
+            tabGlobal.navigation = nav;
+        }
+
+        if (tabFriends != null)
+        {
+            Navigation nav = tabFriends.navigation;
+            nav.mode = Navigation.Mode.Explicit;
+            nav.selectOnLeft = tabGlobal != null ? (Selectable)tabGlobal : null;
+            nav.selectOnRight = returnTarget;
+            nav.selectOnDown = firstRowSelectable;
+            nav.selectOnUp = null;
+            tabFriends.navigation = nav;
+        }
+    }
+
+    /// <summary>
+    /// Forwards pointer enter (mouse hover) and UI select (gamepad / keyboard focus) to switch tabs automatically.
+    /// </summary>
+    private class TabHighlightTrigger : MonoBehaviour, IPointerEnterHandler, ISelectHandler
+    {
+        public System.Action onHighlight;
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            onHighlight?.Invoke();
+        }
+
+        public void OnSelect(BaseEventData eventData)
+        {
+            onHighlight?.Invoke();
+        }
     }
 }

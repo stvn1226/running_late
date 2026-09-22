@@ -85,9 +85,9 @@ public class ToastDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// Launches this toast into the world with physics arc and spin.
+    /// Launches this toast into the world matching the player's knockback velocity with tumbling spin.
     /// </summary>
-    public void Drop(bool facingRight)
+    public void Drop(Vector2 initialVelocity, bool facingRight)
     {
         InitIfNeeded();
 
@@ -121,18 +121,32 @@ public class ToastDrop : MonoBehaviour
             toastCollider.isTrigger = false;
         }
 
-        // Apply launch impulse and tumbling spin
+        // Apply launch velocity matching player knockback and tumbling spin
         if (rb != null)
         {
             rb.simulated = true;
             rb.gravityScale = 2.5f;
-            float dirX = facingRight ? 1f : -1f;
-            float spreadX = Random.Range(-randomSpread, randomSpread);
-            rb.linearVelocity = Vector2.zero;
+            if (initialVelocity != Vector2.zero)
+            {
+                rb.linearVelocity = initialVelocity;
+            }
+            else
+            {
+                float dirX = facingRight ? 1f : -1f;
+                float spreadX = Random.Range(-randomSpread, randomSpread);
+                rb.linearVelocity = new Vector2((launchForceX + spreadX) * dirX, launchForceY);
+            }
             rb.angularVelocity = 0f;
-            rb.AddForce(new Vector2((launchForceX + spreadX) * dirX, launchForceY), ForceMode2D.Impulse);
             rb.AddTorque(Random.Range(-25f, 25f), ForceMode2D.Impulse);
         }
+    }
+
+    /// <summary>
+    /// Backward-compatible overload without velocity parameter.
+    /// </summary>
+    public void Drop(bool facingRight)
+    {
+        Drop(Vector2.zero, facingRight);
     }
 
     /// <summary>
@@ -161,12 +175,12 @@ public class ToastDrop : MonoBehaviour
     }
 
     /// <summary>
-    /// Reactivates the toast on the player when a Toast power-up is picked up.
+    /// Resets the toast to the player when a Toast power-up is picked up.
+    /// Keeps the GameObject inactive so it is not visible until hit.
     /// </summary>
     public void ResetToPlayer()
     {
         InitIfNeeded();
         ReturnToPlayer();
-        gameObject.SetActive(true);
     }
 }

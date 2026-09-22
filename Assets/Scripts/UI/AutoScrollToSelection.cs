@@ -9,64 +9,131 @@ public class AutoScrollToSelection : MonoBehaviour
     private RectTransform viewport;
     private RectTransform content;
     private GameObject lastSelectedObject;
-    
+
     private void Awake()
     {
-        scrollRect = GetComponent<ScrollRect>();
-        viewport = scrollRect.viewport;
-        content = scrollRect.content;
+        InitReferences();
     }
-    
+
+    private void OnEnable()
+    {
+        InitReferences();
+        lastSelectedObject = null;
+    }
+
+    private void InitReferences()
+    {
+        if (scrollRect == null)
+            scrollRect = GetComponent<ScrollRect>();
+
+        if (scrollRect != null)
+        {
+            if (viewport == null)
+                viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.GetComponent<RectTransform>();
+
+            if (content == null)
+                content = scrollRect.content;
+        }
+    }
+
     private void Update()
     {
-        GameObject currentSelected = EventSystem.current?.currentSelectedGameObject;
-        
+        GameObject currentSelected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+
         if (currentSelected != null && currentSelected != lastSelectedObject)
         {
             lastSelectedObject = currentSelected;
             ScrollToSelected(currentSelected);
         }
     }
-    
+
+    public void ResetScroll()
+    {
+        InitReferences();
+        lastSelectedObject = null;
+
+        if (content != null)
+        {
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, 0f);
+        }
+
+        if (scrollRect != null)
+        {
+            scrollRect.velocity = Vector2.zero;
+        }
+    }
+
     private void ScrollToSelected(GameObject selected)
     {
-        RectTransform selectedRect = selected.GetComponent<RectTransform>();
-        
-        if (selectedRect == null || !selectedRect.IsChildOf(content))
+        InitReferences();
+
+        if (viewport == null || content == null)
             return;
-        
+
+        RectTransform targetRect = GetTargetRect(selected);
+        if (targetRect == null)
+            return;
+
         Canvas.ForceUpdateCanvases();
-        
+
         float viewportHeight = viewport.rect.height;
         float contentHeight = content.rect.height;
-        
+
         if (contentHeight <= viewportHeight)
             return;
-        
-        float elementY = Mathf.Abs(selectedRect.anchoredPosition.y);
-        float elementHeight = selectedRect.rect.height;
-        
-        float currentScrollPos = content.anchoredPosition.y;
-        
-        float elementTop = elementY;
-        float elementBottom = elementY + elementHeight;
-        
-        float visibleTop = currentScrollPos;
-        float visibleBottom = currentScrollPos + viewportHeight;
-        
-        float targetScrollPos = currentScrollPos;
-        
-        if (elementTop < visibleTop)
+
+        // Get corners in world space, then convert to viewport local space
+        Vector3[] corners = new Vector3[4];
+        targetRect.GetWorldCorners(corners);
+        // corners: 0 = bottom-left, 1 = top-left, 2 = top-right, 3 = bottom-right
+        float rowTop = viewport.InverseTransformPoint(corners[1]).y;
+        float rowBottom = viewport.InverseTransformPoint(corners[0]).y;
+
+        float viewTop = viewport.rect.yMax;
+        float viewBottom = viewport.rect.yMin;
+
+        float margin = 8f;
+        float currentY = content.anchoredPosition.y;
+        float targetY = currentY;
+
+        if (rowBottom < viewBottom + margin)
         {
-            targetScrollPos = elementTop;
+            // Row is below the visible viewport -> scroll down (content moves UP)
+            float diff = (viewBottom + margin) - rowBottom;
+            targetY = currentY + diff;
         }
-        else if (elementBottom > visibleBottom)
+        else if (rowTop > viewTop - margin)
         {
-            targetScrollPos = elementBottom - viewportHeight;
+            // Row is above the visible viewport -> scroll up (content moves DOWN)
+            float diff = rowTop - (viewTop - margin);
+            targetY = currentY - diff;
         }
-        
-        targetScrollPos = Mathf.Clamp(targetScrollPos, 0f, contentHeight - viewportHeight);
-        
-        content.anchoredPosition = new Vector2(content.anchoredPosition.x, targetScrollPos);
+
+        float maxScroll = Mathf.Max(0f, contentHeight - viewportHeight);
+        targetY = Mathf.Clamp(targetY, 0f, maxScroll);
+
+        if (!Mathf.Approximately(targetY, currentY))
+        {
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, targetY);
+            if (scrollRect != null)
+                scrollRect.velocity = Vector2.zero;
+        }
+    }
+
+    private RectTransform GetTargetRect(GameObject selected)
+    {
+        if (selected == null || content == null) return null;
+
+        Transform current = selected.transform;
+        if (!current.IsChildOf(content)) return null;
+
+        // Find the direct child of content (e.g. LeaderboardRowUI) that encloses the selected control
+        Transform directChild = current;
+        while (directChild != null && directChild.parent != content)
+        {
+            directChild = directChild.parent;
+        }
+
+        return (directChild as RectTransform) ?? selected.GetComponent<RectTransform>();
     }
 }

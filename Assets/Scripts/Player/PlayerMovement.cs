@@ -353,11 +353,6 @@ public class PlayerMovement : MonoBehaviour
 
         GameLogger.Log($"[STAGGER] Starting stagger - duration: {config.staggerDuration}s, knockback: {knockbackDirection}");
     
-        states.StartStagger(config.staggerDuration);
-
-        AudioManager.Instance?.Play(AudioManager.SoundType.Stagger);
-        GamepadVibrationManager.Instance?.TriggerHitVibration();
-
         Vector2 knockbackForce = knockbackDirection.normalized * config.staggerKnockbackForce;
         
         float finalKnockbackX = knockbackForce.x;
@@ -370,7 +365,13 @@ public class PlayerMovement : MonoBehaviour
         // Authoritatively override velocity to stop forward momentum immediately
         // We use a minimum vertical impulse to ensure the player "bounces" off the obstacle
         float finalKnockbackY = Mathf.Max(knockbackForce.y, 10f);
-        rb.linearVelocity = new Vector2(finalKnockbackX, finalKnockbackY);
+        Vector2 staggerVelocity = new Vector2(finalKnockbackX, finalKnockbackY);
+        rb.linearVelocity = staggerVelocity;
+
+        states.StartStagger(config.staggerDuration, staggerVelocity);
+
+        AudioManager.Instance?.Play(AudioManager.SoundType.Stagger);
+        GamepadVibrationManager.Instance?.TriggerHitVibration();
     
         GameLogger.Log($"[STAGGER] Velocity authoritatively set to: {rb.linearVelocity} (Force: {config.staggerKnockbackForce}, Dir: {knockbackDirection})");
     }
