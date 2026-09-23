@@ -132,11 +132,14 @@ public class AnalyticsManager : MonoBehaviour
     {
         if (!config.enableAnalytics) return;
     
+        string formattedTime = Utils.TimeRecord.FormatTime(time);
+
         var parameters = new Dictionary<string, object>
         {
             { "seed", seed },
             { "level_type", _currentLevelType },
             { "completion_time", time },
+            { "completion_time_formatted", formattedTime },
             { "success", victory }
         };
 
@@ -146,6 +149,7 @@ public class AnalyticsManager : MonoBehaviour
             if (bestRecord != null)
             {
                 parameters["best_time"] = bestRecord.time;
+                parameters["best_time_formatted"] = bestRecord.GetFormattedTime();
             }
         }
     

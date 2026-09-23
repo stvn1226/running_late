@@ -35,7 +35,9 @@ public class CustomAnalyticsProvider : IAnalyticsProvider
         var parameters = new Dictionary<string, object>
         {
             { "seed", seed },
+            { "level_type", levelType },
             { "completion_time", time },
+            { "completion_time_formatted", Utils.TimeRecord.FormatTime(time) },
             { "victory", victory },
             { "timestamp", System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }
         };

@@ -372,24 +372,34 @@ public class LevelGeneratorEngine
             int nextH = currentH;
             
             int targetH = targetRoadElev + 1;
-            int diff = Mathf.Abs(currentH - targetH);
-            float panicThreshold = diff * 15f; // Reserve 15 units of space per level we need to drop
-            
-            bool inEndZone = remaining < (100f + diff * 80f);
-            if (inEndZone)
+            int signedDiff = currentH - targetH; // positive = above target, negative = below target
+            int absDiff = Mathf.Abs(signedDiff);
+
+            // Calculate minimum space to guarantee reaching targetH:
+            // each slope step consumes at least one slope width (cooldown is ignored in force mode).
+            ModuleBuilder neededSlope = signedDiff > 0 ? slopeDown : slopeUp;
+            float slopeStepWidth = neededSlope != null ? neededSlope.moduleConfig.currentTerrainWidth : singleSpace;
+            // Reserve exactly absDiff slope widths + one flat buffer. If remaining <= this, force every step.
+            float forceThreshold = absDiff * slopeStepWidth + singleSpace;
+            bool mustForceSlope = absDiff > 0 && remaining <= forceThreshold;
+
+            bool inEndZone = remaining < (100f + absDiff * 80f);
+
+            if (mustForceSlope || inEndZone)
             {
-                if (currentH > targetH)
+                if (signedDiff > 0) // above target, need to descend
                 {
-                    if (slopeCooldown <= 0 || remaining <= panicThreshold) 
+                    if (slopeCooldown <= 0 || mustForceSlope)
                         nextH = currentH - 1;
                 }
-                else if (currentH < targetH)
+                else if (signedDiff < 0) // below target, need to ascend
                 {
-                    if (slopeCooldown <= 0 || remaining <= panicThreshold) 
+                    if (slopeCooldown <= 0 || mustForceSlope)
                         nextH = currentH + 1;
                 }
+                // signedDiff == 0: already at target, stay flat
             }
-            else 
+            else
             {
                 if (currentH > roadElev + sidewalkMaxRelHeight)
                     nextH = currentH - 1; 
@@ -399,9 +409,10 @@ public class LevelGeneratorEngine
                     nextH = UnityEngine.Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), roadElev + 1, roadElev + sidewalkMaxRelHeight);
             }
 
-            // Ensure the sidewalk slope is placed perfectly on top of a FLAT road segment.
-            // Otherwise, it creates a visual gap and height mismatch (same fix as 18357ed52 for end ramps).
-            if (nextH != currentH)
+            // Ensure the sidewalk slope is placed on top of a FLAT road segment.
+            // Exception: skip this check when mustForceSlope — in that case we have no room to wait
+            // and must descend regardless, or the sidewalk will never reach targetH.
+            if (nextH != currentH && !mustForceSlope)
             {
                 ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
                 if (sTemplate != null)
@@ -426,7 +437,7 @@ public class LevelGeneratorEngine
 
                     if (!isRoadFlat)
                     {
-                        nextH = currentH; // Delay the slope until road is flat
+                        nextH = currentH; // Delay slope until road below is flat
                     }
                 }
             }

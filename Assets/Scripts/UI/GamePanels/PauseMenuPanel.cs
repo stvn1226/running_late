@@ -70,6 +70,11 @@ public class PauseMenuPanel : BaseMenuPanel
         {
             UpdateToggleNavigation(seedToggle.isOn);
         }
+
+        if (seedInputField != null && seedInputField.image != null)
+        {
+            seedInputField.image.color = Color.white;
+        }
     }
     
     private void OnRetryClicked()
@@ -163,7 +168,11 @@ public class PauseMenuPanel : BaseMenuPanel
     
     private void OnSeedInputChanged(string seedText)
     {
-        if (int.TryParse(seedText, out int _))
+        if (seedInputField == null || seedInputField.image == null)
+            return;
+
+        string cleanText = string.IsNullOrEmpty(seedText) ? "" : seedText.Replace("\u200B", "").Trim();
+        if (string.IsNullOrEmpty(cleanText) || int.TryParse(cleanText, out int _))
         {
             seedInputField.image.color = Color.white;
         }

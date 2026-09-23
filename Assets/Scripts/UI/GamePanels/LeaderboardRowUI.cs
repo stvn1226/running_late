@@ -127,8 +127,6 @@ public class LeaderboardRowUI : MonoBehaviour
 
     private static string FormatTime(float seconds)
     {
-        int m = Mathf.FloorToInt(seconds / 60f);
-        float s = seconds % 60f;
-        return m > 0 ? $"{m}:{s:00.00}" : $"{s:00.00}s";
+        return Utils.TimeRecord.FormatTime(seconds);
     }
 }

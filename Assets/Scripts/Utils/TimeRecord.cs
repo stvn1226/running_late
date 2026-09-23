@@ -20,13 +20,18 @@ namespace Utils
             this.pathMode = pathMode;
         }
 
-        public string GetFormattedTime()
+        public static string FormatTime(float time)
         {
             int minutes = UnityEngine.Mathf.FloorToInt(time / 60f);
             int seconds = UnityEngine.Mathf.FloorToInt(time % 60f);
             int centiseconds = UnityEngine.Mathf.FloorToInt((time * 100f) % 100f);
         
             return $"{minutes:00}:{seconds:00}.{centiseconds:00}";
+        }
+
+        public string GetFormattedTime()
+        {
+            return FormatTime(time);
         }
     }
 }

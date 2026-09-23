@@ -251,14 +251,14 @@ namespace UI.GamePanels
                 gamepadPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Xbox/xbox_button_color_x.png")
             });
 
-            // 4. Drop Down: Down + Space / Stick Down + Gamepad A
+            // 4. Drop Down: C / Gamepad LB
             promptEntries.Add(new ControlPromptEntry
             {
                 actionName = "Drop Down",
-                keyboardPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Keyboard & Mouse/keyboard_arrow_down.png"),
-                keyboardSecondary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Keyboard & Mouse/keyboard_space.png"),
-                gamepadPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Xbox/xbox_stick_l_down.png"),
-                gamepadSecondary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Xbox/xbox_button_color_a.png")
+                keyboardPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Keyboard & Mouse/keyboard_c.png"),
+                keyboardSecondary = null,
+                gamepadPrimary = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Kenney_Input/Xbox/xbox_lb.png"),
+                gamepadSecondary = null
             });
 
             // 5. Pause: Esc / Gamepad Start

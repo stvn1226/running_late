@@ -100,7 +100,7 @@ public class UnityAnalyticsProvider : IAnalyticsProvider
                 };
                 
                 AnalyticsService.Instance.RecordEvent(levelComplete);
-                GameLogger.Log("ANALYTICS", $"Level complete tracked: Time={time:F2}s, PersonalBest={isPersonalBest}");
+                GameLogger.Log("ANALYTICS", $"Level complete tracked: Time={Utils.TimeRecord.FormatTime(time)}, PersonalBest={isPersonalBest}");
             }
             else
             {
@@ -112,7 +112,7 @@ public class UnityAnalyticsProvider : IAnalyticsProvider
                 };
                 
                 AnalyticsService.Instance.RecordEvent(levelDefeat);
-                GameLogger.Log("ANALYTICS", $"Level defeat tracked: Time={time:F2}s");
+                GameLogger.Log("ANALYTICS", $"Level defeat tracked: Time={Utils.TimeRecord.FormatTime(time)}");
             }
         }
         catch (System.Exception e)
