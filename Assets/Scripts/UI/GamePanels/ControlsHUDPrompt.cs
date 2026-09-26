@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -65,8 +66,6 @@ namespace UI.GamePanels
 
         private readonly List<ControlPromptRowUI> spawnedRows = new List<ControlPromptRowUI>();
         private ControllerType currentType = ControllerType.Keyboard;
-        // Track last known type so Update can catch changes even without an event
-        private ControllerType lastPolledType = ControllerType.Keyboard;
 
         private void Awake()
         {
@@ -112,9 +111,30 @@ namespace UI.GamePanels
             else
             {
                 currentType = ControllerType.Keyboard;
+                // Detector not ready yet (e.g. execution order in MainMenu).
+                // Wait for it without polling every frame — avoids icon-flickering
+                // when both keyboard and gamepad are connected simultaneously.
+                StartCoroutine(WaitForDetectorAndSubscribe());
             }
 
             RefreshPrompts();
+        }
+
+        private IEnumerator WaitForDetectorAndSubscribe()
+        {
+            while (ControllerTypeDetector.Instance == null)
+                yield return null;
+
+            // Subscribe to future changes
+            ControllerTypeDetector.Instance.OnControllerChanged += OnControllerTypeChanged;
+
+            // Sync current state (respects the detector's own grace period — no flickering)
+            ControllerType detected = ControllerTypeDetector.Instance.CurrentControllerType;
+            if (detected != currentType)
+            {
+                currentType = detected;
+                RefreshPrompts();
+            }
         }
 
         private void OnDisable()
@@ -129,28 +149,7 @@ namespace UI.GamePanels
         {
             if (currentType == newType) return;
             currentType = newType;
-            lastPolledType = newType;
             RefreshPrompts();
-        }
-
-        private void Update()
-        {
-            // Poll the detector every frame as a safety net for the MainMenu:
-            // ControllerTypeDetector may change type via its own Update (gamepad detection
-            // without PlayerInput) but the event fires correctly. However, if the HUD
-            // enabled before the detector was ready, we may have missed the initial state.
-            if (ControllerTypeDetector.Instance == null) return;
-
-            ControllerType detected = ControllerTypeDetector.Instance.CurrentControllerType;
-            if (detected != lastPolledType)
-            {
-                lastPolledType = detected;
-                if (detected != currentType)
-                {
-                    currentType = detected;
-                    RefreshPrompts();
-                }
-            }
         }
 
         public void SetVisible(bool visible)
