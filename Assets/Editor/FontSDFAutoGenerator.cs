@@ -23,6 +23,13 @@ public static class FontSDFAutoGenerator
     // The .meta for each sdfAssetPath must exist in git so the GUID is preserved.
     private static readonly (string ttf, string sdf)[] FontPairs = new[]
     {
+        // TMP built-in core fonts (live in TextMesh Pro/Resources — same local-generated pattern)
+        // LiberationSans is the default TMP fallback font; must exist for any TMP text to render.
+        // These assets don't have a .ttf we can reference directly — TMP ships them as embedded
+        // resources, so we generate from null and let TMP use its internal fallback path.
+        // NOTE: TMP_FontAsset.CreateFontAsset(null) uses LiberationSans internally.
+        // We skip these in the auto-gen loop but restore them via TMP's own Essential Resources.
+
         // NotoSansJP — Variable weight
         ("Assets/Fonts/NotoSansJP-VariableFont_wght.ttf",
          "Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset"),
@@ -129,6 +136,41 @@ public static class FontSDFAutoGenerator
             AssetDatabase.Refresh();
             Debug.Log("[FontSDFAutoGenerator] Done. All missing font SDF assets regenerated.");
         }
+
+        // LiberationSans SDF (TMP's built-in core font) is separate — it ships with TMP
+        // as an embedded resource and must be restored via TMP's own import mechanism,
+        // not via CreateFontAsset. If it's missing, prompt TMP to reimport it silently.
+        RestoreTMPEssentialResourcesIfNeeded();
+    }
+
+    private static void RestoreTMPEssentialResourcesIfNeeded()
+    {
+        const string fallbackPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset";
+        const string mainPath     = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+
+        if (File.Exists(fallbackPath) && File.Exists(mainPath)) return;
+
+        // TMP_PackageResourceImporter reimports the Essential Resources package silently.
+        // This is identical to Window → TextMeshPro → Import TMP Essential Resources.
+        var importer = System.Type.GetType("TMPro.TMP_PackageResourceImporter, Unity.TextMeshPro.Editor");
+        if (importer == null)
+            importer = System.Type.GetType("TMPro.TMP_PackageResourceImporter, com.unity.textmeshpro.Editor");
+
+        if (importer != null)
+        {
+            var method = importer.GetMethod("ImportEssentialResources",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.NonPublic);
+            if (method != null)
+            {
+                method.Invoke(null, null);
+                Debug.Log("[FontSDFAutoGenerator] Restored TMP Essential Resources (LiberationSans SDF).");
+                return;
+            }
+        }
+
+        // Fallback: just warn — Unity will handle it gracefully at runtime
+        Debug.LogWarning("[FontSDFAutoGenerator] LiberationSans SDF missing. Open Window → TextMeshPro → Import TMP Essential Resources to restore it.");
     }
 }
 #endif
