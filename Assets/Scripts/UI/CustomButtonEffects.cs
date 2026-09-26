@@ -27,6 +27,9 @@ public class CustomButtonEffects : MonoBehaviour,
     private Button button;
     private float baseFontSize;
     private float jpBaseFontSize;
+    // Cached color blocks to reset Button's native transition without polling
+    private ColorBlock cachedNormalColors;
+    private bool colorsCached = false;
 
     private string originalText;
     private string jpOriginalText;
@@ -45,6 +48,13 @@ public class CustomButtonEffects : MonoBehaviour,
         {
             jpBaseFontSize = jpTextComponent.fontSize;
             jpOriginalText = jpTextComponent.text;
+        }
+
+        // Cache normal colors so we can force-reset the Button's native state
+        if (button != null)
+        {
+            cachedNormalColors = button.colors;
+            colorsCached = true;
         }
     }
     
@@ -116,6 +126,10 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnNormal);
         ApplyBackgroundSprite(effectProfile.normalBackgroundSprite);
 
+        // Force Unity's native Button back to Normal state so it doesn't stay
+        // stuck in Highlighted (especially on Windows with gamepad navigation).
+        ForceButtonNativeState(false);
+
         if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
         {
             textAnimator.SetText(originalText);
@@ -145,6 +159,9 @@ public class CustomButtonEffects : MonoBehaviour,
         ApplyMaskState(effectProfile.showMaskOnHighlighted);
         ApplyBackgroundSprite(effectProfile.highlightedBackgroundSprite);
 
+        // Override Button's native transition so it doesn't fight our highlight color
+        ForceButtonNativeState(true);
+
         if (textAnimator != null && textAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(originalText))
         {
             textAnimator.SetText($"<bounce>{originalText}</bounce>");
@@ -153,6 +170,29 @@ public class CustomButtonEffects : MonoBehaviour,
         if (jpTextAnimator != null && jpTextAnimator.isActiveAndEnabled && !string.IsNullOrEmpty(jpOriginalText))
         {
             jpTextAnimator.SetText($"<bounce>{jpOriginalText}</bounce>");
+        }
+    }
+
+    /// <summary>
+    /// Forces the Unity Button's native ColorBlock transition to a specific visual state,
+    /// preventing it from overriding or conflicting with our custom highlight logic.
+    /// </summary>
+    private void ForceButtonNativeState(bool highlighted)
+    {
+        if (!colorsCached || button == null || button.transition != Selectable.Transition.ColorTint)
+            return;
+
+        ColorBlock cb = cachedNormalColors;
+        // When not highlighted, set all states to normalColor so Button can't tint anything.
+        // When highlighted, leave as-is (our custom colors handle it via text/sprite).
+        // The key fix: after deselect on gamepad, Button stays in "highlighted" internally
+        // even after OnDeselect fires, so we force a CrossFade back to Normal.
+        if (!highlighted)
+        {
+            if (button.targetGraphic != null)
+            {
+                button.targetGraphic.CrossFadeColor(cb.normalColor * cb.colorMultiplier, cb.fadeDuration, true, true);
+            }
         }
     }
     
