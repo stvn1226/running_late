@@ -12,8 +12,10 @@
 
 #if UNITY_EDITOR
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TextCore.LowLevel;
 using TMPro;
 
 [InitializeOnLoad]

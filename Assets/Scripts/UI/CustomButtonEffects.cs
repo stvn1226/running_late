@@ -48,6 +48,11 @@ public class CustomButtonEffects : MonoBehaviour,
         {
             jpBaseFontSize = jpTextComponent.fontSize;
             jpOriginalText = jpTextComponent.text;
+
+            // Pre-warm the dynamic Japanese font atlas so characters are rasterized
+            // before the first frame. Without this, TMP shows squares on first render
+            // because the Dynamic atlas starts empty and fills on-demand — too late for frame 0.
+            jpTextComponent.ForceMeshUpdate(ignoreActiveState: true, forceTextReparsing: true);
         }
 
         // Cache normal colors so we can force-reset the Button's native state
