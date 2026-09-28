@@ -301,7 +301,7 @@ public class LevelStarter : MonoBehaviour
 
     private void InitializeSeed()
     {
-        if (useManualSeed)
+        if (useManualSeed && manualSeed > 0)
         {
             currentSeed = manualSeed;
             if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
@@ -311,6 +311,10 @@ public class LevelStarter : MonoBehaviour
             currentSeed = System.DateTime.Now.Millisecond +
                          System.DateTime.Now.Second * 1000 +
                          System.DateTime.Now.Minute * 60000;
+            if (currentSeed <= 0)
+            {
+                currentSeed = UnityEngine.Random.Range(100000, 999999);
+            }
             if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
         }
 
@@ -324,9 +328,11 @@ public class LevelStarter : MonoBehaviour
 
     public void SetManualSeed(int seed)
     {
+        if (seed <= 0) seed = UnityEngine.Random.Range(100000, 999999);
         manualSeed = seed;
         useManualSeed = true;
         currentSeed = seed;
+        if (LevelManager.Instance != null) LevelManager.Instance.LastSeed = currentSeed;
     }
 
     public void GenerateWithSeed(int seed)

@@ -70,6 +70,14 @@ public class Goal : MonoBehaviour
         float completionTime = cachedTimer != null ? cachedTimer.ElapsedTime : 0f;
         string formattedTime = cachedTimer != null ? cachedTimer.GetFormattedTime() : "00:00.00";
         int currentSeed = LevelStarter.Instance != null ? LevelStarter.Instance.GetCurrentSeed() : 0;
+        if (currentSeed <= 0 && LevelManager.Instance != null)
+        {
+            currentSeed = LevelManager.Instance.LastSeed;
+        }
+        if (currentSeed <= 0)
+        {
+            currentSeed = UnityEngine.Random.Range(100000, 999999);
+        }
     
         if (AnalyticsManager.Instance != null)
         {

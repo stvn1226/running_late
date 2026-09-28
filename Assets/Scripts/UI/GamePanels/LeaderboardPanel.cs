@@ -330,10 +330,9 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
     private void OnPlayWithSeedClicked(int seed, int pathMode)
     {
-        if (seed == 0)
+        if (seed <= 0)
         {
-            GameLogger.LogWarning("LEADERBOARD", "Cannot launch game from leaderboard: Seed is 0");
-            return;
+            seed = UnityEngine.Random.Range(100000, 999999);
         }
 
         int finalPathMode = ResolvePathMode(seed, pathMode);

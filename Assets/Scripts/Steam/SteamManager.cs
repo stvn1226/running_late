@@ -84,7 +84,11 @@ public class SteamManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        ShutdownSteam();
+        if (Instance == this)
+        {
+            ShutdownSteam();
+            Instance = null;
+        }
     }
 
     private void OnApplicationQuit()

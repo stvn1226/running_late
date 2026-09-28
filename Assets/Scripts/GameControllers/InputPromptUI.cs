@@ -35,6 +35,16 @@ public class InputPromptUI : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (ControllerTypeDetector.Instance != null)
+        {
+            ControllerTypeDetector.Instance.OnControllerChanged -= UpdatePrompt;
+            ControllerTypeDetector.Instance.OnControllerChanged += UpdatePrompt;
+            UpdatePrompt(ControllerTypeDetector.Instance.CurrentControllerType);
+        }
+    }
+
     private void OnDisable()
     {
         if (ControllerTypeDetector.Instance != null)

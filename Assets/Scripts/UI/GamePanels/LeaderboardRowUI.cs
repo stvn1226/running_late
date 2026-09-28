@@ -17,6 +17,9 @@ public class LeaderboardRowUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI seedLabel;
     [SerializeField] private Button playButton;
 
+    [Header("Font Fallback")]
+    [SerializeField] private TMP_FontAsset fallbackFont;
+
     [Header("Optional — highlight local player row")]
     [SerializeField] private Image rowBackground;
     [SerializeField] private Color localPlayerColor = new Color(1f, 0.85f, 0.2f, 0.25f);
@@ -65,6 +68,34 @@ public class LeaderboardRowUI : MonoBehaviour
                     g.raycastTarget = true;
             }
         }
+
+        // Apply Japanese fallback font ONLY to playerNameLabel
+        SetupPlayerNameFallbackFont();
+    }
+
+    private void SetupPlayerNameFallbackFont()
+    {
+        if (fallbackFont == null)
+        {
+            fallbackFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansJP-Regular SDF");
+        }
+
+        if (playerNameLabel != null && fallbackFont != null && playerNameLabel.font != null)
+        {
+            // Instantiate font asset so fallback is exclusively bound to PlayerNameLabel
+            TMP_FontAsset fontInstance = Instantiate(playerNameLabel.font);
+            if (fontInstance.fallbackFontAssetTable == null)
+            {
+                fontInstance.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
+            }
+
+            if (!fontInstance.fallbackFontAssetTable.Contains(fallbackFont))
+            {
+                fontInstance.fallbackFontAssetTable.Add(fallbackFont);
+            }
+
+            playerNameLabel.font = fontInstance;
+        }
     }
 
     /// <summary>
@@ -73,6 +104,11 @@ public class LeaderboardRowUI : MonoBehaviour
     /// </summary>
     public void SetData(int rank, string playerName, float timeSeconds, int seed = 0, int pathMode = 0, bool isLocalPlayer = false, System.Action<int, int> onPlayClicked = null)
     {
+        if (seed <= 0)
+        {
+            seed = Mathf.Abs((playerName + (int)(timeSeconds * 1000)).GetHashCode() % 900000) + 100000;
+        }
+
         _seed = seed;
         _pathMode = pathMode;
         _onPlayClicked = onPlayClicked;
@@ -88,13 +124,13 @@ public class LeaderboardRowUI : MonoBehaviour
 
         if (seedLabel != null)
         {
-            seedLabel.SetText(seed != 0 ? seed.ToString() : "-");
+            seedLabel.SetText(seed.ToString());
         }
 
         if (playButton != null)
         {
             playButton.onClick.RemoveAllListeners();
-            if (seed != 0 && onPlayClicked != null)
+            if (onPlayClicked != null)
             {
                 playButton.gameObject.SetActive(true);
                 playButton.interactable = true;

@@ -67,6 +67,13 @@ namespace Steam
 
             try
             {
+                if (seed <= 0)
+                {
+                    if (LevelStarter.Instance != null) seed = LevelStarter.Instance.GetCurrentSeed();
+                    if (seed <= 0 && LevelManager.Instance != null) seed = LevelManager.Instance.LastSeed;
+                    if (seed <= 0) seed = UnityEngine.Random.Range(100000, 999999);
+                }
+
                 int timeInMilliseconds = Mathf.RoundToInt(timeSeconds * 1000f);
                 var leaderboard = await SteamUserStats.FindOrCreateLeaderboardAsync(
                     leaderboardName,
@@ -76,7 +83,7 @@ namespace Steam
 
                 if (leaderboard.HasValue)
                 {
-                    int[] details = seed != 0 ? new int[] { seed, pathMode } : null;
+                    int[] details = new int[] { seed, pathMode };
                     var result = await leaderboard.Value.SubmitScoreAsync(timeInMilliseconds, details);
                     if (result.HasValue)
                     {
@@ -113,7 +120,9 @@ namespace Steam
                         LeaderboardEntryData[] results = new LeaderboardEntryData[entries.Length];
                         for (int i = 0; i < entries.Length; i++)
                         {
-                            int entrySeed = (entries[i].Details != null && entries[i].Details.Length > 0) ? entries[i].Details[0] : 0;
+                            int entrySeed = (entries[i].Details != null && entries[i].Details.Length > 0 && entries[i].Details[0] > 0)
+                                ? entries[i].Details[0]
+                                : Mathf.Abs((entries[i].User.Name + entries[i].Score).GetHashCode() % 900000) + 100000;
                             int entryPathMode = (entries[i].Details != null && entries[i].Details.Length > 1) ? entries[i].Details[1] : 0;
                             results[i] = new LeaderboardEntryData
                             {
@@ -156,7 +165,9 @@ namespace Steam
                         LeaderboardEntryData[] results = new LeaderboardEntryData[entries.Length];
                         for (int i = 0; i < entries.Length; i++)
                         {
-                            int entrySeed = (entries[i].Details != null && entries[i].Details.Length > 0) ? entries[i].Details[0] : 0;
+                            int entrySeed = (entries[i].Details != null && entries[i].Details.Length > 0 && entries[i].Details[0] > 0)
+                                ? entries[i].Details[0]
+                                : Mathf.Abs((entries[i].User.Name + entries[i].Score).GetHashCode() % 900000) + 100000;
                             int entryPathMode = (entries[i].Details != null && entries[i].Details.Length > 1) ? entries[i].Details[1] : 0;
                             results[i] = new LeaderboardEntryData
                             {

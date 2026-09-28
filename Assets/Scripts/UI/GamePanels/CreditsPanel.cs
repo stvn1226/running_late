@@ -104,9 +104,9 @@ public class CreditsPanel : BaseMainMenuPanel
             verticalInput = nav.y;
         }
 
-        if (Mathf.Abs(verticalInput) > 0.1f)
+        // Stick/WASD manual override with safe 0.25f deadzone to ignore controller stick drift
+        if (Mathf.Abs(verticalInput) > 0.25f)
         {
-            // Desplazamiento manual con Stick (izq/der), D-Pad o W / S / Flechas
             scrollRect.verticalNormalizedPosition = Mathf.Clamp01(
                 scrollRect.verticalNormalizedPosition + (verticalInput * manualScrollSpeed * Time.unscaledDeltaTime)
             );

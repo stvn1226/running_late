@@ -21,14 +21,14 @@ public class ControllerTypeDetector : MonoBehaviour
     public event Action<ControllerType> OnControllerChanged;
     
     [Header("Stability Settings")]
-    [SerializeField] private float gracePeriod = 2.0f;
+    [SerializeField] private float gracePeriod = 0.4f;
     [SerializeField] private bool enableGracePeriod = true;
     
     private ControllerType currentControllerType = ControllerType.Keyboard;
     private InputDevice lastUsedDevice;
     private PlayerInput playerInput;
     private string lastControlScheme = "Keyboard";
-    private float timeSinceLastInput = 0f;
+    private float timeSinceLastSwitch = 999f;
     
     public ControllerType CurrentControllerType => currentControllerType;
     public bool IsUsingGamepad => currentControllerType != ControllerType.Keyboard;
@@ -66,7 +66,7 @@ public class ControllerTypeDetector : MonoBehaviour
 
     private void Update()
     {
-        timeSinceLastInput += Time.unscaledDeltaTime;
+        timeSinceLastSwitch += Time.unscaledDeltaTime;
         
         if (playerInput == null)
         {
@@ -76,42 +76,53 @@ public class ControllerTypeDetector : MonoBehaviour
 
     public void NotifyControlSchemeChanged(string newScheme)
     {
-        if (newScheme == lastControlScheme)
-        {
-            timeSinceLastInput = 0f;
+        if (string.IsNullOrEmpty(newScheme) || newScheme == lastControlScheme)
             return;
-        }
         
-        if (!enableGracePeriod || timeSinceLastInput >= gracePeriod)
+        if (!enableGracePeriod || timeSinceLastSwitch >= gracePeriod)
         {
-            GameLogger.LogInput($"Control scheme change accepted: {lastControlScheme} → {newScheme} (grace: {timeSinceLastInput:F2}s)");
+            GameLogger.LogInput($"Control scheme change accepted: {lastControlScheme} → {newScheme}");
             lastControlScheme = newScheme;
-            timeSinceLastInput = 0f;
+            timeSinceLastSwitch = 0f;
             UpdateControllerTypeFromScheme(newScheme);
         }
         else
         {
-            GameLogger.LogInput($"Control scheme change IGNORED: {lastControlScheme} → {newScheme} (grace: {timeSinceLastInput:F2}s < {gracePeriod}s)");
+            GameLogger.LogInput($"Control scheme change IGNORED: {lastControlScheme} → {newScheme} (cooldown: {timeSinceLastSwitch:F2}s < {gracePeriod}s)");
         }
     }
 
     private void DetectInputWithoutPlayerInput()
     {
-        if (!enableGracePeriod || timeSinceLastInput >= gracePeriod)
+        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
         {
-            if (Gamepad.current != null && Gamepad.current.wasUpdatedThisFrame)
-            {
-                DetectDeviceFromControl(Gamepad.current);
-            }
-            else if (Mouse.current != null && Mouse.current.delta.ReadValue().sqrMagnitude > 0.01f)
-            {
-                DetectDeviceFromControl(Mouse.current);
-            }
-            else if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
-            {
-                DetectDeviceFromControl(Keyboard.current);
-            }
+            DetectDeviceFromControl(Keyboard.current);
         }
+        else if (Mouse.current != null && (Mouse.current.delta.ReadValue().sqrMagnitude > 0.01f || Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.rightButton.wasPressedThisFrame))
+        {
+            DetectDeviceFromControl(Mouse.current);
+        }
+        else if (Gamepad.current != null && IsGamepadActive(Gamepad.current))
+        {
+            DetectDeviceFromControl(Gamepad.current);
+        }
+    }
+
+    private static bool IsGamepadActive(Gamepad gamepad)
+    {
+        if (gamepad == null) return false;
+        if (gamepad.leftStick.ReadValue().sqrMagnitude > 0.04f || 
+            gamepad.rightStick.ReadValue().sqrMagnitude > 0.04f || 
+            gamepad.dpad.ReadValue().sqrMagnitude > 0.04f)
+        {
+            return true;
+        }
+
+        return gamepad.buttonSouth.isPressed || gamepad.buttonNorth.isPressed ||
+               gamepad.buttonEast.isPressed || gamepad.buttonWest.isPressed ||
+               gamepad.startButton.isPressed || gamepad.selectButton.isPressed ||
+               gamepad.leftShoulder.isPressed || gamepad.rightShoulder.isPressed ||
+               gamepad.leftTrigger.isPressed || gamepad.rightTrigger.isPressed;
     }
 
     private void UpdateControllerTypeFromScheme(string scheme)
@@ -141,10 +152,7 @@ public class ControllerTypeDetector : MonoBehaviour
         {
             if (obj is InputAction action && action.activeControl != null)
             {
-                if (!enableGracePeriod || timeSinceLastInput >= gracePeriod)
-                {
-                    DetectDeviceFromControl(action.activeControl.device);
-                }
+                DetectDeviceFromControl(action.activeControl.device);
             }
         }
     }
@@ -155,29 +163,35 @@ public class ControllerTypeDetector : MonoBehaviour
         {
             UpdateControllerTypeFromScheme(playerInput.currentControlScheme);
         }
-        else if (Gamepad.current != null)
+        else if (Gamepad.current != null && IsGamepadActive(Gamepad.current))
         {
             DetectDeviceFromControl(Gamepad.current);
-            GameLogger.LogInput("Detected gamepad without PlayerInput");
+            GameLogger.LogInput("Detected gamepad with active input");
         }
         else if (Keyboard.current != null)
         {
             DetectDeviceFromControl(Keyboard.current);
-            GameLogger.LogInput("Detected keyboard without PlayerInput");
+            GameLogger.LogInput("Detected keyboard as default/current device");
         }
     }
 
     private void DetectDeviceFromControl(InputDevice device)
     {
-        if (device == lastUsedDevice)
+        if (device == null) return;
+        ControllerType newType = GetControllerTypeFromDevice(device);
+        if (newType == currentControllerType)
         {
-            timeSinceLastInput = 0f;
+            lastUsedDevice = device;
+            return;
+        }
+
+        if (enableGracePeriod && timeSinceLastSwitch < gracePeriod)
+        {
             return;
         }
 
         lastUsedDevice = device;
-        timeSinceLastInput = 0f;
-        ControllerType newType = GetControllerTypeFromDevice(device);
+        timeSinceLastSwitch = 0f;
         SetControllerType(newType);
     }
 
