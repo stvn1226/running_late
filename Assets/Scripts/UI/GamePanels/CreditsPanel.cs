@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections;
 
@@ -20,27 +21,48 @@ public class CreditsPanel : BaseMainMenuPanel
     [SerializeField] private bool autoScroll = true;
     [SerializeField] private float scrollSpeed = 0.1f;
     [SerializeField] private float scrollDelay = 1f;
+
+    [Header("Manual Scroll Settings")]
+    [SerializeField] private float manualScrollSpeed = 0.4f;
+    [SerializeField] private float idleResumeDelay = 1.5f;
     
-    private Coroutine scrollCoroutine;
-    
-    protected override void SetupPanel()
+    private PlayerInputActions inputActions;
+    private float idleTimer = 0f;
+    private float bottomTimer = 0f;
+
+    private void Awake()
     {
-        if (defaultSelectedButton != null)
+        inputActions = new PlayerInputActions();
+    }
+
+    private void OnDestroy()
+    {
+        if (inputActions != null)
         {
-            defaultSelectedButton.onClick.AddListener(OnBackClicked);
+            inputActions.Dispose();
+            inputActions = null;
         }
     }
     
-    private void OnDestroy()
+    protected override void SetupPanel()
     {
-        if (defaultSelectedButton != null)
+        // Panel de créditos sin botones interactivos; el retorno se realiza con Cancel (B / Esc).
+    }
+
+    protected override void SetDefaultSelection()
+    {
+        if (EventSystem.current != null)
         {
-            defaultSelectedButton.onClick.RemoveListener(OnBackClicked);
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
     
     protected override void OnShow()
     {
+        inputActions?.UI.Enable();
+        idleTimer = scrollDelay;
+        bottomTimer = 0f;
+
         LoadLogos();
         
         if (creditsText != null)
@@ -62,23 +84,61 @@ public class CreditsPanel : BaseMainMenuPanel
             scrollRect.verticalNormalizedPosition = 1f;
         }
         
-        if (autoScroll)
-        {
-            scrollCoroutine = StartCoroutine(AutoScrollCredits());
-        }
-        
         GameLogger.Log("CREDITS", "Credits panel shown");
     }
     
     protected override void OnHide()
     {
-        if (scrollCoroutine != null)
-        {
-            StopCoroutine(scrollCoroutine);
-            scrollCoroutine = null;
-        }
-        
+        inputActions?.UI.Disable();
         GameLogger.Log("CREDITS", "Credits panel hidden");
+    }
+
+    private void Update()
+    {
+        if (!isVisible || scrollRect == null) return;
+
+        float verticalInput = 0f;
+        if (inputActions != null)
+        {
+            Vector2 nav = inputActions.UI.Navigate.ReadValue<Vector2>();
+            verticalInput = nav.y;
+        }
+
+        if (Mathf.Abs(verticalInput) > 0.1f)
+        {
+            // Desplazamiento manual con Stick (izq/der), D-Pad o W / S / Flechas
+            scrollRect.verticalNormalizedPosition = Mathf.Clamp01(
+                scrollRect.verticalNormalizedPosition + (verticalInput * manualScrollSpeed * Time.unscaledDeltaTime)
+            );
+            idleTimer = idleResumeDelay;
+            bottomTimer = 0f;
+        }
+        else
+        {
+            if (idleTimer > 0f)
+            {
+                idleTimer -= Time.unscaledDeltaTime;
+            }
+            else if (autoScroll)
+            {
+                if (scrollRect.verticalNormalizedPosition > 0.001f)
+                {
+                    scrollRect.verticalNormalizedPosition = Mathf.Clamp01(
+                        scrollRect.verticalNormalizedPosition - (scrollSpeed * Time.unscaledDeltaTime)
+                    );
+                }
+                else
+                {
+                    bottomTimer += Time.unscaledDeltaTime;
+                    if (bottomTimer >= 2f)
+                    {
+                        scrollRect.verticalNormalizedPosition = 1f;
+                        idleTimer = scrollDelay;
+                        bottomTimer = 0f;
+                    }
+                }
+            }
+        }
     }
     
     private void LoadLogos()
@@ -114,33 +174,14 @@ public class CreditsPanel : BaseMainMenuPanel
         }
     }
     
-    private void OnBackClicked()
+    public void OnBackClicked()
     {
         if (menuController != null)
         {
             menuController.ShowMainPanel();
         }
     }
-    
-    private IEnumerator AutoScrollCredits()
-    {
-        yield return new WaitForSecondsRealtime(scrollDelay);
-        
-        while (isVisible && scrollRect != null)
-        {
-            if (scrollRect.verticalNormalizedPosition > 0f)
-            {
-                scrollRect.verticalNormalizedPosition -= scrollSpeed * Time.unscaledDeltaTime;
-                yield return null;
-            }
-            else
-            {
-                yield return new WaitForSecondsRealtime(2f);
-                scrollRect.verticalNormalizedPosition = 1f;
-                yield return new WaitForSecondsRealtime(scrollDelay);
-            }
-        }
-    }
+
     
     private string GetFallbackCredits()
     {

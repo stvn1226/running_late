@@ -328,8 +328,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -175, y: 150}
-  m_SizeDelta: {x: 350, y: 300}
+  m_AnchoredPosition: {x: -175, y: 176.40384}
+  m_SizeDelta: {x: 350, y: 247.1923}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &826097946488066267
 GameObject:
@@ -1009,7 +1009,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 64, y: -64}
-  m_SizeDelta: {x: 128, y: 128}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9108382294736571138
 CanvasRenderer:
@@ -1105,7 +1105,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 66.000244, y: -53.009888}
+  m_AnchoredPosition: {x: 66.00049, y: -53.009766}
   m_SizeDelta: {x: 81.67, y: 74.63}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1144918563984162481
@@ -1722,7 +1722,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7864128859762413994}
   m_HandleRect: {fileID: 8298301433130267554}
   m_Direction: 2
-  m_Value: 1.0000008
+  m_Value: 1
   m_Size: 0.57453233
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -2175,8 +2175,10 @@ MonoBehaviour:
   vibrationToggle: {fileID: 7110784534186241101}
   backButton: {fileID: 8198988207315262916}
   resetButton: {fileID: 15334540424305808}
+  viewControlsTutorialButton: {fileID: 0}
   scrollRect: {fileID: 3861534282124978352}
   pauseMenuReference: {fileID: 0}
+  headerText: {fileID: 0}
   submitButtonPrompt: {fileID: 7114021864268940423}
   backButtonPrompt: {fileID: 3557012365429630888}
   controllerTypeText: {fileID: 0}
@@ -4302,8 +4304,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -20.697021}
-  m_SizeDelta: {x: -800, y: -281.4}
+  m_AnchoredPosition: {x: -25, y: -20.69751}
+  m_SizeDelta: {x: -850, y: -281.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &3713367303609285627
 GameObject:
@@ -6287,7 +6289,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.00048055395}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &4600424143380393538
@@ -6303,8 +6305,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
   m_Padding:
-    m_Left: 0
-    m_Right: 0
+    m_Left: 40
+    m_Right: 40
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 1
@@ -10965,7 +10967,7 @@ MonoBehaviour:
   m_Content: {fileID: 985894462529693007}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
@@ -11016,7 +11018,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 64, y: -64}
-  m_SizeDelta: {x: 128, y: 128}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3190844410532043093
 CanvasRenderer:
