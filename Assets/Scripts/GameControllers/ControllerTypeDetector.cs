@@ -16,7 +16,25 @@ public enum ControllerType
 
 public class ControllerTypeDetector : MonoBehaviour
 {
-    public static ControllerTypeDetector Instance { get; private set; }
+    private static ControllerTypeDetector instance;
+    public static ControllerTypeDetector Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<ControllerTypeDetector>();
+                if (instance == null)
+                {
+                    GameObject go = new GameObject("ControllerTypeDetector");
+                    instance = go.AddComponent<ControllerTypeDetector>();
+                    DontDestroyOnLoad(go);
+                }
+            }
+            return instance;
+        }
+        private set => instance = value;
+    }
     
     public event Action<ControllerType> OnControllerChanged;
     
@@ -35,12 +53,12 @@ public class ControllerTypeDetector : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
-        Instance = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
         
         GameLogger.LogInput("ControllerTypeDetector initialized");
