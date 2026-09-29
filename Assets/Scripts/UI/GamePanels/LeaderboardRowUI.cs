@@ -100,12 +100,17 @@ public class LeaderboardRowUI : MonoBehaviour
         {
             var font = rankLabel.font;
             Debug.Log($"[TMP_DIAGNOSTIC] rankLabel.font='{font.name}', instanceID={font.GetInstanceID()}, family='{font.faceInfo.familyName}', atlasMode={font.atlasPopulationMode}, fallbacks={(font.fallbackFontAssetTable != null ? font.fallbackFontAssetTable.Count : 0)}");
-            if (font.fallbackFontAssetTable != null)
+            if (font.characterLookupTable != null)
             {
-                foreach (var fb in font.fallbackFontAssetTable)
-                    Debug.Log($"[TMP_DIAGNOSTIC]   fallback font: '{(fb != null ? fb.name : "null")}'");
+                if (font.characterLookupTable.TryGetValue('#', out var chPound))
+                    Debug.Log($"[TMP_DIAGNOSTIC] '#' (35) -> glyphIndex: {chPound.glyphIndex}, rect: {chPound.glyph?.glyphRect.x},{chPound.glyph?.glyphRect.y},{chPound.glyph?.glyphRect.width}x{chPound.glyph?.glyphRect.height}");
+                if (font.characterLookupTable.TryGetValue('0', out var chZero))
+                    Debug.Log($"[TMP_DIAGNOSTIC] '0' (48) -> glyphIndex: {chZero.glyphIndex}, rect: {chZero.glyph?.glyphRect.x},{chZero.glyph?.glyphRect.y},{chZero.glyph?.glyphRect.width}x{chZero.glyph?.glyphRect.height}");
+                if (font.characterLookupTable.TryGetValue('W', out var chW))
+                    Debug.Log($"[TMP_DIAGNOSTIC] 'W' (87) -> glyphIndex: {chW.glyphIndex}, rect: {chW.glyph?.glyphRect.x},{chW.glyph?.glyphRect.y},{chW.glyph?.glyphRect.width}x{chW.glyph?.glyphRect.height}");
+                if (font.characterLookupTable.TryGetValue('N', out var chN))
+                    Debug.Log($"[TMP_DIAGNOSTIC] 'N' (78) -> glyphIndex: {chN.glyphIndex}, rect: {chN.glyph?.glyphRect.x},{chN.glyph?.glyphRect.y},{chN.glyph?.glyphRect.width}x{chN.glyph?.glyphRect.height}");
             }
-            Debug.Log($"[TMP_DIAGNOSTIC] HasChar('#')={font.HasCharacter('#')}, HasChar('0')={font.HasCharacter('0')}, HasChar('1')={font.HasCharacter('1')}");
         }
 
         if (playButton != null)
