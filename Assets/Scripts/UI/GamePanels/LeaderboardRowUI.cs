@@ -96,6 +96,18 @@ public class LeaderboardRowUI : MonoBehaviour
             seedLabel.SetText(seed.ToString());
         }
 
+        if (rank == 1 && rankLabel != null && rankLabel.font != null)
+        {
+            var font = rankLabel.font;
+            Debug.Log($"[TMP_DIAGNOSTIC] rankLabel.font='{font.name}', instanceID={font.GetInstanceID()}, family='{font.faceInfo.familyName}', atlasMode={font.atlasPopulationMode}, fallbacks={(font.fallbackFontAssetTable != null ? font.fallbackFontAssetTable.Count : 0)}");
+            if (font.fallbackFontAssetTable != null)
+            {
+                foreach (var fb in font.fallbackFontAssetTable)
+                    Debug.Log($"[TMP_DIAGNOSTIC]   fallback font: '{(fb != null ? fb.name : "null")}'");
+            }
+            Debug.Log($"[TMP_DIAGNOSTIC] HasChar('#')={font.HasCharacter('#')}, HasChar('0')={font.HasCharacter('0')}, HasChar('1')={font.HasCharacter('1')}");
+        }
+
         if (playButton != null)
         {
             playButton.onClick.RemoveAllListeners();
