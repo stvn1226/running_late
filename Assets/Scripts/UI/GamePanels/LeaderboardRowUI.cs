@@ -17,9 +17,6 @@ public class LeaderboardRowUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI seedLabel;
     [SerializeField] private Button playButton;
 
-    [Header("Font Fallback")]
-    [SerializeField] private TMP_FontAsset fallbackFont;
-
     [Header("Optional — highlight local player row")]
     [SerializeField] private Image rowBackground;
     [SerializeField] private Color localPlayerColor = new Color(1f, 0.85f, 0.2f, 0.25f);
@@ -67,34 +64,6 @@ public class LeaderboardRowUI : MonoBehaviour
                 else
                     g.raycastTarget = true;
             }
-        }
-
-        // Apply Japanese fallback font ONLY to playerNameLabel
-        SetupPlayerNameFallbackFont();
-    }
-
-    private void SetupPlayerNameFallbackFont()
-    {
-        if (fallbackFont == null)
-        {
-            fallbackFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansJP-Regular SDF");
-        }
-
-        if (playerNameLabel != null && fallbackFont != null && playerNameLabel.font != null)
-        {
-            // Instantiate font asset so fallback is exclusively bound to PlayerNameLabel
-            TMP_FontAsset fontInstance = Instantiate(playerNameLabel.font);
-            if (fontInstance.fallbackFontAssetTable == null)
-            {
-                fontInstance.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
-            }
-
-            if (!fontInstance.fallbackFontAssetTable.Contains(fallbackFont))
-            {
-                fontInstance.fallbackFontAssetTable.Add(fallbackFont);
-            }
-
-            playerNameLabel.font = fontInstance;
         }
     }
 
