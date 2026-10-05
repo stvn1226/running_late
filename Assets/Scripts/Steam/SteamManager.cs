@@ -1,5 +1,7 @@
 using UnityEngine;
+#if UNITY_STANDALONE && !UNITY_SERVER
 using Steamworks;
+#endif
 using Steam;
 
 /// <summary>
@@ -23,6 +25,11 @@ using Steam;
 public class SteamManager : MonoBehaviour
 {
     private const uint APP_ID = 4724080;
+#if UNITY_STANDALONE && !UNITY_SERVER
+    private const bool SteamSupportedOnThisBuild = true;
+#else
+    private const bool SteamSupportedOnThisBuild = false;
+#endif
 
     public static SteamManager Instance { get; private set; }
     public static bool IsInitialized { get; private set; }
@@ -52,6 +59,7 @@ public class SteamManager : MonoBehaviour
 
     private void InitializeSteam()
     {
+#if UNITY_STANDALONE && !UNITY_SERVER
         try
         {
             if (SteamClient.IsValid)
@@ -78,8 +86,12 @@ public class SteamManager : MonoBehaviour
             // Steam is not running, or another process has the lock, or wrong App ID.
             // The game will continue normally without crashing in offline/standalone mode.
             IsInitialized = false;
-            GameLogger.LogWarning("STEAM", $"Steam init skipped (running in offline/standalone mode): {e.Message}");
+            GameLogger.LogWarning("STEAM", $"Steam init skipped. AppId={APP_ID}, Platform={Application.platform}, BuildTarget=Standalone. Error: {e.GetType().Name}: {e.Message}");
         }
+#else
+        IsInitialized = false;
+        GameLogger.Log("STEAM", $"Steam disabled for this build target. Platform={Application.platform}, Supported={SteamSupportedOnThisBuild}");
+#endif
     }
 
     private void OnDestroy()
@@ -100,6 +112,7 @@ public class SteamManager : MonoBehaviour
     {
         if (IsInitialized)
         {
+#if UNITY_STANDALONE && !UNITY_SERVER
             try
             {
                 SteamClient.Shutdown();
@@ -110,6 +123,7 @@ public class SteamManager : MonoBehaviour
             {
                 GameLogger.LogWarning("STEAM", $"Error during Steam shutdown: {e.Message}");
             }
+#endif
         }
     }
 
@@ -117,6 +131,7 @@ public class SteamManager : MonoBehaviour
     {
         if (IsInitialized)
         {
+#if UNITY_STANDALONE && !UNITY_SERVER
             try
             {
                 SteamClient.RunCallbacks();
@@ -125,6 +140,7 @@ public class SteamManager : MonoBehaviour
             {
                 GameLogger.LogWarning("STEAM", $"Error in SteamClient callbacks: {e.Message}");
             }
+#endif
         }
     }
 
@@ -134,20 +150,32 @@ public class SteamManager : MonoBehaviour
     public static string GetSteamId()
     {
         if (!IsInitialized) return null;
+#if UNITY_STANDALONE && !UNITY_SERVER
         return SteamClient.SteamId.ToString();
+#else
+        return null;
+#endif
     }
 
     /// <summary>Returns the player's Steam display name, or null if Steam is unavailable.</summary>
     public static string GetPlayerName()
     {
         if (!IsInitialized) return null;
+#if UNITY_STANDALONE && !UNITY_SERVER
         return SteamClient.Name;
+#else
+        return null;
+#endif
     }
 
     /// <summary>Returns true if the player owns this app on Steam.</summary>
     public static bool IsOwned()
     {
         if (!IsInitialized) return false;
+#if UNITY_STANDALONE && !UNITY_SERVER
         return SteamApps.IsSubscribed;
+#else
+        return false;
+#endif
     }
 }

@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
 using Steamworks;
 using Steamworks.Data;
 #endif
@@ -62,7 +62,7 @@ namespace Steam
         /// </summary>
         public async Task<bool> SubmitTimeAsync(float timeSeconds, int seed = 0, int pathMode = 0, string leaderboardName = DEFAULT_LEADERBOARD)
         {
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (!SteamManager.IsInitialized) return false;
 
             try
@@ -106,7 +106,7 @@ namespace Steam
         /// </summary>
         public async Task<LeaderboardEntryData[]> GetTopGlobalScoresAsync(string leaderboardName = DEFAULT_LEADERBOARD, int maxCount = 10)
         {
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (!SteamManager.IsInitialized) return Array.Empty<LeaderboardEntryData>();
 
             try
@@ -151,7 +151,7 @@ namespace Steam
         /// </summary>
         public async Task<LeaderboardEntryData[]> GetFriendsScoresAsync(string leaderboardName = DEFAULT_LEADERBOARD)
         {
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (!SteamManager.IsInitialized) return Array.Empty<LeaderboardEntryData>();
 
             try

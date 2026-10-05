@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
 using Steamworks;
 #endif
 
@@ -35,7 +35,7 @@ namespace Steam
         /// <summary>Set status to Main Menu.</summary>
         public void SetInMenu()
         {
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (!SteamManager.IsInitialized) return;
             try
             {
@@ -53,7 +53,7 @@ namespace Steam
         /// <summary>Set status to actively playing a specific seed.</summary>
         public void SetPlayingLevel(int seed)
         {
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (!SteamManager.IsInitialized) return;
             try
             {
@@ -72,7 +72,7 @@ namespace Steam
         /// <summary>Set status to Level Complete with time.</summary>
         public void SetLevelCompleted(int seed, string timeFormatted)
         {
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (!SteamManager.IsInitialized) return;
             try
             {

@@ -83,7 +83,7 @@ namespace Achievements
             PlayerPrefs.Save();
 
             // 2. Trigger on Steam if available
-#if !UNITY_ANDROID && !UNITY_IOS
+#if UNITY_STANDALONE && !UNITY_SERVER
             if (SteamManager.IsInitialized)
             {
                 try

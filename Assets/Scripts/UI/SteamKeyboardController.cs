@@ -1,5 +1,7 @@
 using UnityEngine;
+#if UNITY_STANDALONE && !UNITY_SERVER
 using Steamworks;
+#endif
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -28,12 +30,16 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
             targetInputField = GetComponent<TMP_InputField>();
         }
 
+#if UNITY_STANDALONE && !UNITY_SERVER
         SteamUtils.OnGamepadTextInputDismissed += OnSteamKeyboardDismissed;
+#endif
     }
 
     private void OnDestroy()
     {
+#if UNITY_STANDALONE && !UNITY_SERVER
         SteamUtils.OnGamepadTextInputDismissed -= OnSteamKeyboardDismissed;
+#endif
         IsAnyKeyboardOpen = false;
 
         // SteamManager owns the Steam client lifecycle. Only restore the UI state this
@@ -62,6 +68,7 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
     /// </summary>
     public void OpenSteamOverlayKeyboard()
     {
+#if UNITY_STANDALONE && !UNITY_SERVER
         if (isKeyboardOpen || targetInputField == null || !SteamClient.IsValid)
         {
             Debug.Log("Steam client failed!");
@@ -87,6 +94,10 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
             IsAnyKeyboardOpen = false;
             RestoreMenuNavigation();
         }
+#else
+        if (targetInputField != null)
+            targetInputField.ActivateInputField();
+#endif
     }
 
     /// <summary>
@@ -94,6 +105,7 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
     /// </summary>
     private void OnSteamKeyboardDismissed(bool submitted)
     {
+#if UNITY_STANDALONE && !UNITY_SERVER
         if (!isKeyboardOpen)
             return;
 
@@ -109,6 +121,7 @@ public class SteamKeyboardController : MonoBehaviour, ISubmitHandler
         }
 
         RestoreMenuNavigation();
+#endif
     }
 
     private void SuspendMenuNavigation()
