@@ -409,46 +409,33 @@ public class LevelGeneratorEngine
                     nextH = UnityEngine.Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), roadElev + 1, roadElev + sidewalkMaxRelHeight);
             }
 
-            // Ensure the sidewalk slope is placed on top of a FLAT road segment.
-            // Exception: skip this check when mustForceSlope — in that case we have no room to wait
-            // and must descend regardless, or the sidewalk will never reach targetH.
-            if (nextH != currentH && !mustForceSlope)
-            {
-                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
-                if (sTemplate != null)
-                {
-                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
-                    bool isRoadFlat = true;
-                    if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
-                    {
-                        foreach (var rSeg in blueprint.RoadTrack.Segments)
-                        {
-                            float rSegWidth = rSeg.Template != null && rSeg.Template.moduleConfig != null ? rSeg.Template.moduleConfig.currentTerrainWidth : rSeg.Width;
-                            if (rSeg.X_Position < currentX + sw - 0.1f && rSeg.X_Position + rSegWidth > currentX + 0.1f)
-                            {
-                                if (rSeg.IsSlope)
-                                {
-                                    isRoadFlat = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (!isRoadFlat)
-                    {
-                        nextH = currentH; // Delay slope until road below is flat
-                    }
-                }
-            }
-
             ModuleBuilder bestFit = null;
             if (nextH == currentH)
             {
                 bestFit = GetBestFitSidewalk(blueprint, sidewalkModules, remaining, currentX, currentH, 1);
-                if (bestFit == null) 
+                if (bestFit == null)
                 {
-                    nextH = currentH + 1;
+                    if (signedDiff > 0) nextH = currentH - 1;
+                    else if (signedDiff < 0) nextH = currentH + 1;
+                    else nextH = currentH + 1;
+                }
+            }
+
+            if (nextH != currentH)
+            {
+                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
+                float sw = sTemplate != null && sTemplate.moduleConfig != null ? sTemplate.moduleConfig.currentTerrainWidth : singleSpace;
+                if (!IsRoadFlatInRange(blueprint, currentX, currentX + sw))
+                {
+                    GameLogger.LogWarning("LEVEL",
+                        $"[SidewalkSlopeGuard] Delaying invalid sidewalk slope over road slope. " +
+                        $"X={currentX:F2} End={currentX + sw:F2} CurrentH={currentH} NextH={nextH} TargetH={targetH} Remaining={remaining:F2}");
+                    nextH = currentH;
+                    bestFit = GetBestFitSidewalk(blueprint, sidewalkModules, remaining, currentX, currentH, 1);
+                    if (bestFit == null)
+                    {
+                        bestFit = GetSmallestModule(sidewalkModules);
+                    }
                 }
             }
 
@@ -474,6 +461,7 @@ public class LevelGeneratorEngine
             }
             else
             {
+                if (bestFit == null) break;
                 float pieceW = bestFit.moduleConfig.currentTerrainWidth;
                 blueprint.SidewalkTrack.Segments.Add(new SegmentData {
                     Template = bestFit,
@@ -569,6 +557,41 @@ public class LevelGeneratorEngine
             }
         }
         return maxElev == -999 ? 0 : maxElev;
+    }
+
+    private static bool IsRoadFlatInRange(LevelBlueprint blueprint, float startX, float endX)
+    {
+        if (blueprint.RoadTrack == null || blueprint.RoadTrack.Segments == null) return true;
+
+        foreach (var rSeg in blueprint.RoadTrack.Segments)
+        {
+            float rSegWidth = rSeg.Template != null && rSeg.Template.moduleConfig != null ? rSeg.Template.moduleConfig.currentTerrainWidth : rSeg.Width;
+            if (rSeg.X_Position < endX - 0.1f && rSeg.X_Position + rSegWidth > startX + 0.1f && rSeg.IsSlope)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static ModuleBuilder GetSmallestModule(ModuleBuilder[] options)
+    {
+        if (options == null || options.Length == 0) return null;
+
+        ModuleBuilder smallest = null;
+        float minW = float.MaxValue;
+        foreach (var opt in options)
+        {
+            if (opt == null || opt.moduleConfig == null) continue;
+            if (opt.moduleConfig.currentTerrainWidth < minW)
+            {
+                minW = opt.moduleConfig.currentTerrainWidth;
+                smallest = opt;
+            }
+        }
+
+        return smallest;
     }
 
     private static ModuleBuilder GetBestFitSidewalk(LevelBlueprint blueprint, ModuleBuilder[] options, float remainingSpace, float currentX, int currentH, int minClearance)
