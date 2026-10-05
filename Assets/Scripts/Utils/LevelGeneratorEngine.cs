@@ -298,46 +298,19 @@ public class LevelGeneratorEngine
         float targetStartRampX = blueprint.HouseAnchor.X_Position + blueprint.HouseAnchor.Width + singleSpace;
         float targetEndRampX = blueprint.SchoolAnchor.X_Position - singleSpace - endRampWidth;
 
-        // Ensure the end ramp is placed perfectly on top of a FLAT road segment of matching width at BASE LEVEL (0).
-        // Otherwise, it might be placed on top of an elevated road slope, creating a visual gap and making the ramp float in the air.
-        bool foundEndSnap = false;
-        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+        // The interlayer ramp only needs to fit inside a flat road segment; it does
+        // not need a road segment with the exact same width. Road flats are usually
+        // 16/32/48 units while the large connector is ~19 units.
+        if (TryFindFlatRoadLandingX(blueprint, targetEndRampX, endRampWidth, true, false, out float baseEndRampX) ||
+            TryFindFlatRoadLandingX(blueprint, targetEndRampX, endRampWidth, false, false, out baseEndRampX))
         {
-            for (int i = blueprint.RoadTrack.Segments.Count - 1; i >= 0; i--)
-            {
-                var rSeg = blueprint.RoadTrack.Segments[i];
-                if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope && rSeg.Y_Elevation == 0) {
-                    targetEndRampX = rSeg.X_Position;
-                    foundEndSnap = true;
-                    break;
-                }
-            }
-            
-            // Fallback just in case no base level segment is found
-            if (!foundEndSnap)
-            {
-                for (int i = blueprint.RoadTrack.Segments.Count - 1; i >= 0; i--)
-                {
-                    var rSeg = blueprint.RoadTrack.Segments[i];
-                    if (rSeg.X_Position <= targetEndRampX && Mathf.Abs(rSeg.Width - endRampWidth) < 0.1f && !rSeg.IsSlope) {
-                        targetEndRampX = rSeg.X_Position;
-                        break;
-                    }
-                }
-            }
+            targetEndRampX = baseEndRampX;
         }
 
         float startRampX = targetStartRampX;
-        
-        if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+        if (TryFindFlatRoadLandingX(blueprint, targetStartRampX, startRampWidth, false, true, out float snappedStartRampX))
         {
-            foreach (var rSeg in blueprint.RoadTrack.Segments)
-            {
-                if (rSeg.X_Position >= targetStartRampX && Mathf.Abs(rSeg.Width - startRampWidth) < 0.1f && !rSeg.IsSlope) {
-                    startRampX = rSeg.X_Position;
-                    break;
-                }
-            }
+            startRampX = snappedStartRampX;
         }
 
         float sidewalkStartX = startRampX + startRampWidth;
@@ -409,33 +382,46 @@ public class LevelGeneratorEngine
                     nextH = UnityEngine.Mathf.Clamp(currentH + (UnityEngine.Random.value > 0.5f ? 1 : -1), roadElev + 1, roadElev + sidewalkMaxRelHeight);
             }
 
+            // Ensure the sidewalk slope is placed on top of a FLAT road segment.
+            // Exception: skip this check when mustForceSlope — in that case we have no room to wait
+            // and must descend regardless, or the sidewalk will never reach targetH.
+            if (nextH != currentH && !mustForceSlope)
+            {
+                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
+                if (sTemplate != null)
+                {
+                    float sw = sTemplate.moduleConfig.currentTerrainWidth;
+                    bool isRoadFlat = true;
+                    if (blueprint.RoadTrack != null && blueprint.RoadTrack.Segments != null)
+                    {
+                        foreach (var rSeg in blueprint.RoadTrack.Segments)
+                        {
+                            float rSegWidth = rSeg.Template != null && rSeg.Template.moduleConfig != null ? rSeg.Template.moduleConfig.currentTerrainWidth : rSeg.Width;
+                            if (rSeg.X_Position < currentX + sw - 0.1f && rSeg.X_Position + rSegWidth > currentX + 0.1f)
+                            {
+                                if (rSeg.IsSlope)
+                                {
+                                    isRoadFlat = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isRoadFlat)
+                    {
+                        nextH = currentH; // Delay slope until road below is flat
+                    }
+                }
+            }
+
             ModuleBuilder bestFit = null;
             if (nextH == currentH)
             {
                 bestFit = GetBestFitSidewalk(blueprint, sidewalkModules, remaining, currentX, currentH, 1);
                 if (bestFit == null)
                 {
-                    if (signedDiff > 0) nextH = currentH - 1;
-                    else if (signedDiff < 0) nextH = currentH + 1;
-                    else nextH = currentH + 1;
-                }
-            }
-
-            if (nextH != currentH)
-            {
-                ModuleBuilder sTemplate = (nextH > currentH) ? slopeUp : slopeDown;
-                float sw = sTemplate != null && sTemplate.moduleConfig != null ? sTemplate.moduleConfig.currentTerrainWidth : singleSpace;
-                if (!IsRoadFlatInRange(blueprint, currentX, currentX + sw))
-                {
-                    GameLogger.LogWarning("LEVEL",
-                        $"[SidewalkSlopeGuard] Delaying invalid sidewalk slope over road slope. " +
-                        $"X={currentX:F2} End={currentX + sw:F2} CurrentH={currentH} NextH={nextH} TargetH={targetH} Remaining={remaining:F2}");
-                    nextH = currentH;
-                    bestFit = GetBestFitSidewalk(blueprint, sidewalkModules, remaining, currentX, currentH, 1);
-                    if (bestFit == null)
-                    {
-                        bestFit = GetSmallestModule(sidewalkModules);
-                    }
+                    nextH = currentH + 1;
                 }
             }
 
@@ -461,7 +447,6 @@ public class LevelGeneratorEngine
             }
             else
             {
-                if (bestFit == null) break;
                 float pieceW = bestFit.moduleConfig.currentTerrainWidth;
                 blueprint.SidewalkTrack.Segments.Add(new SegmentData {
                     Template = bestFit,
@@ -507,6 +492,39 @@ public class LevelGeneratorEngine
             }
         }
         return 0;
+    }
+
+    private static bool TryFindFlatRoadLandingX(LevelBlueprint blueprint, float desiredX, float rampWidth, bool requireBaseLevel, bool searchForward, out float landingX)
+    {
+        landingX = desiredX;
+        if (blueprint.RoadTrack == null || blueprint.RoadTrack.Segments == null) return false;
+
+        bool found = false;
+        float bestDistance = float.MaxValue;
+
+        foreach (var rSeg in blueprint.RoadTrack.Segments)
+        {
+            if (rSeg.IsSlope) continue;
+            if (requireBaseLevel && rSeg.Y_Elevation != 0) continue;
+
+            float segmentEnd = rSeg.X_Position + rSeg.Width;
+            if (segmentEnd - rSeg.X_Position < rampWidth - 0.1f) continue;
+
+            float candidate = Mathf.Clamp(desiredX, rSeg.X_Position, segmentEnd - rampWidth);
+
+            if (searchForward && candidate < desiredX - 0.1f) continue;
+            if (!searchForward && candidate > desiredX + 0.1f) continue;
+
+            float distance = Mathf.Abs(candidate - desiredX);
+            if (!found || distance < bestDistance)
+            {
+                landingX = candidate;
+                bestDistance = distance;
+                found = true;
+            }
+        }
+
+        return found;
     }
 
     private static void Pass4_FinalizeObstacles(LevelBlueprint blueprint)
@@ -557,41 +575,6 @@ public class LevelGeneratorEngine
             }
         }
         return maxElev == -999 ? 0 : maxElev;
-    }
-
-    private static bool IsRoadFlatInRange(LevelBlueprint blueprint, float startX, float endX)
-    {
-        if (blueprint.RoadTrack == null || blueprint.RoadTrack.Segments == null) return true;
-
-        foreach (var rSeg in blueprint.RoadTrack.Segments)
-        {
-            float rSegWidth = rSeg.Template != null && rSeg.Template.moduleConfig != null ? rSeg.Template.moduleConfig.currentTerrainWidth : rSeg.Width;
-            if (rSeg.X_Position < endX - 0.1f && rSeg.X_Position + rSegWidth > startX + 0.1f && rSeg.IsSlope)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static ModuleBuilder GetSmallestModule(ModuleBuilder[] options)
-    {
-        if (options == null || options.Length == 0) return null;
-
-        ModuleBuilder smallest = null;
-        float minW = float.MaxValue;
-        foreach (var opt in options)
-        {
-            if (opt == null || opt.moduleConfig == null) continue;
-            if (opt.moduleConfig.currentTerrainWidth < minW)
-            {
-                minW = opt.moduleConfig.currentTerrainWidth;
-                smallest = opt;
-            }
-        }
-
-        return smallest;
     }
 
     private static ModuleBuilder GetBestFitSidewalk(LevelBlueprint blueprint, ModuleBuilder[] options, float remainingSpace, float currentX, int currentH, int minClearance)
