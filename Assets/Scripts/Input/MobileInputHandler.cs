@@ -96,6 +96,7 @@ public class MobileInputHandler : MonoBehaviour
         Touch.onFingerMove -= OnFingerMove;
         Touch.onFingerUp   -= OnFingerUp;
         EnhancedTouchSupport.Disable();
+        ReleaseWallRun();
         ResetGestureState();
         ReleaseAllInputs();
     }
@@ -124,18 +125,10 @@ public class MobileInputHandler : MonoBehaviour
                 states.moveInput = Vector2.right;
         }
 
-        // Promote Tracking → WallRun once the hold window expires with no swipe
-        if (phase == GesturePhase.Tracking && committedAction == GestureAction.None)
+        // Safety check: if the finger holding wallRun was lost or lifted without event
+        if (wallRunFinger != null && !wallRunFinger.isActive)
         {
-            // If a UI button was pressed, abort tracking completely
-            if (MobileActionButton.ActiveButtonTouches > 0)
-            {
-                ResetGestureState();
-                return;
-            }
-
-            if (Time.unscaledTime - touchStartTime >= holdActivationDelay)
-                CommitAction(GestureAction.WallRun);
+            ReleaseWallRun();
         }
     }
 
@@ -160,21 +153,23 @@ public class MobileInputHandler : MonoBehaviour
 
     // ─── Touch callbacks ──────────────────────────────────────────────────────
 
+    private Finger wallRunFinger = null;
+
     private void OnFingerDown(Finger finger)
     {
-        // Ignore additional fingers if already tracking one
-        if (trackedFinger != null) return;
-
-        // Prevent activating WallRun or gestures if touching a UI Button
+        // Ignore touches over UI buttons (e.g. Pause button or HUD elements)
         if (IsPointerOverUI(finger.screenPosition)) return;
 
-        trackedFinger      = finger;
-        touchStartPosition = finger.screenPosition;
-        touchStartTime     = Time.unscaledTime;
-        phase              = GesturePhase.Tracking;
-        committedAction    = GestureAction.None;
-
-        GameLogger.LogInput($"[Mobile] FingerDown — index={finger.index} pos={finger.screenPosition}");
+        // Right side of screen (from 40% width to the right edge) acts as the WallRun grip zone
+        if (finger.screenPosition.x >= Screen.width * 0.4f)
+        {
+            wallRunFinger = finger;
+            if (states != null)
+            {
+                states.wallRunHeld = true;
+                GameLogger.LogInput($"[Mobile] Right-side hold started (Finger {finger.index}) -> WallRun HELD");
+            }
+        }
     }
 
     /// <summary>
@@ -196,38 +191,32 @@ public class MobileInputHandler : MonoBehaviour
 
     private void OnFingerMove(Finger finger)
     {
-        // Only process the finger we're tracking
-        if (finger != trackedFinger) return;
-        if (phase != GesturePhase.Tracking) return;
-
-        Vector2 delta = finger.screenPosition - touchStartPosition;
-
-        GameLogger.LogInput($"[Mobile] FingerMove — delta={delta} mag={delta.magnitude:F1} threshold={resolvedSwipeThresholdPx:F1}");
-
-        if (delta.magnitude < resolvedSwipeThresholdPx) return;
-
-        GestureAction swipeAction = ClassifySwipe(delta);
-        if (swipeAction != GestureAction.None)
-            CommitAction(swipeAction);
+        // If the finger holding WallRun slides into the left side or over UI, release it
+        if (finger == wallRunFinger)
+        {
+            if (finger.screenPosition.x < Screen.width * 0.35f || IsPointerOverUI(finger.screenPosition))
+            {
+                ReleaseWallRun();
+            }
+        }
     }
 
     private void OnFingerUp(Finger finger)
     {
-        if (finger != trackedFinger) return;
-
-        ReleaseCurrentAction();
-        ResetGestureState();
-
-        GameLogger.LogInput($"[Mobile] FingerUp — index={finger.index}");
+        if (finger == wallRunFinger)
+        {
+            ReleaseWallRun();
+            GameLogger.LogInput($"[Mobile] Right-side hold ended (Finger {finger.index}) -> WallRun RELEASED");
+        }
     }
 
-    // ─── Gesture classification ───────────────────────────────────────────────
-
-    private GestureAction ClassifySwipe(Vector2 delta)
+    private void ReleaseWallRun()
     {
-        // Swipe gestures are disabled — Jump/Slide/Kick/Dive are driven by UI buttons.
-        // Only WallRun (hold) remains active via the Update loop.
-        return GestureAction.None;
+        wallRunFinger = null;
+        if (states != null)
+        {
+            states.wallRunHeld = false;
+        }
     }
 
     // ─── Action dispatch ──────────────────────────────────────────────────────
