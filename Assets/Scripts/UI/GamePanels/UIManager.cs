@@ -154,6 +154,7 @@ public class UIManager : MonoBehaviour
             }
             
             Time.timeScale = 0f;
+            UI.Platform.MobileControlsManager.Instance?.SetControlsVisible(false);
             
             if (panel is PauseMenuPanel)
             {
@@ -208,6 +209,7 @@ public class UIManager : MonoBehaviour
         }
         
         Time.timeScale = 1f;
+        UI.Platform.MobileControlsManager.Instance?.SetControlsVisible(true);
         
         if (wasPaused && AnalyticsManager.Instance != null)
         {
@@ -247,6 +249,7 @@ public class UIManager : MonoBehaviour
             isEndGameActive = true;
             SetInputContext(true);
             Time.timeScale = 0f;
+            UI.Platform.MobileControlsManager.Instance?.SetControlsVisible(false);
             
             AudioManager.Instance?.StopAll();
             AudioManager.Instance?.Play(AudioManager.SoundType.MusicVictory);
@@ -277,6 +280,7 @@ public class UIManager : MonoBehaviour
             isEndGameActive = true;
             SetInputContext(true);
             Time.timeScale = 0f;
+            UI.Platform.MobileControlsManager.Instance?.SetControlsVisible(false);
             
             AudioManager.Instance?.StopAll();
             AudioManager.Instance?.Play(AudioManager.SoundType.MusicDefeat);
