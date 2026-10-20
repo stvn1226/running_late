@@ -80,6 +80,33 @@ public class SettingsPanel : BaseMainMenuPanel
         SetupVibrationToggle();
         SetupButtons();
         SetupScrollNavigation();
+
+        // On mobile, resolution and window modes are managed by the OS, and desktop tutorial is hidden
+        if (Application.isMobilePlatform)
+        {
+            if (fullscreenModeDropdown != null)
+            {
+                Transform parent = fullscreenModeDropdown.transform.parent;
+                if (parent != null && (parent.name.ToLower().Contains("row") || parent.name.ToLower().Contains("container")))
+                    parent.gameObject.SetActive(false);
+                else
+                    fullscreenModeDropdown.gameObject.SetActive(false);
+            }
+
+            if (resolutionDropdown != null)
+            {
+                Transform parent = resolutionDropdown.transform.parent;
+                if (parent != null && (parent.name.ToLower().Contains("row") || parent.name.ToLower().Contains("container")))
+                    parent.gameObject.SetActive(false);
+                else
+                    resolutionDropdown.gameObject.SetActive(false);
+            }
+
+            if (viewControlsTutorialButton != null)
+            {
+                viewControlsTutorialButton.gameObject.SetActive(false);
+            }
+        }
     }
     
     private void SetupScrollNavigation()

@@ -72,11 +72,14 @@ public class DisplaySettingsManager : MonoBehaviour
         
         SetVSync(vSyncCount);
         SetTargetFrameRate(targetFrameRate);
-        SetFullscreenMode((FullScreenMode)fullscreenModeIndex);
-        
-        if (resolutionIndex >= 0 && resolutionIndex < availableResolutions.Count)
+
+        if (!Application.isMobilePlatform)
         {
-            SetResolution(resolutionIndex);
+            SetFullscreenMode((FullScreenMode)fullscreenModeIndex);
+            if (resolutionIndex >= 0 && resolutionIndex < availableResolutions.Count)
+            {
+                SetResolution(resolutionIndex);
+            }
         }
         
         GameLogger.Log("DISPLAY", $"Settings loaded - VSync: {vSyncCount}, FPS: {targetFrameRate}, Mode: {(FullScreenMode)fullscreenModeIndex}, ResIndex: {resolutionIndex}");

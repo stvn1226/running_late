@@ -36,6 +36,13 @@ public class PauseMenuPanel : BaseMenuPanel
         {
             seedInputField.gameObject.AddComponent<VirtualKeyboardHelper>();
         }
+
+#if UNITY_IOS
+        if (quitButton != null)
+        {
+            quitButton.gameObject.SetActive(false);
+        }
+#endif
     }
     
     protected override void RegisterButtonCallbacks()
@@ -43,7 +50,9 @@ public class PauseMenuPanel : BaseMenuPanel
         retryButton.onClick.AddListener(OnRetryClicked);
         newLevelButton.onClick.AddListener(OnNewLevelClicked);
         settingsButton?.onClick.AddListener(OnSettingsClicked);
+#if !UNITY_IOS
         quitButton?.onClick.AddListener(OnQuitClicked);
+#endif
         seedToggle?.onValueChanged.AddListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.AddListener(OnSeedInputChanged);
     }
@@ -53,7 +62,9 @@ public class PauseMenuPanel : BaseMenuPanel
         retryButton.onClick.RemoveListener(OnRetryClicked);
         newLevelButton.onClick.RemoveListener(OnNewLevelClicked);
         settingsButton?.onClick.RemoveListener(OnSettingsClicked);
+#if !UNITY_IOS
         quitButton?.onClick.RemoveListener(OnQuitClicked);
+#endif
         seedToggle?.onValueChanged.RemoveListener(OnSeedToggleChanged);
         seedInputField.onEndEdit.RemoveListener(OnSeedInputChanged);
     }

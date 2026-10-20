@@ -84,7 +84,11 @@ public class MainMenuPanel : BaseMainMenuPanel
 
         if (quitButton != null)
         {
+#if UNITY_IOS
+            quitButton.gameObject.SetActive(false);
+#else
             quitButton.onClick.AddListener(OnQuitClicked);
+#endif
         }
 
         if (embeddedLeaderboard == null && menuController != null)

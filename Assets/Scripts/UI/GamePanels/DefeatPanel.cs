@@ -39,6 +39,12 @@ public class DefeatPanel : BaseMenuPanel
     
     protected override void SetupButtons()
     {
+#if UNITY_IOS
+        if (quitButton != null)
+        {
+            quitButton.gameObject.SetActive(false);
+        }
+#endif
     }
     
     protected override void RegisterButtonCallbacks()
@@ -46,7 +52,9 @@ public class DefeatPanel : BaseMenuPanel
         retryButton.onClick.AddListener(OnRetryClicked);
         newLevelButton.onClick.AddListener(OnNewLevelClicked);
         seedToggle?.onValueChanged.AddListener(OnSeedToggleChanged);
+#if !UNITY_IOS
         quitButton.onClick.AddListener(OnQuitClicked);
+#endif
     }
     
     protected override void UnregisterButtonCallbacks()
@@ -54,7 +62,9 @@ public class DefeatPanel : BaseMenuPanel
         retryButton.onClick.RemoveListener(OnRetryClicked);
         newLevelButton.onClick.RemoveListener(OnNewLevelClicked);
         seedToggle?.onValueChanged.RemoveListener(OnSeedToggleChanged);
+#if !UNITY_IOS
         quitButton.onClick.RemoveListener(OnQuitClicked);
+#endif
     }
     
     protected override void OnShow()

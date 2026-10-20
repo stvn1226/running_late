@@ -122,6 +122,17 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
         // Apply initial tab visual state (Global is active by default)
         RefreshTabVisuals(isGlobalActive: true);
+
+        // Hide Steam tabs on mobile to avoid redundant tabs and confusing UI
+        if (Application.isMobilePlatform)
+        {
+            if (tabGlobal != null) tabGlobal.gameObject.SetActive(false);
+            if (tabFriends != null) tabFriends.gameObject.SetActive(false);
+            if (tabGlobal != null && tabGlobal.transform.parent != null && tabGlobal.transform.parent.name.ToLower().Contains("tab"))
+            {
+                tabGlobal.transform.parent.gameObject.SetActive(false);
+            }
+        }
     }
 
     private void OnDestroy()
@@ -145,8 +156,10 @@ public class LeaderboardPanel : BaseMainMenuPanel
 
     protected override void SetDefaultSelection()
     {
-        if (tabGlobal != null && EventSystem.current != null)
+        if (!Application.isMobilePlatform && tabGlobal != null && tabGlobal.gameObject.activeInHierarchy && EventSystem.current != null)
             EventSystem.current.SetSelectedGameObject(tabGlobal.gameObject);
+        else if (backButton != null && backButton.gameObject.activeInHierarchy && EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(backButton.gameObject);
     }
 
     // ─── Tab Logic ────────────────────────────────────────────
@@ -275,7 +288,7 @@ public class LeaderboardPanel : BaseMainMenuPanel
             if (records != null && records.Count > 0)
             {
                 if (titleLabel != null)
-                    titleLabel.SetText("Local Best Times");
+                    titleLabel.SetText(Application.isMobilePlatform ? "Best Times" : "Local Best Times");
 
                 for (int i = 0; i < records.Count; i++)
                 {
