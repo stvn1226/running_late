@@ -79,7 +79,14 @@ public class MainMenuPanel : BaseMainMenuPanel
 
         if (leaderboardButton != null)
         {
-            leaderboardButton.onClick.AddListener(OnLeaderboardClicked);
+            if (IsMobilePlatform())
+            {
+                leaderboardButton.gameObject.SetActive(false);
+            }
+            else
+            {
+                leaderboardButton.onClick.AddListener(OnLeaderboardClicked);
+            }
         }
 
         if (quitButton != null)
@@ -105,6 +112,18 @@ public class MainMenuPanel : BaseMainMenuPanel
             if (leaderboardButton.transform.parent.name.ToLower().Contains("leaderboard"))
             {
                 leaderboardContainer = leaderboardButton.transform.parent.gameObject;
+            }
+        }
+
+        if (IsMobilePlatform())
+        {
+            showLeaderboard = false;
+            if (leaderboardContainer != null) leaderboardContainer.SetActive(false);
+            if (embeddedLeaderboard != null)
+            {
+                embeddedLeaderboard.HideEmbedded();
+                if (embeddedLeaderboard.gameObject != null)
+                    embeddedLeaderboard.gameObject.SetActive(false);
             }
         }
 
@@ -245,7 +264,7 @@ public class MainMenuPanel : BaseMainMenuPanel
 
         ApplyLeaderboardState();
 
-        if (embeddedLeaderboard != null && showLeaderboard)
+        if (!IsMobilePlatform() && embeddedLeaderboard != null && showLeaderboard)
         {
             // Register ALL step-1 buttons so they all navigate LEFT into the leaderboard.
             embeddedLeaderboard.RegisterMenuButtons(new Selectable[]
@@ -256,6 +275,12 @@ public class MainMenuPanel : BaseMainMenuPanel
                 quitButton,
             });
             embeddedLeaderboard.ShowEmbedded(playButton);
+        }
+        else if (IsMobilePlatform() && embeddedLeaderboard != null)
+        {
+            embeddedLeaderboard.HideEmbedded();
+            if (embeddedLeaderboard.gameObject != null)
+                embeddedLeaderboard.gameObject.SetActive(false);
         }
 
         
@@ -468,8 +493,31 @@ public class MainMenuPanel : BaseMainMenuPanel
         ApplyLeaderboardState();
     }
 
+    private static bool IsMobilePlatform()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        return true;
+#else
+        return Application.isMobilePlatform;
+#endif
+    }
+
     private void ApplyLeaderboardState()
     {
+        if (IsMobilePlatform())
+        {
+            showLeaderboard = false;
+            if (leaderboardContainer != null) leaderboardContainer.SetActive(false);
+            if (leaderboardButton != null) leaderboardButton.gameObject.SetActive(false);
+            if (embeddedLeaderboard != null)
+            {
+                embeddedLeaderboard.HideEmbedded();
+                if (embeddedLeaderboard.gameObject != null)
+                    embeddedLeaderboard.gameObject.SetActive(false);
+            }
+            return;
+        }
+
         // Old standalone button is hidden because it is replaced by embedded scrollable leaderboard
         GameObject containerToToggle = leaderboardContainer != null 
             ? leaderboardContainer 

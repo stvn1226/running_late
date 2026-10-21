@@ -52,8 +52,35 @@ public class LeaderboardPanel : BaseMainMenuPanel
     private bool _isFetching = false;
     private bool _showingGlobal = true;
 
+    private static bool IsMobilePlatform()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        return true;
+#else
+        return Application.isMobilePlatform;
+#endif
+    }
+
+    public override void Show()
+    {
+        if (IsMobilePlatform())
+        {
+            Hide();
+            return;
+        }
+        base.Show();
+    }
+
     private void Awake()
     {
+        if (IsMobilePlatform())
+        {
+            HideEmbedded();
+            if (panelRoot != null) panelRoot.SetActive(false);
+            gameObject.SetActive(false);
+            return;
+        }
+
         if (menuController == null)
         {
             menuController = GetComponentInParent<MainMenuController>() ?? Object.FindFirstObjectByType<MainMenuController>();
@@ -431,6 +458,12 @@ public class LeaderboardPanel : BaseMainMenuPanel
     // ─── Embedded Mode ────────────────────────────────────────
     public void ShowEmbedded(Selectable returnTarget)
     {
+        if (IsMobilePlatform())
+        {
+            HideEmbedded();
+            return;
+        }
+
         isEmbedded = true;
         _sideControlsTarget = returnTarget;
 
@@ -460,13 +493,12 @@ public class LeaderboardPanel : BaseMainMenuPanel
         if (panelRoot != null)
         {
             panelRoot.SetActive(false);
-            isVisible = false;
         }
-        else
+        if (gameObject != null)
         {
             gameObject.SetActive(false);
-            isVisible = false;
         }
+        isVisible = false;
     }
 
     public void RegisterMenuButtons(IEnumerable<Selectable> buttons)

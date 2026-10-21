@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace UI.Platform
 {
@@ -22,14 +23,29 @@ namespace UI.Platform
         {
             get
             {
+#if UNITY_ANDROID || UNITY_IOS
+                return true;
+#else
                 if (Application.isMobilePlatform) return true;
-#if UNITY_EDITOR
                 if (forceInEditor) return true;
                 var player = Object.FindFirstObjectByType<PlayerControllerModular>();
-                if (player != null && player.IsMobileMode) return true;
-#endif
+                if (player != null && (player.IsMobileMode || player.ForceMobileModeEditor)) return true;
                 return false;
+#endif
             }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void AutoInitialize()
+        {
+            if (Instance == null)
+            {
+                var go = new GameObject("MobileControlsManager");
+                Instance = go.AddComponent<MobileControlsManager>();
+                DontDestroyOnLoad(go);
+            }
+            Instance.ResolveButtonsContainer();
+            Instance.SetControlsVisible(Instance.ShouldShowMobileControls);
         }
 
         private void Awake()
@@ -40,45 +56,64 @@ namespace UI.Platform
                 return;
             }
             Instance = this;
+            DontDestroyOnLoad(gameObject);
 
+            SceneManager.sceneLoaded += OnSceneLoaded;
             ResolveButtonsContainer();
             SetControlsVisible(ShouldShowMobileControls);
         }
 
-        private void ResolveButtonsContainer()
+        private void OnDestroy()
         {
-            if (mobileButtonsContainer != null) return;
-
-            // Auto-locate MobileButtons in scene even if inactive
-            GameObject found = GameObject.Find("MobileButtons");
-            if (found != null)
+            if (Instance == this)
             {
-                mobileButtonsContainer = found;
-                return;
+                SceneManager.sceneLoaded -= OnSceneLoaded;
             }
+        }
 
-            var allButtons = Resources.FindObjectsOfTypeAll<MobileActionButton>();
-            foreach (var btn in allButtons)
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            mobileButtonsContainer = null;
+            ResolveButtonsContainer();
+            SetControlsVisible(ShouldShowMobileControls);
+        }
+
+        public static GameObject FindMobileButtons()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
             {
-                if (btn.gameObject.scene.isLoaded)
+                var scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded) continue;
+                foreach (var root in scene.GetRootGameObjects())
                 {
-                    Transform t = btn.transform;
-                    while (t.parent != null && !t.parent.name.Contains("Canvas") && t.parent.GetComponent<Canvas>() == null)
+                    var transforms = root.GetComponentsInChildren<Transform>(true);
+                    foreach (var t in transforms)
                     {
-                        t = t.parent;
+                        if (t.name == "MobileButtons")
+                            return t.gameObject;
                     }
-                    mobileButtonsContainer = t.gameObject;
-                    break;
                 }
             }
+            return null;
+        }
+
+        public void ResolveButtonsContainer()
+        {
+            if (mobileButtonsContainer != null && mobileButtonsContainer.scene.isLoaded) return;
+
+            mobileButtonsContainer = FindMobileButtons();
         }
 
         public void SetControlsVisible(bool visible)
         {
+            ResolveButtonsContainer();
             if (mobileButtonsContainer != null)
             {
-                mobileButtonsContainer.SetActive(visible && ShouldShowMobileControls);
+                bool active = visible && ShouldShowMobileControls;
+                mobileButtonsContainer.SetActive(active);
+                GameLogger.Log("MOBILE", $"MobileButtons active: {active}");
             }
         }
     }
 }
+

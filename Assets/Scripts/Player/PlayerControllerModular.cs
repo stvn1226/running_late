@@ -101,6 +101,16 @@ public class PlayerControllerModular : MonoBehaviour
             inputActions.Gameplay.Disable();
             ControllerTypeDetector.Instance?.SetMobileMode();
             GameLogger.LogInput("PlayerControllerModular: Mobile mode active — legacy InputActions disabled.");
+
+            if (UI.Platform.MobileControlsManager.Instance != null)
+            {
+                UI.Platform.MobileControlsManager.Instance.SetControlsVisible(true);
+            }
+            else
+            {
+                var buttons = UI.Platform.MobileControlsManager.FindMobileButtons();
+                if (buttons != null) buttons.SetActive(true);
+            }
         }
     }
 

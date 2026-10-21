@@ -41,6 +41,11 @@ public class MobileActionButton : MonoBehaviour, IPointerDownHandler, IPointerUp
             if (existing != null)
                 RegisterController(existing);
         }
+
+        if (_controller == null)
+        {
+            _controller = Object.FindFirstObjectByType<PlayerControllerModular>();
+        }
     }
 
     private void OnDisable()
@@ -68,6 +73,11 @@ public class MobileActionButton : MonoBehaviour, IPointerDownHandler, IPointerUp
         {
             isPressed = true;
             ActiveButtonTouches++;
+        }
+
+        if (_controller == null)
+        {
+            _controller = Object.FindFirstObjectByType<PlayerControllerModular>();
         }
 
         if (_controller == null) return;

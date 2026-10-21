@@ -52,7 +52,7 @@ public class ObjectPlatformToggle : MonoBehaviour
         // 1. Check for Forced Mobile Mode in PlayerController (if available in scene)
         // This is useful for Editor testing on PC.
         var player = FindFirstObjectByType<PlayerControllerModular>();
-        if (player != null && player.ForceMobileModeEditor)
+        if (player != null && (player.ForceMobileModeEditor || player.IsMobileMode))
         {
             return true;
         }
