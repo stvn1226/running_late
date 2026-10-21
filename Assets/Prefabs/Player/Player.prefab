@@ -377,7 +377,7 @@ MonoBehaviour:
   launchForceX: 3
   launchForceY: 5
   randomSpread: 1.5
-  lifetime: 3
+  maxLifetime: 6
   dropScale: 0.5
 --- !u!1 &4428378737645155119
 GameObject:
@@ -1172,7 +1172,7 @@ MonoBehaviour:
   airDodge: {fileID: 9074128693007361277}
   dive: {fileID: 5182206428601251989}
   mobileInputHandler: {fileID: 379714379640921349}
-  forceMobileModeEditor: 0
+  forceMobileModeEditor: 1
   camTarget: {fileID: 6246371687470053857}
 --- !u!114 &2374712412831154929
 MonoBehaviour:
