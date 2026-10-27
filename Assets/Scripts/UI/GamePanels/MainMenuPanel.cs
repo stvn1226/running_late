@@ -29,6 +29,7 @@ public class MainMenuPanel : BaseMainMenuPanel
     [SerializeField] private Button playButtonStep2;
     [SerializeField] private Button recentLevelsButtonStep2;
     [SerializeField] private Button savedLevelsButtonStep2;
+    [SerializeField] private Button backButtonStep2;
     
     [Header("Step 2 - Seed Configuration")]
     [SerializeField] private Toggle seedToggle;
@@ -154,6 +155,8 @@ public class MainMenuPanel : BaseMainMenuPanel
             seedToggle.onValueChanged.AddListener(OnSeedToggleChanged);
             OnSeedToggleChanged(seedToggle.isOn);
         }
+
+        SetupStep2BackButton();
     }
 
     private void SetupSeedKeyboard()
@@ -284,6 +287,16 @@ public class MainMenuPanel : BaseMainMenuPanel
         }
 
         
+        if (backButtonStep2 != null)
+        {
+            backButtonStep2.gameObject.SetActive(false);
+        }
+
+        if (step2TapDismissObj != null)
+        {
+            step2TapDismissObj.SetActive(false);
+        }
+        
         GameLogger.Log("MENU", "Showing Step 1 - Main Menu");
     }
     
@@ -301,6 +314,8 @@ public class MainMenuPanel : BaseMainMenuPanel
         
         isInStep2 = true;
         
+        SetupStep2BackButton();
+
         if (playButtonStep2 != null && EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(playButtonStep2.gameObject);
@@ -314,9 +329,130 @@ public class MainMenuPanel : BaseMainMenuPanel
         GameLogger.Log("MENU", "Showing Step 2 - Play Options");
     }
 
+    private GameObject step2TapDismissObj;
+
+    private void SetupStep2BackButton()
+    {
+        if (backButtonStep2 == null)
+        {
+            var buttons = GetComponentsInChildren<Button>(true);
+            foreach (var b in buttons)
+            {
+                if (b.name == "Step2BackButton" || b.name == "BackBtnStep2")
+                {
+                    backButtonStep2 = b;
+                    break;
+                }
+            }
+        }
+
+        if (backButtonStep2 == null)
+        {
+            GameObject backObj = new GameObject("Step2BackButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            backObj.transform.SetParent(transform, false);
+            backObj.transform.SetAsLastSibling();
+
+            RectTransform rect = backObj.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(50f, -50f);
+            rect.sizeDelta = new Vector2(180f, 65f);
+
+            Image img = backObj.GetComponent<Image>();
+            img.color = new Color(0.12f, 0.12f, 0.12f, 0.88f);
+            img.raycastTarget = true;
+
+            GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObj.transform.SetParent(backObj.transform, false);
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.sizeDelta = Vector2.zero;
+
+            TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
+            tmp.text = "← VOLVER";
+            tmp.fontSize = 28f;
+            tmp.fontStyle = FontStyles.Bold;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            tmp.raycastTarget = false;
+
+            if (playButtonStep2 != null)
+            {
+                var refText = playButtonStep2.GetComponentInChildren<TextMeshProUGUI>();
+                if (refText != null && refText.font != null)
+                {
+                    tmp.font = refText.font;
+                }
+            }
+
+            backButtonStep2 = backObj.GetComponent<Button>();
+            backButtonStep2.targetGraphic = img;
+
+            ColorBlock cb = backButtonStep2.colors;
+            cb.normalColor = Color.white;
+            cb.highlightedColor = new Color(1f, 0.9f, 0.4f, 1f);
+            cb.pressedColor = new Color(0.8f, 0.7f, 0.2f, 1f);
+            backButtonStep2.colors = cb;
+        }
+
+        // Tap outside the post-it note to dismiss Step 2 and return to Step 1 (same as Esc on desktop)
+        if (step2TapDismissObj == null)
+        {
+            step2TapDismissObj = new GameObject("Step2TapDismiss", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            step2TapDismissObj.transform.SetParent(transform, false);
+            if (step2Container != null && step2Container.transform.parent != null)
+            {
+                step2TapDismissObj.transform.SetSiblingIndex(Mathf.Max(0, step2Container.transform.parent.GetSiblingIndex()));
+            }
+
+            RectTransform dismissRect = step2TapDismissObj.GetComponent<RectTransform>();
+            dismissRect.anchorMin = Vector2.zero;
+            dismissRect.anchorMax = Vector2.one;
+            dismissRect.sizeDelta = Vector2.zero;
+
+            Image dismissImg = step2TapDismissObj.GetComponent<Image>();
+            dismissImg.color = Color.clear;
+            dismissImg.raycastTarget = true;
+
+            Button dismissBtn = step2TapDismissObj.GetComponent<Button>();
+            dismissBtn.transition = Selectable.Transition.None;
+            dismissBtn.onClick.AddListener(OnBackStep2Clicked);
+        }
+
+        if (backButtonStep2 != null)
+        {
+            backButtonStep2.onClick.RemoveListener(OnBackStep2Clicked);
+            backButtonStep2.onClick.AddListener(OnBackStep2Clicked);
+            backButtonStep2.gameObject.SetActive(isInStep2);
+            if (isInStep2) backButtonStep2.transform.SetAsLastSibling();
+        }
+
+        if (step2TapDismissObj != null)
+        {
+            step2TapDismissObj.SetActive(isInStep2);
+        }
+    }
+
+    public void OnBackStep2Clicked()
+    {
+        AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+        ShowStep1();
+    }
+
     protected override void OnHide()
     {
         base.OnHide();
+        if (backButtonStep2 != null)
+        {
+            backButtonStep2.gameObject.SetActive(false);
+        }
+        if (step2TapDismissObj != null)
+        {
+            step2TapDismissObj.SetActive(false);
+        }
         if (embeddedLeaderboard != null)
         {
             embeddedLeaderboard.HideEmbedded();

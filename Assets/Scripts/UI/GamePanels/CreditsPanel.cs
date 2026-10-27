@@ -46,7 +46,57 @@ public class CreditsPanel : BaseMainMenuPanel
     
     protected override void SetupPanel()
     {
-        // Panel de créditos sin botones interactivos; el retorno se realiza con Cancel (B / Esc).
+        SetupBackButton();
+    }
+
+    private void SetupBackButton()
+    {
+        // 1. Wire the BackBtn GameObject in the corner
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        Button backBtn = null;
+        foreach (var child in children)
+        {
+            if (child.name.ToLower().Contains("back"))
+            {
+                backBtn = child.gameObject.GetComponent<Button>() ?? child.gameObject.AddComponent<Button>();
+                break;
+            }
+        }
+
+        if (backBtn != null)
+        {
+            backBtn.onClick.RemoveListener(OnBackClicked);
+            backBtn.onClick.AddListener(OnBackClicked);
+
+            // Ensure raycast target is enabled on texts/images inside BackBtn
+            Graphic[] graphics = backBtn.GetComponentsInChildren<Graphic>(true);
+            foreach (var g in graphics)
+            {
+                g.raycastTarget = true;
+            }
+
+            // On mobile, hide the ESC/key icon so only the touchable label is displayed
+            if (ControllerTypeDetector.IsMobilePlatform())
+            {
+                var prompt = backBtn.GetComponent<InputPromptUI>();
+                if (prompt != null)
+                {
+                    prompt.HidePromptImage();
+                }
+            }
+        }
+
+        // 2. Full-panel tap-to-return fallback for mobile
+        var bgBtn = GetComponent<Button>() ?? gameObject.AddComponent<Button>();
+        bgBtn.transition = Selectable.Transition.None;
+        bgBtn.onClick.RemoveListener(OnBackClicked);
+        bgBtn.onClick.AddListener(OnBackClicked);
+
+        var panelImg = GetComponent<Image>();
+        if (panelImg != null)
+        {
+            panelImg.raycastTarget = true;
+        }
     }
 
     protected override void SetDefaultSelection()
@@ -59,6 +109,7 @@ public class CreditsPanel : BaseMainMenuPanel
     
     protected override void OnShow()
     {
+        SetupBackButton();
         inputActions?.UI.Enable();
         idleTimer = scrollDelay;
         bottomTimer = 0f;
@@ -176,6 +227,9 @@ public class CreditsPanel : BaseMainMenuPanel
     
     public void OnBackClicked()
     {
+        AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+
         if (menuController != null)
         {
             menuController.ShowMainPanel();

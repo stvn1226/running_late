@@ -91,13 +91,11 @@ namespace UI.GamePanels
 
         private void Start()
         {
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-            if (hideOnMobile)
+            if (hideOnMobile && (ControllerTypeDetector.IsMobilePlatform() || currentType == ControllerType.Mobile))
             {
                 SetVisible(false);
                 return;
             }
-#endif
             SetVisible(showOnStart);
         }
 
@@ -110,11 +108,14 @@ namespace UI.GamePanels
             }
             else
             {
-                currentType = ControllerType.Keyboard;
-                // Detector not ready yet (e.g. execution order in MainMenu).
-                // Wait for it without polling every frame — avoids icon-flickering
-                // when both keyboard and gamepad are connected simultaneously.
+                currentType = ControllerTypeDetector.IsMobilePlatform() ? ControllerType.Mobile : ControllerType.Keyboard;
                 StartCoroutine(WaitForDetectorAndSubscribe());
+            }
+
+            if (hideOnMobile && (currentType == ControllerType.Mobile || ControllerTypeDetector.IsMobilePlatform()))
+            {
+                SetVisible(false);
+                return;
             }
 
             RefreshPrompts();
@@ -125,15 +126,20 @@ namespace UI.GamePanels
             while (ControllerTypeDetector.Instance == null)
                 yield return null;
 
-            // Subscribe to future changes
             ControllerTypeDetector.Instance.OnControllerChanged += OnControllerTypeChanged;
 
-            // Sync current state (respects the detector's own grace period — no flickering)
             ControllerType detected = ControllerTypeDetector.Instance.CurrentControllerType;
             if (detected != currentType)
             {
                 currentType = detected;
-                RefreshPrompts();
+                if (hideOnMobile && (currentType == ControllerType.Mobile || ControllerTypeDetector.IsMobilePlatform()))
+                {
+                    SetVisible(false);
+                }
+                else
+                {
+                    RefreshPrompts();
+                }
             }
         }
 
@@ -149,6 +155,11 @@ namespace UI.GamePanels
         {
             if (currentType == newType) return;
             currentType = newType;
+            if (hideOnMobile && (newType == ControllerType.Mobile || ControllerTypeDetector.IsMobilePlatform()))
+            {
+                SetVisible(false);
+                return;
+            }
             RefreshPrompts();
         }
 

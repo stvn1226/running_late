@@ -30,6 +30,7 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         }
         
         savedLevelEntries = new List<SavedLevelEntry>();
+        SetupBackButton();
     }
 
     private void OnDestroy()
@@ -63,11 +64,89 @@ public class SavedLevelsPanel : BaseMainMenuPanel
         }
     }
 
-    private void OnBackClicked()
+    public void OnBackClicked()
     {
+        AudioManager.Instance?.Play(AudioManager.SoundType.OptionReturn);
+        GamepadVibrationManager.Instance?.TriggerLightVibration(0.08f);
+
         if (menuController != null)
         {
             menuController.ShowMainPanelStep2();
+        }
+    }
+
+    protected override void OnShow()
+    {
+        base.OnShow();
+        SetupBackButton();
+    }
+
+    private void SetupBackButton()
+    {
+        Button backBtn = null;
+        var buttons = GetComponentsInChildren<Button>(true);
+        foreach (var b in buttons)
+        {
+            if (b.name.ToLower().Contains("back") || b.name.ToLower().Contains("volver"))
+            {
+                backBtn = b;
+                break;
+            }
+        }
+
+        if (backBtn == null)
+        {
+            GameObject backObj = new GameObject("SavedLevelsBackButton", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            backObj.transform.SetParent(transform, false);
+            backObj.transform.SetAsLastSibling();
+
+            RectTransform rect = backObj.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(50f, -50f);
+            rect.sizeDelta = new Vector2(180f, 65f);
+
+            Image img = backObj.GetComponent<Image>();
+            img.color = new Color(0.12f, 0.12f, 0.12f, 0.88f);
+            img.raycastTarget = true;
+
+            GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            textObj.transform.SetParent(backObj.transform, false);
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.sizeDelta = Vector2.zero;
+
+            TMPro.TextMeshProUGUI tmp = textObj.GetComponent<TMPro.TextMeshProUGUI>();
+            tmp.text = "← VOLVER";
+            tmp.fontSize = 28f;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            tmp.raycastTarget = false;
+
+            var existingText = GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            if (existingText != null && existingText.font != null)
+            {
+                tmp.font = existingText.font;
+            }
+
+            backBtn = backObj.GetComponent<Button>();
+            backBtn.targetGraphic = img;
+
+            ColorBlock cb = backBtn.colors;
+            cb.normalColor = Color.white;
+            cb.highlightedColor = new Color(1f, 0.9f, 0.4f, 1f);
+            cb.pressedColor = new Color(0.8f, 0.7f, 0.2f, 1f);
+            backBtn.colors = cb;
+        }
+
+        if (backBtn != null)
+        {
+            backBtn.onClick.RemoveListener(OnBackClicked);
+            backBtn.onClick.AddListener(OnBackClicked);
+            backBtn.gameObject.SetActive(true);
         }
     }
 

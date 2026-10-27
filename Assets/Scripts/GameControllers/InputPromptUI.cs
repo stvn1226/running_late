@@ -53,8 +53,27 @@ public class InputPromptUI : MonoBehaviour
         }
     }
 
+    public void HidePromptImage()
+    {
+        if (promptImage != null)
+        {
+            promptImage.enabled = false;
+            promptImage.gameObject.SetActive(false);
+        }
+    }
+
     private void UpdatePrompt(ControllerType controllerType)
     {
+        if (controllerType == ControllerType.Mobile || ControllerTypeDetector.IsMobilePlatform())
+        {
+            HidePromptImage();
+            if (promptText != null)
+            {
+                promptText.enabled = true;
+            }
+            return;
+        }
+
         Sprite selectedSprite = null;
 
         switch (controllerType)
@@ -92,8 +111,13 @@ public class InputPromptUI : MonoBehaviour
 
         if (promptImage != null)
         {
+            promptImage.gameObject.SetActive(true);
             promptImage.sprite = selectedSprite;
             promptImage.enabled = true;
+        }
+
+        if (promptText != null)
+        {
             promptText.enabled = true;
         }
     }

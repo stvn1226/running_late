@@ -14,7 +14,7 @@ namespace UI.Platform
 
         [Header("Configuration")]
         [Tooltip("Root GameObject of the on-screen buttons prefab in the scene.")]
-        [SerializeField] private GameObject mobileButtonsContainer;
+        private System.Collections.Generic.List<GameObject> mobileButtonsContainers = new System.Collections.Generic.List<GameObject>();
 
         [Tooltip("If true, forces the mobile buttons to be visible in the Unity Editor.")]
         [SerializeField] private bool forceInEditor = false;
@@ -44,7 +44,7 @@ namespace UI.Platform
                 Instance = go.AddComponent<MobileControlsManager>();
                 DontDestroyOnLoad(go);
             }
-            Instance.ResolveButtonsContainer();
+            Instance.ResolveButtonsContainers();
             Instance.SetControlsVisible(Instance.ShouldShowMobileControls);
         }
 
@@ -59,7 +59,7 @@ namespace UI.Platform
             DontDestroyOnLoad(gameObject);
 
             SceneManager.sceneLoaded += OnSceneLoaded;
-            ResolveButtonsContainer();
+            ResolveButtonsContainers();
             SetControlsVisible(ShouldShowMobileControls);
         }
 
@@ -73,13 +73,20 @@ namespace UI.Platform
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            mobileButtonsContainer = null;
-            ResolveButtonsContainer();
+            mobileButtonsContainers.Clear();
+            ResolveButtonsContainers();
             SetControlsVisible(ShouldShowMobileControls);
         }
 
         public static GameObject FindMobileButtons()
         {
+            var list = FindAllMobileButtons();
+            return list.Count > 0 ? list[0] : null;
+        }
+
+        public static System.Collections.Generic.List<GameObject> FindAllMobileButtons()
+        {
+            var result = new System.Collections.Generic.List<GameObject>();
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 var scene = SceneManager.GetSceneAt(i);
@@ -89,30 +96,40 @@ namespace UI.Platform
                     var transforms = root.GetComponentsInChildren<Transform>(true);
                     foreach (var t in transforms)
                     {
-                        if (t.name == "MobileButtons")
-                            return t.gameObject;
+                        if (t.name.StartsWith("MobileButtons"))
+                        {
+                            if (!result.Contains(t.gameObject))
+                            {
+                                result.Add(t.gameObject);
+                            }
+                        }
                     }
                 }
             }
-            return null;
+            return result;
         }
 
-        public void ResolveButtonsContainer()
+        public void ResolveButtonsContainers()
         {
-            if (mobileButtonsContainer != null && mobileButtonsContainer.scene.isLoaded) return;
-
-            mobileButtonsContainer = FindMobileButtons();
+            mobileButtonsContainers.RemoveAll(item => item == null);
+            if (mobileButtonsContainers.Count == 0)
+            {
+                mobileButtonsContainers = FindAllMobileButtons();
+            }
         }
 
         public void SetControlsVisible(bool visible)
         {
-            ResolveButtonsContainer();
-            if (mobileButtonsContainer != null)
+            ResolveButtonsContainers();
+            bool active = visible && ShouldShowMobileControls;
+            foreach (var container in mobileButtonsContainers)
             {
-                bool active = visible && ShouldShowMobileControls;
-                mobileButtonsContainer.SetActive(active);
-                GameLogger.Log("MOBILE", $"MobileButtons active: {active}");
+                if (container != null)
+                {
+                    container.SetActive(active);
+                }
             }
+            GameLogger.Log("MOBILE", $"MobileButtons containers ({mobileButtonsContainers.Count}) active: {active}");
         }
     }
 }

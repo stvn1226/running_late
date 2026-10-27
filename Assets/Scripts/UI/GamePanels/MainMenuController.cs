@@ -257,6 +257,19 @@ public class MainMenuController : MonoBehaviour
             return;
         }
     }
+
+    public void TriggerCancel()
+    {
+        OnCancelPressed(default);
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TriggerCancel();
+        }
+    }
     
     private bool IsInputFieldActive()
     {

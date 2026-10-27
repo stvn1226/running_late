@@ -74,11 +74,22 @@ public class ControllerTypeDetector : MonoBehaviour
         InputSystem.onActionChange -= OnActionChange;
     }
 
+    public static bool IsMobilePlatform()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        return true;
+#else
+        return Application.isMobilePlatform || Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer;
+#endif
+    }
+
     private void Start()
     {
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-        SetControllerType(ControllerType.Mobile);
-#endif
+        if (IsMobilePlatform())
+        {
+            SetControllerType(ControllerType.Mobile);
+            return;
+        }
         DetectCurrentDevice();
     }
 
@@ -86,6 +97,19 @@ public class ControllerTypeDetector : MonoBehaviour
     {
         timeSinceLastSwitch += Time.unscaledDeltaTime;
         
+        if (IsMobilePlatform())
+        {
+            if (Gamepad.current != null && IsGamepadActive(Gamepad.current))
+            {
+                DetectDeviceFromControl(Gamepad.current);
+            }
+            else if (currentControllerType != ControllerType.Mobile)
+            {
+                SetControllerType(ControllerType.Mobile);
+            }
+            return;
+        }
+
         if (playerInput == null)
         {
             DetectInputWithoutPlayerInput();
