@@ -371,7 +371,7 @@ public class MainMenuPanel : BaseMainMenuPanel
             textRect.sizeDelta = Vector2.zero;
 
             TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
-            tmp.text = "← VOLVER";
+            tmp.text = "← GO BACK";
             tmp.fontSize = 28f;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;

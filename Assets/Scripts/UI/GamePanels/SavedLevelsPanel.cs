@@ -119,7 +119,7 @@ public class SavedLevelsPanel : BaseMainMenuPanel
             textRect.sizeDelta = Vector2.zero;
 
             TMPro.TextMeshProUGUI tmp = textObj.GetComponent<TMPro.TextMeshProUGUI>();
-            tmp.text = "← VOLVER";
+            tmp.text = "← GO BACK";
             tmp.fontSize = 28f;
             tmp.fontStyle = TMPro.FontStyles.Bold;
             tmp.alignment = TMPro.TextAlignmentOptions.Center;

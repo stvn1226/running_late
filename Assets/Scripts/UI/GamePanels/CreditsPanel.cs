@@ -49,53 +49,94 @@ public class CreditsPanel : BaseMainMenuPanel
         SetupBackButton();
     }
 
+    private Button mobileBackButton;
+
     private void SetupBackButton()
     {
-        // 1. Wire the BackBtn GameObject in the corner
+        // 1. Find and wire the existing BackBtn (InputPromptUI row used on desktop)
         Transform[] children = GetComponentsInChildren<Transform>(true);
-        Button backBtn = null;
         foreach (var child in children)
         {
-            if (child.name.ToLower().Contains("back"))
+            if (child.name.ToLower().Contains("back") && child.gameObject != gameObject)
             {
-                backBtn = child.gameObject.GetComponent<Button>() ?? child.gameObject.AddComponent<Button>();
+                // Hide the entire InputPromptUI row on mobile
+                if (ControllerTypeDetector.IsMobilePlatform())
+                {
+                    var prompt = child.GetComponent<InputPromptUI>();
+                    if (prompt != null)
+                    {
+                        prompt.HideAll();
+                    }
+                    else
+                    {
+                        child.gameObject.SetActive(false);
+                    }
+                }
+                else
+                {
+                    // Desktop: wire click on the existing row
+                    var btn = child.gameObject.GetComponent<Button>() ?? child.gameObject.AddComponent<Button>();
+                    btn.onClick.RemoveListener(OnBackClicked);
+                    btn.onClick.AddListener(OnBackClicked);
+                    Graphic[] graphics = btn.GetComponentsInChildren<Graphic>(true);
+                    foreach (var g in graphics) g.raycastTarget = true;
+                }
                 break;
             }
         }
 
-        if (backBtn != null)
+        // 2. Mobile: create / reuse a proper tappable GO BACK button
+        if (ControllerTypeDetector.IsMobilePlatform())
         {
-            backBtn.onClick.RemoveListener(OnBackClicked);
-            backBtn.onClick.AddListener(OnBackClicked);
-
-            // Ensure raycast target is enabled on texts/images inside BackBtn
-            Graphic[] graphics = backBtn.GetComponentsInChildren<Graphic>(true);
-            foreach (var g in graphics)
+            if (mobileBackButton == null)
             {
-                g.raycastTarget = true;
+                GameObject backObj = new GameObject("CreditsMobileBack", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+                backObj.transform.SetParent(transform, false);
+                backObj.transform.SetAsLastSibling();
+
+                RectTransform rect = backObj.GetComponent<RectTransform>();
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(0f, 1f);
+                rect.pivot     = new Vector2(0f, 1f);
+                rect.anchoredPosition = new Vector2(50f, -50f);
+                rect.sizeDelta = new Vector2(200f, 65f);
+
+                Image img = backObj.GetComponent<Image>();
+                img.color = new Color(0.12f, 0.12f, 0.12f, 0.88f);
+                img.raycastTarget = true;
+
+                GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+                textObj.transform.SetParent(backObj.transform, false);
+                RectTransform tr = textObj.GetComponent<RectTransform>();
+                tr.anchorMin = Vector2.zero;
+                tr.anchorMax = Vector2.one;
+                tr.sizeDelta = Vector2.zero;
+
+                TMPro.TextMeshProUGUI tmp = textObj.GetComponent<TMPro.TextMeshProUGUI>();
+                tmp.text = "← GO BACK";
+                tmp.fontSize = 28f;
+                tmp.fontStyle = TMPro.FontStyles.Bold;
+                tmp.alignment = TMPro.TextAlignmentOptions.Center;
+                tmp.color = Color.white;
+                tmp.raycastTarget = false;
+
+                // Inherit font from any existing TMP in the panel
+                var refTmp = GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+                if (refTmp != null && refTmp.font != null) tmp.font = refTmp.font;
+
+                mobileBackButton = backObj.GetComponent<Button>();
+                mobileBackButton.targetGraphic = img;
+
+                ColorBlock cb = mobileBackButton.colors;
+                cb.normalColor    = Color.white;
+                cb.highlightedColor = new Color(1f, 0.9f, 0.4f, 1f);
+                cb.pressedColor   = new Color(0.8f, 0.7f, 0.2f, 1f);
+                mobileBackButton.colors = cb;
             }
 
-            // On mobile, hide the ESC/key icon so only the touchable label is displayed
-            if (ControllerTypeDetector.IsMobilePlatform())
-            {
-                var prompt = backBtn.GetComponent<InputPromptUI>();
-                if (prompt != null)
-                {
-                    prompt.HidePromptImage();
-                }
-            }
-        }
-
-        // 2. Full-panel tap-to-return fallback for mobile
-        var bgBtn = GetComponent<Button>() ?? gameObject.AddComponent<Button>();
-        bgBtn.transition = Selectable.Transition.None;
-        bgBtn.onClick.RemoveListener(OnBackClicked);
-        bgBtn.onClick.AddListener(OnBackClicked);
-
-        var panelImg = GetComponent<Image>();
-        if (panelImg != null)
-        {
-            panelImg.raycastTarget = true;
+            mobileBackButton.onClick.RemoveListener(OnBackClicked);
+            mobileBackButton.onClick.AddListener(OnBackClicked);
+            mobileBackButton.gameObject.SetActive(true);
         }
     }
 

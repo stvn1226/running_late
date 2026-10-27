@@ -60,17 +60,25 @@ public class InputPromptUI : MonoBehaviour
             promptImage.enabled = false;
             promptImage.gameObject.SetActive(false);
         }
+        if (promptText != null)
+        {
+            promptText.enabled = false;
+        }
+    }
+
+    /// <summary>Completely hides this prompt (image + text + gameObject) on mobile.</summary>
+    public void HideAll()
+    {
+        gameObject.SetActive(false);
     }
 
     private void UpdatePrompt(ControllerType controllerType)
     {
         if (controllerType == ControllerType.Mobile || ControllerTypeDetector.IsMobilePlatform())
         {
-            HidePromptImage();
-            if (promptText != null)
-            {
-                promptText.enabled = true;
-            }
+            // On mobile: hide the entire GameObject so neither the key icon
+            // nor the text label (e.g. "Go back") is visible.
+            gameObject.SetActive(false);
             return;
         }
 
